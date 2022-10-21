@@ -9,7 +9,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.net.InetAddress;
-import java.net.UnknownHostException;
 
 /**
  * @author RollW
@@ -19,22 +18,17 @@ public class HeartbeatSendService {
     private final ManagedChannel channel;
     private final HeartbeatServiceGrpc.HeartbeatServiceBlockingStub serviceStub;
     private final Logger logger = LoggerFactory.getLogger(HeartbeatSendService.class);
+    private final InetAddress inetAddress;
 
-    public HeartbeatSendService(ManagedChannel channel,  InetAddress ip) {
+    public HeartbeatSendService(ManagedChannel channel, InetAddress inetAddress) {
         this.channel = channel;
         this.serviceStub = HeartbeatServiceGrpc.newBlockingStub(channel);
+        this.inetAddress = inetAddress;
     }
 
     public void sendHeartbeat() {
-        InetAddress ip;
-        try {
-            ip = InetAddress.getLocalHost();
-        } catch (UnknownHostException e) {
-            throw new RuntimeException(e);
-        }
-
         Heartbeat heartbeat = Heartbeat.newBuilder()
-                .setHost(ip.getHostAddress())
+                .setHost(inetAddress.getHostAddress())
                 .setPort("7021")
                 .build();
         logger.info("send heartbeat, address= {}:{}", heartbeat.getHost(), heartbeat.getPort());
