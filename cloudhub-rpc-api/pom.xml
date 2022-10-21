@@ -61,8 +61,9 @@
                 <configuration>
                     <useArgumentFile>true</useArgumentFile>
                     <pluginId>grpc-java</pluginId>
+                    <protocArtifact>com.google.protobuf:protoc:3.21.7:exe:${os.detected.classifier}</protocArtifact>
                     <pluginArtifact>io.grpc:protoc-gen-grpc-java:1.50.1:exe:${os.detected.classifier}</pluginArtifact>
-                    <protocExecutable>D:/tools/protoc/bin/protoc.exe</protocExecutable>
+<!--                    <protocExecutable>D:/tools/protoc/bin/protoc.exe</protocExecutable>-->
                 </configuration>
                 <executions>
                     <execution>
