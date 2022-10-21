@@ -20,7 +20,8 @@ public class HeartbeatService extends HeartbeatServiceGrpc.HeartbeatServiceImplB
 
     @Override
     public void receiveHeartbeat(Heartbeat request, StreamObserver<HeartbeatResponse> responseObserver) {
-        logger.info("receive heartbeat, address: {}:{}", request.getHost(), request.getPort());
+        logger.info("receive heartbeat, address: {}:{}, id: {}",
+                request.getHost(), request.getPort(), request.getId());
         responseObserver.onNext(
                 HeartbeatResponse.newBuilder()
                         .setErrorCode("00000")

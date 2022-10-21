@@ -1,6 +1,7 @@
 package org.huel.cloudhub.file.server.heartbeat;
 
 import io.grpc.ManagedChannel;
+import org.huel.cloudhub.file.server.id.ServerIdService;
 import org.huel.cloudhub.server.rpc.proto.Heartbeat;
 import org.huel.cloudhub.server.rpc.proto.HeartbeatResponse;
 import org.huel.cloudhub.server.rpc.proto.HeartbeatServiceGrpc;
@@ -19,17 +20,22 @@ public class HeartbeatSendService {
     private final HeartbeatServiceGrpc.HeartbeatServiceBlockingStub serviceStub;
     private final Logger logger = LoggerFactory.getLogger(HeartbeatSendService.class);
     private final InetAddress inetAddress;
+    private final ServerIdService serverIdService;
 
-    public HeartbeatSendService(ManagedChannel channel, InetAddress inetAddress) {
+    public HeartbeatSendService(ManagedChannel channel,
+                                InetAddress inetAddress,
+                                ServerIdService serverIdService) {
         this.channel = channel;
         this.serviceStub = HeartbeatServiceGrpc.newBlockingStub(channel);
         this.inetAddress = inetAddress;
+        this.serverIdService = serverIdService;
     }
 
     public void sendHeartbeat() {
         Heartbeat heartbeat = Heartbeat.newBuilder()
                 .setHost(inetAddress.getHostAddress())
                 .setPort("7021")
+                .setId(serverIdService.getServerId())
                 .build();
         logger.info("send heartbeat, address= {}:{}", heartbeat.getHost(), heartbeat.getPort());
         HeartbeatResponse response =
