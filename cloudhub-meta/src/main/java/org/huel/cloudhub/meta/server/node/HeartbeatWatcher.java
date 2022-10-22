@@ -35,4 +35,19 @@ public class HeartbeatWatcher {
     public NodeServer getNodeServer() {
         return nodeServer;
     }
+
+    /**
+     */
+    public HeartbeatWatcher fork() {
+        return new HeartbeatWatcher(nodeServer, timeoutTime, lastHeartbeat);
+    }
+
+    @Override
+    public String toString() {
+        return "HeartbeatWatcher[" +
+                "nodeServer=" + nodeServer +
+                ", timeoutTime=" + timeoutTime +
+                ", lastHeartbeat=" + lastHeartbeat +
+                ']';
+    }
 }

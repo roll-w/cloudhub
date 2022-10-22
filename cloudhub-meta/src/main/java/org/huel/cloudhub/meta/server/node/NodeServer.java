@@ -5,7 +5,7 @@ import org.huel.cloudhub.server.rpc.proto.Heartbeat;
 /**
  * Represents a server node.
  *
- * @param id UUID
+ * @param id server id
  * @author RollW
  */
 public record NodeServer(String id, String host, int port) {

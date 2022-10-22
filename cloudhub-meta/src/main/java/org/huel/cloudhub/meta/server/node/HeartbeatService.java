@@ -8,6 +8,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 /**
  * @author RollW
  */
@@ -62,6 +64,10 @@ public class HeartbeatService extends HeartbeatServiceGrpc.HeartbeatServiceImplB
                         .build()
         );
         responseObserver.onCompleted();
+    }
+
+    public List<HeartbeatWatcher> activeHeartbeatWatchers() {
+        return heartbeatWatcherPool.activeWatchers();
     }
 
 

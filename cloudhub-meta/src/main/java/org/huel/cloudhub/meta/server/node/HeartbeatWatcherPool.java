@@ -2,7 +2,7 @@ package org.huel.cloudhub.meta.server.node;
 
 import org.huel.cloudhub.server.rpc.proto.Heartbeat;
 
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -54,6 +54,13 @@ public final class HeartbeatWatcherPool {
 
     public HeartbeatWatcher getWatcher(String id) {
         return activeHeartbeatWatchers.get(id);
+    }
+
+    public List<HeartbeatWatcher> activeWatchers() {
+        List<HeartbeatWatcher> heartbeatWatchers = new ArrayList<>();
+        activeHeartbeatWatchers.values().forEach(heartbeatWatcher ->
+                heartbeatWatchers.add(heartbeatWatcher.fork()));
+        return heartbeatWatchers;
     }
 
     private class RCheckTimeoutRunnable implements Runnable {

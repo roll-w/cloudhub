@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -28,7 +29,7 @@ public class NodeRegisterService implements HeartbeatWatcherPool.ServerRemovable
     }
 
     public Collection<NodeServer> selectActiveNodes() {
-        return activeNodeServerMap.values();
+        return Collections.unmodifiableCollection(activeNodeServerMap.values());
     }
 
     public boolean isActive(String id) {
