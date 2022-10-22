@@ -5,25 +5,26 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author RollW
  */
 @Service
 public class NodeRegisterService implements HeartbeatWatcherPool.ServerRemovable {
-    private final Map<String, NodeServer> activeNodeServerMap = new HashMap<>();
+    private final Map<String, NodeServer> activeNodeServerMap =
+            new ConcurrentHashMap<>();
     private final Logger logger = LoggerFactory.getLogger(NodeRegisterService.class);
 
     public NodeRegisterService() {
     }
 
     public void registerNodeServer(NodeServer nodeServer) {
-        if (activeNodeServerMap.containsKey(nodeServer.getId())) {
+        if (activeNodeServerMap.containsKey(nodeServer.id())) {
             return;
         }
-        activeNodeServerMap.put(nodeServer.getId(), nodeServer);
+        activeNodeServerMap.put(nodeServer.id(), nodeServer);
     }
 
     public Collection<NodeServer> selectActiveNodes() {
@@ -35,7 +36,7 @@ public class NodeRegisterService implements HeartbeatWatcherPool.ServerRemovable
     }
 
     public void removeNodeServer(NodeServer nodeServer) {
-        removeNode(nodeServer.getId());
+        removeNode(nodeServer.id());
     }
 
     public void removeNode(String id) {

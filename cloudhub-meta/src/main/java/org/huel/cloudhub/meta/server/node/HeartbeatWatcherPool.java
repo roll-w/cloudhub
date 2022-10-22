@@ -2,10 +2,8 @@ package org.huel.cloudhub.meta.server.node;
 
 import org.huel.cloudhub.server.rpc.proto.Heartbeat;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -15,10 +13,11 @@ import java.util.concurrent.TimeUnit;
  */
 public final class HeartbeatWatcherPool {
     private final Map<String, HeartbeatWatcher> activeHeartbeatWatchers =
-            new HashMap<>();
+            new ConcurrentHashMap<>();
 
     private final int standardPeriod;
     private final int timeoutCycle;
+    private final int timeoutTime;
     private final ServerRemovable serverRemovable;
     private final int frequency; // in ms.
 
@@ -30,12 +29,19 @@ public final class HeartbeatWatcherPool {
         this.standardPeriod = standardPeriod;
         this.timeoutCycle = timeoutCycle;
         this.serverRemovable = removable;
+        this.timeoutTime = standardPeriod * timeoutCycle;
         frequency = standardPeriod / 2;
         this.checkTimeoutRunnable = new RCheckTimeoutRunnable();
     }
 
     public void pushWatcher(HeartbeatWatcher heartbeatWatcher) {
         activeHeartbeatWatchers.put(heartbeatWatcher.getServerId(), heartbeatWatcher);
+    }
+
+    public void pushNodeServerWatcher(NodeServer nodeServer) {
+        pushWatcher(
+                new HeartbeatWatcher(nodeServer, timeoutTime, System.currentTimeMillis())
+        );
     }
 
     public void updateWatcher(Heartbeat heartbeat) {
@@ -54,7 +60,6 @@ public final class HeartbeatWatcherPool {
         @Override
         public void run() {
             long time = System.currentTimeMillis();
-            List<HeartbeatWatcher> toRemove = new ArrayList<>();
             activeHeartbeatWatchers.values().stream().parallel().forEach(heartbeatWatcher -> {
                 if (heartbeatWatcher.isTimeout(time)) {
                     serverRemovable.removeActiveServer(heartbeatWatcher.getNodeServer());

@@ -3,37 +3,15 @@ package org.huel.cloudhub.meta.server.node;
 import org.huel.cloudhub.server.rpc.proto.Heartbeat;
 
 /**
+ * Represents a server node.
+ *
+ * @param id UUID
  * @author RollW
  */
-public class NodeServer {
-    /**
-     * UUID
-     */
-    private final String id;
-    private final String host;
-    private final int port;
-
-    public NodeServer(String id, String host, int port) {
-        this.id = id;
-        this.host = host;
-        this.port = port;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public String getHost() {
-        return host;
-    }
-
-
-    public int getPort() {
-        return port;
-    }
+public record NodeServer(String id, String host, int port) {
 
     public String toAddress() {
-        return getHost() + ":" + getPort();
+        return host() + ":" + port();
     }
 
     public static NodeServer create(String id, String host, int port) {

@@ -29,7 +29,7 @@ public class HeartbeatWatcher {
     }
 
     public String getServerId() {
-        return nodeServer.getId();
+        return nodeServer.id();
     }
 
     public NodeServer getNodeServer() {

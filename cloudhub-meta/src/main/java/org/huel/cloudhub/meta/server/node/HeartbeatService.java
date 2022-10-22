@@ -37,8 +37,8 @@ public class HeartbeatService extends HeartbeatServiceGrpc.HeartbeatServiceImplB
 
     @Override
     public void receiveHeartbeat(Heartbeat request, StreamObserver<HeartbeatResponse> responseObserver) {
-        logger.info("receive heartbeat, address: {}:{}, id: {}",
-                request.getHost(), request.getPort(), request.getId());
+//        logger.info("receive heartbeat, address: {}:{}, id: {}",
+//                request.getHost(), request.getPort(), request.getId());
         if (!nodeRegisterService.isActive(request.getId())) {
             responseObserver.onNext(
                     HeartbeatResponse.newBuilder()
@@ -49,8 +49,8 @@ public class HeartbeatService extends HeartbeatServiceGrpc.HeartbeatServiceImplB
             );
             NodeServer nodeServer = NodeServer.fromHeartbeat(request);
             nodeRegisterService.registerNodeServer(nodeServer);
-            heartbeatWatcherPool.pushWatcher(
-                    new HeartbeatWatcher(nodeServer, timeoutTime, System.currentTimeMillis()));
+            heartbeatWatcherPool.pushNodeServerWatcher(nodeServer);
+
             responseObserver.onCompleted();
             return;
         }
