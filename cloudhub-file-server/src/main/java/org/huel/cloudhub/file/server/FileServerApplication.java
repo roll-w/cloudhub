@@ -1,6 +1,6 @@
 package org.huel.cloudhub.file.server;
 
-import org.huel.cloudhub.file.server.heartbeat.HeartbeatSendService;
+import org.huel.cloudhub.file.server.heartbeat.ServerHeartbeatService;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
@@ -15,7 +15,7 @@ import javax.annotation.PostConstruct;
 @SpringBootApplication
 @ConfigurationPropertiesScan
 public class FileServerApplication {
-    public FileServerApplication(HeartbeatSendService service) {
+    public FileServerApplication(ServerHeartbeatService service) {
         this.service = service;
     }
 
@@ -23,7 +23,7 @@ public class FileServerApplication {
         SpringApplication.run(FileServerApplication.class, args);
     }
 
-    private final HeartbeatSendService service;
+    private final ServerHeartbeatService service;
 
     @PostConstruct
     public void sendHeartbeat() throws Exception {

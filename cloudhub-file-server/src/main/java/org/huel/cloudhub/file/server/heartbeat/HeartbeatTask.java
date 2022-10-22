@@ -7,9 +7,9 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class HeartbeatTask {
-    private final HeartbeatSendService service;
+    private final ServerHeartbeatService service;
 
-    public HeartbeatTask(HeartbeatSendService service) {
+    public HeartbeatTask(ServerHeartbeatService service) {
         this.service = service;
     }
 }

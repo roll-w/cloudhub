@@ -15,16 +15,16 @@ import java.net.InetAddress;
  * @author RollW
  */
 @Service
-public class HeartbeatSendService {
+public class ServerHeartbeatService {
     private final ManagedChannel channel;
     private final HeartbeatServiceGrpc.HeartbeatServiceBlockingStub serviceStub;
-    private final Logger logger = LoggerFactory.getLogger(HeartbeatSendService.class);
+    private final Logger logger = LoggerFactory.getLogger(ServerHeartbeatService.class);
     private final InetAddress inetAddress;
     private final ServerIdService serverIdService;
 
-    public HeartbeatSendService(ManagedChannel channel,
-                                InetAddress inetAddress,
-                                ServerIdService serverIdService) {
+    public ServerHeartbeatService(ManagedChannel channel,
+                                  InetAddress inetAddress,
+                                  ServerIdService serverIdService) {
         this.channel = channel;
         this.serviceStub = HeartbeatServiceGrpc.newBlockingStub(channel);
         this.inetAddress = inetAddress;

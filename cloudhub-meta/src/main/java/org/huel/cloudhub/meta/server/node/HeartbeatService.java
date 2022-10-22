@@ -18,20 +18,19 @@ public class HeartbeatService extends HeartbeatServiceGrpc.HeartbeatServiceImplB
     private final Logger logger = LoggerFactory.getLogger(HeartbeatService.class);
 
     private final HeartbeatServerProperties heartbeatServerProperties;
-    private final NodeRegisterService nodeRegisterService;
     private final HeartbeatWatcherPool heartbeatWatcherPool;
+    private final RegisterNodePool registerNodePool;
     private final int timeoutTime;
 
-    public HeartbeatService(HeartbeatServerProperties heartbeatServerProperties,
-                            NodeRegisterService nodeRegisterService) {
+    public HeartbeatService(HeartbeatServerProperties heartbeatServerProperties) {
         this.heartbeatServerProperties = heartbeatServerProperties;
-        this.nodeRegisterService = nodeRegisterService;
         this.timeoutTime = heartbeatServerProperties.getTimeoutCycle() * heartbeatServerProperties.getStandardPeriod();
 
+        this.registerNodePool = new RegisterNodePool();
         this.heartbeatWatcherPool = new HeartbeatWatcherPool(
                 heartbeatServerProperties.getStandardPeriod(),
                 heartbeatServerProperties.getTimeoutCycle(),
-                nodeRegisterService
+                registerNodePool
         );
         heartbeatWatcherPool.start();
         // or HeartbeatConfiguration?
@@ -41,7 +40,7 @@ public class HeartbeatService extends HeartbeatServiceGrpc.HeartbeatServiceImplB
     public void receiveHeartbeat(Heartbeat request, StreamObserver<HeartbeatResponse> responseObserver) {
 //        logger.info("receive heartbeat, address: {}:{}, id: {}",
 //                request.getHost(), request.getPort(), request.getId());
-        if (!nodeRegisterService.isActive(request.getId())) {
+        if (!registerNodePool.isActive(request.getId())) {
             responseObserver.onNext(
                     HeartbeatResponse.newBuilder()
                             .setErrorCode("00000")
@@ -50,7 +49,7 @@ public class HeartbeatService extends HeartbeatServiceGrpc.HeartbeatServiceImplB
                             .build()
             );
             NodeServer nodeServer = NodeServer.fromHeartbeat(request);
-            nodeRegisterService.registerNodeServer(nodeServer);
+            registerNodePool.registerNodeServer(nodeServer);
             heartbeatWatcherPool.pushNodeServerWatcher(nodeServer);
 
             responseObserver.onCompleted();
@@ -70,5 +69,8 @@ public class HeartbeatService extends HeartbeatServiceGrpc.HeartbeatServiceImplB
         return heartbeatWatcherPool.activeWatchers();
     }
 
+    public List<NodeServer> activeServers() {
+        return registerNodePool.getActiveNodes();
+    }
 
 }

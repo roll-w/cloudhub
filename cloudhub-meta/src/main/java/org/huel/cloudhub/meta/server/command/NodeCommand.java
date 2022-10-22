@@ -2,14 +2,12 @@ package org.huel.cloudhub.meta.server.command;
 
 import org.huel.cloudhub.meta.server.node.HeartbeatService;
 import org.huel.cloudhub.meta.server.node.HeartbeatWatcher;
-import org.huel.cloudhub.meta.server.node.NodeRegisterService;
 import org.huel.cloudhub.meta.server.node.NodeServer;
 import org.springframework.shell.standard.AbstractShellComponent;
 import org.springframework.shell.standard.ShellComponent;
 import org.springframework.shell.standard.ShellMethod;
 import org.springframework.shell.standard.ShellOption;
 
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -19,12 +17,9 @@ import java.util.List;
  */
 @ShellComponent
 public class NodeCommand extends AbstractShellComponent {
-    private final NodeRegisterService nodeRegisterService;
     private final HeartbeatService heartbeatService;
 
-    public NodeCommand(NodeRegisterService nodeRegisterService,
-                       HeartbeatService heartbeatService) {
-        this.nodeRegisterService = nodeRegisterService;
+    public NodeCommand(HeartbeatService heartbeatService) {
         this.heartbeatService = heartbeatService;
     }
 
@@ -44,7 +39,7 @@ public class NodeCommand extends AbstractShellComponent {
     }
 
     private void showActiveNodes() {
-        Collection<NodeServer> activeNodes = nodeRegisterService.selectActiveNodes();
+        List<NodeServer> activeNodes = heartbeatService.activeServers();
         getTerminal().writer().println("shows all active nodes: active nodes count = [%d]"
                 .formatted(activeNodes.size()));
         activeNodes

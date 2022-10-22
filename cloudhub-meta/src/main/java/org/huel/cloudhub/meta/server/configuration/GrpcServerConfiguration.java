@@ -24,8 +24,8 @@ public class GrpcServerConfiguration {
     }
 
     @Autowired
-    public void setHeartbeatService(HeartbeatService heartbeatService) {
-        this.heartbeatService = heartbeatService;
+    public void setHeartbeatService(HeartbeatService nodeService) {
+        this.heartbeatService = nodeService;
     }
 
     @Bean
