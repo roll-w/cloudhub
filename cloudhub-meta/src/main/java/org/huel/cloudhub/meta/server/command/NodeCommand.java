@@ -35,7 +35,7 @@ public class NodeCommand extends AbstractShellComponent {
 
     private void showActiveNodes() {
         Collection<NodeServer> activeNodes = nodeRegisterService.selectActiveNodes();
-        getTerminal().writer().println("shows all active nodes: active nodes number = [%d]"
+        getTerminal().writer().println("shows all active nodes: active nodes count = [%d]"
                 .formatted(activeNodes.size()));
         activeNodes
                 .forEach(getTerminal().writer()::println);
