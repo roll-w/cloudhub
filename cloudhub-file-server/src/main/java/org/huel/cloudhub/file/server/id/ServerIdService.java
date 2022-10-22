@@ -16,12 +16,17 @@ public class ServerIdService {
     private final UUID uuid;
     private final String uuidString;
 
+    public static final String VERSION_KEY  = "";
+    public static final String ID_KEY  = "";
+
+
     public ServerIdService() throws IOException {
         uuid = initialId();
         uuidString = uuid.toString();
     }
 
     private UUID initialId() throws IOException {
+        // TODO: move to properties
         File file = new File("ID_VERSION");
         if (!file.exists()) {
             file.createNewFile();

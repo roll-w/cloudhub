@@ -2,11 +2,11 @@ syntax = "proto3";
 
 option java_multiple_files = true;
 option java_package = "org.huel.cloudhub.server.rpc.proto";
-option java_outer_classname = "HeartbeatProto";
+option java_outer_classname = "HeartbeatProtos";
 
 message Heartbeat {
   string host = 1;
-  string port = 2;
+  int32 port = 2;
   string id = 3;
   // when receive a response contains period from meta server,
   // the server should declare the period it now has.

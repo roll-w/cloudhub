@@ -34,12 +34,13 @@ public class HeartbeatSendService {
     public void sendHeartbeat() {
         Heartbeat heartbeat = Heartbeat.newBuilder()
                 .setHost(inetAddress.getHostAddress())
-                .setPort("7021")
+                .setPort(7021)
                 .setId(serverIdService.getServerId())
                 .build();
         logger.info("send heartbeat, address= {}:{}", heartbeat.getHost(), heartbeat.getPort());
         HeartbeatResponse response =
                 serviceStub.receiveHeartbeat(heartbeat);
-        logger.info("receive response: errorCode: {}", response.getErrorCode());
+        logger.info("receive response: errorCode={};message={};period={}",
+                response.getErrorCode(), response.getMessage(), response.getPeriod());
     }
 }

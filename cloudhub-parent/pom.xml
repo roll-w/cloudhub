@@ -170,6 +170,12 @@
         </dependencies>
     </dependencyManagement>
 
+    <dependencies>
+        <dependency>
+            <groupId>space.lingu.fiesta</groupId>
+            <artifactId>fiesta-annotations</artifactId>
+        </dependency>
+    </dependencies>
     <build>
         <resources>
             <resource>

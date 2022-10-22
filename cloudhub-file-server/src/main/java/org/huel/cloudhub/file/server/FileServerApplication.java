@@ -27,7 +27,7 @@ public class FileServerApplication implements ApplicationRunner {
     @Override
     public void run(ApplicationArguments args) throws Exception {
         while (true) {
-            Thread.sleep(1000);
+            Thread.sleep(999);
             service.sendHeartbeat();
         }
     }
