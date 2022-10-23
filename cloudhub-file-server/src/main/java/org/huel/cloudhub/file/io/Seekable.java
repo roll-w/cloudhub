@@ -1,4 +1,4 @@
-package org.huel.cloudhub.file.fs;
+package org.huel.cloudhub.file.io;
 
 import java.io.IOException;
 
@@ -9,4 +9,6 @@ import java.io.IOException;
  */
 public interface Seekable {
     void seek(long position) throws IOException;
+
+    long position();
 }

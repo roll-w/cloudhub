@@ -1,19 +1,3 @@
-/*
- * Copyright (C) 2022 Lingu.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package org.huel.cloudhub.common;
 
 import com.fasterxml.jackson.core.JacksonException;
@@ -25,7 +9,6 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 
 import java.io.FileNotFoundException;
@@ -39,6 +22,9 @@ import java.util.IllegalFormatException;
 @JsonSerialize(using = ErrorCode.ErrorCodeSerializer.class)
 @JsonDeserialize(using = ErrorCode.ErrorCodeDeserializer.class)
 public enum ErrorCode implements ErrorEnum {
+    // 有需要在这里添加错误码
+    
+    
     /**
      * 成功
      */
@@ -82,7 +68,7 @@ public enum ErrorCode implements ErrorEnum {
     /**
      * 用户未登录
      */
-    ERROR_USER_NOT_LOGIN("A0202", HttpStatus.FORBIDDEN.value()),
+    ERROR_USER_NOT_LOGIN("A0202", 403), // 403 Forbidden.
     /**
      * 密码错误
      */
@@ -110,7 +96,7 @@ public enum ErrorCode implements ErrorEnum {
     /**
      * 请求次数过多
      */
-    ERROR_REQUEST_OVERRUN("A0501", HttpStatus.TOO_MANY_REQUESTS.value()),
+    ERROR_REQUEST_OVERRUN("A0501", 429),// TOO MANY REQUESTS
     /**
      * 上传文件错误
      */
@@ -118,7 +104,7 @@ public enum ErrorCode implements ErrorEnum {
     /**
      * 上传文件类型错误
      */
-    ERROR_FILE_UNMATCHED("A0701", HttpStatus.BAD_REQUEST.value()),
+    ERROR_FILE_UNMATCHED("A0701", 400),// BAD REQUEST
     /**
      * 文件过大
      */
@@ -130,7 +116,7 @@ public enum ErrorCode implements ErrorEnum {
     /**
      * 文件未找到
      */
-    ERROR_FILE_NOT_FOUND("A0704", HttpStatus.NOT_FOUND.value()),
+    ERROR_FILE_NOT_FOUND("A0704", 404),
     /**
      * 文件相关错误
      */
@@ -178,19 +164,19 @@ public enum ErrorCode implements ErrorEnum {
     /**
      * 数据不存在
      */
-    ERROR_DATA_NOT_EXIST("C0317", HttpStatus.NOT_FOUND.value()),
+    ERROR_DATA_NOT_EXIST("C0317", 404),
 
     // 对应Exception
-    ERROR_ARRAY_OUT_BOUND("D0001", HttpStatus.INTERNAL_SERVER_ERROR.value()),
-    ERROR_NULL("D0002", HttpStatus.INTERNAL_SERVER_ERROR.value()),
-    ERROR_CLASS_CAST("D0003", HttpStatus.INTERNAL_SERVER_ERROR.value()),
-    ERROR_ILLEGAL_ARGUMENT("D0004", HttpStatus.INTERNAL_SERVER_ERROR.value()),
-    ERROR_ILLEGAL_STATE("D0005", HttpStatus.INTERNAL_SERVER_ERROR.value()),
-    ERROR_PARSE("D0006", HttpStatus.INTERNAL_SERVER_ERROR.value()),
-    ERROR_ILLEGAL_THREAD_STATE("D0007", HttpStatus.INTERNAL_SERVER_ERROR.value()),
-    ERROR_ILLEGAL_ACCESS("D0008", HttpStatus.INTERNAL_SERVER_ERROR.value()),
-    ERROR_ILLEGAL_FORMAT("D0009", HttpStatus.INTERNAL_SERVER_ERROR.value()),
-    ERROR_IO("D0010", HttpStatus.INTERNAL_SERVER_ERROR.value()),
+    ERROR_ARRAY_OUT_BOUND("D0001", 500),
+    ERROR_NULL("D0002", 500),
+    ERROR_CLASS_CAST("D0003", 500),
+    ERROR_ILLEGAL_ARGUMENT("D0004", 500),
+    ERROR_ILLEGAL_STATE("D0005", 500),
+    ERROR_PARSE("D0006", 500),
+    ERROR_ILLEGAL_THREAD_STATE("D0007", 500),
+    ERROR_ILLEGAL_ACCESS("D0008", 500),
+    ERROR_ILLEGAL_FORMAT("D0009", 500),
+    ERROR_IO("D0010", 500),
     /**
      * 其他未归类错误
      */

@@ -1,0 +1,39 @@
+server:
+  port: 7100
+  servlet:
+    session:
+      cookie:
+        name: cloudhub_session
+
+logging:
+  charset:
+    console: UTF-8
+  level:
+    space.lingu.imagehosting: debug
+    web: debug
+    org.springframework.security: debug
+
+spring:
+  application:
+    name: Cloudhub
+  mail:
+    host: smtp.exmail.qq.com
+    port: 465
+    username: disable
+    password: disable
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 2048MB
+      max-request-size: 5000MB
+  mvc:
+    path match:
+      matching-strategy: ant_path_matcher
+  cache:
+    type: caffeine
+
+web-url:
+  backend-url: http://localhost:${server.port}
+  frontend-url: http://localhost:${server.port}
+  allowed-origins:
+    - http://localhost:${server.port}
