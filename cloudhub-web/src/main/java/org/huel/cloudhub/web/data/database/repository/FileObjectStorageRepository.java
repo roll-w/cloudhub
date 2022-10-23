@@ -36,6 +36,6 @@ public class FileObjectStorageRepository {
         if (userId == null || imageId == null) {
             return null;
         }
-        return dao.getUploadByUserAndImageId(userId, imageId);
+        return dao.getUploadByUserAndFileId(userId, imageId);
     }
 }

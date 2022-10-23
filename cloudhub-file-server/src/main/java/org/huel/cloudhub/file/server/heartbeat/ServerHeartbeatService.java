@@ -31,7 +31,7 @@ public class ServerHeartbeatService {
         this.serverIdService = serverIdService;
     }
 
-    public void sendHeartbeat() {
+    public HeartbeatResponse sendHeartbeat() {
         Heartbeat heartbeat = Heartbeat.newBuilder()
                 .setHost(inetAddress.getHostAddress())
                 .setPort(7021)
@@ -42,5 +42,6 @@ public class ServerHeartbeatService {
                 serviceStub.receiveHeartbeat(heartbeat);
         logger.info("receive response: errorCode={};message={};period={}",
                 response.getErrorCode(), response.getMessage(), response.getPeriod());
+        return response;
     }
 }

@@ -50,16 +50,20 @@ public abstract class FileObjectStorageDao {
 
 
     @Transaction
-    @Delete("DELETE file_object_storage_table WHERE image_id = {id}")
+    @Delete("DELETE file_object_storage_table WHERE file_id = {id}")
     public abstract void deleteByImageId(String id);
 
-    @Query("SELECT * FROM file_object_storage_table WHERE image_id = {id}")
+    @Query("SELECT * FROM file_object_storage_table WHERE file_id = {id}")
     public abstract FileObjectStorage getByImageId(String id);
 
     @Query("SELECT * FROM file_object_storage_table WHERE user_id = {userId}")
     public abstract List<UserUploadFileStorage> getUploadsByUserId(long userId);
 
-    @Query("SELECT * FROM file_object_storage_table WHERE user_id = {userId} AND image_id = {imageId}")
-    public abstract UserUploadFileStorage getUploadByUserAndImageId(long userId, String imageId);
+    @Query("SELECT * FROM file_object_storage_table WHERE user_id = {userId} AND file_id = {fileId}")
+    public abstract UserUploadFileStorage getUploadByUserAndFileId(long userId, String fileId);
+
+    // TODO: 存储桶
+    @Query("SELECT * FROM file_object_storage_table WHERE user_id = {userId} AND file_id = {displayPath}")
+    public abstract UserUploadFileStorage getUploadByUserAndDisplayPath(long userId, String displayPath);
 
 }

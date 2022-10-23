@@ -10,10 +10,10 @@ import space.lingu.light.*;
 public class FileObjectStorage {
     @DataColumn(name = "file_id")
     @PrimaryKey
-    private String id;// md5
+    private String id;// id in meta server
 
-    @DataColumn(name = "file_path")
-    private String path;
+    @DataColumn(name = "file_display_path")
+    private String displayPath;// user defined path
 
     @DataColumn(name = "file_cache_path", configuration =
     @LightConfiguration(key = LightConfiguration.KEY_VARCHAR_LENGTH, value = "255"))
@@ -29,16 +29,16 @@ public class FileObjectStorage {
     }
 
     @Constructor
-    public FileObjectStorage(String id, String path, String cachePath, long fileSize, long lastAccessTime) {
+    public FileObjectStorage(String id, String displayPath, String cachePath, long fileSize, long lastAccessTime) {
         this.id = id;
-        this.path = path;
+        this.displayPath = displayPath;
         this.cachePath = cachePath;
         this.fileSize = fileSize;
         this.lastAccessTime = lastAccessTime;
     }
 
-    public FileObjectStorage(String path, String cachePath, long fileSize) {
-        this.path = path;
+    public FileObjectStorage(String displayPath, String cachePath, long fileSize) {
+        this.displayPath = displayPath;
         this.cachePath = cachePath;
         this.fileSize = fileSize;
     }
@@ -52,12 +52,12 @@ public class FileObjectStorage {
         return this;
     }
 
-    public String getPath() {
-        return path;
+    public String getDisplayPath() {
+        return displayPath;
     }
 
-    public FileObjectStorage setPath(String path) {
-        this.path = path;
+    public FileObjectStorage setDisplayPath(String displayPath) {
+        this.displayPath = displayPath;
         return this;
     }
 
