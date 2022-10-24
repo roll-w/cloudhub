@@ -1,7 +1,7 @@
 package org.huel.cloudhub.file.server.id;
 
 import com.google.common.io.Files;
-import org.apache.commons.lang3.RandomStringUtils;
+import org.huel.cloudhub.server.file.FileProperties;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -17,11 +17,13 @@ public class ServerIdService {
     private final UUID uuid;
     private final String uuidString;
 
-    public static final String VERSION_KEY  = "";
-    public static final String ID_KEY  = "";
+    private final FileProperties fileProperties;
+
+    public static final String ID_KEY = "fid";
 
 
-    public ServerIdService() throws IOException {
+    public ServerIdService(FileProperties fileProperties) throws IOException {
+        this.fileProperties = fileProperties;
         uuid = initialId();
         uuidString = uuid.toString();
     }
@@ -29,9 +31,7 @@ public class ServerIdService {
     private UUID initialId() throws IOException {
         // TODO: move to properties
 
-        // 调试使用，每次生成一个随机文件
-        File file = new File("ID_VERSION_" +
-                RandomStringUtils.randomAlphabetic(12));
+        File file = new File(fileProperties.getFilePath(), "ID_VERSION");
         if (!file.exists()) {
             file.createNewFile();
             UUID uid = UUID.randomUUID();

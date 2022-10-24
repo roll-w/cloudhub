@@ -37,11 +37,11 @@ public class ServerHeartbeatService {
                 .setPort(7021)
                 .setId(serverIdService.getServerId())
                 .build();
-        logger.info("send heartbeat, address= {}:{}", heartbeat.getHost(), heartbeat.getPort());
+        // logger.info("send heartbeat, address= {}:{}", heartbeat.getHost(), heartbeat.getPort());
         HeartbeatResponse response =
                 serviceStub.receiveHeartbeat(heartbeat);
-        logger.info("receive response: errorCode={};message={};period={}",
-                response.getErrorCode(), response.getMessage(), response.getPeriod());
+        // logger.info("receive response: errorCode={};message={};period={}",
+        //        response.getErrorCode(), response.getMessage(), response.getPeriod());
         return response;
     }
 }

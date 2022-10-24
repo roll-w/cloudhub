@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "org.huel.cloudhub.file.fs.meta";
+option java_outer_classname = "ContainerMetaProtos";
+
+// part of .meta
+message SerializeBlockFileMeta {
+  string file_id = 1;
+  int32 start = 2;
+  int32 end = 3;
+  int64 end_block_bytes = 4;
+  // if cross container count.
+  bool cross = 5;
+}
+
+// .meta file
+message SerializeContainerBlockMeta {
+  int32 block_size = 1;
+  int32 used_block = 2;
+  // block capacity
+  int32 block_cap = 3;
+  string crc = 4;
+  repeated SerializeBlockFileMeta block_metas = 5;
+}
+
+// part of .cmeta
+message SerializeContainerMeta {
+  string locator = 1;
+}
+
+// .cmeta file
+message SerializeContainerFileMeta {
+  repeated SerializeContainerMeta meta = 1;
+}

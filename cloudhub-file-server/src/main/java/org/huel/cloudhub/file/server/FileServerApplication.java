@@ -1,11 +1,14 @@
 package org.huel.cloudhub.file.server;
 
+import io.grpc.Server;
 import org.huel.cloudhub.file.server.heartbeat.HeartbeatTask;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
+import org.springframework.scheduling.annotation.EnableAsync;
 
 import javax.annotation.PostConstruct;
+import java.io.IOException;
 
 /**
  * File server start class.
@@ -14,9 +17,13 @@ import javax.annotation.PostConstruct;
  */
 @SpringBootApplication
 @ConfigurationPropertiesScan
+@EnableAsync(proxyTargetClass = true)
 public class FileServerApplication {
+    private final Server server;
 
-    public FileServerApplication(HeartbeatTask heartbeatTask) {
+    public FileServerApplication(Server server,
+                                 HeartbeatTask heartbeatTask) {
+        this.server = server;
         this.heartbeatTask = heartbeatTask;
     }
 
@@ -27,7 +34,12 @@ public class FileServerApplication {
     private final HeartbeatTask heartbeatTask;
 
     @PostConstruct
-    public void sendHeartbeat() {
+    public void startSendHeartbeat() {
         heartbeatTask.startSendHeartbeat();
+    }
+
+    @PostConstruct
+    public void startServer() throws IOException {
+        server.start();
     }
 }

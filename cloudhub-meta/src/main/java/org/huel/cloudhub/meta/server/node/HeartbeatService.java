@@ -7,6 +7,7 @@ import org.huel.cloudhub.server.rpc.proto.HeartbeatServiceGrpc;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import space.lingu.Dangerous;
 
 import java.util.List;
 
@@ -73,4 +74,9 @@ public class HeartbeatService extends HeartbeatServiceGrpc.HeartbeatServiceImplB
         return registerNodePool.getActiveNodes();
     }
 
+    // test only
+    @Dangerous(message = "test only")
+    public NodeServer randomServer() {
+        return activeServers().stream().findFirst().get();
+    }
 }

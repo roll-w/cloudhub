@@ -4,6 +4,11 @@ option java_multiple_files = true;
 option java_package = "org.huel.cloudhub.server.rpc.proto";
 option java_outer_classname = "HeartbeatProtos";
 
+message BlockProperties {
+  int32 block_size = 1;
+  int32 block_limit = 2;
+}
+
 message Heartbeat {
   string host = 1;
   int32 port = 2;
@@ -21,6 +26,7 @@ message HeartbeatResponse {
   // the meta server needs respond a standard period
   // for control.
   optional int32 period = 3;
+  optional BlockProperties block_properties = 4;
 }
 
 service HeartbeatService {

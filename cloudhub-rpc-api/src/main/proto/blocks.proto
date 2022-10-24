@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "org.huel.cloudhub.file.rpc.block";
+option java_outer_classname = "UploadBlocksProtos";
+
+enum BlockRequestCompressType {
+  NONE = 0;
+  ZIP = 1;
+  TAR = 3;
+}
+
+message UploadBlock {
+  bytes data = 1;
+}
+
+message UploadBlocksRequest {
+  int32 valid_bytes = 1;
+  string identity = 2;
+  int32 hash = 3;
+  // crc 32
+  string check_value = 4;
+  repeated UploadBlock block = 5;
+  optional BlockRequestCompressType compress_type = 6;
+}
+
+message UploadBlocksResponse {
+  int64 version = 1;
+}
+
+service BlockUploadService {
+  rpc uploadBlocks(UploadBlocksRequest) returns (UploadBlocksResponse);
+}

@@ -49,6 +49,35 @@
             <groupId>org.huel.cloudhub</groupId>
             <artifactId>cloudhub-rpc-api</artifactId>
         </dependency>
+
+
+        <!--数据库-->
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.zaxxer</groupId>
+            <artifactId>HikariCP</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>space.lingu.light</groupId>
+            <artifactId>light-compiler</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>space.lingu.light</groupId>
+            <artifactId>light-core</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>space.lingu.light</groupId>
+            <artifactId>light-core-logging-slf4j</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
@@ -58,7 +87,6 @@
                 <artifactId>maven-assembly-plugin</artifactId>
                 <configuration>
                     <descriptors>
-                        <!-- 按照 package.xml 打包 -->
                         <descriptor>src/main/resources/assembly.xml</descriptor>
                     </descriptors>
                 </configuration>
