@@ -59,4 +59,9 @@ public class BlockMetaInfo {
                 blockFileMeta.getEndBlockBytes(),
                 blockFileMeta.getCross());
     }
+
+    @Override
+    public String toString() {
+        return "Block[%s]".formatted(fileId);
+    }
 }

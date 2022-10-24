@@ -42,6 +42,14 @@ public class BlockReceiveService extends BlockUploadServiceGrpc.BlockUploadServi
         int count = request.getBlockCount();
         logger.info("receive blocks. count=[{}];id={};", count, request.getIdentity());
         List<UploadBlock> blocks = request.getBlockList();
+        if (containerService.dataExists(request.getIdentity())) {
+            logger.info("file exists, id={}", request.getIdentity());
+            responseObserver.onNext(UploadBlocksResponse.newBuilder()
+                    .setVersion(0)
+                    .build());
+            responseObserver.onCompleted();
+            return;
+        }
 
         Container container =
                 containerService.allocateContainer(request.getIdentity());
@@ -60,7 +68,7 @@ public class BlockReceiveService extends BlockUploadServiceGrpc.BlockUploadServi
 
         // ?: 复制原文件后更新
         responseObserver.onNext(UploadBlocksResponse.newBuilder()
-                .setVersion(container.getIdentity().version())
+                .setVersion(container.getIdentity().serial())
                 .build());
         responseObserver.onCompleted();
     }

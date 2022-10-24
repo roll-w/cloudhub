@@ -26,7 +26,8 @@ import java.util.*;
 @Service
 public class ContainerService implements ContainerAllocator {
     private final Cache<String, ContainersHolder> containerCache =
-            Caffeine.newBuilder().build();
+            Caffeine.newBuilder()
+                    .build();
     private final FileProperties fileProperties;
     private final LocalFileServer localFileServer;
 
@@ -72,7 +73,6 @@ public class ContainerService implements ContainerAllocator {
                     fileNameMeta.id(),
                     containerBlockMeta.getCrc(),
                     fileNameMeta.serial(),
-                    fileNameMeta.version(),
                     containerBlockMeta.getBlockCap(),
                     containerBlockMeta.getBlockSize());
 
@@ -97,14 +97,13 @@ public class ContainerService implements ContainerAllocator {
     @NonNull
     public Container allocateContainer(String id) {
         id = ContainerIdentity.toMetaId(id);
-
         ContainersHolder holder = containerCache.get(id,
                 s -> new ContainersHolder());
 
         if (holder == null) {
             logger.info("holder null");
 
-            Container container = createsNewContainer(id, 1, 1);
+            Container container = createsNewContainer(id, 1);
             ContainersHolder newHolder = new ContainersHolder();
 
             newHolder.put(container);
@@ -112,22 +111,27 @@ public class ContainerService implements ContainerAllocator {
             return container;
         }
 
-        // FIXME: cannot find ava container correctly.
         Container container = holder.latestAvailableContainer();
         if (container != null) {
             logger.info("find available container: {}", container.getResourceLocator());
             return container;
         }
-        container = createsNewContainer(id, holder.lastSerial() + 1, 1);
+        container = createsNewContainer(id, holder.lastSerial() + 1);
         logger.info("not find available container, creates new {}", container.getResourceLocator());
         holder.put(container);
         return container;
     }
 
+
     @Override
-    public boolean dataExists(String fileId) {
-        // TODO
-        return false;
+    public boolean dataExists(final String fileId) {
+        final String containerId = ContainerIdentity.toMetaId(fileId);
+        ContainersHolder holder = containerCache.get(containerId,
+                s -> new ContainersHolder());
+        if (holder == null) {
+            return false;
+        }
+        return holder.fileIds().contains(fileId);
     }
 
     @Override
@@ -169,14 +173,12 @@ public class ContainerService implements ContainerAllocator {
         containerBlockMeta.writeTo(containerMetaFile.openOutput(true));
     }
 
-    private Container createsNewContainer(String id, long serial, long version) {
-        ContainerFileNameMeta fileNameMeta = new ContainerFileNameMeta(
-                id, serial, version);
+    private Container createsNewContainer(String id, long serial) {
+        ContainerFileNameMeta fileNameMeta = new ContainerFileNameMeta(id, serial);
         ContainerIdentity identity = new ContainerIdentity(
                 fileNameMeta.id(),
                 ContainerIdentity.INVALID_CRC,
                 fileNameMeta.serial(),
-                fileNameMeta.version(),
                 fileProperties.getBlockCount(),
                 fileProperties.getBlockSize());
 
@@ -196,16 +198,15 @@ public class ContainerService implements ContainerAllocator {
         if (holder == null) {
             return Collections.emptySet();
         }
-        return Collections.unmodifiableCollection(holder.containers.values());
+        return Collections.unmodifiableCollection(holder.containers());
     }
 
     public Collection<Container> listContainers() {
-        return containerCache.asMap().values().stream().collect(
-                ArrayList::new,
-                (containers, containersHolder) ->
-                        containers.addAll(containersHolder.containers.values()),
-                ArrayList::addAll
-        );
+        List<Container> containers = new ArrayList<>();
+        for (ContainersHolder value : containerCache.asMap().values()) {
+            containers.addAll(value.containers());
+        }
+        return containers;
     }
 
     @Async
@@ -216,7 +217,7 @@ public class ContainerService implements ContainerAllocator {
             containers = new ContainersHolder();
         }
         containers.put(container);
-        containerCache.put(container.getResourceLocator(), containers);
+        containerCache.put(container.getIdentity().id(), containers);
     }
 
     private SerializeContainerBlockMeta readContainerBlockMeta(ServerFile file) throws IOException {
@@ -250,51 +251,33 @@ public class ContainerService implements ContainerAllocator {
 
     private static class ContainersHolder {
         private final Map<String, Container> containers;
-        private final Map<Long, Long> serialWithVersions =
-                new HashMap<>();
-
+        private final Set<String> fileIds;
         // the last serial
         private long serial;
 
         public ContainersHolder() {
             this.containers = new HashMap<>();
+            this.fileIds = new HashSet<>();
         }
 
         void put(Container container) {
             serial = Math.max(container.getIdentity().serial(), serial);
             containers.put(container.getResourceLocator(), container);
-            updateSerialVersion(
-                    container.getIdentity().serial(),
-                    container.getIdentity().version());
-        }
-
-        private void updateSerialVersion(long serial, long version) {
-            if (!serialWithVersions.containsKey(serial)) {
-                serialWithVersions.put(serial, version);
-            }
-            long newest = Math.max(serialWithVersions.get(serial), version);
-            serialWithVersions.put(serial, newest);
+            container.getBlockMetaInfos().forEach(blockMetaInfo ->
+                    fileIds.add(blockMetaInfo.getFileId()));
         }
 
         long lastSerial() {
             return serial;
         }
 
-        long latestVersion(long serial) {
-            if (!serialWithVersions.containsKey(serial)) {
-                return -1;
-            }
-            return serialWithVersions.get(serial);
-        }
-
-        List<Long> availableVersions(long serial) {
-            // TODO: available versions of serial
-            return List.of();
+        Collection<Container> containers() {
+            return containers.values();
         }
 
         Container latestAvailableContainer() {
             for (Container container : containers.values()) {
-                if (check(container, serial, latestVersion(serial))) {
+                if (check(container, serial)) {
                     return container;
                 }
             }
@@ -302,12 +285,15 @@ public class ContainerService implements ContainerAllocator {
             return null;
         }
 
-        private boolean check(Container container, long serial, long version) {
+        public Collection<String> fileIds() {
+            return Collections.unmodifiableSet(fileIds);
+        }
+
+        private boolean check(Container container, long serial) {
             if (container.isReachLimit()) {
                 return false;
             }
-            return container.getIdentity().serial() == serial &&
-                    container.getIdentity().version() == version;
+            return container.getIdentity().serial() == serial;
         }
     }
 

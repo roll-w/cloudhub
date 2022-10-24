@@ -111,6 +111,15 @@ public class Container {
         return identity.blockSizeBytes() * identity.blockLimit();
     }
 
+    public boolean hasFileId(String fileId) {
+        for (BlockMetaInfo blockMetaInfo : this.blockMetaInfos) {
+            if (blockMetaInfo.getFileId().equals(fileId)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

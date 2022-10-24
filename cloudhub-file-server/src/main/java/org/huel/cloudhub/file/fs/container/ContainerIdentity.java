@@ -7,7 +7,6 @@ public record ContainerIdentity(
         String id,
         String crc,
         long serial,
-        long version,
         int blockLimit,
         int blockSize) {
     public static final int ID_SUBNUM = 32;

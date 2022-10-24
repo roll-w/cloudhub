@@ -153,21 +153,15 @@ public class ContainerWriter implements Closeable {
     }
 
     public Container requireUpdate() throws MetaException, IOException {
-        final long newVersion;
-        if (validContainer) newVersion= container.getIdentity().version() + 1;
-        else newVersion = container.getIdentity().version();
-
         ContainerIdentity identity =
                 new ContainerIdentity(
                         container.getIdentity().id(),
                         // TODO: calc crc32
                         ContainerIdentity.INVALID_CRC,
                         container.getIdentity().serial(),
-                        newVersion,
                         container.getIdentity().blockLimit(),
                         container.getIdentity().blockSize());
-        ContainerFileNameMeta meta = container.getSimpleMeta()
-                .forkVersion(newVersion);
+        ContainerFileNameMeta meta = container.getSimpleMeta();
         ContainerLocation updateLocation =
                 container.getLocation().fork(meta.toName());
         List<BlockMetaInfo> blockMetaInfos = new ArrayList<>(container.getBlockMetaInfos());
