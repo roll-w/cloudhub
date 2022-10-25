@@ -15,19 +15,30 @@ message UploadBlock {
 }
 
 message UploadBlocksRequest {
-  int32 valid_bytes = 1;
-  string identity = 2;
-  int32 hash = 3;
-  // crc 32
-  string check_value = 4;
-  repeated UploadBlock block = 5;
-  optional BlockRequestCompressType compress_type = 6;
+
+  string identity = 1;
+  // optional
+  int64 valid_bytes = 2;
+  reserved 3;
+
+  // crc32
+  optional string check_value = 4;
+  // compress type
+  optional BlockRequestCompressType compress_type = 5;
+
+  // index of the request
+  int32 index = 6;
+
+  // index count in the first request
+  optional int32 index_count = 7;
+
+  repeated UploadBlock block = 10;
 }
 
 message UploadBlocksResponse {
-  int64 version = 1;
+  int32 block_count = 1;
 }
 
 service BlockUploadService {
-  rpc uploadBlocks(UploadBlocksRequest) returns (UploadBlocksResponse);
+  rpc uploadBlocks(stream UploadBlocksRequest) returns (UploadBlocksResponse);
 }

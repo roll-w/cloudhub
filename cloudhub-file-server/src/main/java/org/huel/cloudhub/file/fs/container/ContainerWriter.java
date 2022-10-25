@@ -79,10 +79,13 @@ public class ContainerWriter implements Closeable {
                 // needs allocates a new container
                 Container newContainer = containerAllocator.allocateContainer(container.getIdentity().id());
                 reset(newContainer);
+
                 containerBlock = writeBlock(block);
+                // it will be null now.
             }
 
             containerBlockList.add(containerBlock);
+            containerBlock.release();
         }
 
         BlockMetaInfo metaInfo = collectInfo(
@@ -94,7 +97,7 @@ public class ContainerWriter implements Closeable {
     }
 
     private BlockMetaInfo collectInfo(List<ContainerBlock> containerBlockList,
-                                      String fieldId, int validBytes, boolean cross) {
+                                      String fieldId, long validBytes, boolean cross) {
         int start = containerBlockList.stream().findFirst()
                 .get().getIndex();
         Collections.reverse(containerBlockList);
@@ -115,14 +118,16 @@ public class ContainerWriter implements Closeable {
         }
 
         ContainerBlock containerBlock = new ContainerBlock(
-                containerLocation, index.getAndIncrement(),
+                containerLocation, index.get(),
                 block.getChunk(),
                 block.getValidBytes());
 
         long offset = (long) blockSize * containerBlock.getIndex();
         containerOut.seek(offset);
         containerOut.write(block.getChunk());
+        index.incrementAndGet();
 
+        block.release();
         return containerBlock;
     }
 
@@ -168,7 +173,9 @@ public class ContainerWriter implements Closeable {
         blockMetaInfos.addAll(mBlockMetaInfos);
         Container updateContainer = new Container(
                 updateLocation,
-                index.get() - 1,
+                index.get(),
+                // index is always the next block to write,
+                // (index - 1 + 1) equals to (used blocks).
                 container.getSimpleMeta(),
                 identity,
                 blockMetaInfos,

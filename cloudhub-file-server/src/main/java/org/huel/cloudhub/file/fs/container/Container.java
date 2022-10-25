@@ -1,5 +1,6 @@
 package org.huel.cloudhub.file.fs.container;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.huel.cloudhub.file.fs.block.BlockMetaInfo;
 import org.huel.cloudhub.file.fs.meta.SerializeBlockFileMeta;
 
@@ -12,6 +13,8 @@ import java.util.*;
  * @author RollW
  */
 public class Container {
+    public static final int CALC_BYCONT = -1;
+
     private int usedBlock;
     private final ContainerLocation location;
     private final ContainerFileNameMeta meta;
@@ -20,33 +23,29 @@ public class Container {
 
     private boolean valid;
 
-    public Container(ContainerLocation location,
+    public Container(@NonNull ContainerLocation location,
                      int usedBlock,
-                     ContainerFileNameMeta meta,
-                     ContainerIdentity identity,
-                     Collection<BlockMetaInfo> blockMetaInfos,
+                     @NonNull ContainerFileNameMeta meta,
+                     @NonNull ContainerIdentity identity,
+                     @NonNull Collection<BlockMetaInfo> blockMetaInfos,
                      boolean valid) {
         this.usedBlock = usedBlock;
         this.location = location;
         this.meta = meta;
         this.identity = identity;
         this.valid = valid;
-        if (blockMetaInfos != null) {
-            this.blockMetaInfos.addAll(blockMetaInfos);
+        this.blockMetaInfos.addAll(blockMetaInfos);
+        if (usedBlock <= 0) {
+           addOnUsed(this.blockMetaInfos);
         }
     }
 
-    public Container(ContainerLocation location,
-                     int usedBlock,
-                     ContainerFileNameMeta meta,
-                     ContainerIdentity identity,
-                     Collection<BlockMetaInfo> blockMetaInfos) {
-        this(location, usedBlock, meta, identity, blockMetaInfos, false);
-    }
-
     public void addBlockMetaInfos(List<BlockMetaInfo> blockMetaInfos) {
+        if (blockMetaInfos == null) {
+            return;
+        }
         this.blockMetaInfos.addAll(blockMetaInfos);
-        usedBlock = this.blockMetaInfos.size();
+        addOnUsed(blockMetaInfos);
     }
 
     public void addBlockMetaInfos(BlockMetaInfo... blockMetaInfos) {
@@ -54,9 +53,12 @@ public class Container {
     }
 
     public void setBlockMetaInfos(List<BlockMetaInfo> blockMetaInfos) {
+        if (blockMetaInfos == null) {
+            return;
+        }
         this.blockMetaInfos.clear();
         this.blockMetaInfos.addAll(blockMetaInfos);
-        usedBlock = this.blockMetaInfos.size();
+        addOnUsed(blockMetaInfos);
     }
 
     public void setBlockMetaInfos(BlockMetaInfo... blockMetaInfos) {
@@ -97,6 +99,15 @@ public class Container {
 
     public ContainerFileNameMeta getSimpleMeta() {
         return meta;
+    }
+
+    private void addOnUsed(List<BlockMetaInfo> blockMetaInfos) {
+        if (blockMetaInfos == null || blockMetaInfos.isEmpty()) {
+            return;
+        }
+        final int blocks = blockMetaInfos.stream()
+                .mapToInt(BlockMetaInfo::occupiedBlocks).sum();
+        usedBlock += blocks;
     }
 
     public int getUsedBlock() {

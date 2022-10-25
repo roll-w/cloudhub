@@ -9,10 +9,10 @@ import java.util.List;
  */
 public class Blocks {
     private final String fileId;
-    private final int validBytes;
+    private final long validBytes;
     private final List<Block> blocks = new LinkedList<>();
 
-    public Blocks(List<Block> blocks, String fileId, int validBytes) {
+    public Blocks(List<Block> blocks, String fileId, long validBytes) {
         this.fileId = fileId;
         this.validBytes = validBytes;
         this.blocks.addAll(blocks);
@@ -26,7 +26,7 @@ public class Blocks {
         return fileId;
     }
 
-    public int getValidBytes() {
+    public long getValidBytes() {
         return validBytes;
     }
 }

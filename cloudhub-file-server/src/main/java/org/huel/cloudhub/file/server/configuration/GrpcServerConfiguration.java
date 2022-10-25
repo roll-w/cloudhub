@@ -40,6 +40,7 @@ public class GrpcServerConfiguration {
     @Bean
     public Server grpcServer() {
         return ServerBuilder.forPort(grpcProperties.getPort())
+                .maxInboundMessageSize(1024 * 1024 * 1024)
                 .addService(blockReceiveService)
                 .build();
     }

@@ -1,4 +1,4 @@
-package org.huel.cloudhub.meta.server.node;
+package org.huel.cloudhub.meta.server.service.node;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 

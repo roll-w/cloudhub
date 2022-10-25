@@ -1,4 +1,4 @@
-package org.huel.cloudhub.meta.server.node;
+package org.huel.cloudhub.meta.server.service.node;
 
 import io.grpc.stub.StreamObserver;
 import org.huel.cloudhub.server.rpc.proto.Heartbeat;
@@ -74,9 +74,12 @@ public class HeartbeatService extends HeartbeatServiceGrpc.HeartbeatServiceImplB
         return registerNodePool.getActiveNodes();
     }
 
-    // test only
+    /**
+     * @deprecated test only api.
+     */
     @Dangerous(message = "test only")
+    @Deprecated
     public NodeServer randomServer() {
-        return activeServers().stream().findFirst().get();
+        return activeServers().stream().findFirst().orElseThrow();
     }
 }

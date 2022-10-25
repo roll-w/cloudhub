@@ -5,9 +5,9 @@ package org.huel.cloudhub.file.fs.block;
  */
 public class Block {
     private byte[] chunk;
-    private int validBytes;
+    private long validBytes;
 
-    public Block(byte[] chunk, int validBytes) {
+    public Block(byte[] chunk, long validBytes) {
         this.chunk = chunk;
         this.validBytes = validBytes;
     }
@@ -19,7 +19,7 @@ public class Block {
         return chunk;
     }
 
-    public int getValidBytes() {
+    public long getValidBytes() {
         return validBytes;
     }
 

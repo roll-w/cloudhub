@@ -23,10 +23,17 @@ public class FileProperties {
      */
     private int blockCount = 1024;
 
-    public FileProperties(String filePath, int blockSize, int blockCount) {
+    /**
+     * in mb. max request size
+     */
+    private int maxRequestSize = 20;
+
+    public FileProperties(String filePath, int blockSize,
+                          int blockCount, int maxRequestSize) {
         this.filePath = filePath;
         this.blockSize = blockSize;
         this.blockCount = blockCount;
+        this.maxRequestSize = maxRequestSize;
     }
 
     public FileProperties() {
@@ -62,5 +69,17 @@ public class FileProperties {
 
     public void setBlockCount(int blockCount) {
         this.blockCount = blockCount;
+    }
+
+    public int getMaxRequestSize() {
+        return maxRequestSize;
+    }
+
+    public void setMaxRequestSize(int maxRequestSize) {
+        this.maxRequestSize = maxRequestSize;
+    }
+
+    public long getMaxRequestSizeBytes() {
+        return maxRequestSize * 1024L * 1024L;
     }
 }

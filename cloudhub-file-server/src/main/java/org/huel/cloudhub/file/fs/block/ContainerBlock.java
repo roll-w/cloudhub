@@ -14,13 +14,13 @@ public class ContainerBlock {
 
     private byte[] data;
     private final int index;
-    private int validBytes;
+    private long validBytes;
 
 
     public ContainerBlock(ContainerLocation containerLocation,
                           int index,
                           byte[] data,
-                          int validBytes) {
+                          long validBytes) {
         this.containerLocation = containerLocation;
         this.index = index;
         this.data = data;
@@ -52,7 +52,7 @@ public class ContainerBlock {
         return index;
     }
 
-    public int getValidBytes() {
+    public long getValidBytes() {
         return validBytes;
     }
 

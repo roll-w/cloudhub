@@ -1,4 +1,4 @@
-package org.huel.cloudhub.meta.server.node;
+package org.huel.cloudhub.meta.server.service.node;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;

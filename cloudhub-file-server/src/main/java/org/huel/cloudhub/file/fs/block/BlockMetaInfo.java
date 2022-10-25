@@ -42,6 +42,10 @@ public class BlockMetaInfo {
         return crossContainer;
     }
 
+    public int occupiedBlocks() {
+        return end - start + 1;
+    }
+
     public SerializeBlockFileMeta serialize() {
         return SerializeBlockFileMeta.newBuilder()
                 .setFileId(fileId)
@@ -62,6 +66,12 @@ public class BlockMetaInfo {
 
     @Override
     public String toString() {
-        return "Block[%s]".formatted(fileId);
+        return "BlockMetaInfo[" +
+                "fileId=" + fileId +
+                ";start=" + start +
+                ";end=" + end +
+                ";validBytes=" + validBytes +
+                ";crossContainer=" + crossContainer +
+                "]";
     }
 }

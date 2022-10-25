@@ -1,4 +1,4 @@
-package org.huel.cloudhub.meta.server.node;
+package org.huel.cloudhub.meta.server.service.node;
 
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;

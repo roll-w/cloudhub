@@ -82,7 +82,7 @@ public class ContainerService implements ContainerAllocator {
                     location,
                     containerBlockMeta.getUsedBlock(),
                     fileNameMeta, identity,
-                    blockMetaInfos,true);
+                    blockMetaInfos, true);
             updatesContainer(container);
         }
     }
@@ -189,7 +189,7 @@ public class ContainerService implements ContainerAllocator {
         return new Container(location,
                 0,
                 fileNameMeta,
-                identity, null, false);
+                identity, List.of(), false);
     }
 
     public Collection<Container> listContainers(String id) {

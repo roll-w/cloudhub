@@ -2,9 +2,8 @@ package org.huel.cloudhub.meta.server.configuration;
 
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
-import org.huel.cloudhub.meta.server.node.HeartbeatService;
+import org.huel.cloudhub.meta.server.service.node.HeartbeatService;
 import org.huel.cloudhub.server.GrpcProperties;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,16 +16,14 @@ import org.springframework.context.annotation.Configuration;
 public class GrpcServerConfiguration {
     private final GrpcProperties grpcProperties;
 
-    private HeartbeatService heartbeatService;
+    private final HeartbeatService heartbeatService;
 
-    public GrpcServerConfiguration(GrpcProperties grpcProperties) {
+    public GrpcServerConfiguration(GrpcProperties grpcProperties,
+                                   HeartbeatService heartbeatService) {
         this.grpcProperties = grpcProperties;
+        this.heartbeatService = heartbeatService;
     }
 
-    @Autowired
-    public void setHeartbeatService(HeartbeatService nodeService) {
-        this.heartbeatService = nodeService;
-    }
 
     @Bean
     public Server grpcServer() {
