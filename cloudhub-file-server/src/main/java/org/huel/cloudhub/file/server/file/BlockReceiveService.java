@@ -71,6 +71,7 @@ public class BlockReceiveService extends BlockUploadServiceGrpc.BlockUploadServi
             if (!exists) {
                 return;
             }
+            logger.info("file exists, id={}", fileId);
             responseObserver.onCompleted();
         }
 
@@ -99,14 +100,6 @@ public class BlockReceiveService extends BlockUploadServiceGrpc.BlockUploadServi
             validBytes = uploadBlocks.getValidBytes();
             final int count = uploadBlocks.getBlocksCount();
 
-            if (containerService.dataExists(fileId)) {
-                logger.info("file exists, id={}", fileId);
-                responseObserver.onNext(UploadBlocksResponse.newBuilder()
-                        .setBlockCount(indexCount)
-                        .build());
-                responseObserver.onCompleted();
-                return;
-            }
             logger.info("receive blocks. index={};count=[{}];id={};",
                     uploadBlocks.getIndex(), count, request.getIdentity());
             indexedBlockRequests.add(new IndexedBlockRequest(

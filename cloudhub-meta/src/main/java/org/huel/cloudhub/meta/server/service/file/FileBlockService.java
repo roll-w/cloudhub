@@ -102,6 +102,7 @@ public class FileBlockService {
             if (value.getBlockResponseCase() ==
                     UploadBlocksResponse.BlockResponseCase.FILE_EXISTS) {
                 if (value.getFileExists()) {
+                    logger.info("file exists.");
                     requestStreamObserver.onCompleted();
                     return;
                 }
