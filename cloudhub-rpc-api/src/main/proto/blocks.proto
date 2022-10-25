@@ -14,31 +14,44 @@ message UploadBlock {
   bytes data = 1;
 }
 
-message UploadBlocksRequest {
+message UploadBlocks {
+  // index of the request
+  int32 index = 1;
 
-  string identity = 1;
-  // optional
   int64 valid_bytes = 2;
   reserved 3;
-
   // crc32
-  optional string check_value = 4;
+  string check_value = 4;
   // compress type
   optional BlockRequestCompressType compress_type = 5;
-
-  // index of the request
-  int32 index = 6;
-
   // index count in the first request
   optional int32 index_count = 7;
+  repeated UploadBlock blocks = 10;
+}
 
-  repeated UploadBlock block = 10;
+message UploadBlocksRequest {
+  message Host {
+    string host = 1;
+    int32 port = 2;
+  }
+
+  string identity = 1;
+  optional UploadBlocks upload_blocks = 2;
+
+  repeated Host replicaHosts = 3;
+
+  // TODO: sends id first, check if the file exists.
+  //  if exists, there's no need to send more requests.
 }
 
 message UploadBlocksResponse {
-  int32 block_count = 1;
+  oneof block_response {
+    int32 block_count = 1;
+    bool file_exists = 2;
+  }
 }
 
 service BlockUploadService {
-  rpc uploadBlocks(stream UploadBlocksRequest) returns (UploadBlocksResponse);
+  rpc uploadBlocks(stream UploadBlocksRequest)
+      returns (stream UploadBlocksResponse);
 }

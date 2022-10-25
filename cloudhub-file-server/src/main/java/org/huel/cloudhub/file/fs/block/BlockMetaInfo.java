@@ -1,6 +1,6 @@
 package org.huel.cloudhub.file.fs.block;
 
-import org.huel.cloudhub.file.fs.meta.SerializeBlockFileMeta;
+import org.huel.cloudhub.file.fs.meta.SerializedBlockFileMeta;
 
 /**
  * @author RollW
@@ -46,8 +46,8 @@ public class BlockMetaInfo {
         return end - start + 1;
     }
 
-    public SerializeBlockFileMeta serialize() {
-        return SerializeBlockFileMeta.newBuilder()
+    public SerializedBlockFileMeta serialize() {
+        return SerializedBlockFileMeta.newBuilder()
                 .setFileId(fileId)
                 .setStart(start)
                 .setEnd(end)
@@ -56,7 +56,7 @@ public class BlockMetaInfo {
                 .build();
     }
 
-    public static BlockMetaInfo deserialize(SerializeBlockFileMeta blockFileMeta) {
+    public static BlockMetaInfo deserialize(SerializedBlockFileMeta blockFileMeta) {
         return new BlockMetaInfo(blockFileMeta.getFileId(),
                 blockFileMeta.getStart(),
                 blockFileMeta.getEnd(),

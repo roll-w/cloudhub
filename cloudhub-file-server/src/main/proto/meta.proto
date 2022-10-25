@@ -5,7 +5,7 @@ option java_package = "org.huel.cloudhub.file.fs.meta";
 option java_outer_classname = "ContainerMetaProtos";
 
 // part of .meta
-message SerializeBlockFileMeta {
+message SerializedBlockFileMeta {
   string file_id = 1;
   int32 start = 2;
   int32 end = 3;
@@ -15,21 +15,21 @@ message SerializeBlockFileMeta {
 }
 
 // .meta file
-message SerializeContainerBlockMeta {
+message SerializedContainerBlockMeta {
   int32 block_size = 1;
   int32 used_block = 2;
   // block capacity
   int32 block_cap = 3;
   string crc = 4;
-  repeated SerializeBlockFileMeta block_metas = 5;
+  repeated SerializedBlockFileMeta block_metas = 5;
 }
 
 // part of .cmeta
-message SerializeContainerMeta {
+message SerializedContainerMeta {
   string locator = 1;
 }
 
 // .cmeta file
-message SerializeContainerFileMeta {
-  repeated SerializeContainerMeta meta = 1;
+message SerializedContainerFileMeta {
+  repeated SerializedContainerMeta meta = 1;
 }

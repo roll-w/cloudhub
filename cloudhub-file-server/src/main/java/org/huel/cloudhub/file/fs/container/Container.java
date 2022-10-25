@@ -2,7 +2,7 @@ package org.huel.cloudhub.file.fs.container;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.huel.cloudhub.file.fs.block.BlockMetaInfo;
-import org.huel.cloudhub.file.fs.meta.SerializeBlockFileMeta;
+import org.huel.cloudhub.file.fs.meta.SerializedBlockFileMeta;
 
 import java.util.*;
 
@@ -69,8 +69,8 @@ public class Container {
         return Collections.unmodifiableList(blockMetaInfos);
     }
 
-    public List<SerializeBlockFileMeta> getSerializeMetaInfos() {
-        List<SerializeBlockFileMeta> serializeBlockFileMetas =
+    public List<SerializedBlockFileMeta> getSerializedMetaInfos() {
+        List<SerializedBlockFileMeta> serializeBlockFileMetas =
                 new ArrayList<>();
         getBlockMetaInfos().forEach(blockMetaInfo ->
                 serializeBlockFileMetas.add(blockMetaInfo.serialize()));

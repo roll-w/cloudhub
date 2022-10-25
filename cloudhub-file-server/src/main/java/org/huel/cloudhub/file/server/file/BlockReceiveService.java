@@ -8,10 +8,7 @@ import org.huel.cloudhub.file.fs.block.Blocks;
 import org.huel.cloudhub.file.fs.container.Container;
 import org.huel.cloudhub.file.fs.container.ContainerWriter;
 import org.huel.cloudhub.file.fs.meta.MetaException;
-import org.huel.cloudhub.file.rpc.block.BlockUploadServiceGrpc;
-import org.huel.cloudhub.file.rpc.block.UploadBlock;
-import org.huel.cloudhub.file.rpc.block.UploadBlocksRequest;
-import org.huel.cloudhub.file.rpc.block.UploadBlocksResponse;
+import org.huel.cloudhub.file.rpc.block.*;
 import org.huel.cloudhub.server.StreamObserverWrapper;
 import org.huel.cloudhub.server.file.FileProperties;
 import org.slf4j.Logger;
@@ -65,12 +62,27 @@ public class BlockReceiveService extends BlockUploadServiceGrpc.BlockUploadServi
             this.responseObserver = new StreamObserverWrapper<>(responseObserver);
         }
 
+        private void checkExistsWithClose(String fileId) {
+            boolean exists = containerService.dataExists(fileId);
+            UploadBlocksResponse response = UploadBlocksResponse.newBuilder()
+                    .setFileExists(exists)
+                    .build();
+            responseObserver.onNext(response);
+            if (!exists) {
+                return;
+            }
+            responseObserver.onCompleted();
+        }
+
         @Override
         public void onNext(UploadBlocksRequest request) {
             if (responseObserver.isClose()) {
                 return;
             }
-
+            if (!request.hasUploadBlocks()) {
+                checkExistsWithClose(request.getIdentity());
+                return;
+            }
             if (fileId != null && !fileId.equals(request.getIdentity())) {
                 Exception exception =
                         new IllegalStateException("The ids of the files before and after are different.");
@@ -78,13 +90,14 @@ public class BlockReceiveService extends BlockUploadServiceGrpc.BlockUploadServi
                 logger.error("error receive blocks.");
                 return;
             }
-            if (request.hasIndexCount()) {
-                indexCount = request.getIndexCount();
-            }
-
             fileId = request.getIdentity();
-            validBytes = request.getValidBytes();
-            final int count = request.getBlockCount();
+            UploadBlocks uploadBlocks = request.getUploadBlocks();
+
+            if (uploadBlocks.hasIndexCount()) {
+                indexCount = uploadBlocks.getIndexCount();
+            }
+            validBytes = uploadBlocks.getValidBytes();
+            final int count = uploadBlocks.getBlocksCount();
 
             if (containerService.dataExists(fileId)) {
                 logger.info("file exists, id={}", fileId);
@@ -94,11 +107,10 @@ public class BlockReceiveService extends BlockUploadServiceGrpc.BlockUploadServi
                 responseObserver.onCompleted();
                 return;
             }
-
             logger.info("receive blocks. index={};count=[{}];id={};",
-                    request.getIndex(), count, request.getIdentity());
+                    uploadBlocks.getIndex(), count, request.getIdentity());
             indexedBlockRequests.add(new IndexedBlockRequest(
-                    request.getBlockList(), request.getIndex()));
+                    uploadBlocks.getBlocksList(), uploadBlocks.getIndex()));
         }
 
         @Override
@@ -178,7 +190,7 @@ public class BlockReceiveService extends BlockUploadServiceGrpc.BlockUploadServi
     }
 
     private static List<UploadBlock> convertsUploadBlocks(
-            List<IndexedBlockRequest> indexedBlockRequests ) {
+            List<IndexedBlockRequest> indexedBlockRequests) {
         return indexedBlockRequests.stream()
                 .sorted(Comparator.comparingInt(IndexedBlockRequest::index))
                 .collect(LinkedList::new,
