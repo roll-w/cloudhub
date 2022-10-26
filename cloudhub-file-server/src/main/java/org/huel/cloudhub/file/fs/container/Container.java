@@ -13,30 +13,37 @@ import java.util.*;
  * @author RollW
  */
 public class Container {
+    /**
+     * Pass this flag in constructor {@code usedBlock} param.
+     * <p>
+     * Marks used block value calculate by the Container.
+     */
     public static final int CALC_BYCONT = -1;
 
     private int usedBlock;
+    private boolean usable;
+    private long version;
+
     private final ContainerLocation location;
     private final ContainerFileNameMeta meta;
     private final ContainerIdentity identity;
     private final List<BlockMetaInfo> blockMetaInfos = new ArrayList<>();
-
-    private boolean valid;
+    private final List<FreeBlockInfo> freeBlockInfos = new ArrayList<>();
 
     public Container(@NonNull ContainerLocation location,
                      int usedBlock,
                      @NonNull ContainerFileNameMeta meta,
                      @NonNull ContainerIdentity identity,
                      @NonNull Collection<BlockMetaInfo> blockMetaInfos,
-                     boolean valid) {
+                     boolean usable) {
         this.usedBlock = usedBlock;
         this.location = location;
         this.meta = meta;
         this.identity = identity;
-        this.valid = valid;
+        this.usable = usable;
         this.blockMetaInfos.addAll(blockMetaInfos);
         if (usedBlock <= 0) {
-           addOnUsed(this.blockMetaInfos);
+           calcUsedBlocks(this.blockMetaInfos);
         }
     }
 
@@ -45,7 +52,7 @@ public class Container {
             return;
         }
         this.blockMetaInfos.addAll(blockMetaInfos);
-        addOnUsed(blockMetaInfos);
+        calcUsedBlocks(blockMetaInfos);
     }
 
     public void addBlockMetaInfos(BlockMetaInfo... blockMetaInfos) {
@@ -58,7 +65,7 @@ public class Container {
         }
         this.blockMetaInfos.clear();
         this.blockMetaInfos.addAll(blockMetaInfos);
-        addOnUsed(blockMetaInfos);
+        calcUsedBlocks(blockMetaInfos);
     }
 
     public void setBlockMetaInfos(BlockMetaInfo... blockMetaInfos) {
@@ -77,12 +84,16 @@ public class Container {
         return serializeBlockFileMetas;
     }
 
-    public boolean isValid() {
-        return valid;
+    public boolean isUsable() {
+        return usable;
     }
 
-    public void setValid() {
-        this.valid = true;
+    public void setUsable() {
+        this.usable = true;
+    }
+
+    public boolean isEmpty() {
+        return usedBlock <= 0;
     }
 
     public ContainerLocation getLocation() {
@@ -101,13 +112,12 @@ public class Container {
         return meta;
     }
 
-    private void addOnUsed(List<BlockMetaInfo> blockMetaInfos) {
-        if (blockMetaInfos == null || blockMetaInfos.isEmpty()) {
-            return;
-        }
-        final int blocks = blockMetaInfos.stream()
-                .mapToInt(BlockMetaInfo::occupiedBlocks).sum();
-        usedBlock += blocks;
+    public long getVersion() {
+        return version;
+    }
+
+    public void updatesVersion() {
+        version++;
     }
 
     public int getUsedBlock() {
@@ -118,7 +128,7 @@ public class Container {
         return usedBlock == identity.blockLimit();
     }
 
-    public long calcLimitBytes() {
+    public long getLimitBytes() {
         return identity.blockSizeBytes() * identity.blockLimit();
     }
 
@@ -131,17 +141,44 @@ public class Container {
         return false;
     }
 
+    public BlockMetaInfo getFileBlockMetaInfo(String fileId) {
+        for (BlockMetaInfo blockMetaInfo : this.blockMetaInfos) {
+            if (blockMetaInfo.getFileId().equals(fileId)) {
+                return blockMetaInfo;
+            }
+        }
+        return null;
+    }
+
+    private void calcUsedBlocks(List<BlockMetaInfo> blockMetaInfos) {
+        if (blockMetaInfos == null || blockMetaInfos.isEmpty()) {
+            return;
+        }
+        final int blocks = blockMetaInfos.stream()
+                .mapToInt(BlockMetaInfo::occupiedBlocks).sum();
+        usedBlock += blocks;
+    }
+
+    private void calcFreeBlocks() {
+        // 计算空闲块
+        List<BlockMetaInfo> forked = new ArrayList<>(blockMetaInfos);
+        forked.stream().sorted(Comparator.comparingInt(BlockMetaInfo::getStart))
+        ;
+
+    }
+
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Container container = (Container) o;
-        return usedBlock == container.usedBlock && valid == container.valid && Objects.equals(location, container.location) && Objects.equals(meta, container.meta) && Objects.equals(identity, container.identity) && Objects.equals(blockMetaInfos, container.blockMetaInfos);
+        return usedBlock == container.usedBlock && usable == container.usable && Objects.equals(location, container.location) && Objects.equals(meta, container.meta) && Objects.equals(identity, container.identity) && Objects.equals(blockMetaInfos, container.blockMetaInfos);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(usedBlock, location, meta, identity, blockMetaInfos, valid);
+        return Objects.hash(usedBlock, location, meta, identity, blockMetaInfos, usable);
     }
 
     @Override
@@ -152,7 +189,7 @@ public class Container {
                 ", meta=" + meta +
                 ", identity=" + identity +
                 ", blockMetaInfos=" + blockMetaInfos +
-                ", valid=" + valid +
+                ", valid=" + usable +
                 '}';
     }
 }

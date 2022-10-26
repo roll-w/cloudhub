@@ -8,7 +8,7 @@ import org.huel.cloudhub.file.fs.block.BlockMetaInfo;
 import org.huel.cloudhub.file.fs.container.*;
 import org.huel.cloudhub.file.fs.meta.MetaException;
 import org.huel.cloudhub.file.fs.meta.SerializedContainerBlockMeta;
-import org.huel.cloudhub.file.fs.meta.SerializedContainerFileMeta;
+import org.huel.cloudhub.file.fs.meta.SerializedContainerGroupMeta;
 import org.huel.cloudhub.file.fs.meta.SerializedContainerMeta;
 import org.huel.cloudhub.server.file.FileProperties;
 import org.slf4j.Logger;
@@ -53,7 +53,7 @@ public class ContainerService implements ContainerAllocator {
         List<ServerFile> metaFiles = metaDir.listFiles();
         List<String> locators = new ArrayList<>();
         for (ServerFile metaFile : metaFiles) {
-            SerializedContainerFileMeta fileMeta = readContainerMeta(metaFile);
+            SerializedContainerGroupMeta fileMeta = readContainerMeta(metaFile);
             fileMeta.getMetaList().forEach(meta ->
                     locators.add(meta.getLocator()));
         }
@@ -151,12 +151,12 @@ public class ContainerService implements ContainerAllocator {
         var meta =
                 SerializedContainerMeta.newBuilder().setLocator(container.getResourceLocator()).build();
         writeContainerMeta(meta);
-        container.setValid();
+        container.setUsable();
     }
 
     @Override
     public void updatesContainerMetadata(Container container) throws MetaException, IOException {
-        if (!container.isValid()) {
+        if (!container.isUsable()) {
             throw new MetaException("Not valid container.");
         }
         ServerFile containerMetaFile = localFileServer.getServerFileProvider().openFile(fileProperties.getContainerPath(),
@@ -233,23 +233,25 @@ public class ContainerService implements ContainerAllocator {
         ServerFile file = localFileServer.getServerFileProvider()
                 .openFile(fileProperties.getMetaPath(), fileName + CONTAINER_META_FILE_SUFFIX);
         boolean createState = file.createFile();
-        SerializedContainerFileMeta containerFileMeta =
-                SerializedContainerFileMeta.parseFrom(file.openInput());
+        SerializedContainerGroupMeta containerFileMeta =
+                SerializedContainerGroupMeta.parseFrom(file.openInput());
         List<SerializedContainerMeta> containerMetas = new ArrayList<>(containerFileMeta.getMetaList());
         containerMetas.add(containerMeta);
         containerMetas = containerMetas.stream().distinct().toList();
-        containerFileMeta = SerializedContainerFileMeta.newBuilder()
+        containerFileMeta = SerializedContainerGroupMeta.newBuilder()
                 .addAllMeta(containerMetas)
                 .build();
         containerFileMeta.writeTo(
                 file.openOutput(true));
     }
 
-    public SerializedContainerFileMeta readContainerMeta(ServerFile serverFile) throws IOException {
-        return SerializedContainerFileMeta.parseFrom(serverFile.openInput());
+    public SerializedContainerGroupMeta readContainerMeta(ServerFile serverFile) throws IOException {
+        return SerializedContainerGroupMeta.parseFrom(serverFile.openInput());
     }
 
     private static class ContainersHolder {
+        // TODO: replace with ContainerGroup
+
         private final Map<String, Container> containers;
         private final Set<String> fileIds;
         // the last serial

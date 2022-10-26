@@ -3,6 +3,8 @@ package org.huel.cloudhub.file.fs.container;
 import java.util.regex.Pattern;
 
 /**
+ * Meta parsed from container name.
+ *
  * @author RollW
  */
 public record ContainerFileNameMeta(

@@ -45,6 +45,10 @@
             <artifactId>cloudhub-rpc-api</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+        </dependency>
 
         <!--数据库-->
         <dependency>

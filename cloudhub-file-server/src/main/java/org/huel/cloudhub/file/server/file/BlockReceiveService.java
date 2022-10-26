@@ -75,13 +75,20 @@ public class BlockReceiveService extends BlockUploadServiceGrpc.BlockUploadServi
             responseObserver.onCompleted();
         }
 
+        private void saveCheckMessageInfo(UploadBlocksRequest.CheckMessage checkMessage) {
+            indexCount = checkMessage.getRequestCount();
+            validBytes = checkMessage.getValidBytes();
+            logger.info("receive upload message. count={};validBytes={};",
+                    indexCount, validBytes);
+        }
+
         @Override
         public void onNext(UploadBlocksRequest request) {
             if (responseObserver.isClose()) {
                 return;
             }
-            if (!request.hasUploadBlocks()) {
-                checkExistsWithClose(request.getIdentity());
+            if (request.getUploadCase() == UploadBlocksRequest.UploadCase.UPLOAD_NOT_SET) {
+                responseObserver.onError(Status.INVALID_ARGUMENT.asException());
                 return;
             }
             if (fileId != null && !fileId.equals(request.getIdentity())) {
@@ -92,18 +99,19 @@ public class BlockReceiveService extends BlockUploadServiceGrpc.BlockUploadServi
                 return;
             }
             fileId = request.getIdentity();
-            UploadBlocks uploadBlocks = request.getUploadBlocks();
+            checkExistsWithClose(fileId);
 
-            if (uploadBlocks.hasIndexCount()) {
-                indexCount = uploadBlocks.getIndexCount();
+            if (request.getUploadCase() == UploadBlocksRequest.UploadCase.CHECK_MESSAGE) {
+                saveCheckMessageInfo(request.getCheckMessage());
+                return;
             }
-            validBytes = uploadBlocks.getValidBytes();
-            final int count = uploadBlocks.getBlocksCount();
 
+            UploadBlocksInfo uploadBlocksInfo = request.getUploadBlocks();
+            final int count = uploadBlocksInfo.getBlocksCount();
             logger.info("receive blocks. index={};count=[{}];id={};",
-                    uploadBlocks.getIndex(), count, request.getIdentity());
+                    uploadBlocksInfo.getIndex(), count, request.getIdentity());
             indexedBlockRequests.add(new IndexedBlockRequest(
-                    uploadBlocks.getBlocksList(), uploadBlocks.getIndex()));
+                    uploadBlocksInfo.getBlocksList(), uploadBlocksInfo.getIndex()));
         }
 
         @Override
@@ -114,7 +122,7 @@ public class BlockReceiveService extends BlockUploadServiceGrpc.BlockUploadServi
         @Override
         public void onCompleted() {
             if (indexCount <= 0 && responseObserver.isOpen()) {
-                logger.info("invalid index count in uploading {}", fileId);
+                logger.info("invalid index count {} in uploading {}", indexCount, fileId);
                 responseObserver.onError(Status.DATA_LOSS.asException());
                 return;
             }
@@ -128,7 +136,7 @@ public class BlockReceiveService extends BlockUploadServiceGrpc.BlockUploadServi
                 return;
             }
 
-            List<UploadBlock> uploadBlocks =
+            List<UploadBlockData> uploadBlocks =
                     convertsUploadBlocks(indexedBlockRequests);
             Container container =
                     containerService.allocateContainer(fileId);
@@ -151,12 +159,12 @@ public class BlockReceiveService extends BlockUploadServiceGrpc.BlockUploadServi
     private WriteInfo writeAndPushMeta(ContainerWriter writer,
                                        String fileId,
                                        long validBytes,
-                                       List<UploadBlock> uploadBlocks)
+                                       List<UploadBlockData> uploadBlocks)
             throws IOException, MetaException {
         List<Block> blockList = new LinkedList<>();
         final int size = uploadBlocks.size();
         for (int i = 0; i < size; i++) {
-            UploadBlock uploadBlock = uploadBlocks.get(i);
+            UploadBlockData uploadBlock = uploadBlocks.get(i);
             byte[] chunk = uploadBlock.getData().toByteArray();
             Block block = new Block(
                     uploadBlock.getData().toByteArray(),
@@ -177,12 +185,12 @@ public class BlockReceiveService extends BlockUploadServiceGrpc.BlockUploadServi
     }
 
     private record IndexedBlockRequest(
-            List<UploadBlock> uploadBlocks,
+            List<UploadBlockData> uploadBlocks,
             int index
     ) {
     }
 
-    private static List<UploadBlock> convertsUploadBlocks(
+    private static List<UploadBlockData> convertsUploadBlocks(
             List<IndexedBlockRequest> indexedBlockRequests) {
         return indexedBlockRequests.stream()
                 .sorted(Comparator.comparingInt(IndexedBlockRequest::index))

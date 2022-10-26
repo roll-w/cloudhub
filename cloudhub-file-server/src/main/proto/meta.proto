@@ -16,9 +16,10 @@ message SerializedBlockFileMeta {
 
 // .meta file
 message SerializedContainerBlockMeta {
+  // in kb, block size.
   int32 block_size = 1;
   int32 used_block = 2;
-  // block capacity
+  // block capacity (limit of block)
   int32 block_cap = 3;
   string crc = 4;
   repeated SerializedBlockFileMeta block_metas = 5;
@@ -27,9 +28,10 @@ message SerializedContainerBlockMeta {
 // part of .cmeta
 message SerializedContainerMeta {
   string locator = 1;
+  optional int64 version = 2;
 }
 
 // .cmeta file
-message SerializedContainerFileMeta {
+message SerializedContainerGroupMeta {
   repeated SerializedContainerMeta meta = 1;
 }

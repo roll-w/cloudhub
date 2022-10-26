@@ -7,8 +7,8 @@ import org.springframework.shell.standard.ShellMethod;
 import org.springframework.shell.standard.ShellOption;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
-import java.nio.file.Files;
 
 /**
  * @author RollW
@@ -48,7 +48,6 @@ public class SendCommand extends AbstractShellComponent {
         getTerminal().writer().printf("send file in absolute path '%s'.\n",
                 file.getAbsolutePath());
         getTerminal().writer().flush();
-        byte[] data = Files.readAllBytes(file.toPath());
-        fileBlockService.sendBlock(data);
+        fileBlockService.sendBlock(new FileInputStream(file));
     }
 }

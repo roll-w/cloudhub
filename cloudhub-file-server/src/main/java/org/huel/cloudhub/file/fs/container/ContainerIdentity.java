@@ -18,6 +18,10 @@ public record ContainerIdentity(
         return blockSize * 1024L;
     }
 
+    public long limitBytes() {
+        return blockSizeBytes() * blockLimit;
+    }
+
     public static String toCmetaId(String id) {
         return id.substring(0, IDMETA_SUBNUM);
     }

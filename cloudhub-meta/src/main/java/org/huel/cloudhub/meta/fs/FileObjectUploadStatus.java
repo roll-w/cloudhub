@@ -1,6 +1,8 @@
 package org.huel.cloudhub.meta.fs;
 
 /**
+ * 上传状态
+ *
  * @author RollW
  */
 public enum FileObjectUploadStatus {
@@ -13,7 +15,12 @@ public enum FileObjectUploadStatus {
      */
     STORING,
     /**
-     * 处于文件服务器存储中。文件当前可用。
+     * 处于文件服务器存储中，副本同步状态。文件当前可用，副本不可用。
      */
-    UPLOADED;
+    SYNCING,
+    /**
+     * 文件和副本现在都可用。
+     */
+    AVAILABLE;
+
 }

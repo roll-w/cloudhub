@@ -1,0 +1,3 @@
+spring:
+  banner:
+    charset: UTF-8

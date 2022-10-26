@@ -10,24 +10,16 @@ enum BlockRequestCompressType {
   TAR = 3;
 }
 
-message UploadBlock {
+message UploadBlockData {
   bytes data = 1;
 }
 
-message UploadBlocks {
+message UploadBlocksInfo {
   // index of the request
   int32 index = 1;
-
-  int64 valid_bytes = 2;
-  reserved 3;
-  // crc32
-  string check_value = 4;
-  // compress type
-  optional BlockRequestCompressType compress_type = 5;
-  // index count in the first request
-  optional int32 index_count = 7;
-  repeated UploadBlock blocks = 10;
+  repeated UploadBlockData blocks = 3;
 }
+
 
 message UploadBlocksRequest {
   message Host {
@@ -35,13 +27,20 @@ message UploadBlocksRequest {
     int32 port = 2;
   }
 
+  message CheckMessage {
+    int32 request_count = 1;
+    int64 valid_bytes = 2;
+    string check_value = 3;
+    repeated Host replicaHosts = 8;
+    // FIRST REQUEST. compress type
+    BlockRequestCompressType compress_type = 9;
+  }
+
   string identity = 1;
-  optional UploadBlocks upload_blocks = 2;
-
-  repeated Host replicaHosts = 3;
-
-  // TODO: sends id first, check if the file exists.
-  //  if exists, there's no need to send more requests.
+  oneof Upload {
+    CheckMessage check_message = 2;
+    UploadBlocksInfo upload_blocks = 3;
+  }
 }
 
 message UploadBlocksResponse {

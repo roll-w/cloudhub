@@ -6,7 +6,8 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * @author RollW
  */
-public class RegisterNodePool implements HeartbeatWatcherPool.ServerRemovable {
+public class RegisterNodePool
+        implements HeartbeatWatcherPool.ServerRemovable, NodeAllocator {
     private final Map<String, NodeServer> activeNodeServers =
             new ConcurrentHashMap<>();
 
@@ -43,5 +44,16 @@ public class RegisterNodePool implements HeartbeatWatcherPool.ServerRemovable {
     @Override
     public void removeActiveServer(NodeServer nodeServer) {
         removeNodeServer(nodeServer);
+    }
+
+    // TODO: allocate Node
+    @Override
+    public NodeServer allocateNode(String hash) {
+        return null;
+    }
+
+    @Override
+    public NodeServer allocateNode(long hash) {
+        return null;
     }
 }

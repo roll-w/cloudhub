@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+import "heartbeat.proto";
+
+option java_multiple_files = true;
+option java_package = "org.huel.cloudhub.file.rpc.replica";
+option java_outer_classname = "SynchroProtos";
+
+// TODO:
+
+message ReplicaRequest {
+  // source host id
+  SerializedFileServer source = 1;
+
+}

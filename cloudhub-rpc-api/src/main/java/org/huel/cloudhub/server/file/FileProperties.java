@@ -13,6 +13,10 @@ public class FileProperties {
     static final String META_PATH = "meta";
 
     private String filePath = "dfs";
+
+    private String tempFilePath = ".temp";
+
+    private String stageFilePath = ".staging";
     /**
      * block size, in kb
      */
@@ -28,15 +32,35 @@ public class FileProperties {
      */
     private int maxRequestSize = 20;
 
-    public FileProperties(String filePath, int blockSize,
-                          int blockCount, int maxRequestSize) {
+    public FileProperties(String filePath, String tempFilePath,
+                          String stageFilePath,
+                          int blockSize, int blockCount,
+                          int maxRequestSize) {
         this.filePath = filePath;
+        this.tempFilePath = tempFilePath;
+        this.stageFilePath = stageFilePath;
         this.blockSize = blockSize;
         this.blockCount = blockCount;
         this.maxRequestSize = maxRequestSize;
     }
 
     public FileProperties() {
+    }
+
+    public String getTempFilePath() {
+        return tempFilePath;
+    }
+
+    public void setTempFilePath(String tempFilePath) {
+        this.tempFilePath = tempFilePath;
+    }
+
+    public String getStageFilePath() {
+        return stageFilePath;
+    }
+
+    public void setStageFilePath(String stageFilePath) {
+        this.stageFilePath = stageFilePath;
     }
 
     public String getFilePath() {
@@ -63,6 +87,10 @@ public class FileProperties {
         return blockSize;
     }
 
+    public int getBlockSizeInBytes() {
+        return blockSize * 1024;
+    }
+
     public int getBlockCount() {
         return blockCount;
     }
@@ -82,4 +110,6 @@ public class FileProperties {
     public long getMaxRequestSizeBytes() {
         return maxRequestSize * 1024L * 1024L;
     }
+
+
 }

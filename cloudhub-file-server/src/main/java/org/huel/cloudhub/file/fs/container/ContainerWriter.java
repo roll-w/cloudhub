@@ -47,7 +47,7 @@ public class ContainerWriter implements Closeable {
         this.blockSize = container.getIdentity().blockSize();
         this.containerAllocator = containerAllocator;
         this.containerLocation = container.getLocation();
-        this.validContainer = container.isValid();
+        this.validContainer = container.isUsable();
         initialContainer();
     }
 
@@ -139,13 +139,13 @@ public class ContainerWriter implements Closeable {
             return;
         }
         try (FileAllocator allocator = new FileAllocator(container.getLocation().toFile())) {
-            allocator.allocateSize(container.calcLimitBytes());
+            allocator.allocateSize(container.getLimitBytes());
         }
     }
 
     private void reset(Container container) throws IOException {
         this.container = container;
-        validContainer = container.isValid();
+        validContainer = container.isUsable();
         containerLocation = container.getLocation();
         mBlockMetaInfos.clear();
         updates = false;
@@ -154,7 +154,7 @@ public class ContainerWriter implements Closeable {
 
     private SeekableOutputStream openContainer() throws FileNotFoundException {
         return new LimitedSeekableFileOutputStream(container.getLocation(),
-                container.calcLimitBytes());
+                container.getLimitBytes());
     }
 
     public Container requireUpdate() throws MetaException, IOException {
