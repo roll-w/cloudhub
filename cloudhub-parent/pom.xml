@@ -182,6 +182,7 @@
             <resource>
                 <directory>src/main/resources</directory>
                 <includes>
+                    <include>*</include>
                     <include>*.yml</include>
                     <include>*.properties</include>
                     <include>*.json</include>
