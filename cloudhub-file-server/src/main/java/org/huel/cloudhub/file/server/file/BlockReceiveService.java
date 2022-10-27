@@ -123,7 +123,7 @@ public class BlockReceiveService extends BlockUploadServiceGrpc.BlockUploadServi
         public void onCompleted() {
             if (indexCount <= 0 && responseObserver.isOpen()) {
                 logger.info("invalid index count {} in uploading {}", indexCount, fileId);
-                responseObserver.onError(Status.DATA_LOSS.asException());
+                responseObserver.onError(Status.INVALID_ARGUMENT.asException());
                 return;
             }
             if (indexCount != indexedBlockRequests.size() && responseObserver.isOpen()) {

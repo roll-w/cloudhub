@@ -122,6 +122,11 @@ public class ContainerService implements ContainerAllocator {
         return container;
     }
 
+    @Override
+    public List<Container> allocateContainers(String id, long size) {
+        // TODO:
+        return null;
+    }
 
     @Override
     public boolean dataExists(final String fileId) {

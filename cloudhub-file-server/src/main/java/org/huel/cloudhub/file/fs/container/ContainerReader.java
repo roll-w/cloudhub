@@ -6,11 +6,11 @@ import org.huel.cloudhub.file.fs.block.ContainerBlock;
  * @author RollW
  */
 public class ContainerReader {
-    public ContainerReader(Container container) {
+    public ContainerReader(Container container, ContainerProvider containerProvider) {
 
     }
 
-    public ContainerBlock nextBlock() {
+    public ContainerBlock nextValidBlock() {
         return null;
     }
 }

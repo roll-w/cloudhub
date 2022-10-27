@@ -1,5 +1,6 @@
 package org.huel.cloudhub.file.fs.container;
 
+import com.google.common.collect.Iterables;
 import org.huel.cloudhub.file.fs.FileAllocator;
 import org.huel.cloudhub.file.fs.block.Block;
 import org.huel.cloudhub.file.fs.block.BlockMetaInfo;
@@ -14,7 +15,6 @@ import java.io.Closeable;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -98,11 +98,13 @@ public class ContainerWriter implements Closeable {
 
     private BlockMetaInfo collectInfo(List<ContainerBlock> containerBlockList,
                                       String fieldId, long validBytes, boolean cross) {
-        int start = containerBlockList.stream().findFirst()
-                .get().getIndex();
-        Collections.reverse(containerBlockList);
-        int end = containerBlockList.stream().findFirst()
-                .get().getIndex();
+        ContainerBlock firstBlock =
+                Iterables.getFirst(containerBlockList, null);
+        int start = firstBlock.getIndex();
+        ContainerBlock lastBlock =
+                Iterables.getLast(containerBlockList, null);
+        int end = lastBlock.getIndex();
+
         return new BlockMetaInfo(
                 fieldId, start, end,
                 validBytes, cross);

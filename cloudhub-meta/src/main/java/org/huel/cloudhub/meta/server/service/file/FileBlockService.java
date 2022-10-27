@@ -82,7 +82,7 @@ public class FileBlockService {
                 .setValidBytes(validBytes)
                 .setRequestCount(requestCount)
                 .setCompressType(BlockRequestCompressType.NONE)
-                .setCheckValue("0")
+                .setCheckValue("0")// TODO: calc CRC32
                 .build();
         UploadBlocksRequest firstRequest = UploadBlocksRequest.newBuilder()
                 .setIdentity(hash)

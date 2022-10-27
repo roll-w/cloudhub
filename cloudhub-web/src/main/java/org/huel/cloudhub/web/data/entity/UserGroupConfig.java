@@ -20,6 +20,10 @@ public class UserGroupConfig {
     @PrimaryKey
     private String name;// 名称 - 主键
 
+    @DataColumn(name = "group_description", configuration =
+    @LightConfiguration(key = LightConfiguration.KEY_VARCHAR_LENGTH, value = "256"))
+    private String description;// TODO:
+
     /**
      * 最大文件总限量。以兆为单位。
      */

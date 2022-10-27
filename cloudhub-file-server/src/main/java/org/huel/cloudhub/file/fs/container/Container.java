@@ -43,7 +43,7 @@ public class Container {
         this.usable = usable;
         this.blockMetaInfos.addAll(blockMetaInfos);
         if (usedBlock <= 0) {
-           calcUsedBlocks(this.blockMetaInfos);
+            calcUsedBlocks(this.blockMetaInfos);
         }
     }
 
@@ -162,9 +162,14 @@ public class Container {
     private void calcFreeBlocks() {
         // 计算空闲块
         List<BlockMetaInfo> forked = new ArrayList<>(blockMetaInfos);
-        forked.stream().sorted(Comparator.comparingInt(BlockMetaInfo::getStart))
-        ;
+        forked.sort(Comparator.comparingInt(BlockMetaInfo::getStart));
+        final int size = forked.size();
+        for (int i = 0; i < size; i++) {
+            BlockMetaInfo blockMetaInfo = forked.get(i);
+            if (i == 0) ;
 
+
+        }
     }
 
 
