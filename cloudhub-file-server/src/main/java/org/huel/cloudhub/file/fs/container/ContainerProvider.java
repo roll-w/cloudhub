@@ -1,14 +1,18 @@
 package org.huel.cloudhub.file.fs.container;
 
-import java.io.InputStream;
+import org.checkerframework.checker.nullness.qual.Nullable;
+import org.huel.cloudhub.file.io.SeekableInputStream;
 
 /**
  * @author RollW
  */
 public interface ContainerProvider {
-    default InputStream openContainer(Container container) {
+    default SeekableInputStream openContainer(Container container) {
         return openContainer(container.getLocation());
     }
 
-    InputStream openContainer(ContainerLocation location);
+    SeekableInputStream openContainer(ContainerLocation location);
+
+    @Nullable
+    Container findContainer(String containerId, long serial);
 }

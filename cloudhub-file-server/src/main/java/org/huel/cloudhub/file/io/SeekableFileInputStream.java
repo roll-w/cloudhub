@@ -22,9 +22,8 @@ public class SeekableFileInputStream extends InputStream implements Seekable {
     }
 
     @Override
-    public long position() {
-        // TODO:
-        return 0;
+    public long position() throws IOException {
+        return randomAccessFile.getFilePointer();
     }
 
     @Override

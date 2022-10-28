@@ -10,7 +10,7 @@ import java.util.List;
  * @author RollW
  */
 public interface ContainerAllocator extends ContainerCreator {
-    String CONTAINER_META_FILE_SUFFIX = ".cmeta";
+    String CONTAINER_META_SUFFIX = ".cmeta";
 
     @NonNull
     Container allocateContainer(String id);

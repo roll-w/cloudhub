@@ -1,8 +1,6 @@
 package org.huel.cloudhub.file.io;
 
-import java.io.FilterInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static org.huel.cloudhub.file.io.InternalLimitUtils.*;
@@ -10,20 +8,37 @@ import static org.huel.cloudhub.file.io.InternalLimitUtils.*;
 /**
  * @author RollW
  */
-public class LimitedInputStream extends FilterInputStream {
+public class LimitedSeekableStream extends SeekableInputStream 
+        implements Seekable {
     private final AtomicLong readBytes = new AtomicLong(0);
-    private boolean close = false;
     private final long limit;
-
-    public LimitedInputStream(InputStream in, long limit) {
-        super(in);
+    private boolean close = false;
+    private final SeekableInputStream in;
+    
+    public LimitedSeekableStream(SeekableInputStream in, long limit) {
         this.limit = limit;
+        this.in = in;
+    }
+
+    @Override
+    public void seek(long position) throws IOException {
+        if (position > limit) {
+            throw new ReachLimitException("Exceed limit.");
+        }
+        readBytes.set(position);
+        in.seek(position);
+    }
+
+    @Override
+    public long position() throws IOException {
+        return in.position();
     }
 
     @Override
     public int read() throws IOException {
         return read1(close, limit, readBytes, in);
     }
+
 
     @Override
     public int read(byte[] b) throws IOException {
@@ -33,11 +48,6 @@ public class LimitedInputStream extends FilterInputStream {
     @Override
     public int read(byte[] b, int off, int len) throws IOException {
         return readN(b, off, len, close, limit, readBytes, in);
-    }
-
-    void skipOver() throws IOException {
-        int available = available();
-        long s = skip(available);
     }
 
     @Override

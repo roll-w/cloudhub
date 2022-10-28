@@ -70,14 +70,15 @@ public class ContainerWriter implements Closeable {
         for (Block block : blocks.getBlocks()) {
             ContainerBlock containerBlock = writeBlock(block);
             if (containerBlock == null) {
+                Container newContainer = containerAllocator.allocateContainer(container.getIdentity().id());
                 BlockMetaInfo metaInfo =
-                        collectInfo(containerBlockList, fieldId, blockSize, true);
+                        collectInfo(containerBlockList, fieldId, blockSize,
+                                newContainer.getIdentity().serial());
                 mBlockMetaInfos.add(metaInfo);
                 blockMetaInfosList.add(metaInfo);
                 requireUpdate();
                 containerBlockList = new ArrayList<>();
                 // needs allocates a new container
-                Container newContainer = containerAllocator.allocateContainer(container.getIdentity().id());
                 reset(newContainer);
 
                 containerBlock = writeBlock(block);
@@ -88,8 +89,9 @@ public class ContainerWriter implements Closeable {
             containerBlock.release();
         }
 
-        BlockMetaInfo metaInfo = collectInfo(
-                containerBlockList, fieldId, blocks.getValidBytes(), false);
+        BlockMetaInfo metaInfo = collectInfo(containerBlockList,
+                fieldId, blocks.getValidBytes(),
+                BlockMetaInfo.NOT_CROSS_CONTAINER);
         mBlockMetaInfos.add(metaInfo);
         blockMetaInfosList.add(metaInfo);
 
@@ -97,7 +99,8 @@ public class ContainerWriter implements Closeable {
     }
 
     private BlockMetaInfo collectInfo(List<ContainerBlock> containerBlockList,
-                                      String fieldId, long validBytes, boolean cross) {
+                                      String fieldId, long validBytes,
+                                      long nextSerial) {
         ContainerBlock firstBlock =
                 Iterables.getFirst(containerBlockList, null);
         int start = firstBlock.getIndex();
@@ -107,7 +110,7 @@ public class ContainerWriter implements Closeable {
 
         return new BlockMetaInfo(
                 fieldId, start, end,
-                validBytes, cross);
+                validBytes, nextSerial);
     }
 
     private ContainerBlock writeBlock(Block block) throws IOException {
@@ -168,9 +171,9 @@ public class ContainerWriter implements Closeable {
                         container.getIdentity().serial(),
                         container.getIdentity().blockLimit(),
                         container.getIdentity().blockSize());
-        ContainerFileNameMeta meta = container.getSimpleMeta();
+        ContainerNameMeta meta = container.getSimpleMeta();
         ContainerLocation updateLocation =
-                container.getLocation().fork(meta.toName());
+                container.getLocation().fork(meta.getName());
         List<BlockMetaInfo> blockMetaInfos = new ArrayList<>(container.getBlockMetaInfos());
         blockMetaInfos.addAll(mBlockMetaInfos);
         Container updateContainer = new Container(

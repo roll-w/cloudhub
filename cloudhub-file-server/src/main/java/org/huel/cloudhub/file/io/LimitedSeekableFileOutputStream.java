@@ -28,25 +28,19 @@ public class LimitedSeekableFileOutputStream extends SeekableFileOutputStream {
 
     @Override
     public void write(byte[] b) throws IOException {
-        int length = b.length;
-        if (length > limit) {
-            throw new ReachLimitException("write reach limit.");
-        }
-        if (writeBytes.get() + length > limit) {
-            throw new ReachLimitException("write reach limit.");
-        }
-        super.write(b);
+        write(b, 0, b.length);
     }
 
     @Override
     public void write(byte[] b, int off, int len) throws IOException {
-        if (off + len > limit) {
+        int writeLength = len - off;
+        if (writeLength > limit) {
             throw new ReachLimitException("write reach limit.");
         }
-
-        if (writeBytes.get() + off + len > limit) {
+        if (writeBytes.get() + writeLength > limit) {
             throw new ReachLimitException("write reach limit.");
         }
+        writeBytes.addAndGet(writeLength);
         super.write(b, off, len);
     }
 

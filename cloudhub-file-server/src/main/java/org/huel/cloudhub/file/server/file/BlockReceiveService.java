@@ -150,6 +150,7 @@ public class BlockReceiveService extends BlockUploadServiceGrpc.BlockUploadServi
                 responseObserver.onCompleted();
             } catch (IOException | MetaException e) {
                 responseObserver.onError(e);
+                e.printStackTrace();
                 logger.error("container writer error: ", e);
             }
         }

@@ -25,7 +25,7 @@ import java.util.*;
  */
 @Service
 public class ContainerService implements ContainerAllocator {
-    private final Cache<String, ContainersHolder> containerCache =
+    private final Cache<String, ContainerGroup> containerCache =
             Caffeine.newBuilder()
                     .build();
     private final FileProperties fileProperties;
@@ -41,10 +41,10 @@ public class ContainerService implements ContainerAllocator {
         this.localFileServer = localFileServer;
         this.containerDir =
                 localFileServer.getServerFileProvider().openFile(fileProperties.getContainerPath());
-        readContainer();
+        loadContainers();
     }
 
-    private void readContainer() throws IOException {
+    private void loadContainers() throws IOException {
         ServerFile metaDir =
                 localFileServer.getServerFileProvider().openFile(fileProperties.getMetaPath());
         metaDir.mkdirs();
@@ -53,6 +53,11 @@ public class ContainerService implements ContainerAllocator {
         List<ServerFile> metaFiles = metaDir.listFiles();
         List<String> locators = new ArrayList<>();
         for (ServerFile metaFile : metaFiles) {
+            if (Objects.equals(ContainerAllocator.CONTAINER_META_SUFFIX,
+                    FileUtils.getExtensionName(metaFile.getName()))) {
+                continue;
+            }
+
             SerializedContainerGroupMeta fileMeta = readContainerMeta(metaFile);
             fileMeta.getMetaList().forEach(meta ->
                     locators.add(meta.getLocator()));
@@ -68,11 +73,11 @@ public class ContainerService implements ContainerAllocator {
             containerBlockMeta.getBlockMetasList().forEach(serializeBlockFileMeta ->
                     blockMetaInfos.add(BlockMetaInfo.deserialize(serializeBlockFileMeta)));
 
-            ContainerFileNameMeta fileNameMeta = ContainerFileNameMeta.parse(locator);
+            ContainerNameMeta fileNameMeta = ContainerNameMeta.parse(locator);
             ContainerIdentity identity = new ContainerIdentity(
-                    fileNameMeta.id(),
+                    fileNameMeta.getId(),
                     containerBlockMeta.getCrc(),
-                    fileNameMeta.serial(),
+                    fileNameMeta.getSerial(),
                     containerBlockMeta.getBlockCap(),
                     containerBlockMeta.getBlockSize());
 
@@ -95,30 +100,30 @@ public class ContainerService implements ContainerAllocator {
      */
     @Override
     @NonNull
-    public Container allocateContainer(String id) {
-        id = ContainerIdentity.toMetaId(id);
-        ContainersHolder holder = containerCache.get(id,
-                s -> new ContainersHolder());
+    public Container allocateContainer(final String id) {
+        final String containerId = ContainerIdentity.toMetaId(id);
+        ContainerGroup containerGroup = containerCache.get(containerId,
+                s -> new ContainerGroup(containerId));
 
-        if (holder == null) {
-            logger.info("holder null");
+        if (containerGroup == null) {
+            logger.info("containerGroup null");
 
-            Container container = createsNewContainer(id, 1);
-            ContainersHolder newHolder = new ContainersHolder();
+            Container container = createsNewContainer(containerId, 1);
+            ContainerGroup newGroup = new ContainerGroup(containerId);
 
-            newHolder.put(container);
-            containerCache.put(id, newHolder);
+            newGroup.put(container);
+            containerCache.put(containerId, newGroup);
             return container;
         }
 
-        Container container = holder.latestAvailableContainer();
-        if (container != null) {
-            logger.info("find available container: {}", container.getResourceLocator());
+        Container container = containerGroup.latestContainer();
+        if (container != null && !container.isReachLimit()) {
+            logger.info("find an available container: {}", container.getResourceLocator());
             return container;
         }
-        container = createsNewContainer(id, holder.lastSerial() + 1);
-        logger.info("not find available container, creates new {}", container.getResourceLocator());
-        holder.put(container);
+        container = createsNewContainer(id, containerGroup.lastSerial() + 1);
+        logger.info("not find an available container, creates new {}", container.getResourceLocator());
+        containerGroup.put(container);
         return container;
     }
 
@@ -131,12 +136,12 @@ public class ContainerService implements ContainerAllocator {
     @Override
     public boolean dataExists(final String fileId) {
         final String containerId = ContainerIdentity.toMetaId(fileId);
-        ContainersHolder holder = containerCache.get(containerId,
-                s -> new ContainersHolder());
-        if (holder == null) {
+        ContainerGroup containerGroup = containerCache.get(containerId,
+                s -> new ContainerGroup(containerId));
+        if (containerGroup == null) {
             return false;
         }
-        return holder.fileIds().contains(fileId);
+        return containerGroup.hasFile(fileId);
     }
 
     @Override
@@ -148,7 +153,7 @@ public class ContainerService implements ContainerAllocator {
                 container.getResourceLocator() + ContainerLocation.META_SUFFIX);
         ServerFile metaFile = localFileServer.getServerFileProvider().openFile(
                 fileProperties.getMetaPath(),
-                ContainerIdentity.toCmetaId(container.getResourceLocator()) + CONTAINER_META_FILE_SUFFIX);
+                ContainerIdentity.toCmetaId(container.getResourceLocator()) + CONTAINER_META_SUFFIX);
         containerFile.createFile();
         containerMetaFile.createFile();
         metaFile.createFile();
@@ -179,16 +184,16 @@ public class ContainerService implements ContainerAllocator {
     }
 
     private Container createsNewContainer(String id, long serial) {
-        ContainerFileNameMeta fileNameMeta = new ContainerFileNameMeta(id, serial);
+        ContainerNameMeta fileNameMeta = new ContainerNameMeta(id, serial);
         ContainerIdentity identity = new ContainerIdentity(
-                fileNameMeta.id(),
+                fileNameMeta.getId(),
                 ContainerIdentity.INVALID_CRC,
-                fileNameMeta.serial(),
+                fileNameMeta.getSerial(),
                 fileProperties.getBlockCount(),
                 fileProperties.getBlockSize());
 
         ContainerLocation location = new ContainerLocation(
-                ContainerLocation.toDataPath(containerDir, fileNameMeta.toName())
+                ContainerLocation.toDataPath(containerDir, fileNameMeta.getName())
         );
 
         return new Container(location,
@@ -198,17 +203,18 @@ public class ContainerService implements ContainerAllocator {
     }
 
     public Collection<Container> listContainers(String id) {
-        ContainersHolder holder =
-                containerCache.get(id, s -> new ContainersHolder());
-        if (holder == null) {
+        final String containerId = ContainerIdentity.toMetaId(id);
+        ContainerGroup containerGroup =
+                containerCache.get(id, s -> new ContainerGroup(containerId));
+        if (containerGroup == null) {
             return Collections.emptySet();
         }
-        return Collections.unmodifiableCollection(holder.containers());
+        return Collections.unmodifiableCollection(containerGroup.containers());
     }
 
     public Collection<Container> listContainers() {
         List<Container> containers = new ArrayList<>();
-        for (ContainersHolder value : containerCache.asMap().values()) {
+        for (ContainerGroup value : containerCache.asMap().values()) {
             containers.addAll(value.containers());
         }
         return containers;
@@ -216,13 +222,13 @@ public class ContainerService implements ContainerAllocator {
 
     @Async
     void updatesContainer(Container container) {
-        ContainersHolder containers =
+        ContainerGroup containerGroup =
                 containerCache.getIfPresent(container.getResourceLocator());
-        if (containers == null) {
-            containers = new ContainersHolder();
+        if (containerGroup == null) {
+            containerGroup = new ContainerGroup(container.getIdentity().id());
         }
-        containers.put(container);
-        containerCache.put(container.getIdentity().id(), containers);
+        containerGroup.put(container);
+        containerCache.put(container.getIdentity().id(), containerGroup);
     }
 
     private SerializedContainerBlockMeta readContainerBlockMeta(ServerFile file) throws IOException {
@@ -231,12 +237,12 @@ public class ContainerService implements ContainerAllocator {
 
     @Async
     void writeContainerMeta(SerializedContainerMeta containerMeta) throws IOException {
-        ContainerFileNameMeta fileNameMeta =
-                ContainerFileNameMeta.parse(containerMeta.getLocator());
-        String fileName = ContainerIdentity.toCmetaId(fileNameMeta.id());
+        ContainerNameMeta fileNameMeta =
+                ContainerNameMeta.parse(containerMeta.getLocator());
+        String fileName = ContainerIdentity.toCmetaId(fileNameMeta.getId());
 
         ServerFile file = localFileServer.getServerFileProvider()
-                .openFile(fileProperties.getMetaPath(), fileName + CONTAINER_META_FILE_SUFFIX);
+                .openFile(fileProperties.getMetaPath(), fileName + CONTAINER_META_SUFFIX);
         boolean createState = file.createFile();
         SerializedContainerGroupMeta containerFileMeta =
                 SerializedContainerGroupMeta.parseFrom(file.openInput());
@@ -253,55 +259,4 @@ public class ContainerService implements ContainerAllocator {
     public SerializedContainerGroupMeta readContainerMeta(ServerFile serverFile) throws IOException {
         return SerializedContainerGroupMeta.parseFrom(serverFile.openInput());
     }
-
-    private static class ContainersHolder {
-        // TODO: replace with ContainerGroup
-
-        private final Map<String, Container> containers;
-        private final Set<String> fileIds;
-        // the last serial
-        private long serial;
-
-        public ContainersHolder() {
-            this.containers = new HashMap<>();
-            this.fileIds = new HashSet<>();
-        }
-
-        void put(Container container) {
-            serial = Math.max(container.getIdentity().serial(), serial);
-            containers.put(container.getResourceLocator(), container);
-            container.getBlockMetaInfos().forEach(blockMetaInfo ->
-                    fileIds.add(blockMetaInfo.getFileId()));
-        }
-
-        long lastSerial() {
-            return serial;
-        }
-
-        Collection<Container> containers() {
-            return containers.values();
-        }
-
-        Container latestAvailableContainer() {
-            for (Container container : containers.values()) {
-                if (check(container, serial)) {
-                    return container;
-                }
-            }
-            // allocate a new container
-            return null;
-        }
-
-        public Collection<String> fileIds() {
-            return Collections.unmodifiableSet(fileIds);
-        }
-
-        private boolean check(Container container, long serial) {
-            if (container.isReachLimit()) {
-                return false;
-            }
-            return container.getIdentity().serial() == serial;
-        }
-    }
-
 }

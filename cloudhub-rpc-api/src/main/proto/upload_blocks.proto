@@ -31,6 +31,7 @@ message UploadBlocksRequest {
     int32 request_count = 1;
     int64 valid_bytes = 2;
     string check_value = 3;
+    int64 file_length = 4;
     repeated Host replicaHosts = 8;
     // FIRST REQUEST. compress type
     BlockRequestCompressType compress_type = 9;

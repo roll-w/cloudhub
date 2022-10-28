@@ -1,6 +1,7 @@
 package org.huel.cloudhub.file.fs.container;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.huel.cloudhub.file.fs.block.BlockGroup;
 import org.huel.cloudhub.file.fs.block.BlockMetaInfo;
 import org.huel.cloudhub.file.fs.meta.SerializedBlockFileMeta;
 
@@ -25,14 +26,14 @@ public class Container {
     private long version;
 
     private final ContainerLocation location;
-    private final ContainerFileNameMeta meta;
+    private final ContainerNameMeta meta;
     private final ContainerIdentity identity;
     private final List<BlockMetaInfo> blockMetaInfos = new ArrayList<>();
     private final List<FreeBlockInfo> freeBlockInfos = new ArrayList<>();
 
     public Container(@NonNull ContainerLocation location,
                      int usedBlock,
-                     @NonNull ContainerFileNameMeta meta,
+                     @NonNull ContainerNameMeta meta,
                      @NonNull ContainerIdentity identity,
                      @NonNull Collection<BlockMetaInfo> blockMetaInfos,
                      boolean usable) {
@@ -108,7 +109,7 @@ public class Container {
         return identity;
     }
 
-    public ContainerFileNameMeta getSimpleMeta() {
+    public ContainerNameMeta getSimpleMeta() {
         return meta;
     }
 
@@ -132,6 +133,25 @@ public class Container {
         return identity.blockSizeBytes() * identity.blockLimit();
     }
 
+    /**
+     * Gets the valid bytes count for the block.
+     * <p>
+     * Returns {@code -1} means means that this block
+     * has not yet written any data.
+     *
+     * @param blockIndex index of the block
+     * @return valid bytes count
+     */
+    public long getValidBytes(int blockIndex) {
+        for (BlockMetaInfo blockMetaInfo : blockMetaInfos) {
+            if (!blockMetaInfo.contains(blockIndex)) {
+                continue;
+            }
+            return blockMetaInfo.validBytesAt(blockIndex, identity.blockSizeBytes());
+        }
+        return -1;
+    }
+
     public boolean hasFileId(String fileId) {
         for (BlockMetaInfo blockMetaInfo : this.blockMetaInfos) {
             if (blockMetaInfo.getFileId().equals(fileId)) {
@@ -150,6 +170,10 @@ public class Container {
         return null;
     }
 
+    public List<FreeBlockInfo> getFreeBlockInfos() {
+        return Collections.unmodifiableList(freeBlockInfos);
+    }
+
     private void calcUsedBlocks(List<BlockMetaInfo> blockMetaInfos) {
         if (blockMetaInfos == null || blockMetaInfos.isEmpty()) {
             return;
@@ -161,15 +185,10 @@ public class Container {
 
     private void calcFreeBlocks() {
         // 计算空闲块
-        List<BlockMetaInfo> forked = new ArrayList<>(blockMetaInfos);
-        forked.sort(Comparator.comparingInt(BlockMetaInfo::getStart));
-        final int size = forked.size();
-        for (int i = 0; i < size; i++) {
-            BlockMetaInfo blockMetaInfo = forked.get(i);
-            if (i == 0) ;
-
-
-        }
+        List<BlockGroup> blockGroups = new ArrayList<>();
+        blockMetaInfos.forEach(blockMetaInfo ->
+                blockGroups.addAll(blockMetaInfo.getBlockGroups()));
+        blockGroups.sort(Comparator.comparingInt(BlockGroup::getStart));
     }
 
 

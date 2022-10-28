@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "org.huel.cloudhub.file.rpc.block";
+option java_outer_classname = "DownloadBlocksProtos";
+
+message DownloadBlockData {
+  bytes data = 1;
+}
+
+message DownloadBlockRequest {
+  string file_id = 1;
+}
+
+
+
+message DownloadMessage {
+}
+
+message DownloadBlockResponse {
+  repeated DownloadBlockData data = 1;
+}
+
+service BlockDownloadService {
+  rpc downloadBlocks(DownloadBlockRequest)
+      returns (stream DownloadBlockResponse);
+}
