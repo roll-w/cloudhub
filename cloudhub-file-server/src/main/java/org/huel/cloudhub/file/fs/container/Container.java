@@ -152,6 +152,15 @@ public class Container {
         return -1;
     }
 
+    public BlockMetaInfo getBlockMetaInfo(int index) {
+        for (BlockMetaInfo blockMetaInfo : blockMetaInfos) {
+            if (blockMetaInfo.contains(index)) {
+                return blockMetaInfo;
+            }
+        }
+        return null;
+    }
+
     public boolean hasFileId(String fileId) {
         for (BlockMetaInfo blockMetaInfo : this.blockMetaInfos) {
             if (blockMetaInfo.getFileId().equals(fileId)) {
@@ -161,7 +170,7 @@ public class Container {
         return false;
     }
 
-    public BlockMetaInfo getFileBlockMetaInfo(String fileId) {
+    public BlockMetaInfo getBlockMetaInfoByFile(String fileId) {
         for (BlockMetaInfo blockMetaInfo : this.blockMetaInfos) {
             if (blockMetaInfo.getFileId().equals(fileId)) {
                 return blockMetaInfo;
@@ -188,7 +197,7 @@ public class Container {
         List<BlockGroup> blockGroups = new ArrayList<>();
         blockMetaInfos.forEach(blockMetaInfo ->
                 blockGroups.addAll(blockMetaInfo.getBlockGroups()));
-        blockGroups.sort(Comparator.comparingInt(BlockGroup::getStart));
+        blockGroups.sort(Comparator.comparingInt(BlockGroup::start));
     }
 
 

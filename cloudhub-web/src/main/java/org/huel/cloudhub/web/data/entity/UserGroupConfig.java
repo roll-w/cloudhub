@@ -12,8 +12,9 @@ import space.lingu.light.PrimaryKey;
  */
 @DataTable(tableName = "user_group_config_table")
 public class UserGroupConfig {
-    public static final UserGroupConfig DEFAULT =
-            new UserGroupConfig("default", 500, 500);
+    public static final UserGroupConfig DEFAULT = new UserGroupConfig(
+            "default", "Default user group config",
+            500, 500);
 
     @DataColumn(name = "group_name", configuration =
     @LightConfiguration(key = LightConfiguration.KEY_VARCHAR_LENGTH, value = "120"))
@@ -39,8 +40,9 @@ public class UserGroupConfig {
     public UserGroupConfig() {
     }
 
-    public UserGroupConfig(String name, int maxFileSize, int maxNum) {
+    public UserGroupConfig(String name, String description, int maxFileSize, int maxNum) {
         this.name = name;
+        this.description = description;
         this.maxFileSize = maxFileSize;
         this.maxNum = maxNum;
     }
@@ -67,5 +69,13 @@ public class UserGroupConfig {
 
     public void setMaxNum(int maxNum) {
         this.maxNum = maxNum;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 }

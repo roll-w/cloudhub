@@ -28,19 +28,19 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @author RollW
  */
 @Service
-public class FileBlockService {
+public class FileUploadService {
     private final HeartbeatService heartbeatService;
     private final FileProperties fileProperties;
     private final NodeChannelPool nodeChannelPool;
 
-    public FileBlockService(HeartbeatService heartbeatService,
-                            FileProperties fileProperties) {
+    public FileUploadService(HeartbeatService heartbeatService,
+                             FileProperties fileProperties) {
         this.heartbeatService = heartbeatService;
         this.fileProperties = fileProperties;
         this.nodeChannelPool = new NodeChannelPool();
     }
 
-    private final Logger logger = LoggerFactory.getLogger(FileBlockService.class);
+    private final Logger logger = LoggerFactory.getLogger(FileUploadService.class);
 
 
     // TODO: 发送时，对大小超过某个值的文件
@@ -53,14 +53,13 @@ public class FileBlockService {
         return hasher.hash().toString();
     }
 
-    public void sendBlock(InputStream inputStream) throws IOException {
+    public void uploadFile(InputStream inputStream) throws IOException {
         // TODO: add hash and file length param.
 
         // 创建本地文件耗费IO时间。客户端上传时直接携带hash值和长度以便于计算
         ReopenableInputStream reopenableInputStream = convertInputStream(inputStream);
         final String hash = hashStream(reopenableInputStream);
         reopenableInputStream.reopen();
-
         logger.info("start upload fileId={}", hash);
 
         final long maxBlocksValue = fileProperties.getMaxRequestSizeBytes() >> 1;

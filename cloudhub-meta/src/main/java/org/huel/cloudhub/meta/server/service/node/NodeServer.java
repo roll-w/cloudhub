@@ -1,6 +1,6 @@
 package org.huel.cloudhub.meta.server.service.node;
 
-import org.huel.cloudhub.server.rpc.proto.Heartbeat;
+import org.huel.cloudhub.server.rpc.heartbeat.Heartbeat;
 
 /**
  * Represents a server node.

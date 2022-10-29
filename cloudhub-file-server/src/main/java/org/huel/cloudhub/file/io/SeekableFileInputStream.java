@@ -7,7 +7,7 @@ import java.io.*;
  *
  * @author RollW
  */
-public class SeekableFileInputStream extends InputStream implements Seekable {
+public class SeekableFileInputStream extends SeekableInputStream implements Seekable {
     private final RandomAccessFile randomAccessFile;
 
     public SeekableFileInputStream(RepresentFile representFile) throws FileNotFoundException {

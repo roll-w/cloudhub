@@ -62,7 +62,7 @@ public class ContainerIdentity {
         return id.substring(0, IDMETA_SUBNUM);
     }
 
-    public static String toMetaId(String id) {
+    public static String toContainerId(String id) {
         return id.substring(0, ID_SUBNUM);
     }
 }

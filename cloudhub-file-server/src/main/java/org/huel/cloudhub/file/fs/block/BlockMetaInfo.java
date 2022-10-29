@@ -36,7 +36,7 @@ public class BlockMetaInfo {
     }
 
     private void sort() {
-        blockGroups.sort(Comparator.comparingInt(BlockGroup::getStart));
+        blockGroups.sort(Comparator.comparingInt(BlockGroup::start));
     }
 
     public String getFileId() {
@@ -76,7 +76,7 @@ public class BlockMetaInfo {
         // because of BlockMeta not hold block size value,
         // so you need pass this "blockSizeInBytes" value.
         BlockGroup lastGroup = blockGroups.get(blockGroups.size() - 1);
-        if (lastGroup.getEnd() == index) {
+        if (lastGroup.end() == index) {
             return validBytes;
         }
         if (contains(index)) {

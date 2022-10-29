@@ -1,6 +1,9 @@
 package org.huel.cloudhub.file.fs.container;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.huel.cloudhub.file.fs.block.BlockMetaInfo;
+import org.huel.cloudhub.file.fs.block.FileBlockMetaInfo;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -10,6 +13,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class ContainerGroup {
     private final String containerId;
+    private long blockSizeInBytes = -1;
     private volatile long latestSerial;
 
     private final Map<String, Container> containers = new ConcurrentHashMap<>();
@@ -35,12 +39,16 @@ public class ContainerGroup {
         containers.put(container.getResourceLocator(), container);
         container.getBlockMetaInfos().forEach(blockMetaInfo ->
                 fileIds.add(blockMetaInfo.getFileId()));
-
         List<FreeBlockInfo> containerFreeBlocks = serialFreeBlockInfos
                 .computeIfAbsent(container.getIdentity().serial(),
                         v -> new ArrayList<>());
 
         containerFreeBlocks.addAll(container.getFreeBlockInfos());
+        if (blockSizeInBytes >= 0) {
+            return;
+        }
+        // lazy load
+        blockSizeInBytes = container.getIdentity().blockSizeBytes();
     }
 
     public Collection<Container> containers() {
@@ -65,6 +73,25 @@ public class ContainerGroup {
     public Container latestContainer() {
         return Objects.requireNonNull(getContainer(latestSerial),
                 "Maybe you put a null container in the group.");
+    }
+
+    @NonNull
+    public List<Container> containersWithFile(String fileId) {
+        return containers().stream()
+                .filter(container -> container.hasFileId(fileId))
+                .toList();
+    }
+
+    public FileBlockMetaInfo getFileBlockMetaInfo(String fileId) {
+        List<Container> fileContainers = containersWithFile(fileId);
+        List<BlockMetaInfo> blockMetaInfos = new ArrayList<>();
+        for (Container fileContainer : fileContainers) {
+            BlockMetaInfo blockMetaInfo =
+                    fileContainer.getBlockMetaInfoByFile(fileId);
+            blockMetaInfos.add(blockMetaInfo);
+        }
+
+        return new FileBlockMetaInfo(fileId, blockMetaInfos, blockSizeInBytes);
     }
 
 }

@@ -1,7 +1,9 @@
 syntax = "proto3";
 
+import "status.proto";
+
 option java_multiple_files = true;
-option java_package = "org.huel.cloudhub.server.rpc.proto";
+option java_package = "org.huel.cloudhub.server.rpc.heartbeat";
 option java_outer_classname = "HeartbeatProtos";
 
 message SerializedFileServer {
@@ -22,6 +24,7 @@ message Heartbeat {
   // when receive a response contains period from meta server,
   // the server should declare the period it now has.
   optional int32 period = 4;
+  optional SerializedFileServerStatus status = 5;
 }
 
 message HeartbeatResponse {
@@ -33,6 +36,7 @@ message HeartbeatResponse {
   // for control.
   optional int32 period = 3;
   optional BlockProperties block_properties = 4;
+  optional bool contains_stat_next = 5;
 }
 
 service HeartbeatService {

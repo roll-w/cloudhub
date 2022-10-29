@@ -1,9 +1,9 @@
 package org.huel.cloudhub.meta.server.service.node;
 
 import io.grpc.stub.StreamObserver;
-import org.huel.cloudhub.server.rpc.proto.Heartbeat;
-import org.huel.cloudhub.server.rpc.proto.HeartbeatResponse;
-import org.huel.cloudhub.server.rpc.proto.HeartbeatServiceGrpc;
+import org.huel.cloudhub.server.rpc.heartbeat.Heartbeat;
+import org.huel.cloudhub.server.rpc.heartbeat.HeartbeatResponse;
+import org.huel.cloudhub.server.rpc.heartbeat.HeartbeatServiceGrpc;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;

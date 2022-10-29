@@ -108,9 +108,7 @@ public class ContainerWriter implements Closeable {
                 Iterables.getLast(containerBlockList, null);
         int end = lastBlock.getIndex();
 
-        return new BlockMetaInfo(
-                fieldId, start, end,
-                validBytes, nextSerial);
+        return new BlockMetaInfo(fieldId, start, end, validBytes, nextSerial);
     }
 
     private ContainerBlock writeBlock(Block block) throws IOException {

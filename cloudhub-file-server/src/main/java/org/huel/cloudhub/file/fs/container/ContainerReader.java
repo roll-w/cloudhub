@@ -1,5 +1,6 @@
 package org.huel.cloudhub.file.fs.container;
 
+import org.huel.cloudhub.file.fs.block.BlockMetaInfo;
 import org.huel.cloudhub.file.fs.block.ContainerBlock;
 import org.huel.cloudhub.file.io.LimitedSeekableStream;
 import org.huel.cloudhub.file.io.SeekableInputStream;
@@ -18,7 +19,7 @@ public class ContainerReader implements Closeable {
     private final LimitedSeekableStream containerInputStream;
 
     public ContainerReader(Container container,
-                           ContainerProvider containerProvider) {
+                           ContainerProvider containerProvider) throws IOException {
         this.container = container;
         this.containerProvider = containerProvider;
         this.containerInputStream = convert(
@@ -46,23 +47,36 @@ public class ContainerReader implements Closeable {
         List<ContainerBlock> containerBlocks = new ArrayList<>();
         long blockSizeBytes = container.getIdentity().blockSizeBytes();
         containerInputStream.seek(blockSizeBytes * start);
-        for (int i = start; i < end; i++) {
+        for (int i = start; i <= end; i++) {
             byte[] chuck = new byte[(int) blockSizeBytes];
             int read = containerInputStream.read(chuck);
             if (read == -1) {
-                throw new ContainerException("Incorrect termination block.");
+                throw new ContainerException("Incorrect termination block in [%d], end=%d."
+                        .formatted(i, end));
             }
-
+            long validBytes = container.getIdentity().blockSizeBytes();
+            if (i == end) {
+                BlockMetaInfo blockMetaInfo = container.getBlockMetaInfo(i);
+                validBytes = blockMetaInfo.getValidBytes();
+            }
             ContainerBlock containerBlock = new ContainerBlock(
                     container.getLocation(), i,
-                    chuck, container.getIdentity().blockSizeBytes());
+                    chuck, validBytes);
             containerBlocks.add(containerBlock);
         }
-
 
         return containerBlocks;
     }
 
+    public byte[] readNext() throws IOException {
+        long blockSizeBytes = container.getIdentity().blockSizeBytes();
+        byte[] chuck = new byte[(int) blockSizeBytes];
+        int read = containerInputStream.read(chuck);
+        if (read == -1) {
+            return null;
+        }
+        return chuck;
+    }
 
     public ContainerBlock readBlock(int index) throws IOException {
         if (index >= container.getIdentity().blockLimit()) {

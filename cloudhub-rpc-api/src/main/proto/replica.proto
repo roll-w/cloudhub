@@ -13,3 +13,7 @@ message ReplicaRequest {
   SerializedFileServer source = 1;
 
 }
+
+message ReplicaResponse {
+
+}

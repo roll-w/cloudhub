@@ -2,6 +2,8 @@ package org.huel.cloudhub.file.server.file;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.huel.cloudhub.file.fs.LocalFileServer;
 import org.huel.cloudhub.file.fs.ServerFile;
 import org.huel.cloudhub.file.fs.block.BlockMetaInfo;
@@ -10,12 +12,13 @@ import org.huel.cloudhub.file.fs.meta.MetaException;
 import org.huel.cloudhub.file.fs.meta.SerializedContainerBlockMeta;
 import org.huel.cloudhub.file.fs.meta.SerializedContainerGroupMeta;
 import org.huel.cloudhub.file.fs.meta.SerializedContainerMeta;
+import org.huel.cloudhub.file.io.SeekableFileInputStream;
+import org.huel.cloudhub.file.io.SeekableInputStream;
 import org.huel.cloudhub.server.file.FileProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import space.lingu.NonNull;
 
 import java.io.IOException;
 import java.util.*;
@@ -24,7 +27,7 @@ import java.util.*;
  * @author RollW
  */
 @Service
-public class ContainerService implements ContainerAllocator {
+public class ContainerService implements ContainerAllocator, ContainerProvider {
     private final Cache<String, ContainerGroup> containerCache =
             Caffeine.newBuilder()
                     .build();
@@ -101,7 +104,7 @@ public class ContainerService implements ContainerAllocator {
     @Override
     @NonNull
     public Container allocateContainer(final String id) {
-        final String containerId = ContainerIdentity.toMetaId(id);
+        final String containerId = ContainerIdentity.toContainerId(id);
         ContainerGroup containerGroup = containerCache.get(containerId,
                 s -> new ContainerGroup(containerId));
 
@@ -109,9 +112,8 @@ public class ContainerService implements ContainerAllocator {
             logger.info("containerGroup null");
 
             Container container = createsNewContainer(containerId, 1);
-            ContainerGroup newGroup = new ContainerGroup(containerId);
+            ContainerGroup newGroup = new ContainerGroup(containerId, container);
 
-            newGroup.put(container);
             containerCache.put(containerId, newGroup);
             return container;
         }
@@ -135,7 +137,7 @@ public class ContainerService implements ContainerAllocator {
 
     @Override
     public boolean dataExists(final String fileId) {
-        final String containerId = ContainerIdentity.toMetaId(fileId);
+        final String containerId = ContainerIdentity.toContainerId(fileId);
         ContainerGroup containerGroup = containerCache.get(containerId,
                 s -> new ContainerGroup(containerId));
         if (containerGroup == null) {
@@ -203,7 +205,7 @@ public class ContainerService implements ContainerAllocator {
     }
 
     public Collection<Container> listContainers(String id) {
-        final String containerId = ContainerIdentity.toMetaId(id);
+        final String containerId = ContainerIdentity.toContainerId(id);
         ContainerGroup containerGroup =
                 containerCache.get(id, s -> new ContainerGroup(containerId));
         if (containerGroup == null) {
@@ -258,5 +260,55 @@ public class ContainerService implements ContainerAllocator {
 
     public SerializedContainerGroupMeta readContainerMeta(ServerFile serverFile) throws IOException {
         return SerializedContainerGroupMeta.parseFrom(serverFile.openInput());
+    }
+
+    private boolean checkHasContainer(String containerId, long serial) {
+        ContainerGroup group = findGroup(containerId);
+        if (group == null) {
+            return false;
+        }
+        return serial <= group.lastSerial();
+    }
+
+    private boolean checkHasContainer(ContainerLocation location) {
+        return location.toFile().exists();
+    }
+
+    @Override
+    public SeekableInputStream openContainer(ContainerLocation location) throws IOException {
+        if (!checkHasContainer(location)) {
+            return null;
+        }
+        return new SeekableFileInputStream(location);
+    }
+
+    private ContainerGroup findGroup(String containerId) {
+        return containerCache.getIfPresent(containerId);
+    }
+
+    @Override
+    @Nullable
+    public Container findContainer(String containerId, long serial) {
+        ContainerGroup group = findGroup(containerId);
+        if (group == null) {
+            return null;
+        }
+        return group.getContainer(serial);
+    }
+
+    @Override
+    @NonNull
+    public List<Container> findContainersByFile(String fileId) {
+        ContainerGroup group = findContainerGroupByFile(fileId);
+        if (group == null) {
+            return List.of();
+        }
+        return group.containersWithFile(fileId);
+    }
+
+    @Override
+    public ContainerGroup findContainerGroupByFile(String fileId) {
+        final String containerId = ContainerIdentity.toContainerId(fileId);
+        return findGroup(containerId);
     }
 }

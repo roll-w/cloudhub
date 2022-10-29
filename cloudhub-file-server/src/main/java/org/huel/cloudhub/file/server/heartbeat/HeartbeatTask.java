@@ -1,6 +1,6 @@
 package org.huel.cloudhub.file.server.heartbeat;
 
-import org.huel.cloudhub.server.rpc.proto.HeartbeatResponse;
+import org.huel.cloudhub.server.rpc.heartbeat.HeartbeatResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;

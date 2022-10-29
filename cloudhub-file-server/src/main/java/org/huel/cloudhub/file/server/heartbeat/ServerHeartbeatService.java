@@ -2,9 +2,9 @@ package org.huel.cloudhub.file.server.heartbeat;
 
 import io.grpc.ManagedChannel;
 import org.huel.cloudhub.file.server.id.ServerIdService;
-import org.huel.cloudhub.server.rpc.proto.Heartbeat;
-import org.huel.cloudhub.server.rpc.proto.HeartbeatResponse;
-import org.huel.cloudhub.server.rpc.proto.HeartbeatServiceGrpc;
+import org.huel.cloudhub.server.rpc.heartbeat.Heartbeat;
+import org.huel.cloudhub.server.rpc.heartbeat.HeartbeatResponse;
+import org.huel.cloudhub.server.rpc.heartbeat.HeartbeatServiceGrpc;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;

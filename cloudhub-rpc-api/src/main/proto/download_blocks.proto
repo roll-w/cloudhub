@@ -12,13 +12,27 @@ message DownloadBlockRequest {
   string file_id = 1;
 }
 
-
-
-message DownloadMessage {
+message DownloadBlocksInfo {
+  int32 index = 1;
+  repeated DownloadBlockData data = 2;
 }
-
+// Download Block Response
 message DownloadBlockResponse {
-  repeated DownloadBlockData data = 1;
+  message CheckMessage {
+    int32 request_count = 1;
+    int64 valid_bytes = 2;
+    string check_value = 3;
+    int64 file_length = 4;
+  }
+
+  // Download Message
+  //
+  // Note: If the file does not exist it should be treated as an error
+  // and not included in the response body.
+  oneof download_message {
+    CheckMessage check_message = 1;
+    DownloadBlocksInfo download_blocks = 2;
+  }
 }
 
 service BlockDownloadService {

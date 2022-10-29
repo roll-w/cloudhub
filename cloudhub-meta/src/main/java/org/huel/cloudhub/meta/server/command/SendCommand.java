@@ -1,6 +1,6 @@
 package org.huel.cloudhub.meta.server.command;
 
-import org.huel.cloudhub.meta.server.service.file.FileBlockService;
+import org.huel.cloudhub.meta.server.service.file.FileUploadService;
 import org.springframework.shell.standard.AbstractShellComponent;
 import org.springframework.shell.standard.ShellComponent;
 import org.springframework.shell.standard.ShellMethod;
@@ -15,10 +15,10 @@ import java.io.IOException;
  */
 @ShellComponent
 public class SendCommand extends AbstractShellComponent {
-    private final FileBlockService fileBlockService;
+    private final FileUploadService fileUploadService;
 
-    public SendCommand(FileBlockService fileBlockService) {
-        this.fileBlockService = fileBlockService;
+    public SendCommand(FileUploadService fileUploadService) {
+        this.fileUploadService = fileUploadService;
     }
 
     @ShellMethod(value = "send file to file server.", key = {"send"})
@@ -48,6 +48,6 @@ public class SendCommand extends AbstractShellComponent {
         getTerminal().writer().printf("send file in absolute path '%s'.\n",
                 file.getAbsolutePath());
         getTerminal().writer().flush();
-        fileBlockService.sendBlock(new FileInputStream(file));
+        fileUploadService.uploadFile(new FileInputStream(file));
     }
 }

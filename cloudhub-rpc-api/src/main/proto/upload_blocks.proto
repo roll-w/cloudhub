@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+import "heartbeat.proto";
+
 option java_multiple_files = true;
 option java_package = "org.huel.cloudhub.file.rpc.block";
 option java_outer_classname = "UploadBlocksProtos";
@@ -22,17 +24,12 @@ message UploadBlocksInfo {
 
 
 message UploadBlocksRequest {
-  message Host {
-    string host = 1;
-    int32 port = 2;
-  }
-
   message CheckMessage {
     int32 request_count = 1;
     int64 valid_bytes = 2;
     string check_value = 3;
     int64 file_length = 4;
-    repeated Host replicaHosts = 8;
+    repeated SerializedFileServer replicaHosts = 8;
     // FIRST REQUEST. compress type
     BlockRequestCompressType compress_type = 9;
   }
