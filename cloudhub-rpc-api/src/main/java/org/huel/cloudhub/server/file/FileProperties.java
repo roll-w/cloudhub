@@ -30,7 +30,7 @@ public class FileProperties {
     /**
      * in mb. max request size
      */
-    private int maxRequestSize = 20;
+    private int maxRequestSize = 40;
 
     public FileProperties(String filePath, String tempFilePath,
                           String stageFilePath,

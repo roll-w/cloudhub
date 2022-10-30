@@ -1,6 +1,5 @@
 package org.huel.cloudhub.file.fs.block;
 
-import com.google.common.annotations.Beta;
 import org.huel.cloudhub.file.fs.meta.SerializedBlockFileMeta;
 import org.huel.cloudhub.file.fs.meta.SerializedBlockGroup;
 
@@ -15,20 +14,23 @@ public class BlockMetaInfo {
 
     private final String fileId;
     private final List<BlockGroup> blockGroups = new ArrayList<>();
+    private final long containerSerilal;
     private final long validBytes;
     private final long nextContainerSerial;
 
     public BlockMetaInfo(String fileId, int start, int end,
-                         long validBytes, long nextContainerSerial) {
+                         long validBytes, long containerSerilal, long nextContainerSerial) {
         this.fileId = fileId;
         this.validBytes = validBytes;
+        this.containerSerilal = containerSerilal;
         this.nextContainerSerial = nextContainerSerial;
         this.blockGroups.add(new BlockGroup(start, end));
     }
 
     public BlockMetaInfo(String fileId, Collection<BlockGroup> blockGroups,
-                         long validBytes, long nextContainerSerial) {
+                         long validBytes, long containerSerilal, long nextContainerSerial) {
         this.fileId = fileId;
+        this.containerSerilal = containerSerilal;
         this.validBytes = validBytes;
         this.nextContainerSerial = nextContainerSerial;
         this.blockGroups.addAll(blockGroups);
@@ -49,6 +51,10 @@ public class BlockMetaInfo {
 
     public long getValidBytes() {
         return validBytes;
+    }
+
+    public long getContainerSerilal() {
+        return containerSerilal;
     }
 
     public long getNextContainerSerial() {
@@ -98,7 +104,7 @@ public class BlockMetaInfo {
                 .build();
     }
 
-    public static BlockMetaInfo deserialize(SerializedBlockFileMeta blockFileMeta) {
+    public static BlockMetaInfo deserialize(SerializedBlockFileMeta blockFileMeta, long containerSerilal) {
         List<BlockGroup> blockGroups = new ArrayList<>();
         blockFileMeta.getBlockGroupsList().forEach(serializedBlockGroup ->
                 blockGroups.add(BlockGroup.deserialize(serializedBlockGroup)));
@@ -106,7 +112,21 @@ public class BlockMetaInfo {
         return new BlockMetaInfo(blockFileMeta.getFileId(),
                 blockGroups,
                 blockFileMeta.getEndBlockBytes(),
+                containerSerilal,
                 blockFileMeta.getCrossSerial());
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        BlockMetaInfo that = (BlockMetaInfo) o;
+        return containerSerilal == that.containerSerilal && validBytes == that.validBytes && nextContainerSerial == that.nextContainerSerial && Objects.equals(fileId, that.fileId) && Objects.equals(blockGroups, that.blockGroups);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(fileId, blockGroups, containerSerilal, validBytes, nextContainerSerial);
     }
 
     @Override
@@ -119,14 +139,4 @@ public class BlockMetaInfo {
                 "]";
     }
 
-    @Beta
-    public static BlockMetaInfo plus(BlockMetaInfo info1, BlockMetaInfo info2) {
-        if (!Objects.equals(info1.getFileId(), info2.getFileId())) {
-            throw new IllegalStateException("Not the same file.");
-        }
-        Set<BlockGroup> blockGroups = new HashSet<>(info1.blockGroups);
-        blockGroups.addAll(info2.getBlockGroups());
-        return new BlockMetaInfo(info1.getFileId(), blockGroups,
-                info1.validBytes, info1.nextContainerSerial);
-    }
 }

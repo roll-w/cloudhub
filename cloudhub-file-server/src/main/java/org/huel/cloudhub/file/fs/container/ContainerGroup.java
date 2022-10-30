@@ -71,8 +71,7 @@ public class ContainerGroup {
     }
 
     public Container latestContainer() {
-        return Objects.requireNonNull(getContainer(latestSerial),
-                "Maybe you put a null container in the group.");
+        return getContainer(latestSerial);
     }
 
     @NonNull
@@ -84,6 +83,10 @@ public class ContainerGroup {
 
     public FileBlockMetaInfo getFileBlockMetaInfo(String fileId) {
         List<Container> fileContainers = containersWithFile(fileId);
+        if (fileContainers.isEmpty()) {
+            return null;
+        }
+
         List<BlockMetaInfo> blockMetaInfos = new ArrayList<>();
         for (Container fileContainer : fileContainers) {
             BlockMetaInfo blockMetaInfo =
@@ -91,7 +94,10 @@ public class ContainerGroup {
             blockMetaInfos.add(blockMetaInfo);
         }
 
-        return new FileBlockMetaInfo(fileId, blockMetaInfos, blockSizeInBytes);
+        BlockMetaInfo last = blockMetaInfos.get(blockMetaInfos.size() - 1);
+        return new FileBlockMetaInfo(
+                fileId, blockMetaInfos, blockSizeInBytes,
+                last.getValidBytes());
     }
 
 }

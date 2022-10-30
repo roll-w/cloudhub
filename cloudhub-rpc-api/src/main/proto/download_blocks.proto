@@ -19,7 +19,7 @@ message DownloadBlocksInfo {
 // Download Block Response
 message DownloadBlockResponse {
   message CheckMessage {
-    int32 request_count = 1;
+    int32 response_count = 1;
     int64 valid_bytes = 2;
     string check_value = 3;
     int64 file_length = 4;

@@ -5,6 +5,7 @@ import org.huel.cloudhub.file.server.file.BlockReceiveService;
 import org.huel.cloudhub.file.server.file.BlockDownloadService;
 import org.huel.cloudhub.file.server.heartbeat.HeartbeatHostProperties;
 import org.huel.cloudhub.server.GrpcProperties;
+import org.huel.cloudhub.server.file.FileProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -20,15 +21,18 @@ public class GrpcServerConfiguration {
     private final BlockReceiveService blockReceiveService;
     private final BlockDownloadService blockDownloadService;
     private final GrpcProperties grpcProperties;
+    private final FileProperties fileProperties;
 
     public GrpcServerConfiguration(HeartbeatHostProperties heartbeatHostProperties,
                                    BlockReceiveService blockReceiveService,
                                    BlockDownloadService blockDownloadService,
-                                   GrpcProperties grpcProperties) {
+                                   GrpcProperties grpcProperties,
+                                   FileProperties fileProperties) {
         this.heartbeatHostProperties = heartbeatHostProperties;
         this.blockReceiveService = blockReceiveService;
         this.blockDownloadService = blockDownloadService;
         this.grpcProperties = grpcProperties;
+        this.fileProperties = fileProperties;
     }
 
     @Bean
@@ -41,7 +45,7 @@ public class GrpcServerConfiguration {
     @Bean
     public Server grpcServer() {
         return ServerBuilder.forPort(grpcProperties.getPort())
-                .maxInboundMessageSize(1024 * 1024 * 1024)
+                .maxInboundMessageSize((int) fileProperties.getMaxRequestSizeBytes())
                 .addService(blockReceiveService)
                 .addService(blockDownloadService)
                 .build();

@@ -1,5 +1,6 @@
 package org.huel.cloudhub.file.fs.container;
 
+import java.util.Objects;
 import java.util.regex.Pattern;
 
 /**
@@ -45,5 +46,18 @@ public class ContainerNameMeta {
 
     public ContainerNameMeta forkSerial(long serial) {
         return new ContainerNameMeta(id, serial);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ContainerNameMeta that = (ContainerNameMeta) o;
+        return serial == that.serial && Objects.equals(id, that.id) && Objects.equals(name, that.name);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, serial, name);
     }
 }

@@ -12,7 +12,7 @@ public class SeekableFileInputStream extends SeekableInputStream implements Seek
 
     public SeekableFileInputStream(RepresentFile representFile) throws FileNotFoundException {
         this.randomAccessFile =
-                new RandomAccessFile(representFile.toFile(), "w");
+                new RandomAccessFile(representFile.toFile(), "rw");
     }
 
 

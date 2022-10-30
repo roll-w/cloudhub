@@ -72,11 +72,13 @@ public class ContainerService implements ContainerAllocator, ContainerProvider {
             ServerFile metaFile = localFileServer.getServerFileProvider()
                     .openFile(containerDir, locator + ContainerLocation.META_SUFFIX);
             SerializedContainerBlockMeta containerBlockMeta = readContainerBlockMeta(metaFile);
+            ContainerNameMeta fileNameMeta = ContainerNameMeta.parse(locator);
+
             List<BlockMetaInfo> blockMetaInfos = new ArrayList<>();
             containerBlockMeta.getBlockMetasList().forEach(serializeBlockFileMeta ->
-                    blockMetaInfos.add(BlockMetaInfo.deserialize(serializeBlockFileMeta)));
+                    blockMetaInfos.add(BlockMetaInfo.deserialize(
+                            serializeBlockFileMeta, fileNameMeta.getSerial())));
 
-            ContainerNameMeta fileNameMeta = ContainerNameMeta.parse(locator);
             ContainerIdentity identity = new ContainerIdentity(
                     fileNameMeta.getId(),
                     containerBlockMeta.getCrc(),
@@ -123,7 +125,7 @@ public class ContainerService implements ContainerAllocator, ContainerProvider {
             logger.info("find an available container: {}", container.getResourceLocator());
             return container;
         }
-        container = createsNewContainer(id, containerGroup.lastSerial() + 1);
+        container = createsNewContainer(containerId, containerGroup.lastSerial() + 1);
         logger.info("not find an available container, creates new {}", container.getResourceLocator());
         containerGroup.put(container);
         return container;

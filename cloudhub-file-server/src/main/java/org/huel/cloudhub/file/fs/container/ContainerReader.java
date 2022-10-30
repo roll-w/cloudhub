@@ -68,16 +68,6 @@ public class ContainerReader implements Closeable {
         return containerBlocks;
     }
 
-    public byte[] readNext() throws IOException {
-        long blockSizeBytes = container.getIdentity().blockSizeBytes();
-        byte[] chuck = new byte[(int) blockSizeBytes];
-        int read = containerInputStream.read(chuck);
-        if (read == -1) {
-            return null;
-        }
-        return chuck;
-    }
-
     public ContainerBlock readBlock(int index) throws IOException {
         if (index >= container.getIdentity().blockLimit()) {
             return null;
@@ -105,7 +95,7 @@ public class ContainerReader implements Closeable {
 
 
     @Override
-    public void close() throws IOException {
+    public void close() {
         containerInputStream.close();
     }
 }
