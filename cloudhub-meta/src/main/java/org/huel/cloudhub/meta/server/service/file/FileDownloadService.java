@@ -38,7 +38,7 @@ public class FileDownloadService {
                 .build();
         BlockDownloadServiceGrpc.BlockDownloadServiceStub stub =
                 requireStub(fileId);
-
+        logger.info("start downloading file id={}", fileId);
         stub.downloadBlocks(request, new DownloadBlockStreamObserver(outputStream));
     }
 
@@ -84,13 +84,7 @@ public class FileDownloadService {
             }
             DownloadBlocksInfo downloadBlocksInfo = value.getDownloadBlocks();
             List<DownloadBlockData> dataList = downloadBlocksInfo.getDataList();
-            for (DownloadBlockData downloadBlockData : dataList) {
-                try {
-                    outputStream.write(downloadBlockData.getData().toByteArray());
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-            }
+            writeTo(dataList, outputStream);
         }
 
         @Override
@@ -118,9 +112,13 @@ public class FileDownloadService {
 
     }
 
-    private void writeTo(List<DownloadBlockData> downloadBlockData, OutputStream stream) throws IOException {
-        for (DownloadBlockData downloadBlockDatum : downloadBlockData) {
-            stream.write(downloadBlockDatum.getData().toByteArray());
+    private void writeTo(List<DownloadBlockData> downloadBlockData, OutputStream stream)  {
+        try {
+            for (DownloadBlockData downloadBlockDatum : downloadBlockData) {
+                stream.write(downloadBlockDatum.getData().toByteArray());
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 }
