@@ -1,5 +1,7 @@
 package org.huel.cloudhub.file.fs.container;
 
+import java.util.Objects;
+
 /**
  * @author RollW
  */
@@ -64,5 +66,31 @@ public class ContainerIdentity {
 
     public static String toContainerId(String id) {
         return id.substring(0, ID_SUBNUM);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ContainerIdentity identity = (ContainerIdentity) o;
+        return serial == identity.serial && blockLimit == identity.blockLimit && blockSize == identity.blockSize && blockSizeInBytes == identity.blockSizeInBytes && limitBytes == identity.limitBytes && Objects.equals(id, identity.id) && Objects.equals(crc, identity.crc);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, crc, serial, blockLimit, blockSize, blockSizeInBytes, limitBytes);
+    }
+
+    @Override
+    public String toString() {
+        return "ContainerIdentity{" +
+                "id='" + id + '\'' +
+                ", crc='" + crc + '\'' +
+                ", serial=" + serial +
+                ", blockLimit=" + blockLimit +
+                ", blockSize=" + blockSize +
+                ", blockSizeInBytes=" + blockSizeInBytes +
+                ", limitBytes=" + limitBytes +
+                '}';
     }
 }

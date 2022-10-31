@@ -25,7 +25,7 @@ public class FileBlockMetaInfo {
 
     private List<BlockMetaInfo> sortBlockMetas(List<BlockMetaInfo> blockMetaInfos) {
         return blockMetaInfos.stream()
-                .sorted(Comparator.comparingLong(BlockMetaInfo::getContainerSerilal))
+                .sorted(Comparator.comparingLong(BlockMetaInfo::getContainerSerial))
                 .toList();
     }
 
@@ -36,7 +36,7 @@ public class FileBlockMetaInfo {
         long[] serials = new long[blockMetaInfos.size()];
         int index = 0;
         for (BlockMetaInfo blockMetaInfo : blockMetaInfos) {
-            serials[index++] = blockMetaInfo.getContainerSerilal();
+            serials[index++] = blockMetaInfo.getContainerSerial();
         }
         return serials;
     }
@@ -65,7 +65,7 @@ public class FileBlockMetaInfo {
     public List<BlockMetaInfo> getAfter(long serial) {
         return blockMetaInfos.stream()
                 .filter(blockMetaInfo ->
-                        blockMetaInfo.getContainerSerilal() >= serial)
+                        blockMetaInfo.getContainerSerial() >= serial)
                 .toList();
     }
 
@@ -77,7 +77,7 @@ public class FileBlockMetaInfo {
         while (low <= high) {
             int mid = (low + high) >>> 1;
             BlockMetaInfo midVal = blockMetaInfos.get(mid);
-            int cmp = Long.compare(midVal.getContainerSerilal(), serial);
+            int cmp = Long.compare(midVal.getContainerSerial(), serial);
             if (cmp < 0) {
                 low = mid + 1;
             } else if (cmp > 0) {

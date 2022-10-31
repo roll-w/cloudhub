@@ -25,6 +25,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @author RollW
  */
 public class ContainerWriter implements Closeable {
+    // TODO: split into ContainerWriter and ContainerFileWriter
+
     private Container container;
     private ContainerLocation containerLocation;
     private final int blockSize;
@@ -64,25 +66,24 @@ public class ContainerWriter implements Closeable {
     }
 
     public List<BlockMetaInfo> writeBlocks(Blocks blocks) throws IOException, MetaException {
-        final String fieldId = blocks.getFileId();
+        final String fileId = blocks.getFileId();
         List<ContainerBlock> containerBlockList = new ArrayList<>();
         List<BlockMetaInfo> blockMetaInfosList = new ArrayList<>();
         for (Block block : blocks.getBlocks()) {
             ContainerBlock containerBlock = writeBlock(block);
             if (containerBlock == null) {
-                Container newContainer = containerAllocator.allocateContainer(container.getIdentity().id());
-                BlockMetaInfo metaInfo =
-                        collectInfo(containerBlockList, fieldId, blockSize,
-                                newContainer.getIdentity().serial());
+                Container newContainer = containerAllocator.allocateNewContainer(container.getIdentity().id());
+                BlockMetaInfo metaInfo = collectInfo(containerBlockList, fileId, blockSize,
+                        newContainer.getIdentity().serial());
                 mBlockMetaInfos.add(metaInfo);
                 blockMetaInfosList.add(metaInfo);
                 requireUpdate();
+
                 containerBlockList = new ArrayList<>();
                 // needs allocates a new container
                 reset(newContainer);
 
                 containerBlock = writeBlock(block);
-                // it will be null now.
             }
 
             containerBlockList.add(containerBlock);
@@ -90,7 +91,7 @@ public class ContainerWriter implements Closeable {
         }
 
         BlockMetaInfo metaInfo = collectInfo(containerBlockList,
-                fieldId, blocks.getValidBytes(),
+                fileId, blocks.getValidBytes(),
                 BlockMetaInfo.NOT_CROSS_CONTAINER);
         mBlockMetaInfos.add(metaInfo);
         blockMetaInfosList.add(metaInfo);
@@ -99,7 +100,7 @@ public class ContainerWriter implements Closeable {
     }
 
     private BlockMetaInfo collectInfo(List<ContainerBlock> containerBlockList,
-                                      String fieldId, long validBytes,
+                                      String fileId, long validBytes,
                                       long nextSerial) {
         ContainerBlock firstBlock =
                 Iterables.getFirst(containerBlockList, null);
@@ -108,7 +109,7 @@ public class ContainerWriter implements Closeable {
                 Iterables.getLast(containerBlockList, null);
         int end = lastBlock.getIndex();
 
-        return new BlockMetaInfo(fieldId, start, end, validBytes,
+        return new BlockMetaInfo(fileId, start, end, validBytes,
                 container.getIdentity().serial(), nextSerial);
     }
 

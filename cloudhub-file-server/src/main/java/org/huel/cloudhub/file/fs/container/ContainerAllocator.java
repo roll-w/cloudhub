@@ -13,7 +13,7 @@ public interface ContainerAllocator extends ContainerCreator {
     String CONTAINER_META_SUFFIX = ".cmeta";
 
     @NonNull
-    Container allocateContainer(String id);
+    Container allocateNewContainer(String id);
 
     // TODO: replace allocateContainer with this method.
     @NonNull

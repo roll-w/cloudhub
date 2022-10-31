@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author RollW
@@ -29,7 +30,7 @@ public class FileDownloadService {
                                FileProperties fileProperties) {
         this.heartbeatService = heartbeatService;
         this.fileProperties = fileProperties;
-        this.nodeChannelPool = new NodeChannelPool();
+        this.nodeChannelPool = new NodeChannelPool(fileProperties);
     }
 
     public void downloadFile(OutputStream outputStream, String fileId) {
@@ -38,6 +39,7 @@ public class FileDownloadService {
                 .build();
         BlockDownloadServiceGrpc.BlockDownloadServiceStub stub =
                 requireStub(fileId);
+
         logger.info("start downloading file id={}", fileId);
         stub.downloadBlocks(request, new DownloadBlockStreamObserver(outputStream));
     }
@@ -57,7 +59,7 @@ public class FileDownloadService {
         private int responseCount;
         private long fileLength;
         private final OutputStream outputStream;
-
+        private final AtomicInteger receiveCount = new AtomicInteger(0);
         private DownloadBlockStreamObserver(OutputStream outputStream) {
             this.outputStream = outputStream;
         }
@@ -65,6 +67,7 @@ public class FileDownloadService {
 
         private void saveCheckMessage(DownloadBlockResponse.CheckMessage checkMessage) {
             // TODO:
+            logger.info("receive first download response, request count: {}", checkMessage.getResponseCount());
             responseCount = checkMessage.getResponseCount();
             fileLength = checkMessage.getFileLength();
         }
@@ -76,14 +79,17 @@ public class FileDownloadService {
                 logger.error("--- not a valid response.");
                 throw new IllegalArgumentException("Not valid response.");
             }
-
             if (value.getDownloadMessageCase() ==
                     DownloadBlockResponse.DownloadMessageCase.CHECK_MESSAGE) {
                 saveCheckMessage(value.getCheckMessage());
                 return;
             }
+            if (receiveCount.get() >= responseCount) {
+                throw new IllegalStateException("Illegal receive count.");
+            }
             DownloadBlocksInfo downloadBlocksInfo = value.getDownloadBlocks();
             List<DownloadBlockData> dataList = downloadBlocksInfo.getDataList();
+            receiveCount.incrementAndGet();
             writeTo(dataList, outputStream);
         }
 

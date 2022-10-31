@@ -78,7 +78,16 @@ public class ContainerGroup {
     public List<Container> containersWithFile(String fileId) {
         return containers().stream()
                 .filter(container -> container.hasFileId(fileId))
+                .sorted(Comparator.comparingLong(container -> container.getIdentity().serial()))
                 .toList();
+    }
+
+    public String getContainerId() {
+        return containerId;
+    }
+
+    public long getBlockSizeInBytes() {
+        return blockSizeInBytes;
     }
 
     public FileBlockMetaInfo getFileBlockMetaInfo(String fileId) {

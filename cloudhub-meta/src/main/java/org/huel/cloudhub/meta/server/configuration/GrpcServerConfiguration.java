@@ -9,6 +9,8 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.concurrent.TimeUnit;
+
 /**
  * @author RollW
  */
@@ -32,6 +34,8 @@ public class GrpcServerConfiguration {
     public Server grpcServer() {
         return ServerBuilder.forPort(grpcProperties.getPort())
                 .maxInboundMessageSize((int) fileProperties.getMaxRequestSizeBytes())
+                .handshakeTimeout(20, TimeUnit.SECONDS)
+                .maxConnectionAge(2, TimeUnit.MINUTES)
                 .addService(heartbeatService)
                 .build();
     }

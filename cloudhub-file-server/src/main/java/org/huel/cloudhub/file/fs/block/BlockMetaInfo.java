@@ -8,29 +8,30 @@ import java.util.*;
 /**
  * @author RollW
  */
-@SuppressWarnings("all")
+@SuppressWarnings("unused")
 public class BlockMetaInfo {
     public static final int NOT_CROSS_CONTAINER = -1;
 
     private final String fileId;
     private final List<BlockGroup> blockGroups = new ArrayList<>();
-    private final long containerSerilal;
+    private final long containerSerial;
     private final long validBytes;
     private final long nextContainerSerial;
 
     public BlockMetaInfo(String fileId, int start, int end,
-                         long validBytes, long containerSerilal, long nextContainerSerial) {
+                         long validBytes, long containerSerial,
+                         long nextContainerSerial) {
         this.fileId = fileId;
         this.validBytes = validBytes;
-        this.containerSerilal = containerSerilal;
+        this.containerSerial = containerSerial;
         this.nextContainerSerial = nextContainerSerial;
         this.blockGroups.add(new BlockGroup(start, end));
     }
 
     public BlockMetaInfo(String fileId, Collection<BlockGroup> blockGroups,
-                         long validBytes, long containerSerilal, long nextContainerSerial) {
+                         long validBytes, long containerSerial, long nextContainerSerial) {
         this.fileId = fileId;
-        this.containerSerilal = containerSerilal;
+        this.containerSerial = containerSerial;
         this.validBytes = validBytes;
         this.nextContainerSerial = nextContainerSerial;
         this.blockGroups.addAll(blockGroups);
@@ -53,12 +54,71 @@ public class BlockMetaInfo {
         return validBytes;
     }
 
-    public long getContainerSerilal() {
-        return containerSerilal;
+    public long getContainerSerial() {
+        return containerSerial;
     }
 
     public long getNextContainerSerial() {
         return nextContainerSerial;
+    }
+
+    public boolean isInside(int start, int offset) {
+        if (start == -1) {
+            return isInside(blockGroupAt(0).start(), offset);
+        }
+
+        return getBlocksCountAfter(start) >= offset;
+    }
+
+    public int getBlocksCountAfter(int blockIndex) {
+        List<BlockGroup> subs = getBlockGroupAfter(blockIndex);
+        if (subs.isEmpty()) {
+            return 0;
+        }
+        int count = 0;
+
+        for (BlockGroup sub : subs) {
+            if (blockIndex >= 0 && sub.contains(blockIndex)) {
+                count += sub.end() - blockIndex + 1;
+                continue;
+            }
+            count += sub.occupiedBlocks();
+        }
+        return count;
+    }
+
+    public List<BlockGroup> getBlockGroupAfter(int blockIndex) {
+        if (blockGroups.isEmpty()) {
+            return List.of();
+        }
+        if (blockIndex > blockGroups.get(blockGroups.size() - 1).end()) {
+            return List.of();
+        }
+        if (blockIndex < 0 || blockIndex <= blockGroups.get(0).start()) {
+            return getBlockGroups();
+        }
+
+        int index = 0;
+        for (BlockGroup blockGroup : blockGroups) {
+            if (blockGroup.contains(blockIndex)) {
+                break;
+            }
+            index++;
+        }
+        // TODO: binary search.
+        final int size = blockGroups.size();
+        if (size - 1 == index) {
+            return List.of(blockGroupAt(size - 1));
+        }
+        return blockGroups.subList(index, size - 1);
+    }
+
+    public int getBlockGroupsCount() {
+        return blockGroups.size();
+    }
+
+    public BlockGroup blockGroupAt(int index) {
+        return blockGroups.get(index);
     }
 
     public boolean contains(int index) {
@@ -104,7 +164,7 @@ public class BlockMetaInfo {
                 .build();
     }
 
-    public static BlockMetaInfo deserialize(SerializedBlockFileMeta blockFileMeta, long containerSerilal) {
+    public static BlockMetaInfo deserialize(SerializedBlockFileMeta blockFileMeta, long containerSerial) {
         List<BlockGroup> blockGroups = new ArrayList<>();
         blockFileMeta.getBlockGroupsList().forEach(serializedBlockGroup ->
                 blockGroups.add(BlockGroup.deserialize(serializedBlockGroup)));
@@ -112,8 +172,14 @@ public class BlockMetaInfo {
         return new BlockMetaInfo(blockFileMeta.getFileId(),
                 blockGroups,
                 blockFileMeta.getEndBlockBytes(),
-                containerSerilal,
+                containerSerial,
                 blockFileMeta.getCrossSerial());
+    }
+
+    public BlockMetaInfo forkNextSerial(long nextContainerSerial) {
+        return new BlockMetaInfo(fileId,
+                blockGroups, validBytes,
+                containerSerial, nextContainerSerial);
     }
 
     @Override
@@ -121,12 +187,12 @@ public class BlockMetaInfo {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         BlockMetaInfo that = (BlockMetaInfo) o;
-        return containerSerilal == that.containerSerilal && validBytes == that.validBytes && nextContainerSerial == that.nextContainerSerial && Objects.equals(fileId, that.fileId) && Objects.equals(blockGroups, that.blockGroups);
+        return containerSerial == that.containerSerial && validBytes == that.validBytes && nextContainerSerial == that.nextContainerSerial && Objects.equals(fileId, that.fileId) && Objects.equals(blockGroups, that.blockGroups);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(fileId, blockGroups, containerSerilal, validBytes, nextContainerSerial);
+        return Objects.hash(fileId, blockGroups, containerSerial, validBytes, nextContainerSerial);
     }
 
     @Override

@@ -15,13 +15,11 @@ import java.util.List;
  */
 public class ContainerReader implements Closeable {
     private final Container container;
-    private final ContainerProvider containerProvider;
     private final LimitedSeekableStream containerInputStream;
 
     public ContainerReader(Container container,
                            ContainerProvider containerProvider) throws IOException {
         this.container = container;
-        this.containerProvider = containerProvider;
         this.containerInputStream = convert(
                 containerProvider.openContainer(container),
                 container.getLimitBytes()
@@ -35,9 +33,11 @@ public class ContainerReader implements Closeable {
         return new LimitedSeekableStream(stream, limit);
     }
 
-    public List<ContainerBlock> readBlocks(int start, int end) throws IOException {
-        if (start >= container.getIdentity().blockLimit() || end >= container.getIdentity().blockLimit()
-                || end - start < 0) {
+    public List<ContainerBlock> readBlocks(final int start, final int end) throws IOException {
+        if (start >= container.getIdentity().blockLimit() || end >= container.getIdentity().blockLimit()) {
+            throw new IllegalArgumentException("Invalid start or end, exceeded container's max.");
+        }
+        if (end - start < 0) {
             throw new IllegalArgumentException("Invalid range at start=%d, end=%d".formatted(start, end));
         }
         if (end - start == 0) {
@@ -47,20 +47,20 @@ public class ContainerReader implements Closeable {
         List<ContainerBlock> containerBlocks = new ArrayList<>();
         long blockSizeBytes = container.getIdentity().blockSizeBytes();
         containerInputStream.seek(blockSizeBytes * start);
-        for (int i = start; i <= end; i++) {
+        for (int index = start; index <= end; index++){
             byte[] chuck = new byte[(int) blockSizeBytes];
             int read = containerInputStream.read(chuck);
             if (read == -1) {
                 throw new ContainerException("Incorrect termination block in [%d], end=%d."
-                        .formatted(i, end));
+                        .formatted(index, end));
             }
             long validBytes = container.getIdentity().blockSizeBytes();
-            if (i == end) {
-                BlockMetaInfo blockMetaInfo = container.getBlockMetaInfo(i);
+            if (index == end) {
+                BlockMetaInfo blockMetaInfo = container.getBlockMetaInfo(index);
                 validBytes = blockMetaInfo.getValidBytes();
             }
             ContainerBlock containerBlock = new ContainerBlock(
-                    container.getLocation(), i,
+                    container.getLocation(), index,
                     chuck, validBytes);
             containerBlocks.add(containerBlock);
         }
@@ -93,6 +93,9 @@ public class ContainerReader implements Closeable {
         return chuck;
     }
 
+    public Container getContainer() {
+        return container;
+    }
 
     @Override
     public void close() {

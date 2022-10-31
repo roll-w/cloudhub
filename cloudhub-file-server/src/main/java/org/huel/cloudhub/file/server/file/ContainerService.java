@@ -15,6 +15,7 @@ import org.huel.cloudhub.file.fs.meta.SerializedContainerMeta;
 import org.huel.cloudhub.file.io.SeekableFileInputStream;
 import org.huel.cloudhub.file.io.SeekableInputStream;
 import org.huel.cloudhub.server.file.FileProperties;
+import org.huel.cloudhub.util.math.Maths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Async;
@@ -33,9 +34,7 @@ public class ContainerService implements ContainerAllocator, ContainerProvider {
                     .build();
     private final FileProperties fileProperties;
     private final LocalFileServer localFileServer;
-
     private final Logger logger = LoggerFactory.getLogger(ContainerService.class);
-
     private final ServerFile containerDir;
 
     public ContainerService(FileProperties fileProperties,
@@ -105,13 +104,11 @@ public class ContainerService implements ContainerAllocator, ContainerProvider {
      */
     @Override
     @NonNull
-    public Container allocateContainer(final String id) {
+    public Container allocateNewContainer(final String id) {
         final String containerId = ContainerIdentity.toContainerId(id);
-        ContainerGroup containerGroup = containerCache.get(containerId,
-                s -> new ContainerGroup(containerId));
-
+        ContainerGroup containerGroup = containerCache.getIfPresent(containerId);
         if (containerGroup == null) {
-            logger.info("containerGroup null");
+            logger.info("allocate new container, containerGroup null");
 
             Container container = createsNewContainer(containerId, 1);
             ContainerGroup newGroup = new ContainerGroup(containerId, container);
@@ -120,28 +117,64 @@ public class ContainerService implements ContainerAllocator, ContainerProvider {
             return container;
         }
 
-        Container container = containerGroup.latestContainer();
-        if (container != null && !container.isReachLimit()) {
-            logger.info("find an available container: {}", container.getResourceLocator());
-            return container;
-        }
-        container = createsNewContainer(containerId, containerGroup.lastSerial() + 1);
-        logger.info("not find an available container, creates new {}", container.getResourceLocator());
+        Container container = createsNewContainer(containerId,
+                containerGroup.lastSerial() + 1);
+        logger.info("allocate new container, locator={}", container.getResourceLocator());
         containerGroup.put(container);
         return container;
     }
 
     @Override
     public List<Container> allocateContainers(String id, long size) {
-        // TODO:
-        return null;
+        final String containerId = ContainerIdentity.toContainerId(id);
+        ContainerGroup containerGroup = containerCache.getIfPresent(containerId);
+        final int needBlocks = Maths.ceilDivideReturnsInt(size, fileProperties.getBlockSizeInBytes());
+
+        if (containerGroup == null) {
+            // allocate containers starting at 1.
+            logger.info("containerGroup null, allocates from 1.");
+            final int needContainers = Maths.ceilDivide(needBlocks, fileProperties.getBlockCount());
+            List<Container> containers = allocateContainersFrom(
+                    containerId, 1L, needContainers);
+
+            ContainerGroup newGroup =
+                    new ContainerGroup(containerId, containers);
+            containerCache.put(containerId, newGroup);
+            return containers;
+        }
+
+        Container container = containerGroup.latestContainer();
+
+        int remainBlockSize = needBlocks;
+        if (container != null && !container.isReachLimit()) {
+            int free = container.getUsableBlock();
+            if (needBlocks <= free) {
+                return List.of(container);
+            }
+            remainBlockSize -= free;
+        }
+        final int needContainers = Maths.ceilDivide(
+                remainBlockSize, fileProperties.getBlockCount());
+        List<Container> containers = allocateContainersFrom(
+                containerId, containerGroup.lastSerial(), needContainers);
+        container = createsNewContainer(containerId, containerGroup.lastSerial() + 1);
+        containerGroup.put(container);
+        return containers;
+    }
+
+    private List<Container> allocateContainersFrom(String containerId, long start, long size) {
+        List<Container> containers = new ArrayList<>();
+        for (long i = start; i <= start + size; i++) {
+            Container container = createsNewContainer(containerId, i);
+            containers.add(container);
+        }
+        return containers;
     }
 
     @Override
     public boolean dataExists(final String fileId) {
         final String containerId = ContainerIdentity.toContainerId(fileId);
-        ContainerGroup containerGroup = containerCache.get(containerId,
-                s -> new ContainerGroup(containerId));
+        ContainerGroup containerGroup = containerCache.getIfPresent(containerId);
         if (containerGroup == null) {
             return false;
         }
@@ -208,8 +241,7 @@ public class ContainerService implements ContainerAllocator, ContainerProvider {
 
     public Collection<Container> listContainers(String id) {
         final String containerId = ContainerIdentity.toContainerId(id);
-        ContainerGroup containerGroup =
-                containerCache.get(id, s -> new ContainerGroup(containerId));
+        ContainerGroup containerGroup = containerCache.getIfPresent(containerId);
         if (containerGroup == null) {
             return Collections.emptySet();
         }
@@ -227,12 +259,14 @@ public class ContainerService implements ContainerAllocator, ContainerProvider {
     @Async
     void updatesContainer(Container container) {
         ContainerGroup containerGroup =
-                containerCache.getIfPresent(container.getResourceLocator());
+                containerCache.getIfPresent(container.getIdentity().id());
         if (containerGroup == null) {
-            containerGroup = new ContainerGroup(container.getIdentity().id());
+            containerGroup = new ContainerGroup(container.getIdentity().id(), container);
+            containerCache.put(container.getIdentity().id(), containerGroup);
+            return;
         }
+
         containerGroup.put(container);
-        containerCache.put(container.getIdentity().id(), containerGroup);
     }
 
     private SerializedContainerBlockMeta readContainerBlockMeta(ServerFile file) throws IOException {

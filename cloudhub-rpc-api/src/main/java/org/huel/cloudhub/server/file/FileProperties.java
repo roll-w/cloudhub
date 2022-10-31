@@ -111,5 +111,9 @@ public class FileProperties {
         return maxRequestSize * 1024L * 1024L;
     }
 
+    public long getContainerSizeBytes() {
+        return (long) blockCount * getBlockSizeInBytes();
+    }
+
 
 }

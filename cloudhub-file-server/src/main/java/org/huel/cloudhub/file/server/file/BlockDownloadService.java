@@ -3,27 +3,21 @@ package org.huel.cloudhub.file.server.file;
 import com.google.protobuf.ByteString;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
-import org.checkerframework.checker.nullness.qual.Nullable;
-import org.huel.cloudhub.file.fs.block.BlockGroup;
-import org.huel.cloudhub.file.fs.block.BlockMetaInfo;
 import org.huel.cloudhub.file.fs.block.ContainerBlock;
 import org.huel.cloudhub.file.fs.block.FileBlockMetaInfo;
-import org.huel.cloudhub.file.fs.container.Container;
 import org.huel.cloudhub.file.fs.container.ContainerGroup;
 import org.huel.cloudhub.file.fs.container.ContainerProvider;
-import org.huel.cloudhub.file.fs.container.ContainerReader;
-import org.huel.cloudhub.file.io.IoUtils;
+import org.huel.cloudhub.file.fs.container.file.ContainerFileReader;
 import org.huel.cloudhub.file.rpc.block.*;
 import org.huel.cloudhub.server.file.FileProperties;
+import org.huel.cloudhub.util.math.Maths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.ListIterator;
 
 /**
  * @author RollW
@@ -52,160 +46,38 @@ public class BlockDownloadService extends BlockDownloadServiceGrpc.BlockDownload
             responseObserver.onCompleted();
             return;
         }
-        List<Container> containers = containerGroup.containersWithFile(fileId);
 
         final long fileLength = fileBlockMetaInfo.getFileLength();
         final long responseSize = fileProperties.getMaxRequestSizeBytes() >> 1;
-        final int responseCount = (int) Math.ceil(fileLength * 1.0d / responseSize);
+        final int responseCount = Maths.ceilDivideReturnsInt(fileLength, responseSize);
         final int maxBlocksInResponse = (int) (responseSize / fileProperties.getBlockSizeInBytes());
 
         DownloadBlockResponse firstResponse = buildFirstResponse(fileBlockMetaInfo,
                 responseCount,
                 "0");
         responseObserver.onNext(firstResponse);
-        ListIterator<Container> containerIterator =
-                containers.listIterator();
-        ContainerReader currentReader = null;
-        ReadBlockDest lastRead = null;
 
-        while (containerIterator.hasNext()) {
-            ReadResult res;
-            try {
-                res = readSizeOf(currentReader, containerIterator,
-                        maxBlocksInResponse, lastRead, fileBlockMetaInfo);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-            if (res == null) {
-                break;
-            }
-            currentReader = res.reader();
-            lastRead = res.readBlockDest();
-
-            DownloadBlockResponse response =
-                    buildBlockDataResponse(res.containerBlocks());
-            responseObserver.onNext(response);
+        try (ContainerFileReader containerFileReader = new ContainerFileReader(
+                containerProvider, fileId, containerGroup, fileBlockMetaInfo)) {
+            sendUtilEnd(responseObserver, containerFileReader, maxBlocksInResponse);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
-
-        IoUtils.closeQuietly(currentReader);
         responseObserver.onCompleted();
     }
 
-    private record ReadBlockDest(long serial, int endIndex) {
-    }
-
-    private record ReadResult(List<ContainerBlock> containerBlocks,
-                              ContainerReader reader,
-                              ReadBlockDest readBlockDest) {
-    }
-
-    // 读取给定块数
-    private ReadResult readSizeOf(@Nullable ContainerReader reader,
-                                  ListIterator<Container> containerIterator,
-                                  int readBlockCount,
-                                  ReadBlockDest lastRead,
-                                  FileBlockMetaInfo fileBlockMetaInfo) throws IOException {
-        ContainerReader containerReader = reader;
-        if (reader == null) {
-            containerReader = openNext(containerIterator);
-        }
-        if (containerReader == null) {
-            return null;
-        }
-
-        List<ContainerBlock> containerBlocksRes = new LinkedList<>();
-        final int start = lastRead == null ? 1 : lastRead.endIndex();
-
-        List<BlockMetaInfo> blockMetaInfos = findBlockCount(
-                fileBlockMetaInfo, start, readBlockCount);
-
-        int index = 0, readBlocks = 0;
-        final int maxIndex = blockMetaInfos.size() - 1;
-        for (BlockMetaInfo blockMetaInfo : blockMetaInfos) {
-            if (index != 0) {
-                containerReader = openNext(containerIterator);
+    private void sendUtilEnd(StreamObserver<DownloadBlockResponse> responseObserver,
+                             ContainerFileReader fileReader, int readSize) throws IOException {
+        while (fileReader.hasNext()) {
+            List<ContainerBlock> read = fileReader.read(readSize);
+            if (read == null) {
+                logger.info("read == null");
+                return;
             }
-            var readResult = readBlocks(
-                    containerReader, blockMetaInfo, start,
-                    readBlockCount - readBlocks);
-            readBlocks += readResult.containerBlocks().size();
-            containerBlocksRes.addAll(readResult.containerBlocks());
-
-            if (index != maxIndex) {
-                IoUtils.closeQuietly(containerReader);
-            } else {
-                return new ReadResult(containerBlocksRes, containerReader,
-                        readResult.readBlockDest());
-            }
-
-            index++;
+            DownloadBlockResponse response = buildBlockDataResponse(read);
+            logger.info("send download response. block size ={}", read.size());
+            responseObserver.onNext(response);
         }
-
-        return null;
-    }
-
-    private ReadResult readBlocks(final ContainerReader reader,
-                                  BlockMetaInfo blockMetaInfo,
-                                  int start,
-                                  int toReadSize) throws IOException {
-        List<ContainerBlock> containerBlocks = new LinkedList<>();
-        int index = 0, sizeRead = 0, endBlock = 0;
-        List<BlockGroup> blockGroups = blockMetaInfo.getBlockGroups();
-        for (BlockGroup blockGroup : blockGroups) {
-            final int startBlock = index == 0
-                    ? start : blockGroup.start();
-            final int willReadBlocks = index == 0
-                    ? blockGroup.end() - startBlock
-                    : blockGroup.occupiedBlocks();
-
-            if (sizeRead + willReadBlocks >= toReadSize) {
-                endBlock = toReadSize - sizeRead + startBlock;
-                containerBlocks.addAll(
-                        reader.readBlocks(blockGroup.start(), endBlock));
-
-                return new ReadResult(containerBlocks, reader, new ReadBlockDest(
-                        blockMetaInfo.getContainerSerilal(), endBlock));
-            }
-
-            endBlock = blockGroup.end();
-            List<ContainerBlock> readBlocks =
-                    reader.readBlocks(blockGroup.start(), blockGroup.end());
-            sizeRead += willReadBlocks;
-            containerBlocks.addAll(readBlocks);
-            index++;
-        }
-
-        return new ReadResult(containerBlocks, reader, new ReadBlockDest(
-                blockMetaInfo.getContainerSerilal(), endBlock));
-    }
-
-    private List<BlockMetaInfo> findBlockCount(FileBlockMetaInfo fileBlockMetaInfo, int start, int blockCount) {
-        if (start <= 1) {
-            start = 1;
-        }
-
-        List<BlockMetaInfo> blockMetaInfos = fileBlockMetaInfo.getAfter(start);
-        List<BlockMetaInfo> res = new ArrayList<>();
-        int blocks = 0;
-        for (BlockMetaInfo blockMetaInfo : blockMetaInfos) {
-            if (blocks >= blockCount) {
-                return res;
-            }
-            if (blocks + blockMetaInfo.occupiedBlocks() >= blockCount) {
-                res.add(blockMetaInfo);
-                return res;
-            }
-            blocks += blockMetaInfo.occupiedBlocks();
-            res.add(blockMetaInfo);
-        }
-        return res;
-    }
-
-    private ContainerReader openNext(ListIterator<Container> containerIterator) throws IOException {
-        if (!containerIterator.hasNext()) {
-            return null;
-        }
-        return new ContainerReader(containerIterator.next(), containerProvider);
     }
 
     private DownloadBlockResponse buildFirstResponse(FileBlockMetaInfo fileBlockMetaInfo,

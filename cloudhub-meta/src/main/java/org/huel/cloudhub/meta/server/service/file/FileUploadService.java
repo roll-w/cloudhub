@@ -13,6 +13,7 @@ import org.huel.cloudhub.meta.server.service.node.HeartbeatService;
 import org.huel.cloudhub.meta.server.service.node.NodeChannelPool;
 import org.huel.cloudhub.server.StreamObserverWrapper;
 import org.huel.cloudhub.server.file.FileProperties;
+import org.huel.cloudhub.util.math.Maths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -37,7 +38,7 @@ public class FileUploadService {
                              FileProperties fileProperties) {
         this.heartbeatService = heartbeatService;
         this.fileProperties = fileProperties;
-        this.nodeChannelPool = new NodeChannelPool();
+        this.nodeChannelPool = new NodeChannelPool(fileProperties);
     }
 
     private final Logger logger = LoggerFactory.getLogger(FileUploadService.class);
@@ -48,18 +49,29 @@ public class FileUploadService {
 
     @SuppressWarnings("all")
     private static String hashStream(InputStream stream) throws IOException {
-        Hasher hasher = Hashing.sha256().newHasher();
+        return hasherStream(Hashing.sha256().newHasher(), stream);
+    }
+
+    private static String crc32Stream(InputStream stream) throws IOException {
+        return hasherStream(Hashing.crc32().newHasher(), stream);
+    }
+
+    @SuppressWarnings("all")
+    private static String hasherStream(Hasher hasher, InputStream stream) throws IOException {
         ByteStreams.copy(stream, Funnels.asOutputStream(hasher));
         return hasher.hash().toString();
     }
 
     public void uploadFile(InputStream inputStream) throws IOException {
         // TODO: add hash and file length param.
-
+        logger.info("start calculation on the given input stream.");
         // 创建本地文件耗费IO时间。客户端上传时直接携带hash值和长度以便于计算
         ReopenableInputStream reopenableInputStream = convertInputStream(inputStream);
         final String hash = hashStream(reopenableInputStream);
         reopenableInputStream.reopen();
+        final String crc32 = crc32Stream(reopenableInputStream);
+        reopenableInputStream.reopen();
+
         logger.info("start upload fileId={}", hash);
 
         final long maxBlocksValue = fileProperties.getMaxRequestSizeBytes() >> 1;
@@ -67,9 +79,8 @@ public class FileUploadService {
         // calcs how many [UploadBlock]s a request can contain at most
         final int maxUploadBlockCount = (int) (maxBlocksValue / blockSizeInBytes);
         // calcs how many requests will be sent.
-        final int requestCount = (int) Math.ceil(1.0d * reopenableInputStream.getLength() / maxBlocksValue);
-        final long validBytes = maxBlocksValue - ((long) requestCount * maxBlocksValue -
-                reopenableInputStream.getLength());
+        final int requestCount = Maths.ceilDivideReturnsInt(reopenableInputStream.getLength(), maxBlocksValue);
+        final long validBytes = reopenableInputStream.getLength() % blockSizeInBytes;
         logger.info("calc: length={};maxBlocksValue={};blockSizeInBytes={};maxUploadBlockCount={};requestCount={};validBytes={}",
                 reopenableInputStream.getLength(), maxBlocksValue, blockSizeInBytes, maxUploadBlockCount, requestCount, validBytes);
 
@@ -81,7 +92,7 @@ public class FileUploadService {
                 .setValidBytes(validBytes)
                 .setRequestCount(requestCount)
                 .setCompressType(BlockRequestCompressType.NONE)
-                .setCheckValue("0")// TODO: calc CRC32
+                .setCheckValue(crc32)// TODO: calc CRC32
                 .build();
         UploadBlocksRequest firstRequest = UploadBlocksRequest.newBuilder()
                 .setIdentity(hash)

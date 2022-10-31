@@ -139,7 +139,7 @@ public class BlockReceiveService extends BlockUploadServiceGrpc.BlockUploadServi
             List<UploadBlockData> uploadBlocks =
                     convertsUploadBlocks(indexedBlockRequests);
             Container container =
-                    containerService.allocateContainer(fileId);
+                    containerService.allocateNewContainer(fileId);
 
             try (ContainerWriter writer = new ContainerWriter(container, containerService)) {
                 WriteInfo writeInfo = writeAndPushMeta(writer,

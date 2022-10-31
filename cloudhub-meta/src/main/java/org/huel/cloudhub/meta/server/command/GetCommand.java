@@ -28,7 +28,7 @@ public class GetCommand extends AbstractShellComponent {
                     value = {"--path", "-p"}) String path,
             @ShellOption(help = "file id",
                     value = {"--file", "-f"}) String fileId
-            ) throws IOException {
+    ) throws IOException {
         if (path == null || path.isEmpty()) {
             getTerminal().writer().println("no path provide");
             return;

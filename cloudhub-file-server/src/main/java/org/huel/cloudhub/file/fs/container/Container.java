@@ -6,6 +6,7 @@ import org.huel.cloudhub.file.fs.block.BlockMetaInfo;
 import org.huel.cloudhub.file.fs.meta.SerializedBlockFileMeta;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Readonly container, every modification will
@@ -20,6 +21,8 @@ public class Container {
      * Marks used block value calculate by the Container.
      */
     public static final int CALC_BYCONT = -1;
+
+    private final AtomicBoolean mLock = new AtomicBoolean(false);
 
     private int usedBlock;
     private boolean usable;
@@ -125,6 +128,10 @@ public class Container {
         return usedBlock;
     }
 
+    public int getUsableBlock() {
+        return identity.blockLimit() - usedBlock;
+    }
+
     public boolean isReachLimit() {
         return usedBlock == identity.blockLimit();
     }
@@ -198,8 +205,21 @@ public class Container {
         blockMetaInfos.forEach(blockMetaInfo ->
                 blockGroups.addAll(blockMetaInfo.getBlockGroups()));
         blockGroups.sort(Comparator.comparingInt(BlockGroup::start));
+
+
     }
 
+    public boolean requireLock() {
+        return mLock.compareAndSet(false, true);
+    }
+
+    public boolean hasLock() {
+        return mLock.get();
+    }
+
+    public void releaseLock() {
+        mLock.set(false);
+    }
 
     @Override
     public boolean equals(Object o) {
