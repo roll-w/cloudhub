@@ -1,14 +1,13 @@
 package org.huel.cloudhub.file.fs.container.file;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.huel.cloudhub.file.fs.LockException;
 import org.huel.cloudhub.file.fs.block.BlockGroup;
 import org.huel.cloudhub.file.fs.block.BlockMetaInfo;
 import org.huel.cloudhub.file.fs.block.ContainerBlock;
 import org.huel.cloudhub.file.fs.block.FileBlockMetaInfo;
 import org.huel.cloudhub.file.fs.container.*;
 import org.huel.cloudhub.file.io.IoUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -16,6 +15,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author RollW
@@ -26,8 +26,8 @@ public class ContainerFileReader implements Closeable {
     private final List<Container> containers;
     private final FileBlockMetaInfo fileBlockMetaInfo;
     private ListIterator<Container> containerIterator;
-
-    private final Logger logger = LoggerFactory.getLogger(ContainerFileReader.class);
+    private final int totalBlocks;
+    private final AtomicInteger currentRead = new AtomicInteger(0);
 
     public ContainerFileReader(ContainerProvider containerProvider,
                                String fileId) throws ContainerException {
@@ -35,10 +35,10 @@ public class ContainerFileReader implements Closeable {
         this.containerProvider = containerProvider;
         this.containers = containerGroup.containersWithFile(fileId);
         this.fileBlockMetaInfo = containerGroup.getFileBlockMetaInfo(fileId);
-
         if (fileBlockMetaInfo == null) {
             throw new ContainerException("no such file");
         }
+        this.totalBlocks = fileBlockMetaInfo.getBlocksCount();
         initIterator();
     }
 
@@ -50,10 +50,10 @@ public class ContainerFileReader implements Closeable {
         this.containerProvider = containerProvider;
         this.containers = containerGroup.containersWithFile(fileId);
         this.fileBlockMetaInfo = fileBlockMetaInfo;
-
         if (fileBlockMetaInfo == null) {
             throw new ContainerException("no such file");
         }
+        this.totalBlocks = fileBlockMetaInfo.getBlocksCount();
         initIterator();
     }
 
@@ -71,12 +71,12 @@ public class ContainerFileReader implements Closeable {
     }
 
     public boolean hasNext() {
-        return containerIterator.hasNext();
+        return currentRead.get() < totalBlocks;
     }
 
     private ReadResult lastResult = null;
 
-    public List<ContainerBlock> read(int readBlocks) throws IOException {
+    public List<ContainerBlock> read(int readBlocks) throws IOException, LockException {
         if (lastResult == null) {
             lastResult = readSizeOf(null, readBlocks, null);
             if (lastResult == null) {
@@ -92,15 +92,18 @@ public class ContainerFileReader implements Closeable {
         return lastResult.containerBlocks();
     }
 
+    private ContainerReader openFirst(ContainerReader reader) throws IOException, LockException {
+        if (reader == null) {
+            return openNext(containerIterator);
+        }
+        return reader;
+    }
+
     // 读取给定块数
     private ReadResult readSizeOf(@Nullable ContainerReader reader,
                                   final int readBlockCount,
-                                  final ReadBlockDest lastRead) throws IOException {
-        ContainerReader containerReader = reader;
-        if (reader == null) {
-            // first open
-            containerReader = openNext(containerIterator);
-        }
+                                  final ReadBlockDest lastRead) throws IOException, LockException {
+        ContainerReader containerReader = openFirst(reader);
         if (containerReader == null) {
             return null;
         }
@@ -118,20 +121,25 @@ public class ContainerFileReader implements Closeable {
 
         int index = 0, readBlocks = 0;
         final int maxIndex = blockMetaInfos.size() - 1;
+        if (maxIndex < 0) {
+            return null;
+        }
+
         for (BlockMetaInfo blockMetaInfo : blockMetaInfos) {
             if (blockMetaInfo.getContainerSerial() != serial) {
                 containerReader = openNext(containerIterator);
+                // basically, it will not be null.
                 serial = containerReader.getContainer().getIdentity().serial();
                 start = -1;
-                readBlocks = 0;
-                logger.info("open next container serial={}.", serial);
             }
 
-            // FIXME: read error here.
             var readResult = readBlocks(containerReader, blockMetaInfo,
                     start, readBlockCount - readBlocks);
             start = readResult.readBlockDest().endIndex() + 1;
-            readBlocks += readResult.containerBlocks().size();
+            final int readSize = readResult.containerBlocks().size();
+            currentRead.addAndGet(readSize);
+            readBlocks += readSize;
+
             containerBlocksRes.addAll(readResult.containerBlocks());
 
             if (index != maxIndex) {
@@ -152,8 +160,6 @@ public class ContainerFileReader implements Closeable {
                                   BlockMetaInfo blockMetaInfo,
                                   int start,
                                   int toReadSize) throws IOException {
-        // FIXME: read error here
-
         List<ContainerBlock> containerBlocks = new LinkedList<>();
         int index = 0, sizeRead = 0, endBlock = 0;
         List<BlockGroup> blockGroups = blockMetaInfo.getBlockGroups();
@@ -166,17 +172,14 @@ public class ContainerFileReader implements Closeable {
             if (sizeRead + willReadBlocks >= toReadSize) {
                 endBlock = (toReadSize + startBlock - sizeRead) - 1;// -1 to index.
                 var read = reader.readBlocks(startBlock, endBlock);
-                logger.info("exc: readSize={}, i={}, read into start={}, endBlock={}",
-                        read.size(), index, startBlock, endBlock);
-                containerBlocks.addAll(read);
 
+                containerBlocks.addAll(read);
                 return new ReadResult(containerBlocks, reader,
                         new ReadBlockDest(blockMetaInfo.getContainerSerial(), endBlock));
             }
             // get -p test_d.flac -f e1c60e484e2b49ee1bf405fc937afb57fa02c1581cf0de31ef769ab6ee736934
             endBlock = blockGroup.end();
-            List<ContainerBlock> readBlocks =
-                    reader.readBlocks(startBlock, blockGroup.end());
+            List<ContainerBlock> readBlocks = reader.readBlocks(startBlock, endBlock);
             sizeRead += willReadBlocks;
             containerBlocks.addAll(readBlocks);
 
@@ -233,7 +236,7 @@ public class ContainerFileReader implements Closeable {
         return afterBlocks >= offset;
     }
 
-    private ContainerReader openNext(ListIterator<Container> containerIterator) throws IOException {
+    private ContainerReader openNext(ListIterator<Container> containerIterator) throws IOException, LockException {
         if (!containerIterator.hasNext()) {
             return null;
         }

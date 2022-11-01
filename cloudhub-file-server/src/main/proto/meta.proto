@@ -35,7 +35,7 @@ message SerializedContainerBlockMeta {
 // part of .cmeta
 message SerializedContainerMeta {
   string locator = 1;
-  optional int64 version = 2;
+  int64 version = 2;
 }
 
 // .cmeta file

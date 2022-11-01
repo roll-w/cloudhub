@@ -12,9 +12,9 @@ public class GroupFreeBlockInfo {
         this.freeBlockInfo = freeBlockInfo;
     }
 
-    public GroupFreeBlockInfo(int serial, int start, int count) {
+    public GroupFreeBlockInfo(int serial, int start, int end) {
         this.serial = serial;
-        this.freeBlockInfo = new FreeBlockInfo(start, count);
+        this.freeBlockInfo = new FreeBlockInfo(start, end);
     }
 
     public int getSerial() {

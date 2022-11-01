@@ -18,7 +18,6 @@ public class SeekableFileInputStream extends SeekableInputStream implements Seek
 
     @Override
     public void seek(long position) throws IOException {
-        System.out.println("seek ");
         randomAccessFile.seek(position);
     }
 

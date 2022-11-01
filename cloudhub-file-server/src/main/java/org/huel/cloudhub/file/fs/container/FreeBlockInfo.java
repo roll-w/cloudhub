@@ -8,11 +8,17 @@ import java.util.Objects;
 public final class FreeBlockInfo {
     private final int start;
     private final int count;
+    private final int end;
 
 
-    public FreeBlockInfo(int start, int count) {
+    public FreeBlockInfo(int start, int end) {
         this.start = start;
-        this.count = count;
+        this.end = end;
+        this.count = end - start + 1;
+    }
+
+    public boolean checkInvalid() {
+        return count <= 0;
     }
 
     public int getStart() {
@@ -21,6 +27,10 @@ public final class FreeBlockInfo {
 
     public int getCount() {
         return count;
+    }
+
+    public int getEnd() {
+        return end;
     }
 
     @Override
@@ -34,5 +44,10 @@ public final class FreeBlockInfo {
     @Override
     public int hashCode() {
         return Objects.hash(start, count);
+    }
+
+    @Override
+    public String toString() {
+        return "{FreeBlock[%d-%d][%d]}".formatted(start, end, count);
     }
 }

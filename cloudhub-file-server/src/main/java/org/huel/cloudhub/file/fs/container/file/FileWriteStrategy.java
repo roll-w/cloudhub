@@ -5,7 +5,7 @@ package org.huel.cloudhub.file.fs.container.file;
  *
  * @author RollW
  */
-public enum FileWritePolicy {
+public enum FileWriteStrategy {
     /**
      * Write all blocks sequence into free blocks.
      * Useful for small size, avoid excessive file IO.

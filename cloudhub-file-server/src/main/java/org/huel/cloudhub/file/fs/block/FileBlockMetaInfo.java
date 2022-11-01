@@ -69,6 +69,14 @@ public class FileBlockMetaInfo {
                 .toList();
     }
 
+    public int getBlocksCount() {
+        int sum = 0;
+        for (BlockMetaInfo blockMetaInfo : blockMetaInfos) {
+            sum += blockMetaInfo.occupiedBlocks();
+        }
+        return sum;
+    }
+
     public BlockMetaInfo getBlockMetaInfoAt(long serial) {
         // binary search.
         int low = 0;

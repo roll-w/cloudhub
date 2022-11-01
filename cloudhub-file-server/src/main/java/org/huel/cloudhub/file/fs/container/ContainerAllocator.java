@@ -1,15 +1,15 @@
 package org.huel.cloudhub.file.fs.container;
 
-import org.huel.cloudhub.file.fs.meta.MetaException;
 import space.lingu.NonNull;
 
-import java.io.IOException;
 import java.util.List;
 
 /**
+ * Container 分配提供接口。
+ *
  * @author RollW
  */
-public interface ContainerAllocator extends ContainerCreator {
+public interface ContainerAllocator extends ContainerProvider {
     String CONTAINER_META_SUFFIX = ".cmeta";
 
     @NonNull
@@ -20,9 +20,4 @@ public interface ContainerAllocator extends ContainerCreator {
     List<Container> allocateContainers(String id, long size);
 
     boolean dataExists(String fileId);
-
-    @Override
-    void createsContainerFileWithMeta(Container container) throws IOException;
-
-    void updatesContainerMetadata(Container container) throws MetaException, IOException;
 }

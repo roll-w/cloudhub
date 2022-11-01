@@ -6,11 +6,13 @@ import org.huel.cloudhub.file.fs.block.BlockMetaInfo;
 import org.huel.cloudhub.file.fs.meta.SerializedBlockFileMeta;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * Readonly container, every modification will
- * create a new version of container.
+ * create a new version of container (not implemented).
  *
  * @author RollW
  */
@@ -22,17 +24,16 @@ public class Container {
      */
     public static final int CALC_BYCONT = -1;
 
-    private final AtomicBoolean mLock = new AtomicBoolean(false);
-
     private int usedBlock;
     private boolean usable;
-    private long version;
+    private long version;// start from 0
 
     private final ContainerLocation location;
     private final ContainerNameMeta meta;
     private final ContainerIdentity identity;
     private final List<BlockMetaInfo> blockMetaInfos = new ArrayList<>();
-    private final List<FreeBlockInfo> freeBlockInfos = new ArrayList<>();
+    private List<FreeBlockInfo> freeBlockInfos;
+    private final ReadWriteLock mLock = new ReentrantReadWriteLock();
 
     public Container(@NonNull ContainerLocation location,
                      int usedBlock,
@@ -40,15 +41,26 @@ public class Container {
                      @NonNull ContainerIdentity identity,
                      @NonNull Collection<BlockMetaInfo> blockMetaInfos,
                      boolean usable) {
+        this(location, usedBlock, meta, identity, blockMetaInfos, 0, usable);
+    }
+
+    public Container(@NonNull ContainerLocation location,
+                     int usedBlock,
+                     @NonNull ContainerNameMeta meta,
+                     @NonNull ContainerIdentity identity,
+                     @NonNull Collection<BlockMetaInfo> blockMetaInfos,
+                     long version, boolean usable) {
         this.usedBlock = usedBlock;
         this.location = location;
         this.meta = meta;
         this.identity = identity;
         this.usable = usable;
         this.blockMetaInfos.addAll(blockMetaInfos);
-        if (usedBlock <= 0) {
+        this.version = version;
+        if (usedBlock < 0) {
             calcUsedBlocks(this.blockMetaInfos);
         }
+        this.freeBlockInfos = calcFreeBlocks(this.blockMetaInfos);
     }
 
     public void addBlockMetaInfos(List<BlockMetaInfo> blockMetaInfos) {
@@ -56,7 +68,7 @@ public class Container {
             return;
         }
         this.blockMetaInfos.addAll(blockMetaInfos);
-        calcUsedBlocks(blockMetaInfos);
+        calcBlockUsageInfos(blockMetaInfos);
     }
 
     public void addBlockMetaInfos(BlockMetaInfo... blockMetaInfos) {
@@ -69,7 +81,7 @@ public class Container {
         }
         this.blockMetaInfos.clear();
         this.blockMetaInfos.addAll(blockMetaInfos);
-        calcUsedBlocks(blockMetaInfos);
+        calcBlockUsageInfos(blockMetaInfos);
     }
 
     public void setBlockMetaInfos(BlockMetaInfo... blockMetaInfos) {
@@ -140,6 +152,14 @@ public class Container {
         return identity.blockSizeBytes() * identity.blockLimit();
     }
 
+    public Lock writeLock() {
+        return mLock.writeLock();
+    }
+
+    public Lock readLock() {
+        return mLock.readLock();
+    }
+
     /**
      * Gets the valid bytes count for the block.
      * <p>
@@ -190,36 +210,87 @@ public class Container {
         return Collections.unmodifiableList(freeBlockInfos);
     }
 
-    private void calcUsedBlocks(List<BlockMetaInfo> blockMetaInfos) {
+    private void calcBlockUsageInfos(List<BlockMetaInfo> blockMetaInfos) {
+        this.usedBlock = calcUsedBlocks(blockMetaInfos);
+        freeBlockInfos = calcFreeBlocks(blockMetaInfos);
+    }
+
+    private int calcUsedBlocks(List<BlockMetaInfo> blockMetaInfos) {
         if (blockMetaInfos == null || blockMetaInfos.isEmpty()) {
-            return;
+            return 0;
         }
+        int usedBlocks = 0;
         final int blocks = blockMetaInfos.stream()
                 .mapToInt(BlockMetaInfo::occupiedBlocks).sum();
-        usedBlock += blocks;
+        usedBlocks += blocks;
+        return usedBlocks;
     }
 
-    private void calcFreeBlocks() {
-        // 计算空闲块
-        List<BlockGroup> blockGroups = new ArrayList<>();
-        blockMetaInfos.forEach(blockMetaInfo ->
-                blockGroups.addAll(blockMetaInfo.getBlockGroups()));
-        blockGroups.sort(Comparator.comparingInt(BlockGroup::start));
+    @NonNull
+    private List<FreeBlockInfo> calcFreeBlocks(Collection<BlockMetaInfo> blockMetaInfos) {
+        if (blockMetaInfos == null) {
+            return List.of();
+        }
 
+        List<FreeBlockInfo> freeBlockInfos = new ArrayList<>();
+        List<BlockGroup> blockGroups = blockMetaInfos.stream()
+                .flatMap(blockMetaInfo -> blockMetaInfo.getBlockGroups().stream())
+                .sorted(Comparator.comparingInt(BlockGroup::start))
+                .toList();
+        Iterator<BlockGroup> blockGroupIterator = blockGroups.listIterator();
+        BlockGroup firstGroup = blockGroupIterator.next();
+        if (firstGroup == null) {
+            return freeBlockInfos;
+        }
+        addFirstFreeBlock(freeBlockInfos, firstGroup);
+        BlockGroup lastGroup = addFreeBlocks(freeBlockInfos,
+                firstGroup, blockGroupIterator);
 
+        addLastFreeBlock(freeBlockInfos, lastGroup);
+        return freeBlockInfos;
     }
 
-    public boolean requireLock() {
-        return mLock.compareAndSet(false, true);
+    @NonNull
+    private BlockGroup addFreeBlocks(List<FreeBlockInfo> freeBlockInfos,
+                                     BlockGroup blockGroup,
+                                     Iterator<BlockGroup> blockGroupIterator) {
+        if (!blockGroupIterator.hasNext()) {
+            return blockGroup;
+        }
+        BlockGroup next = blockGroupIterator.next();
+        FreeBlockInfo freeBlockInfo = new FreeBlockInfo(
+                blockGroup.end() + 1, next.start() - 1);
+        if (!freeBlockInfo.checkInvalid()) {
+            freeBlockInfos.add(freeBlockInfo);
+        }
+        return addFreeBlocks(freeBlockInfos, next, blockGroupIterator);
     }
 
-    public boolean hasLock() {
-        return mLock.get();
+    private void addFirstFreeBlock(List<FreeBlockInfo> freeBlockInfos,
+                                   BlockGroup blockGroup) {
+        if (blockGroup.start() == 0) {
+            return;
+        }
+        FreeBlockInfo freeBlockInfo = new FreeBlockInfo(0, blockGroup.start() - 1);
+        if (freeBlockInfo.checkInvalid()) {
+            return;
+        }
+        freeBlockInfos.add(freeBlockInfo);
     }
 
-    public void releaseLock() {
-        mLock.set(false);
+    private void addLastFreeBlock(List<FreeBlockInfo> freeBlockInfos,
+                                  BlockGroup blockGroup) {
+        if (blockGroup.end() >= identity.blockLimit() - 1) {
+            return;
+        }
+        FreeBlockInfo freeBlockInfo = new FreeBlockInfo(
+                blockGroup.end() + 1, identity.blockLimit() - 1);
+        if (freeBlockInfo.checkInvalid()) {
+            return;
+        }
+        freeBlockInfos.add(freeBlockInfo);
     }
+
 
     @Override
     public boolean equals(Object o) {

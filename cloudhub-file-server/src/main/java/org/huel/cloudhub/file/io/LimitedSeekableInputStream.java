@@ -8,14 +8,14 @@ import static org.huel.cloudhub.file.io.InternalLimitUtils.*;
 /**
  * @author RollW
  */
-public class LimitedSeekableStream extends SeekableInputStream 
+public class LimitedSeekableInputStream extends SeekableInputStream
         implements Seekable {
     private final AtomicLong readBytes = new AtomicLong(0);
     private final long limit;
     private boolean close = false;
     private final SeekableInputStream in;
     
-    public LimitedSeekableStream(SeekableInputStream in, long limit) {
+    public LimitedSeekableInputStream(SeekableInputStream in, long limit) {
         this.limit = limit;
         this.in = in;
     }

@@ -1,8 +1,9 @@
 package org.huel.cloudhub.file.fs.container;
 
+import org.huel.cloudhub.file.fs.LockException;
 import org.huel.cloudhub.file.fs.block.BlockMetaInfo;
 import org.huel.cloudhub.file.fs.block.ContainerBlock;
-import org.huel.cloudhub.file.io.LimitedSeekableStream;
+import org.huel.cloudhub.file.io.LimitedSeekableInputStream;
 import org.huel.cloudhub.file.io.SeekableInputStream;
 
 import java.io.Closeable;
@@ -15,22 +16,28 @@ import java.util.List;
  */
 public class ContainerReader implements Closeable {
     private final Container container;
-    private final LimitedSeekableStream containerInputStream;
+    private final ContainerProvider containerProvider;
+    private final LimitedSeekableInputStream containerInputStream;
 
     public ContainerReader(Container container,
-                           ContainerProvider containerProvider) throws IOException {
+                           ContainerProvider containerProvider) throws IOException, LockException {
         this.container = container;
+        this.containerProvider = containerProvider;
         this.containerInputStream = convert(
-                containerProvider.openContainer(container),
+                containerProvider.openContainerRead(container),
                 container.getLimitBytes()
         );
     }
 
-    private LimitedSeekableStream convert(SeekableInputStream stream, long limit) {
-        if (stream instanceof LimitedSeekableStream) {
-            return (LimitedSeekableStream) stream;
+    private LimitedSeekableInputStream convert(SeekableInputStream stream, long limit) throws ContainerException {
+        if (stream == null) {
+            throw new ContainerException("Container not exists.");
         }
-        return new LimitedSeekableStream(stream, limit);
+
+        if (stream instanceof LimitedSeekableInputStream) {
+            return (LimitedSeekableInputStream) stream;
+        }
+        return new LimitedSeekableInputStream(stream, limit);
     }
 
     public List<ContainerBlock> readBlocks(final int start, final int end) throws IOException {
@@ -54,18 +61,25 @@ public class ContainerReader implements Closeable {
                 throw new ContainerException("Incorrect termination block in [%d], end=%d."
                         .formatted(index, end));
             }
-            long validBytes = container.getIdentity().blockSizeBytes();
-            if (index == end) {
-                BlockMetaInfo blockMetaInfo = container.getBlockMetaInfo(index);
-                validBytes = blockMetaInfo.getValidBytes();
-            }
-            ContainerBlock containerBlock = new ContainerBlock(
-                    container.getLocation(), index,
-                    chuck, validBytes);
+            final long validBytes = calcValidBytes(index, end, container.getIdentity().blockSizeBytes());
+            ContainerBlock containerBlock =
+                    new ContainerBlock(container.getLocation(), index, chuck, validBytes);
             containerBlocks.add(containerBlock);
         }
 
         return containerBlocks;
+    }
+
+    private long calcValidBytes(int index, int end, long blockSizeInBytes) {
+        if (index != end) {
+            return blockSizeInBytes;
+        }
+
+        BlockMetaInfo blockMetaInfo = container.getBlockMetaInfo(index);
+        if (blockMetaInfo.getBlocksCountAfter(index) <= 0)  {
+            return blockMetaInfo.getValidBytes();
+        }
+        return blockSizeInBytes;
     }
 
     public ContainerBlock readBlock(int index) throws IOException {
@@ -99,6 +113,6 @@ public class ContainerReader implements Closeable {
 
     @Override
     public void close() {
-        containerInputStream.close();
+        containerProvider.closeContainerRead(container, containerInputStream);
     }
 }

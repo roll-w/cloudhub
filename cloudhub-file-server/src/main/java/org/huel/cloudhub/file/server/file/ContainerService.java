@@ -4,7 +4,9 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.huel.cloudhub.file.fs.FileAllocator;
 import org.huel.cloudhub.file.fs.LocalFileServer;
+import org.huel.cloudhub.file.fs.LockException;
 import org.huel.cloudhub.file.fs.ServerFile;
 import org.huel.cloudhub.file.fs.block.BlockMetaInfo;
 import org.huel.cloudhub.file.fs.container.*;
@@ -12,8 +14,7 @@ import org.huel.cloudhub.file.fs.meta.MetaException;
 import org.huel.cloudhub.file.fs.meta.SerializedContainerBlockMeta;
 import org.huel.cloudhub.file.fs.meta.SerializedContainerGroupMeta;
 import org.huel.cloudhub.file.fs.meta.SerializedContainerMeta;
-import org.huel.cloudhub.file.io.SeekableFileInputStream;
-import org.huel.cloudhub.file.io.SeekableInputStream;
+import org.huel.cloudhub.file.io.*;
 import org.huel.cloudhub.server.file.FileProperties;
 import org.huel.cloudhub.util.math.Maths;
 import org.slf4j.Logger;
@@ -22,13 +23,16 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author RollW
  */
 @Service
-public class ContainerService implements ContainerAllocator, ContainerProvider {
+public class ContainerService implements ContainerAllocator, ContainerProvider, ContainerModifier {
     private final Cache<String, ContainerGroup> containerCache =
             Caffeine.newBuilder()
                     .build();
@@ -53,48 +57,49 @@ public class ContainerService implements ContainerAllocator, ContainerProvider {
         containerDir.mkdirs();
 
         List<ServerFile> metaFiles = metaDir.listFiles();
-        List<String> locators = new ArrayList<>();
+        List<SerializedContainerMeta> serializedContainerMetas = new ArrayList<>();
         for (ServerFile metaFile : metaFiles) {
             if (Objects.equals(ContainerAllocator.CONTAINER_META_SUFFIX,
                     FileUtils.getExtensionName(metaFile.getName()))) {
                 continue;
             }
-
             SerializedContainerGroupMeta fileMeta = readContainerMeta(metaFile);
-            fileMeta.getMetaList().forEach(meta ->
-                    locators.add(meta.getLocator()));
+            serializedContainerMetas.addAll(fileMeta.getMetaList());
         }
 
-        for (String locator : locators) {
+        for (SerializedContainerMeta serializedContainerMeta : serializedContainerMetas) {
+            final String locator = serializedContainerMeta.getLocator();
             ServerFile file = localFileServer.getServerFileProvider()
                     .openFile(containerDir, locator);
             ServerFile metaFile = localFileServer.getServerFileProvider()
                     .openFile(containerDir, locator + ContainerLocation.META_SUFFIX);
             SerializedContainerBlockMeta containerBlockMeta = readContainerBlockMeta(metaFile);
-            ContainerNameMeta fileNameMeta = ContainerNameMeta.parse(locator);
+            ContainerNameMeta nameMeta = ContainerNameMeta.parse(locator);
 
             List<BlockMetaInfo> blockMetaInfos = new ArrayList<>();
             containerBlockMeta.getBlockMetasList().forEach(serializeBlockFileMeta ->
                     blockMetaInfos.add(BlockMetaInfo.deserialize(
-                            serializeBlockFileMeta, fileNameMeta.getSerial())));
+                            serializeBlockFileMeta, nameMeta.getSerial())));
 
-            ContainerIdentity identity = new ContainerIdentity(
-                    fileNameMeta.getId(),
-                    containerBlockMeta.getCrc(),
-                    fileNameMeta.getSerial(),
-                    containerBlockMeta.getBlockCap(),
-                    containerBlockMeta.getBlockSize());
-
+            ContainerIdentity identity = buildIdentityFrom(nameMeta, containerBlockMeta);
             ContainerLocation location =
                     new ContainerLocation(file.getPath());
-            Container container = new Container(
-                    location,
-                    containerBlockMeta.getUsedBlock(),
-                    fileNameMeta, identity,
-                    blockMetaInfos, true);
+
+            Container container = new Container(location, containerBlockMeta.getUsedBlock(),
+                    nameMeta, identity, blockMetaInfos, serializedContainerMeta.getVersion(),
+                    true);
             updatesContainer(container);
         }
     }
+
+    private ContainerIdentity buildIdentityFrom(ContainerNameMeta nameMeta,
+                                                SerializedContainerBlockMeta containerBlockMeta) {
+        return new ContainerIdentity(nameMeta.getId(), containerBlockMeta.getCrc(),
+                nameMeta.getSerial(), containerBlockMeta.getBlockCap(),
+                containerBlockMeta.getBlockSize()
+        );
+    }
+
 
     /**
      * Allocates a container.
@@ -153,10 +158,11 @@ public class ContainerService implements ContainerAllocator, ContainerProvider {
             }
             remainBlockSize -= free;
         }
-        final int needContainers = Maths.ceilDivide(
-                remainBlockSize, fileProperties.getBlockCount());
-        List<Container> containers = allocateContainersFrom(
-                containerId, containerGroup.lastSerial(), needContainers);
+        final int needContainers = Maths.ceilDivide(remainBlockSize,
+                fileProperties.getBlockCount());
+        List<Container> containers = allocateContainersFrom(containerId,
+                containerGroup.lastSerial(), needContainers);
+
         container = createsNewContainer(containerId, containerGroup.lastSerial() + 1);
         containerGroup.put(container);
         return containers;
@@ -183,6 +189,9 @@ public class ContainerService implements ContainerAllocator, ContainerProvider {
 
     @Override
     public void createsContainerFileWithMeta(Container container) throws IOException {
+        if (container.isUsable()) {
+            return;
+        }
         logger.info("creates container, locator: {}, ", container.getResourceLocator());
         ServerFile containerFile = localFileServer.getServerFileProvider().openFile(fileProperties.getContainerPath(),
                 container.getResourceLocator());
@@ -195,10 +204,20 @@ public class ContainerService implements ContainerAllocator, ContainerProvider {
         containerMetaFile.createFile();
         metaFile.createFile();
 
-        var meta =
-                SerializedContainerMeta.newBuilder().setLocator(container.getResourceLocator()).build();
+        allocateContainerSize(container);
+
+        var meta = SerializedContainerMeta.newBuilder()
+                .setLocator(container.getResourceLocator())
+                .setVersion(0)
+                .build();
         writeContainerMeta(meta);
         container.setUsable();
+    }
+
+    private void allocateContainerSize(Container container) throws IOException {
+        try (FileAllocator fileAllocator = new FileAllocator(container.getLocation())) {
+            fileAllocator.allocateSize(container.getLimitBytes());
+        }
     }
 
     @Override
@@ -217,7 +236,13 @@ public class ContainerService implements ContainerAllocator, ContainerProvider {
                 .build();
 
         updatesContainer(container);
-        containerBlockMeta.writeTo(containerMetaFile.openOutput(true));
+        writeContainerBlockMeta(containerBlockMeta, containerMetaFile);
+    }
+
+    private void writeContainerBlockMeta(SerializedContainerBlockMeta containerBlockMeta, ServerFile file) throws IOException {
+        try (OutputStream outputStream = file.openOutput(true)) {
+            containerBlockMeta.writeTo(outputStream);
+        }
     }
 
     private Container createsNewContainer(String id, long serial) {
@@ -269,8 +294,10 @@ public class ContainerService implements ContainerAllocator, ContainerProvider {
         containerGroup.put(container);
     }
 
-    private SerializedContainerBlockMeta readContainerBlockMeta(ServerFile file) throws IOException {
-        return SerializedContainerBlockMeta.parseFrom(file.openInput());
+    private SerializedContainerBlockMeta readContainerBlockMeta(ServerFile serverFile) throws IOException {
+        try (InputStream inputStream = serverFile.openInput()) {
+            return SerializedContainerBlockMeta.parseFrom(inputStream);
+        }
     }
 
     @Async
@@ -282,20 +309,29 @@ public class ContainerService implements ContainerAllocator, ContainerProvider {
         ServerFile file = localFileServer.getServerFileProvider()
                 .openFile(fileProperties.getMetaPath(), fileName + CONTAINER_META_SUFFIX);
         boolean createState = file.createFile();
-        SerializedContainerGroupMeta containerFileMeta =
-                SerializedContainerGroupMeta.parseFrom(file.openInput());
-        List<SerializedContainerMeta> containerMetas = new ArrayList<>(containerFileMeta.getMetaList());
+        SerializedContainerGroupMeta containerGroupMeta = readContainerMeta(file);
+
+        List<SerializedContainerMeta> containerMetas = new ArrayList<>(containerGroupMeta.getMetaList());
         containerMetas.add(containerMeta);
         containerMetas = containerMetas.stream().distinct().toList();
-        containerFileMeta = SerializedContainerGroupMeta.newBuilder()
+        containerGroupMeta = SerializedContainerGroupMeta.newBuilder()
                 .addAllMeta(containerMetas)
                 .build();
-        containerFileMeta.writeTo(
-                file.openOutput(true));
+
+        writeContainerGroupMeta(containerGroupMeta, file);
+    }
+
+    private void writeContainerGroupMeta(SerializedContainerGroupMeta containerGroupMeta,
+                                         ServerFile file) throws IOException {
+        try (OutputStream outputStream = file.openOutput(true)) {
+            containerGroupMeta.writeTo(outputStream);
+        }
     }
 
     public SerializedContainerGroupMeta readContainerMeta(ServerFile serverFile) throws IOException {
-        return SerializedContainerGroupMeta.parseFrom(serverFile.openInput());
+        try (InputStream inputStream = serverFile.openInput()) {
+            return SerializedContainerGroupMeta.parseFrom(inputStream);
+        }
     }
 
     private boolean checkHasContainer(String containerId, long serial) {
@@ -306,16 +342,61 @@ public class ContainerService implements ContainerAllocator, ContainerProvider {
         return serial <= group.lastSerial();
     }
 
-    private boolean checkHasContainer(ContainerLocation location) {
-        return location.toFile().exists();
+    private boolean checkNoContainerExists(ContainerLocation location) {
+        return !location.toFile().exists();
+    }
+
+    // TODO: allow modified by meta-server.
+    public static final int LOCKWAIT_SEC = 5;
+
+    @Override
+    public SeekableInputStream openContainerRead(Container container) throws IOException, LockException {
+        if (checkNoContainerExists(container.getLocation())) {
+            return null;
+        }
+        boolean lock;
+        try {
+            lock = container.readLock().tryLock(LOCKWAIT_SEC, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            throw new LockException(e);
+        }
+        if (lock) {
+            return new SeekableFileInputStream(container.getLocation());
+        }
+        throw new LockException("Unable to acquire read lock on container %s."
+                .formatted(container.getResourceLocator()));
     }
 
     @Override
-    public SeekableInputStream openContainer(ContainerLocation location) throws IOException {
-        if (!checkHasContainer(location)) {
+    public void closeContainerRead(Container container, InputStream stream) {
+        container.readLock().unlock();
+        IoUtils.closeQuietly(stream);
+    }
+
+    @Override
+    public SeekableOutputStream openContainerWrite(Container container) throws IOException, LockException {
+        if (checkNoContainerExists(container.getLocation())) {
             return null;
         }
-        return new SeekableFileInputStream(location);
+        boolean lock;
+        try {
+            // try to acquire lock
+            lock = container.writeLock().tryLock(LOCKWAIT_SEC, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            throw new LockException(e);
+        }
+        if (lock) {
+            return new SeekableFileOutputStream(container.getLocation());
+        }
+        throw new LockException("Unable to acquire write lock on container %s."
+                .formatted(container.getResourceLocator()));
+
+    }
+
+    @Override
+    public void closeContainerWrite(Container container, OutputStream stream) {
+        container.writeLock().unlock();
+        IoUtils.closeQuietly(stream);
     }
 
     private ContainerGroup findGroup(String containerId) {
@@ -347,4 +428,5 @@ public class ContainerService implements ContainerAllocator, ContainerProvider {
         final String containerId = ContainerIdentity.toContainerId(fileId);
         return findGroup(containerId);
     }
+
 }

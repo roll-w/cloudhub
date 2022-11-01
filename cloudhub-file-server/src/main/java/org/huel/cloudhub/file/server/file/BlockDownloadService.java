@@ -3,6 +3,7 @@ package org.huel.cloudhub.file.server.file;
 import com.google.protobuf.ByteString;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
+import org.huel.cloudhub.file.fs.LockException;
 import org.huel.cloudhub.file.fs.block.ContainerBlock;
 import org.huel.cloudhub.file.fs.block.FileBlockMetaInfo;
 import org.huel.cloudhub.file.fs.container.ContainerGroup;
@@ -57,26 +58,52 @@ public class BlockDownloadService extends BlockDownloadServiceGrpc.BlockDownload
                 "0");
         responseObserver.onNext(firstResponse);
 
+        readSendResponse(fileId, containerGroup, fileBlockMetaInfo,
+                responseObserver, maxBlocksInResponse, 0);
+
+    }
+
+    // TODO: set by meta-server.
+    private static final int RETRY_TIMES = 5;
+
+    private void readSendResponse(String fileId, ContainerGroup containerGroup,
+                                  FileBlockMetaInfo fileBlockMetaInfo,
+                                  StreamObserver<DownloadBlockResponse> responseObserver,
+                                  int maxBlocksInResponse, int retry) {
+        if (retry >= RETRY_TIMES) {
+            logger.error("send failed because the number of retry times has reached the upper limit.");
+            responseObserver.onError(Status.UNAVAILABLE.asException());
+            return;
+        }
+        if (retry != 0) {
+            logger.info("retry send download response for file '{}'.", fileId);
+        }
         try (ContainerFileReader containerFileReader = new ContainerFileReader(
                 containerProvider, fileId, containerGroup, fileBlockMetaInfo)) {
             sendUtilEnd(responseObserver, containerFileReader, maxBlocksInResponse);
+            responseObserver.onCompleted();
         } catch (IOException e) {
             throw new RuntimeException(e);
+        } catch (LockException e) {
+            logger.error("Cannot get container's read lock.", e);
+            readSendResponse(fileId, containerGroup, fileBlockMetaInfo,
+                    responseObserver, maxBlocksInResponse, retry + 1);
         }
-        responseObserver.onCompleted();
     }
 
     private void sendUtilEnd(StreamObserver<DownloadBlockResponse> responseObserver,
-                             ContainerFileReader fileReader, int readSize) throws IOException {
+                             ContainerFileReader fileReader, int readSize) throws IOException, LockException {
+        int index = 0;
         while (fileReader.hasNext()) {
             List<ContainerBlock> read = fileReader.read(readSize);
             if (read == null) {
                 logger.info("read == null");
                 return;
             }
-            DownloadBlockResponse response = buildBlockDataResponse(read);
+            DownloadBlockResponse response = buildBlockDataResponse(read, index);
             logger.info("send download response. block size ={}", read.size());
             responseObserver.onNext(response);
+            index++;
         }
     }
 
@@ -94,7 +121,7 @@ public class BlockDownloadService extends BlockDownloadServiceGrpc.BlockDownload
                 .build();
     }
 
-    private DownloadBlockResponse buildBlockDataResponse(List<ContainerBlock> containerBlocks) {
+    private DownloadBlockResponse buildBlockDataResponse(List<ContainerBlock> containerBlocks, int index) {
         List<DownloadBlockData> downloadBlockData = new LinkedList<>();
         containerBlocks.forEach(containerBlock -> {
             downloadBlockData.add(DownloadBlockData.newBuilder()
@@ -107,6 +134,7 @@ public class BlockDownloadService extends BlockDownloadServiceGrpc.BlockDownload
         });
         DownloadBlocksInfo downloadBlocksInfo = DownloadBlocksInfo.newBuilder()
                 .addAllData(downloadBlockData)
+                .setIndex(index)
                 .build();
         return DownloadBlockResponse.newBuilder()
                 .setDownloadBlocks(downloadBlocksInfo)

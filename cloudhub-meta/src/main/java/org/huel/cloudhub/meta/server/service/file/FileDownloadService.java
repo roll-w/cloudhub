@@ -58,8 +58,10 @@ public class FileDownloadService {
     private class DownloadBlockStreamObserver implements StreamObserver<DownloadBlockResponse> {
         private int responseCount;
         private long fileLength;
+        private long validBytes;
         private final OutputStream outputStream;
-        private final AtomicInteger receiveCount = new AtomicInteger(0);
+        private final AtomicInteger receiveCount = new AtomicInteger(1);
+
         private DownloadBlockStreamObserver(OutputStream outputStream) {
             this.outputStream = outputStream;
         }
@@ -70,6 +72,7 @@ public class FileDownloadService {
             logger.info("receive first download response, request count: {}", checkMessage.getResponseCount());
             responseCount = checkMessage.getResponseCount();
             fileLength = checkMessage.getFileLength();
+            validBytes = checkMessage.getValidBytes();
         }
 
         @Override
@@ -84,13 +87,23 @@ public class FileDownloadService {
                 saveCheckMessage(value.getCheckMessage());
                 return;
             }
-            if (receiveCount.get() >= responseCount) {
+            if (receiveCount.get() > responseCount) {
                 throw new IllegalStateException("Illegal receive count.");
             }
             DownloadBlocksInfo downloadBlocksInfo = value.getDownloadBlocks();
             List<DownloadBlockData> dataList = downloadBlocksInfo.getDataList();
+            logger.info("receive download response:index={}, count={}, dataBlock size={}",
+                    downloadBlocksInfo.getIndex(), receiveCount.get(), dataList.size());
+            writeTo(dataList, outputStream, calcValidBytes(receiveCount.get()));
+
             receiveCount.incrementAndGet();
-            writeTo(dataList, outputStream);
+        }
+
+        private long calcValidBytes(int index) {
+            if (index == responseCount) {
+                return validBytes;
+            }
+            return -1;
         }
 
         @Override
@@ -100,31 +113,58 @@ public class FileDownloadService {
             try {
                 outputStream.close();
             } catch (IOException e) {
-                throw new RuntimeException(e);
+                logger.error("close error.", e);
             }
         }
 
         @Override
         public void onCompleted() {
             // TODO: check file.
-            logger.info("download file complete.");
+            logger.info("download file complete. all request count: {}", receiveCount.get() - 1);
             try {
                 outputStream.close();
             } catch (IOException e) {
-                throw new RuntimeException(e);
+                logger.error("close error.", e);
             }
         }
-
-
     }
 
-    private void writeTo(List<DownloadBlockData> downloadBlockData, OutputStream stream)  {
+    private void writeTo(List<DownloadBlockData> downloadBlockData, OutputStream stream, long validBytes) {
+        if (validBytes < 0) {
+            writeFully(downloadBlockData, stream);
+            return;
+        }
+
         try {
+            final int size = downloadBlockData.size() - 1;
+            int index = 0;
             for (DownloadBlockData downloadBlockDatum : downloadBlockData) {
-                stream.write(downloadBlockDatum.getData().toByteArray());
+                byte[] data = downloadBlockDatum.getData().toByteArray();
+                long len = index == size ? validBytes : -1;
+                writeOffset(stream, data, len);
+                index++;
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private void writeFully(List<DownloadBlockData> downloadBlockData, OutputStream stream) {
+        try {
+            for (DownloadBlockData downloadBlockDatum : downloadBlockData) {
+                byte[] data = downloadBlockDatum.getData().toByteArray();
+                writeOffset(stream, data, -1);
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void writeOffset(OutputStream stream, byte[] data, long len) throws IOException {
+        if (len < 0) {
+            stream.write(data);
+            return;
+        }
+        stream.write(data, 0, (int) len);
     }
 }

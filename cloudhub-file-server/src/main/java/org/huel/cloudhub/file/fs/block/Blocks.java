@@ -7,6 +7,7 @@ import java.util.List;
 /**
  * @author RollW
  */
+@Deprecated(forRemoval = true)
 public class Blocks {
     private final String fileId;
     private final long validBytes;

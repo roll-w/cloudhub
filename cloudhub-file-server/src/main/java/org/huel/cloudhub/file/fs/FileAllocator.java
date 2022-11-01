@@ -1,5 +1,7 @@
 package org.huel.cloudhub.file.fs;
 
+import org.huel.cloudhub.file.io.RepresentFile;
+
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
@@ -13,9 +15,9 @@ public class FileAllocator implements Closeable {
     private final FileChannel fileChannel;
     private final RandomAccessFile accessFile;
 
-    public FileAllocator(File file) throws FileNotFoundException {
+    public FileAllocator(RepresentFile file) throws FileNotFoundException {
         this.accessFile =
-                new RandomAccessFile(file.getPath(), "rw");
+                new RandomAccessFile(file.toFile(), "rw");
         this.fileChannel = accessFile.getChannel();
     }
 

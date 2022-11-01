@@ -6,7 +6,7 @@ import org.huel.cloudhub.file.fs.block.Block;
 import org.huel.cloudhub.file.fs.block.BlockMetaInfo;
 import org.huel.cloudhub.file.fs.block.Blocks;
 import org.huel.cloudhub.file.fs.container.Container;
-import org.huel.cloudhub.file.fs.container.ContainerWriter;
+import org.huel.cloudhub.file.fs.container.ContainerWriter2;
 import org.huel.cloudhub.file.fs.meta.MetaException;
 import org.huel.cloudhub.file.rpc.block.*;
 import org.huel.cloudhub.server.StreamObserverWrapper;
@@ -141,7 +141,7 @@ public class BlockReceiveService extends BlockUploadServiceGrpc.BlockUploadServi
             Container container =
                     containerService.allocateNewContainer(fileId);
 
-            try (ContainerWriter writer = new ContainerWriter(container, containerService)) {
+            try (ContainerWriter2 writer = new ContainerWriter2(container, containerService, containerService)) {
                 WriteInfo writeInfo = writeAndPushMeta(writer,
                         fileId, validBytes, uploadBlocks);
                 responseObserver.onNext(UploadBlocksResponse.newBuilder()
@@ -157,7 +157,7 @@ public class BlockReceiveService extends BlockUploadServiceGrpc.BlockUploadServi
     }
 
     @NonNull
-    private WriteInfo writeAndPushMeta(ContainerWriter writer,
+    private WriteInfo writeAndPushMeta(ContainerWriter2 writer,
                                        String fileId,
                                        long validBytes,
                                        List<UploadBlockData> uploadBlocks)
