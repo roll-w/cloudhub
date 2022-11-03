@@ -181,7 +181,7 @@ public class FileUploadService {
             // sets a limit for retry times.
             try {
                 stream.close();
-            } catch (IOException e) {
+            } catch (IOException ignored) {
             }
             logger.error("error receive upload blocks response", t);
         }
@@ -190,7 +190,7 @@ public class FileUploadService {
         public void onCompleted() {
             try {
                 stream.close();
-            } catch (IOException e) {
+            } catch (IOException ignored) {
             }
             logger.debug("upload block complete.");
         }

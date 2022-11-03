@@ -29,9 +29,10 @@ public class ContainerCommand extends AbstractShellComponent {
             getTerminal().writer().println("no option provide");
             return;
         }
-        switch (option) {
-            case "show" -> showContainers();
-            default -> getTerminal().writer().println("Unknown node command '%s'.".formatted(option));
+        if ("show".equals(option)) {
+            showContainers();
+        } else {
+            showContainers(option);
         }
         getTerminal().writer().flush();
     }
@@ -40,6 +41,15 @@ public class ContainerCommand extends AbstractShellComponent {
         Collection<Container> containers = containerService.listContainers();
         getTerminal().writer().println("shows all containers.\tcount = [%d]"
                 .formatted(containers.size()));
+        containers
+                .forEach(getTerminal().writer()::println);
+        getTerminal().writer().flush();
+    }
+
+    private void showContainers(String id) {
+        Collection<Container> containers = containerService.listContainers(id);
+        getTerminal().writer().println("shows containers of %s.\tcount = [%d]"
+                .formatted(id, containers.size()));
         containers
                 .forEach(getTerminal().writer()::println);
         getTerminal().writer().flush();

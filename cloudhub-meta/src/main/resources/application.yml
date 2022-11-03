@@ -3,3 +3,7 @@ spring:
     command:
       history:
         enabled: false
+
+logging:
+  level:
+    org.huel.cloudhub: debug

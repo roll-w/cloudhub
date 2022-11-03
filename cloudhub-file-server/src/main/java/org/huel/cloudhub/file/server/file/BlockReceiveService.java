@@ -77,10 +77,7 @@ public class BlockReceiveService extends BlockUploadServiceGrpc.BlockUploadServi
         private final AtomicInteger received = new AtomicInteger(0);
         private OutputStream stagingOut;
 
-        // TODO: or allocates to a temp file?
-        //  may produce out of memory error if the file too large.
-
-        // add a staging dir, and puts blocks in the area.
+        // save to staging dir, and puts blocks in the area.
         // when receive all requests,
         // reads all data into the container step by step after.
 
@@ -104,7 +101,7 @@ public class BlockReceiveService extends BlockUploadServiceGrpc.BlockUploadServi
             if (!exists) {
                 return;
             }
-            logger.info("file exists, id={}", fileId);
+            logger.debug("file exists, id={}", fileId);
             responseObserver.onCompleted();
         }
 
@@ -113,7 +110,7 @@ public class BlockReceiveService extends BlockUploadServiceGrpc.BlockUploadServi
             validBytes = checkMessage.getValidBytes();
             fileLength = checkMessage.getFileLength();
             checkValue = checkMessage.getCheckValue();
-            logger.info("receive upload message. count={};validBytes={};fileLen={};check={}",
+            logger.debug("receive upload message. count={};validBytes={};fileLen={};check={}",
                     indexCount, validBytes, fileLength, checkValue);
             try {
                 stagingOut = stagingFile.openOutput();
@@ -135,7 +132,7 @@ public class BlockReceiveService extends BlockUploadServiceGrpc.BlockUploadServi
                 Exception exception =
                         new IllegalStateException("The ids of the files before and after are different.");
                 responseObserver.onError(exception);
-                logger.error("error receive blocks.");
+                logger.error("error receive blocks: {}.", exception.getMessage());
                 return;
             }
             fileId = request.getIdentity();
@@ -148,7 +145,7 @@ public class BlockReceiveService extends BlockUploadServiceGrpc.BlockUploadServi
 
             UploadBlocksInfo uploadBlocksInfo = request.getUploadBlocks();
             final int count = uploadBlocksInfo.getBlocksCount();
-            logger.info("receive blocks. index={};count=[{}];id={};",
+            logger.debug("receive blocks. index={};count=[{}];id={};",
                     uploadBlocksInfo.getIndex(), count, request.getIdentity());
             received.incrementAndGet();
             long valid = uploadBlocksInfo.getIndex() == count ? validBytes : -1;
@@ -211,13 +208,13 @@ public class BlockReceiveService extends BlockUploadServiceGrpc.BlockUploadServi
         public void onCompleted() {
             if (indexCount <= 0 && responseObserver.isOpen()) {
                 closeAndExit();
-                logger.info("invalid index count {} in uploading {}", indexCount, fileId);
+                logger.error("Invalid index count {} in uploading {}", indexCount, fileId);
                 responseObserver.onError(Status.INVALID_ARGUMENT.asException());
                 return;
             }
             if (indexCount != received.get() && responseObserver.isOpen()) {
                 closeAndExit();
-                logger.info("data may have been lost in uploading {}. given: {}, receive: {}",
+                logger.debug("Data may have been lost in uploading {}. given: {}, receive: {}",
                         fileId, indexCount, received.get());
                 responseObserver.onError(Status.DATA_LOSS.asException());
                 return;
@@ -229,7 +226,7 @@ public class BlockReceiveService extends BlockUploadServiceGrpc.BlockUploadServi
             long savedLength = closeAndCalcLength();
             if (savedLength != fileLength) {
                 delete();
-                logger.info("data may have been lost in uploading {}. given len: {}, receive len: {}",
+                logger.debug("Data may have been lost in uploading {}. given len: {}, receive len: {}",
                         fileId, fileLength, savedLength);
                 responseObserver.onError(Status.DATA_LOSS.asException());
                 return;
@@ -237,7 +234,7 @@ public class BlockReceiveService extends BlockUploadServiceGrpc.BlockUploadServi
 
             if (savedLength < 0) {
                 delete();
-                logger.info("Internal receive data error, file length < 0.");
+                logger.debug("Internal receive data error, file length < 0.");
                 responseObserver.onError(Status.INTERNAL.asException());
                 return;
             }
@@ -246,9 +243,9 @@ public class BlockReceiveService extends BlockUploadServiceGrpc.BlockUploadServi
                     savedLength, containerService, containerService, FileWriteStrategy.SEQUENCE)) {
                 writeUntilEnd(containerFileWriter, stagingFile.openInput(), BUFFERED_BLOCK_SIZE, validBytes);
             } catch (IOException | MetaException e) {
-                logger.error("here occurred error.", e);
+                logger.error("Occurred error here while saving to container.", e);
             } catch (LockException e) {
-                logger.error("cannot get container's lock.", e);
+                logger.error("Cannot get container's lock.", e);
             }
             responseObserver.onNext(UploadBlocksResponse.newBuilder().build());
             responseObserver.onCompleted();
@@ -264,7 +261,6 @@ public class BlockReceiveService extends BlockUploadServiceGrpc.BlockUploadServi
         int size = 0;
         while ((block = readBlock(inputStream, validBytes)) != null) {
             if (size == blockSize) {
-                logger.info("write......");
                 writer.writeBlocks(blocks);
                 blocks = new ArrayList<>();
                 size = 0;
@@ -273,7 +269,6 @@ public class BlockReceiveService extends BlockUploadServiceGrpc.BlockUploadServi
             size++;
         }
         writer.writeBlocks(blocks);
-        logger.info("write end");
         inputStream.close();
     }
 

@@ -86,7 +86,7 @@ public class ContainerFileWriter implements Closeable {
             return null;
         }
         final int limit = result.container.getIdentity().blockLimit();
-        if (result.endIndex >= limit) {
+        if (result.endIndex >= limit - 1) {
             return new WriteResult(
                     result.writer, result.container,
                     List.of(),
@@ -135,6 +135,8 @@ public class ContainerFileWriter implements Closeable {
             BlockGroup blockGroup = new BlockGroup(startIndex, lastIndex);
             blockGroups.add(blockGroup);
             writeBlocksSum.addAndGet(len);
+            logger.debug("write: {} --- fix={};start={};end={};len={};writeBlocks={};writeBlocksSum={}",
+                    i, fixOffset, startIndex, lastIndex, len, writeBlocks, writeBlocksSum.get());
             writeBlocks += len;
             i++;
         }

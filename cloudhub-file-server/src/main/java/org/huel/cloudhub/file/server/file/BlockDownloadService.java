@@ -71,12 +71,12 @@ public class BlockDownloadService extends BlockDownloadServiceGrpc.BlockDownload
                                   StreamObserver<DownloadBlockResponse> responseObserver,
                                   int maxBlocksInResponse, int retry) {
         if (retry >= RETRY_TIMES) {
-            logger.error("send failed because the number of retry times has reached the upper limit.");
+            logger.error("Send failed because the number of retry times has reached the upper limit.");
             responseObserver.onError(Status.UNAVAILABLE.asException());
             return;
         }
         if (retry != 0) {
-            logger.info("retry send download response for file '{}'.", fileId);
+            logger.debug("Retry send download response for file '{}'.", fileId);
         }
         try (ContainerFileReader containerFileReader = new ContainerFileReader(
                 containerProvider, fileId, containerGroup, fileBlockMetaInfo)) {
@@ -97,11 +97,10 @@ public class BlockDownloadService extends BlockDownloadServiceGrpc.BlockDownload
         while (fileReader.hasNext()) {
             List<ContainerBlock> read = fileReader.read(readSize);
             if (read == null) {
-                logger.info("read == null");
                 return;
             }
             DownloadBlockResponse response = buildBlockDataResponse(read, index);
-            logger.info("send download response. block size ={}", read.size());
+            logger.debug("Send download response. block size ={}", read.size());
             responseObserver.onNext(response);
             index++;
         }

@@ -49,7 +49,7 @@ public class ContainerWriter implements Closeable {
 
     public void seek(int index) throws IOException {
         if (index < 0 || index >= container.getIdentity().blockLimit()) {
-            throw new IllegalArgumentException("Illegal seek index.");
+            throw new IllegalArgumentException("Illegal seek index " + index);
         }
         stream.seek(index * blockSizeInBytes);
     }
@@ -67,7 +67,6 @@ public class ContainerWriter implements Closeable {
      * @param release whether release bytes
      */
     public void write(List<Block> blocks, int off, int len, boolean release) throws IOException {
-        System.err.println("receive write request: off " + off + ", len:" + len);
         if (off < 0) {
             throw new IllegalArgumentException("Illegal off %d.".formatted(off));
         }

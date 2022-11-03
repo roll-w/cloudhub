@@ -1,3 +1,6 @@
 spring:
   banner:
     charset: UTF-8
+logging:
+  level:
+    org.huel.cloudhub: debug

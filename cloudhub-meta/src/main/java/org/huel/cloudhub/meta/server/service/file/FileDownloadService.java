@@ -40,7 +40,7 @@ public class FileDownloadService {
         BlockDownloadServiceGrpc.BlockDownloadServiceStub stub =
                 requireStub(fileId);
 
-        logger.info("start downloading file id={}", fileId);
+        logger.debug("start downloading file id={}", fileId);
         stub.downloadBlocks(request, new DownloadBlockStreamObserver(outputStream));
     }
 
@@ -113,7 +113,7 @@ public class FileDownloadService {
             try {
                 outputStream.close();
             } catch (IOException e) {
-                logger.error("close error.", e);
+                logger.debug("close error.", e);
             }
         }
 
@@ -124,7 +124,7 @@ public class FileDownloadService {
             try {
                 outputStream.close();
             } catch (IOException e) {
-                logger.error("close error.", e);
+                logger.debug("close error.", e);
             }
         }
     }
