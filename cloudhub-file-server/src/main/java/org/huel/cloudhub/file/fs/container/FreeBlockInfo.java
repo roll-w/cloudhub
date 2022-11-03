@@ -33,6 +33,10 @@ public final class FreeBlockInfo {
         return end;
     }
 
+    public boolean contains(int index) {
+        return index >= start && index <= end;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

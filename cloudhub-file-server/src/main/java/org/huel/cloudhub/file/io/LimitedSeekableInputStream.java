@@ -63,4 +63,9 @@ public class LimitedSeekableInputStream extends SeekableInputStream
         readBytes.set(0);
         close = true;
     }
+
+    @Override
+    public int available() {
+        return (int) (limit - readBytes.get());
+    }
 }

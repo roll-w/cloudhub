@@ -147,30 +147,32 @@ public class ContainerService implements ContainerAllocator, ContainerProvider, 
             containerCache.put(containerId, newGroup);
             return containers;
         }
+        List<Container> writableContainers = containerGroup.writableContainers();
 
-        Container container = containerGroup.latestContainer();
-
+        List<Container> res = new ArrayList<>();
         int remainBlockSize = needBlocks;
-        if (container != null && !container.isReachLimit()) {
-            int free = container.getUsableBlock();
-            if (needBlocks <= free) {
-                return List.of(container);
-            }
+        for (Container writableContainer : writableContainers) {
+            int free = writableContainer.getFreeBlocksCount();
+            res.add(writableContainer);
             remainBlockSize -= free;
+            if (remainBlockSize <= 0) {
+                break;
+            }
         }
-        final int needContainers = Maths.ceilDivide(remainBlockSize,
-                fileProperties.getBlockCount());
-        List<Container> containers = allocateContainersFrom(containerId,
-                containerGroup.lastSerial(), needContainers);
 
-        container = createsNewContainer(containerId, containerGroup.lastSerial() + 1);
-        containerGroup.put(container);
-        return containers;
+        final int stillNeedContainers = Maths.ceilDivide(remainBlockSize,
+                fileProperties.getBlockCount());
+        List<Container> more = allocateContainersFrom(containerId, containerGroup.lastSerial(), stillNeedContainers);
+        res.addAll(more);
+        return res;
     }
 
     private List<Container> allocateContainersFrom(String containerId, long start, long size) {
+        if (size <= 0) {
+            return List.of();
+        }
         List<Container> containers = new ArrayList<>();
-        for (long i = start; i <= start + size; i++) {
+        for (long i = start; i < start + size; i++) {
             Container container = createsNewContainer(containerId, i);
             containers.add(container);
         }
@@ -230,7 +232,7 @@ public class ContainerService implements ContainerAllocator, ContainerProvider, 
         SerializedContainerBlockMeta containerBlockMeta = SerializedContainerBlockMeta.newBuilder()
                 .setBlockSize(container.getIdentity().blockSize())
                 .setBlockCap(container.getIdentity().blockLimit())
-                .setUsedBlock(container.getUsedBlock())
+                .setUsedBlock(container.getUsedBlocksCount())
                 .addAllBlockMetas(container.getSerializedMetaInfos())
                 .setCrc(container.getIdentity().crc())
                 .build();
@@ -369,7 +371,10 @@ public class ContainerService implements ContainerAllocator, ContainerProvider, 
 
     @Override
     public void closeContainerRead(Container container, InputStream stream) {
-        container.readLock().unlock();
+        try {
+            container.readLock().unlock();
+        } catch (Exception ignored) {
+        }
         IoUtils.closeQuietly(stream);
     }
 
@@ -395,7 +400,10 @@ public class ContainerService implements ContainerAllocator, ContainerProvider, 
 
     @Override
     public void closeContainerWrite(Container container, OutputStream stream) {
-        container.writeLock().unlock();
+        try {
+            container.writeLock().unlock();
+        } catch (Exception ignored) {
+        }
         IoUtils.closeQuietly(stream);
     }
 

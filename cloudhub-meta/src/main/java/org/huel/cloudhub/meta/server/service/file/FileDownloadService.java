@@ -69,7 +69,7 @@ public class FileDownloadService {
 
         private void saveCheckMessage(DownloadBlockResponse.CheckMessage checkMessage) {
             // TODO:
-            logger.info("receive first download response, request count: {}", checkMessage.getResponseCount());
+            logger.debug("receive first download response, request count: {}", checkMessage.getResponseCount());
             responseCount = checkMessage.getResponseCount();
             fileLength = checkMessage.getFileLength();
             validBytes = checkMessage.getValidBytes();
@@ -92,7 +92,7 @@ public class FileDownloadService {
             }
             DownloadBlocksInfo downloadBlocksInfo = value.getDownloadBlocks();
             List<DownloadBlockData> dataList = downloadBlocksInfo.getDataList();
-            logger.info("receive download response:index={}, count={}, dataBlock size={}",
+            logger.debug("receive download response:index={}, count={}, dataBlock size={}",
                     downloadBlocksInfo.getIndex(), receiveCount.get(), dataList.size());
             writeTo(dataList, outputStream, calcValidBytes(receiveCount.get()));
 
@@ -120,7 +120,7 @@ public class FileDownloadService {
         @Override
         public void onCompleted() {
             // TODO: check file.
-            logger.info("download file complete. all request count: {}", receiveCount.get() - 1);
+            logger.debug("download file complete. all request count: {}", receiveCount.get() - 1);
             try {
                 outputStream.close();
             } catch (IOException e) {
@@ -144,6 +144,7 @@ public class FileDownloadService {
                 writeOffset(stream, data, len);
                 index++;
             }
+            stream.flush();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -155,6 +156,7 @@ public class FileDownloadService {
                 byte[] data = downloadBlockDatum.getData().toByteArray();
                 writeOffset(stream, data, -1);
             }
+            stream.flush();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

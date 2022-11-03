@@ -5,7 +5,7 @@ package org.huel.cloudhub.file.fs.block;
  */
 public class Block {
     private byte[] chunk;
-    private long validBytes;
+    private final long validBytes;
 
     public Block(byte[] chunk, long validBytes) {
         this.chunk = chunk;
@@ -25,6 +25,9 @@ public class Block {
 
     public void release() {
         chunk = null;
-        validBytes = 0;
+    }
+
+    public boolean isReleased() {
+        return chunk == null;
     }
 }

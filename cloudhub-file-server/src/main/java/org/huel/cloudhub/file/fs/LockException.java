@@ -6,8 +6,6 @@ package org.huel.cloudhub.file.fs;
  * @author RollW
  */
 public class LockException extends Exception {
-    public LockException() {
-    }
 
     public LockException(String message) {
         super(message);

@@ -128,6 +128,10 @@ public class Container {
         return meta;
     }
 
+    public long getSerial() {
+        return identity.serial();
+    }
+
     public long getVersion() {
         return version;
     }
@@ -136,11 +140,11 @@ public class Container {
         version++;
     }
 
-    public int getUsedBlock() {
+    public int getUsedBlocksCount() {
         return usedBlock;
     }
 
-    public int getUsableBlock() {
+    public int getFreeBlocksCount() {
         return identity.blockLimit() - usedBlock;
     }
 
@@ -228,8 +232,8 @@ public class Container {
 
     @NonNull
     private List<FreeBlockInfo> calcFreeBlocks(Collection<BlockMetaInfo> blockMetaInfos) {
-        if (blockMetaInfos == null) {
-            return List.of();
+        if (blockMetaInfos == null || blockMetaInfos.isEmpty()) {
+            return List.of(new FreeBlockInfo(0, getIdentity().blockLimit() - 1));
         }
 
         List<FreeBlockInfo> freeBlockInfos = new ArrayList<>();

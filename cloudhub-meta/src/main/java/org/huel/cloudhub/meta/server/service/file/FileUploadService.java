@@ -91,7 +91,7 @@ public class FileUploadService {
                 .newBuilder()
                 .setValidBytes(validBytes)
                 .setRequestCount(requestCount)
-                .setCompressType(BlockRequestCompressType.NONE)
+                .setFileLength(reopenableInputStream.getLength())
                 .setCheckValue(crc32)// TODO: calc CRC32
                 .build();
         UploadBlocksRequest firstRequest = UploadBlocksRequest.newBuilder()
@@ -172,7 +172,7 @@ public class FileUploadService {
                 return;
             }
 
-            logger.info("check block count: {}", value.getBlockCount());
+            logger.debug("check block count: {}", value.getBlockCount());
         }
 
         @Override
@@ -192,7 +192,7 @@ public class FileUploadService {
                 stream.close();
             } catch (IOException e) {
             }
-            logger.info("upload block complete.");
+            logger.debug("upload block complete.");
         }
 
         private void sendData() throws IOException {

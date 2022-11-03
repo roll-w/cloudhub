@@ -13,9 +13,7 @@ public class FileProperties {
     static final String META_PATH = "meta";
 
     private String filePath = "dfs";
-
     private String tempFilePath = ".temp";
-
     private String stageFilePath = ".staging";
     /**
      * block size, in kb

@@ -13,7 +13,7 @@ public class BlockMetaInfo {
     public static final int NOT_CROSS_CONTAINER = -1;
 
     private final String fileId;
-    private final List<BlockGroup> blockGroups = new ArrayList<>();
+    private List<BlockGroup> blockGroups = new ArrayList<>();
     private final long containerSerial;
     private final long validBytes;
     private final long nextContainerSerial;
@@ -40,6 +40,10 @@ public class BlockMetaInfo {
 
     private void sort() {
         blockGroups.sort(Comparator.comparingInt(BlockGroup::start));
+        blockGroups = mergeBlockGroups(blockGroups);
+        if (!blockGroups.isEmpty()) {
+            blockGroups.sort(Comparator.comparingInt(BlockGroup::start));
+        }
     }
 
     public String getFileId() {
@@ -68,6 +72,33 @@ public class BlockMetaInfo {
         }
 
         return getBlocksCountAfter(start) >= offset;
+    }
+
+    private List<BlockGroup> mergeBlockGroups(List<BlockGroup> blockGroups) {
+        // here the blockGroups have been sorted by start.
+        if (blockGroups.isEmpty()) {
+            return List.of();
+        }
+        List<BlockGroup> res = new ArrayList<>();
+        final int size = blockGroups.size();
+        BlockGroup first = blockGroups.get(0);
+        int l = first.start(), r = first.end(), i = 0;
+        for (BlockGroup blockGroup : blockGroups) {
+            if (i == 0) {
+                i++;
+                continue;
+            }
+            if (blockGroup.start() - 1 > r) {
+                res.add(new BlockGroup(l, r));
+                l = blockGroup.start();
+                r = blockGroup.end();
+            } else {
+                r = Math.max(r, blockGroup.end());
+            }
+            i++;
+        }
+        res.add(new BlockGroup(l, r));
+        return res;
     }
 
     public int getBlocksCountAfter(int blockIndex) {

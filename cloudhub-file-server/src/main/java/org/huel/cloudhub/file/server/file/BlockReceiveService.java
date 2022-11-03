@@ -2,11 +2,13 @@ package org.huel.cloudhub.file.server.file;
 
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
+import org.apache.commons.lang3.RandomStringUtils;
+import org.huel.cloudhub.file.fs.LocalFileServer;
+import org.huel.cloudhub.file.fs.LockException;
+import org.huel.cloudhub.file.fs.ServerFile;
 import org.huel.cloudhub.file.fs.block.Block;
-import org.huel.cloudhub.file.fs.block.BlockMetaInfo;
-import org.huel.cloudhub.file.fs.block.Blocks;
-import org.huel.cloudhub.file.fs.container.Container;
-import org.huel.cloudhub.file.fs.container.ContainerWriter2;
+import org.huel.cloudhub.file.fs.container.file.ContainerFileWriter;
+import org.huel.cloudhub.file.fs.container.file.FileWriteStrategy;
 import org.huel.cloudhub.file.fs.meta.MetaException;
 import org.huel.cloudhub.file.rpc.block.*;
 import org.huel.cloudhub.server.StreamObserverWrapper;
@@ -14,13 +16,13 @@ import org.huel.cloudhub.server.file.FileProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import space.lingu.NonNull;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author RollW
@@ -30,22 +32,50 @@ public class BlockReceiveService extends BlockUploadServiceGrpc.BlockUploadServi
     private final Logger logger = LoggerFactory.getLogger(BlockReceiveService.class);
     private final FileProperties fileProperties;
     private final ContainerService containerService;
+    private final LocalFileServer localFileServer;
+
+    private static final int BUFFERED_BLOCK_SIZE = 320;
 
     public BlockReceiveService(FileProperties fileProperties,
-                               ContainerService containerService) {
+                               ContainerService containerService,
+                               LocalFileServer localFileServer) throws IOException {
         this.fileProperties = fileProperties;
         this.containerService = containerService;
+        this.localFileServer = localFileServer;
+        initStagingDirectory();
+    }
+
+    private void initStagingDirectory() throws IOException {
+        ServerFile file = localFileServer.getServerFileProvider()
+                .openFile(fileProperties.getStageFilePath());
+        file.mkdirs();
+    }
+
+    private ServerFile openNewStagingFile() throws IOException {
+        ServerFile file = localFileServer.getServerFileProvider().openFile(
+                fileProperties.getStageFilePath(),
+                RandomStringUtils.randomAlphanumeric(20));
+        if (file.exists()) {
+            return openNewStagingFile();
+        }
+        file.createFile();
+        return file;
     }
 
     @Override
     public StreamObserver<UploadBlocksRequest> uploadBlocks(StreamObserver<UploadBlocksResponse> responseObserver) {
-        return new UploadBlocksRequestObserver(responseObserver);
+        try {
+            return new UploadBlocksRequestObserver(responseObserver);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private class UploadBlocksRequestObserver implements StreamObserver<UploadBlocksRequest> {
         private final StreamObserverWrapper<UploadBlocksResponse> responseObserver;
-        private final List<IndexedBlockRequest> indexedBlockRequests =
-                new ArrayList<>();
+        private final ServerFile stagingFile;
+        private final AtomicInteger received = new AtomicInteger(0);
+        private OutputStream stagingOut;
 
         // TODO: or allocates to a temp file?
         //  may produce out of memory error if the file too large.
@@ -57,9 +87,12 @@ public class BlockReceiveService extends BlockUploadServiceGrpc.BlockUploadServi
         private String fileId;
         private int indexCount = -1;
         private long validBytes;
+        private long fileLength;
+        private String checkValue;
 
-        UploadBlocksRequestObserver(StreamObserver<UploadBlocksResponse> responseObserver) {
+        UploadBlocksRequestObserver(StreamObserver<UploadBlocksResponse> responseObserver) throws IOException {
             this.responseObserver = new StreamObserverWrapper<>(responseObserver);
+            this.stagingFile = openNewStagingFile();
         }
 
         private void checkExistsWithClose(String fileId) {
@@ -78,8 +111,15 @@ public class BlockReceiveService extends BlockUploadServiceGrpc.BlockUploadServi
         private void saveCheckMessageInfo(UploadBlocksRequest.CheckMessage checkMessage) {
             indexCount = checkMessage.getRequestCount();
             validBytes = checkMessage.getValidBytes();
-            logger.info("receive upload message. count={};validBytes={};",
-                    indexCount, validBytes);
+            fileLength = checkMessage.getFileLength();
+            checkValue = checkMessage.getCheckValue();
+            logger.info("receive upload message. count={};validBytes={};fileLen={};check={}",
+                    indexCount, validBytes, fileLength, checkValue);
+            try {
+                stagingOut = stagingFile.openOutput();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
 
         @Override
@@ -110,8 +150,29 @@ public class BlockReceiveService extends BlockUploadServiceGrpc.BlockUploadServi
             final int count = uploadBlocksInfo.getBlocksCount();
             logger.info("receive blocks. index={};count=[{}];id={};",
                     uploadBlocksInfo.getIndex(), count, request.getIdentity());
-            indexedBlockRequests.add(new IndexedBlockRequest(
-                    uploadBlocksInfo.getBlocksList(), uploadBlocksInfo.getIndex()));
+            received.incrementAndGet();
+            long valid = uploadBlocksInfo.getIndex() == count ? validBytes : -1;
+            try {
+                writeOut(uploadBlocksInfo, valid);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        private void writeOut(UploadBlocksInfo uploadBlocksInfo, long validBytes) throws IOException {
+            if (stagingOut == null) {
+                return;
+            }
+            int i = 0;
+            for (UploadBlockData uploadBlockData : uploadBlocksInfo.getBlocksList()) {
+                if (i == uploadBlocksInfo.getBlocksCount() - 1 && validBytes >= 0) {
+                    stagingOut.write(uploadBlockData.getData().toByteArray(), 0,
+                            (int) validBytes);
+                    return;
+                }
+                stagingOut.write(uploadBlockData.getData().toByteArray());
+                i++;
+            }
         }
 
         @Override
@@ -119,85 +180,114 @@ public class BlockReceiveService extends BlockUploadServiceGrpc.BlockUploadServi
             logger.error("receive blocks error.", t);
         }
 
+        private void closeAndExit() {
+            try {
+                stagingOut.close();
+                delete();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        private long closeAndCalcLength() {
+            try {
+                stagingOut.close();
+                return stagingFile.length();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return -1;
+        }
+
+        private void delete() {
+            try {
+                stagingFile.delete();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
         @Override
         public void onCompleted() {
             if (indexCount <= 0 && responseObserver.isOpen()) {
+                closeAndExit();
                 logger.info("invalid index count {} in uploading {}", indexCount, fileId);
                 responseObserver.onError(Status.INVALID_ARGUMENT.asException());
                 return;
             }
-            if (indexCount != indexedBlockRequests.size() && responseObserver.isOpen()) {
+            if (indexCount != received.get() && responseObserver.isOpen()) {
+                closeAndExit();
                 logger.info("data may have been lost in uploading {}. given: {}, receive: {}",
-                        fileId, indexCount, indexedBlockRequests.size());
+                        fileId, indexCount, received.get());
                 responseObserver.onError(Status.DATA_LOSS.asException());
                 return;
             }
             if (responseObserver.isClose()) {
+                closeAndExit();
+                return;
+            }
+            long savedLength = closeAndCalcLength();
+            if (savedLength != fileLength) {
+                delete();
+                logger.info("data may have been lost in uploading {}. given len: {}, receive len: {}",
+                        fileId, fileLength, savedLength);
+                responseObserver.onError(Status.DATA_LOSS.asException());
                 return;
             }
 
-            List<UploadBlockData> uploadBlocks =
-                    convertsUploadBlocks(indexedBlockRequests);
-            Container container =
-                    containerService.allocateNewContainer(fileId);
-
-            try (ContainerWriter2 writer = new ContainerWriter2(container, containerService, containerService)) {
-                WriteInfo writeInfo = writeAndPushMeta(writer,
-                        fileId, validBytes, uploadBlocks);
-                responseObserver.onNext(UploadBlocksResponse.newBuilder()
-                        .setBlockCount(writeInfo.writeBlockInfos.size())// TODO:
-                        .build());
-                responseObserver.onCompleted();
-            } catch (IOException | MetaException e) {
-                responseObserver.onError(e);
-                e.printStackTrace();
-                logger.error("container writer error: ", e);
+            if (savedLength < 0) {
+                delete();
+                logger.info("Internal receive data error, file length < 0.");
+                responseObserver.onError(Status.INTERNAL.asException());
+                return;
             }
+
+            try (ContainerFileWriter containerFileWriter = new ContainerFileWriter(fileId,
+                    savedLength, containerService, containerService, FileWriteStrategy.SEQUENCE)) {
+                writeUntilEnd(containerFileWriter, stagingFile.openInput(), BUFFERED_BLOCK_SIZE, validBytes);
+            } catch (IOException | MetaException e) {
+                logger.error("here occurred error.", e);
+            } catch (LockException e) {
+                logger.error("cannot get container's lock.", e);
+            }
+            responseObserver.onNext(UploadBlocksResponse.newBuilder().build());
+            responseObserver.onCompleted();
+            delete();
         }
     }
 
-    @NonNull
-    private WriteInfo writeAndPushMeta(ContainerWriter2 writer,
-                                       String fileId,
-                                       long validBytes,
-                                       List<UploadBlockData> uploadBlocks)
-            throws IOException, MetaException {
-        List<Block> blockList = new LinkedList<>();
-        final int size = uploadBlocks.size();
-        for (int i = 0; i < size; i++) {
-            UploadBlockData uploadBlock = uploadBlocks.get(i);
-            byte[] chunk = uploadBlock.getData().toByteArray();
-            Block block = new Block(
-                    uploadBlock.getData().toByteArray(),
-                    i == size - 1 ? validBytes : chunk.length);
-            blockList.add(block);
+    private void writeUntilEnd(ContainerFileWriter writer,
+                               InputStream inputStream,
+                               int blockSize, long validBytes) throws IOException, LockException, MetaException {
+        List<Block> blocks = new ArrayList<>();
+        Block block;
+        int size = 0;
+        while ((block = readBlock(inputStream, validBytes)) != null) {
+            if (size == blockSize) {
+                logger.info("write......");
+                writer.writeBlocks(blocks);
+                blocks = new ArrayList<>();
+                size = 0;
+            }
+            blocks.add(block);
+            size++;
         }
-        Blocks blocks = new Blocks(blockList, fileId, validBytes);
-
-        List<BlockMetaInfo> infos = writer.writeBlocks(blocks);
-        Container container = writer.requireUpdate();
-        return new WriteInfo(container, infos);
+        writer.writeBlocks(blocks);
+        logger.info("write end");
+        inputStream.close();
     }
 
-    private record WriteInfo(
-            Container container,
-            List<BlockMetaInfo> writeBlockInfos
-    ) {
+    private Block readBlock(InputStream inputStream, long validBytes) throws IOException {
+        int size = fileProperties.getBlockSizeInBytes();
+        byte[] chunk = new byte[size];
+        int read = inputStream.read(chunk);
+        if (read == -1) {
+            return null;
+        }
+        if (read == 0) {
+            return new Block(chunk, validBytes);
+        }
+        return new Block(chunk, read);
     }
 
-    private record IndexedBlockRequest(
-            List<UploadBlockData> uploadBlocks,
-            int index
-    ) {
-    }
-
-    private static List<UploadBlockData> convertsUploadBlocks(
-            List<IndexedBlockRequest> indexedBlockRequests) {
-        return indexedBlockRequests.stream()
-                .sorted(Comparator.comparingInt(IndexedBlockRequest::index))
-                .collect(LinkedList::new,
-                        (blocks, indexedBlockRequest) ->
-                                blocks.addAll(indexedBlockRequest.uploadBlocks),
-                        LinkedList::addAll);
-    }
 }

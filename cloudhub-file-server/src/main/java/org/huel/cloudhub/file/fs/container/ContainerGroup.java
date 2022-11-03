@@ -74,6 +74,13 @@ public class ContainerGroup {
         return getContainer(latestSerial);
     }
 
+    public List<Container> writableContainers() {
+        return containers.values().stream()
+                .sorted(Comparator.comparingLong(Container::getSerial))
+                .filter(container -> !container.isReachLimit())
+                .toList();
+    }
+
     @NonNull
     public List<Container> containersWithFile(String fileId) {
         return containers().stream()
