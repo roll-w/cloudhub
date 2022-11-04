@@ -1,4 +1,4 @@
-package org.huel.cloudhub.file.server.heartbeat;
+package org.huel.cloudhub.file.server.service.heartbeat;
 
 import org.huel.cloudhub.server.rpc.heartbeat.HeartbeatResponse;
 import org.slf4j.Logger;

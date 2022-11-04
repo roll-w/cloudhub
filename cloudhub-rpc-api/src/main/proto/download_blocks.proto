@@ -8,8 +8,15 @@ message DownloadBlockData {
   bytes data = 1;
 }
 
+message DownloadBlocksSegmentInfo {
+  int32 start_index = 1;
+  int32 end_index = 2;
+}
+
 message DownloadBlockRequest {
   string file_id = 1;
+  optional DownloadBlocksSegmentInfo segment_info = 2;
+  optional string source_id = 3;
 }
 
 message DownloadBlocksInfo {

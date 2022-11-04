@@ -1,4 +1,4 @@
-package org.huel.cloudhub.file.server.file;
+package org.huel.cloudhub.file.server.service.file;
 
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
@@ -7,6 +7,8 @@ import org.huel.cloudhub.file.fs.LocalFileServer;
 import org.huel.cloudhub.file.fs.LockException;
 import org.huel.cloudhub.file.fs.ServerFile;
 import org.huel.cloudhub.file.fs.block.Block;
+import org.huel.cloudhub.file.fs.container.ContainerAllocator;
+import org.huel.cloudhub.file.fs.container.ContainerWriterOpener;
 import org.huel.cloudhub.file.fs.container.file.ContainerFileWriter;
 import org.huel.cloudhub.file.fs.container.file.FileWriteStrategy;
 import org.huel.cloudhub.file.fs.meta.MetaException;
@@ -31,17 +33,20 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class BlockReceiveService extends BlockUploadServiceGrpc.BlockUploadServiceImplBase {
     private final Logger logger = LoggerFactory.getLogger(BlockReceiveService.class);
     private final FileProperties fileProperties;
-    private final ContainerService containerService;
+    private final ContainerAllocator containerAllocator;
+    private final ContainerWriterOpener containerWriterOpener;
     private final LocalFileServer localFileServer;
 
     private static final int BUFFERED_BLOCK_SIZE = 320;
 
-    public BlockReceiveService(FileProperties fileProperties,
-                               ContainerService containerService,
+    public BlockReceiveService(ContainerAllocator containerAllocator,
+                               FileProperties fileProperties,
+                               ContainerWriterOpener containerWriterOpener,
                                LocalFileServer localFileServer) throws IOException {
-        this.fileProperties = fileProperties;
-        this.containerService = containerService;
+        this.containerAllocator = containerAllocator;
+        this.containerWriterOpener = containerWriterOpener;
         this.localFileServer = localFileServer;
+        this.fileProperties = fileProperties;
         initStagingDirectory();
     }
 
@@ -93,7 +98,7 @@ public class BlockReceiveService extends BlockUploadServiceGrpc.BlockUploadServi
         }
 
         private void checkExistsWithClose(String fileId) {
-            boolean exists = containerService.dataExists(fileId);
+            boolean exists = containerAllocator.dataExists(fileId);
             UploadBlocksResponse response = UploadBlocksResponse.newBuilder()
                     .setFileExists(exists)
                     .build();
@@ -240,7 +245,7 @@ public class BlockReceiveService extends BlockUploadServiceGrpc.BlockUploadServi
             }
 
             try (ContainerFileWriter containerFileWriter = new ContainerFileWriter(fileId,
-                    savedLength, containerService, containerService, FileWriteStrategy.SEQUENCE)) {
+                    savedLength, containerAllocator, containerWriterOpener, FileWriteStrategy.SEQUENCE)) {
                 writeUntilEnd(containerFileWriter, stagingFile.openInput(), BUFFERED_BLOCK_SIZE, validBytes);
             } catch (IOException | MetaException e) {
                 logger.error("Occurred error here while saving to container.", e);

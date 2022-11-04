@@ -1,4 +1,4 @@
-package org.huel.cloudhub.file.server.file;
+package org.huel.cloudhub.file.server.service.file;
 
 import com.google.protobuf.ByteString;
 import io.grpc.Status;
@@ -6,8 +6,9 @@ import io.grpc.stub.StreamObserver;
 import org.huel.cloudhub.file.fs.LockException;
 import org.huel.cloudhub.file.fs.block.ContainerBlock;
 import org.huel.cloudhub.file.fs.block.FileBlockMetaInfo;
+import org.huel.cloudhub.file.fs.container.ContainerAllocator;
 import org.huel.cloudhub.file.fs.container.ContainerGroup;
-import org.huel.cloudhub.file.fs.container.ContainerProvider;
+import org.huel.cloudhub.file.fs.container.ContainerReadOpener;
 import org.huel.cloudhub.file.fs.container.file.ContainerFileReader;
 import org.huel.cloudhub.file.rpc.block.*;
 import org.huel.cloudhub.server.file.FileProperties;
@@ -26,12 +27,15 @@ import java.util.List;
 @Service
 public class BlockDownloadService extends BlockDownloadServiceGrpc.BlockDownloadServiceImplBase {
     private final Logger logger = LoggerFactory.getLogger(BlockDownloadService.class);
-    private final ContainerProvider containerProvider;
+    private final ContainerReadOpener containerReadOpener;
+    private final ContainerAllocator containerAllocator;
     private final FileProperties fileProperties;
 
-    public BlockDownloadService(ContainerProvider containerProvider,
+    public BlockDownloadService(ContainerReadOpener containerReadOpener,
+                                ContainerAllocator containerAllocator,
                                 FileProperties fileProperties) {
-        this.containerProvider = containerProvider;
+        this.containerReadOpener = containerReadOpener;
+        this.containerAllocator = containerAllocator;
         this.fileProperties = fileProperties;
     }
 
@@ -40,7 +44,7 @@ public class BlockDownloadService extends BlockDownloadServiceGrpc.BlockDownload
                                StreamObserver<DownloadBlockResponse> responseObserver) {
         final String fileId = request.getFileId();
         ContainerGroup containerGroup =
-                containerProvider.findContainerGroupByFile(fileId);
+                containerAllocator.findContainerGroupByFile(fileId);
         FileBlockMetaInfo fileBlockMetaInfo = containerGroup.getFileBlockMetaInfo(fileId);
         if (fileBlockMetaInfo == null) {
             responseObserver.onError(Status.NOT_FOUND.asException());
@@ -79,7 +83,7 @@ public class BlockDownloadService extends BlockDownloadServiceGrpc.BlockDownload
             logger.debug("Retry send download response for file '{}'.", fileId);
         }
         try (ContainerFileReader containerFileReader = new ContainerFileReader(
-                containerProvider, fileId, containerGroup, fileBlockMetaInfo)) {
+                containerReadOpener, containerAllocator, fileId, containerGroup, fileBlockMetaInfo)) {
             sendUtilEnd(responseObserver, containerFileReader, maxBlocksInResponse);
             responseObserver.onCompleted();
         } catch (IOException e) {

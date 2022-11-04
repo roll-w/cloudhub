@@ -24,7 +24,7 @@ public class ContainerFileWriter implements Closeable {
     private final String fileId;
     private final long fileSize;
     private final ContainerAllocator containerAllocator;
-    private final ContainerModifier containerModifier;
+    private final ContainerWriterOpener containerWriterOpener;
     private final FileWriteStrategy fileWriteStrategy;
     private final AtomicInteger writeBlocksSum = new AtomicInteger(0);
     private int expectBlocks = -1;
@@ -34,12 +34,12 @@ public class ContainerFileWriter implements Closeable {
 
     public ContainerFileWriter(String fileId, long fileSize,
                                ContainerAllocator containerAllocator,
-                               ContainerModifier containerModifier,
+                               ContainerWriterOpener containerWriterOpener,
                                FileWriteStrategy fileWriteStrategy) {
         this.fileId = fileId;
         this.fileSize = fileSize;
         this.containerAllocator = containerAllocator;
-        this.containerModifier = containerModifier;
+        this.containerWriterOpener = containerWriterOpener;
         this.fileWriteStrategy = fileWriteStrategy;
         preAllocateContainers();
     }
@@ -200,7 +200,7 @@ public class ContainerFileWriter implements Closeable {
                 container.getSerial(),
                 nextSerial);
         container.addBlockMetaInfos(blockMetaInfo);
-        containerModifier.updatesContainerMetadata(container);
+        containerAllocator.updatesContainerMetadata(container);
         // get prepared for next write.
         result.blockGroups().clear();
         return next;
@@ -217,8 +217,8 @@ public class ContainerFileWriter implements Closeable {
         if (container == null) {
             return null;
         }
-        containerModifier.createsContainerFileWithMeta(container);
-        return new ContainerWriter(container, containerModifier);
+        containerAllocator.createsContainerFileWithMeta(container);
+        return new ContainerWriter(container, containerWriterOpener);
     }
 
     private FileWriteStrategy degradeStrategy() {

@@ -17,16 +17,16 @@ import java.util.List;
  */
 public class ContainerWriter implements Closeable {
     private final Container container;
-    private final ContainerModifier containerModifier;
+    private final ContainerWriterOpener containerWriterOpener;
     private final long blockSizeInBytes;
     private final LimitedSeekableOutputStream stream;
 
     public ContainerWriter(Container container,
-                           ContainerModifier containerModifier) throws IOException, LockException {
+                           ContainerWriterOpener containerWriterOpener) throws IOException, LockException {
         this.container = container;
-        this.containerModifier = containerModifier;
+        this.containerWriterOpener = containerWriterOpener;
         this.stream = convert(
-                containerModifier.openContainerWrite(container),
+                containerWriterOpener.openContainerWrite(container),
                 container.getLimitBytes()
         );
         if (stream == null) {
@@ -135,6 +135,6 @@ public class ContainerWriter implements Closeable {
 
     @Override
     public void close() throws IOException {
-        containerModifier.closeContainerWrite(container, stream);
+        containerWriterOpener.closeContainerWrite(container, stream);
     }
 }

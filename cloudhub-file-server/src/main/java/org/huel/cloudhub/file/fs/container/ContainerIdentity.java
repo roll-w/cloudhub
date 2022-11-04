@@ -65,6 +65,9 @@ public class ContainerIdentity {
     }
 
     public static String toContainerId(String id) {
+        if (id.length() <= ID_SUBNUM) {
+            return id;
+        }
         return id.substring(0, ID_SUBNUM);
     }
 

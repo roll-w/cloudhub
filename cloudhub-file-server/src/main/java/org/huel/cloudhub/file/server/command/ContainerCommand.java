@@ -1,7 +1,7 @@
 package org.huel.cloudhub.file.server.command;
 
 import org.huel.cloudhub.file.fs.container.Container;
-import org.huel.cloudhub.file.server.file.ContainerService;
+import org.huel.cloudhub.file.server.service.container.ContainerService;
 import org.springframework.shell.standard.AbstractShellComponent;
 import org.springframework.shell.standard.ShellComponent;
 import org.springframework.shell.standard.ShellMethod;

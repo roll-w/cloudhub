@@ -28,8 +28,9 @@ public class Container {
     private boolean usable;
     private long version;// start from 0
 
+    private final String source;
+
     private final ContainerLocation location;
-    private final ContainerNameMeta meta;
     private final ContainerIdentity identity;
     private final List<BlockMetaInfo> blockMetaInfos = new ArrayList<>();
     private List<FreeBlockInfo> freeBlockInfos;
@@ -37,22 +38,41 @@ public class Container {
 
     public Container(@NonNull ContainerLocation location,
                      int usedBlock,
-                     @NonNull ContainerNameMeta meta,
                      @NonNull ContainerIdentity identity,
                      @NonNull Collection<BlockMetaInfo> blockMetaInfos,
-                     boolean usable) {
-        this(location, usedBlock, meta, identity, blockMetaInfos, 0, usable);
+                     long version, boolean usable) {
+        this(location, ContainerAllocator.LOCAL,
+                usedBlock, identity, blockMetaInfos, version, usable);
     }
 
     public Container(@NonNull ContainerLocation location,
                      int usedBlock,
-                     @NonNull ContainerNameMeta meta,
+                     String source,
                      @NonNull ContainerIdentity identity,
                      @NonNull Collection<BlockMetaInfo> blockMetaInfos,
                      long version, boolean usable) {
         this.usedBlock = usedBlock;
+        this.source = source;
         this.location = location;
-        this.meta = meta;
+        this.identity = identity;
+        this.usable = usable;
+        this.blockMetaInfos.addAll(blockMetaInfos);
+        this.version = version;
+        if (usedBlock < 0) {
+            calcUsedBlocks(this.blockMetaInfos);
+        }
+        this.freeBlockInfos = calcFreeBlocks(this.blockMetaInfos);
+    }
+
+    public Container(@NonNull ContainerLocation location,
+                     String source,
+                     int usedBlock,
+                     @NonNull ContainerIdentity identity,
+                     @NonNull Collection<BlockMetaInfo> blockMetaInfos,
+                     long version, boolean usable) {
+        this.usedBlock = usedBlock;
+        this.source = source;
+        this.location = location;
         this.identity = identity;
         this.usable = usable;
         this.blockMetaInfos.addAll(blockMetaInfos);
@@ -122,10 +142,6 @@ public class Container {
 
     public ContainerIdentity getIdentity() {
         return identity;
-    }
-
-    public ContainerNameMeta getSimpleMeta() {
-        return meta;
     }
 
     public long getSerial() {
@@ -301,12 +317,12 @@ public class Container {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Container container = (Container) o;
-        return usedBlock == container.usedBlock && usable == container.usable && Objects.equals(location, container.location) && Objects.equals(meta, container.meta) && Objects.equals(identity, container.identity) && Objects.equals(blockMetaInfos, container.blockMetaInfos);
+        return usedBlock == container.usedBlock && usable == container.usable && Objects.equals(location, container.location) && Objects.equals(identity, container.identity) && Objects.equals(blockMetaInfos, container.blockMetaInfos);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(usedBlock, location, meta, identity, blockMetaInfos, usable);
+        return Objects.hash(usedBlock, location, identity, blockMetaInfos, usable);
     }
 
     @Override
@@ -314,7 +330,6 @@ public class Container {
         return "Container{" +
                 "usedBlock=" + usedBlock +
                 ", location=" + location +
-                ", meta=" + meta +
                 ", identity=" + identity +
                 ", blockMetaInfos=" + blockMetaInfos +
                 ", valid=" + usable +

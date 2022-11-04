@@ -1,9 +1,9 @@
 package org.huel.cloudhub.file.server.configuration;
 
 import io.grpc.*;
-import org.huel.cloudhub.file.server.file.BlockReceiveService;
-import org.huel.cloudhub.file.server.file.BlockDownloadService;
-import org.huel.cloudhub.file.server.heartbeat.HeartbeatHostProperties;
+import org.huel.cloudhub.file.server.service.file.BlockReceiveService;
+import org.huel.cloudhub.file.server.service.file.BlockDownloadService;
+import org.huel.cloudhub.file.server.service.heartbeat.HeartbeatHostProperties;
 import org.huel.cloudhub.server.GrpcProperties;
 import org.huel.cloudhub.server.file.FileProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;

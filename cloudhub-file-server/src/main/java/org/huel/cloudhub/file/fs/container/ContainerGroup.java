@@ -12,6 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author RollW
  */
 public class ContainerGroup {
+    private final String sourceId = null;
     private final String containerId;
     private long blockSizeInBytes = -1;
     private volatile long latestSerial;
@@ -35,7 +36,8 @@ public class ContainerGroup {
     }
 
     public void put(Container container) {
-        latestSerial = Math.max(container.getIdentity().serial(), latestSerial);
+        final long latestSerial = Math.max(container.getIdentity().serial(), this.latestSerial);
+        this.latestSerial = latestSerial;
         containers.put(container.getResourceLocator(), container);
         container.getBlockMetaInfos().forEach(blockMetaInfo ->
                 fileIds.add(blockMetaInfo.getFileId()));

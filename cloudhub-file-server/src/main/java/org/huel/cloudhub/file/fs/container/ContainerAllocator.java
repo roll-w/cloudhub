@@ -1,7 +1,10 @@
 package org.huel.cloudhub.file.fs.container;
 
-import space.lingu.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.huel.cloudhub.file.fs.meta.MetaException;
 
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -9,15 +12,28 @@ import java.util.List;
  *
  * @author RollW
  */
-public interface ContainerAllocator extends ContainerProvider {
+public interface ContainerAllocator {
     String CONTAINER_META_SUFFIX = ".cmeta";
+
+    String LOCAL = "[LOCAL]";
 
     @NonNull
     Container allocateNewContainer(String id);
 
-    // TODO: replace allocateContainer with this method.
     @NonNull
     List<Container> allocateContainers(String id, long size);
 
     boolean dataExists(String fileId);
+
+    @Nullable
+    Container findContainer(String containerId, long serial);
+
+    @NonNull
+    List<Container> findContainersByFile(String fileId);
+
+    ContainerGroup findContainerGroupByFile(String fileId);
+
+    void createsContainerFileWithMeta(Container container) throws IOException;
+
+    void updatesContainerMetadata(Container container) throws MetaException, IOException;
 }

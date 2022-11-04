@@ -1,7 +1,7 @@
 package org.huel.cloudhub.file.server;
 
 import io.grpc.Server;
-import org.huel.cloudhub.file.server.heartbeat.HeartbeatTask;
+import org.huel.cloudhub.file.server.service.heartbeat.HeartbeatTask;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;

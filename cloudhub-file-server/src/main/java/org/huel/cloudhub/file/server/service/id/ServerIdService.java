@@ -1,4 +1,4 @@
-package org.huel.cloudhub.file.server.id;
+package org.huel.cloudhub.file.server.service.id;
 
 import com.google.common.io.Files;
 import org.huel.cloudhub.server.file.FileProperties;

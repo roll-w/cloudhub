@@ -1,4 +1,4 @@
-package org.huel.cloudhub.file.server.heartbeat;
+package org.huel.cloudhub.file.server.service.heartbeat;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 

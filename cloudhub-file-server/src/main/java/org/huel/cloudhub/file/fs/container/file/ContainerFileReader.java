@@ -21,7 +21,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @author RollW
  */
 public class ContainerFileReader implements Closeable {
-    private final ContainerProvider containerProvider;
+    private final ContainerAllocator containerAllocator;
+    private final ContainerReadOpener containerReadOpener;
     private final ContainerGroup containerGroup;
     private final List<Container> containers;
     private final FileBlockMetaInfo fileBlockMetaInfo;
@@ -29,10 +30,12 @@ public class ContainerFileReader implements Closeable {
     private final int totalBlocks;
     private final AtomicInteger currentRead = new AtomicInteger(0);
 
-    public ContainerFileReader(ContainerProvider containerProvider,
+    public ContainerFileReader(ContainerReadOpener containerReadOpener,
+                               ContainerAllocator containerAllocator,
                                String fileId) throws ContainerException {
-        this.containerGroup = containerProvider.findContainerGroupByFile(fileId);
-        this.containerProvider = containerProvider;
+        this.containerReadOpener = containerReadOpener;
+        this.containerGroup = containerAllocator.findContainerGroupByFile(fileId);
+        this.containerAllocator = containerAllocator;
         this.containers = containerGroup.containersWithFile(fileId);
         this.fileBlockMetaInfo = containerGroup.getFileBlockMetaInfo(fileId);
         if (fileBlockMetaInfo == null) {
@@ -42,12 +45,14 @@ public class ContainerFileReader implements Closeable {
         initIterator();
     }
 
-    public ContainerFileReader(ContainerProvider containerProvider,
+    public ContainerFileReader(ContainerReadOpener containerReadOpener,
+                               ContainerAllocator containerAllocator,
                                String fileId,
                                ContainerGroup containerGroup,
                                FileBlockMetaInfo fileBlockMetaInfo) throws ContainerException {
+        this.containerReadOpener = containerReadOpener;
         this.containerGroup = containerGroup;
-        this.containerProvider = containerProvider;
+        this.containerAllocator = containerAllocator;
         this.containers = containerGroup.containersWithFile(fileId);
         this.fileBlockMetaInfo = fileBlockMetaInfo;
         if (fileBlockMetaInfo == null) {
@@ -241,7 +246,7 @@ public class ContainerFileReader implements Closeable {
             return null;
         }
 
-        return new ContainerReader(containerIterator.next(), containerProvider);
+        return new ContainerReader(containerIterator.next(), containerReadOpener);
     }
 
     @Override

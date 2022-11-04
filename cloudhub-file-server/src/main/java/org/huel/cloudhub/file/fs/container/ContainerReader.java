@@ -16,15 +16,15 @@ import java.util.List;
  */
 public class ContainerReader implements Closeable {
     private final Container container;
-    private final ContainerProvider containerProvider;
+    private final ContainerReadOpener containerReadOpener;
     private final LimitedSeekableInputStream containerInputStream;
 
     public ContainerReader(Container container,
-                           ContainerProvider containerProvider) throws IOException, LockException {
+                           ContainerReadOpener containerReadOpener) throws IOException, LockException {
         this.container = container;
-        this.containerProvider = containerProvider;
+        this.containerReadOpener = containerReadOpener;
         this.containerInputStream = convert(
-                containerProvider.openContainerRead(container),
+                containerReadOpener.openContainerRead(container),
                 container.getLimitBytes()
         );
     }
@@ -113,6 +113,6 @@ public class ContainerReader implements Closeable {
 
     @Override
     public void close() {
-        containerProvider.closeContainerRead(container, containerInputStream);
+        containerReadOpener.closeContainerRead(container, containerInputStream);
     }
 }

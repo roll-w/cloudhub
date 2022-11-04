@@ -1,12 +1,15 @@
 syntax = "proto3";
 
 import "heartbeat.proto";
+import "meta.proto";
 
 option java_multiple_files = true;
 option java_package = "org.huel.cloudhub.file.rpc.replica";
 option java_outer_classname = "ReplicaProtos";
 
 // TODO:
+
+
 
 message ReplicaRequest {
   // source host id
