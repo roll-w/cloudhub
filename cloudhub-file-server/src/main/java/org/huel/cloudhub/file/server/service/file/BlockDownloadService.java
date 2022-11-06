@@ -11,6 +11,7 @@ import org.huel.cloudhub.file.fs.container.ContainerGroup;
 import org.huel.cloudhub.file.fs.container.ContainerReadOpener;
 import org.huel.cloudhub.file.fs.container.file.ContainerFileReader;
 import org.huel.cloudhub.file.rpc.block.*;
+import org.huel.cloudhub.file.server.service.id.ServerIdService;
 import org.huel.cloudhub.server.file.FileProperties;
 import org.huel.cloudhub.util.math.Maths;
 import org.slf4j.Logger;
@@ -30,21 +31,24 @@ public class BlockDownloadService extends BlockDownloadServiceGrpc.BlockDownload
     private final ContainerReadOpener containerReadOpener;
     private final ContainerAllocator containerAllocator;
     private final FileProperties fileProperties;
+    private final ServerIdService serverIdService;
 
     public BlockDownloadService(ContainerReadOpener containerReadOpener,
                                 ContainerAllocator containerAllocator,
-                                FileProperties fileProperties) {
+                                FileProperties fileProperties, ServerIdService serverIdService) {
         this.containerReadOpener = containerReadOpener;
         this.containerAllocator = containerAllocator;
         this.fileProperties = fileProperties;
+        this.serverIdService = serverIdService;
     }
 
     @Override
     public void downloadBlocks(DownloadBlockRequest request,
                                StreamObserver<DownloadBlockResponse> responseObserver) {
         final String fileId = request.getFileId();
+        final String source = getId(request);
         ContainerGroup containerGroup =
-                containerAllocator.findContainerGroupByFile(fileId);
+                containerAllocator.findContainerGroupByFile(fileId, source);
         FileBlockMetaInfo fileBlockMetaInfo = containerGroup.getFileBlockMetaInfo(fileId);
         if (fileBlockMetaInfo == null) {
             responseObserver.onError(Status.NOT_FOUND.asException());
@@ -144,5 +148,16 @@ public class BlockDownloadService extends BlockDownloadServiceGrpc.BlockDownload
                 .build();
     }
 
+
+    private String getId(DownloadBlockRequest request) {
+        if (!request.hasSourceId()) {
+            return ContainerAllocator.LOCAL;
+        }
+        final String id = request.getSourceId();
+        if (id.equals(serverIdService.getServerId())) {
+            return ContainerAllocator.LOCAL;
+        }
+        return id;
+    }
 
 }

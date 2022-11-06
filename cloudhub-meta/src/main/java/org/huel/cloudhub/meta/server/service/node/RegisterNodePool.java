@@ -1,5 +1,8 @@
 package org.huel.cloudhub.meta.server.service.node;
 
+import com.google.common.hash.Hashing;
+
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -55,5 +58,10 @@ public class RegisterNodePool
     @Override
     public NodeServer allocateNode(long hash) {
         return null;
+    }
+
+    private long hashNode(NodeServer server) {
+        return Hashing.sha256().hashString(server.id(), StandardCharsets.UTF_8)
+                .padToLong();
     }
 }

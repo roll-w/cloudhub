@@ -9,10 +9,7 @@ import org.huel.cloudhub.file.fs.LocalFileServer;
 import org.huel.cloudhub.file.fs.ServerFile;
 import org.huel.cloudhub.file.fs.block.BlockMetaInfo;
 import org.huel.cloudhub.file.fs.container.*;
-import org.huel.cloudhub.file.fs.meta.MetaException;
-import org.huel.cloudhub.file.fs.meta.SerializedContainerBlockMeta;
-import org.huel.cloudhub.file.fs.meta.SerializedContainerGroupMeta;
-import org.huel.cloudhub.file.fs.meta.SerializedContainerMeta;
+import org.huel.cloudhub.file.fs.meta.*;
 import org.huel.cloudhub.file.server.service.file.FileUtils;
 import org.huel.cloudhub.server.file.FileProperties;
 import org.huel.cloudhub.util.math.Maths;
@@ -57,7 +54,7 @@ public class ContainerService implements ContainerAllocator {
         List<ServerFile> metaFiles = metaDir.listFiles();
         List<SerializedContainerMeta> serializedContainerMetas = new ArrayList<>();
         for (ServerFile metaFile : metaFiles) {
-            if (Objects.equals(ContainerAllocator.CONTAINER_META_SUFFIX,
+            if (Objects.equals(ContainerMetaKeys.CONTAINER_META_SUFFIX,
                     FileUtils.getExtensionName(metaFile.getName()))) {
                 continue;
             }
@@ -106,7 +103,7 @@ public class ContainerService implements ContainerAllocator {
      */
     @Override
     @NonNull
-    public Container allocateNewContainer(final String id) {
+    public Container allocateNewContainer(final String id, final String source) {
         final String containerId = ContainerIdentity.toContainerId(id);
         ContainerGroup containerGroup = containerCache.getIfPresent(containerId);
         if (containerGroup == null) {
@@ -127,7 +124,7 @@ public class ContainerService implements ContainerAllocator {
     }
 
     @Override
-    public @NonNull List<Container> allocateContainers(String id, long size) {
+    public @NonNull List<Container> allocateContainers(String id, long size, String source) {
         final String containerId = ContainerIdentity.toContainerId(id);
         ContainerGroup containerGroup = containerCache.getIfPresent(containerId);
         final int needBlocks = Maths.ceilDivideReturnsInt(size, fileProperties.getBlockSizeInBytes());
@@ -177,7 +174,7 @@ public class ContainerService implements ContainerAllocator {
     }
 
     @Override
-    public boolean dataExists(final String fileId) {
+    public boolean dataExists(final String fileId, final String source) {
         final String containerId = ContainerIdentity.toContainerId(fileId);
         ContainerGroup containerGroup = containerCache.getIfPresent(containerId);
         if (containerGroup == null) {
@@ -198,7 +195,7 @@ public class ContainerService implements ContainerAllocator {
                 container.getResourceLocator() + ContainerLocation.META_SUFFIX);
         ServerFile metaFile = localFileServer.getServerFileProvider().openFile(
                 fileProperties.getMetaPath(),
-                ContainerIdentity.toCmetaId(container.getResourceLocator()) + CONTAINER_META_SUFFIX);
+                ContainerIdentity.toCmetaId(container.getResourceLocator()) + ContainerMetaKeys.CONTAINER_META_SUFFIX);
         containerFile.createFile();
         containerMetaFile.createFile();
         metaFile.createFile();
@@ -303,7 +300,7 @@ public class ContainerService implements ContainerAllocator {
         String fileName = ContainerIdentity.toCmetaId(fileNameMeta.getId());
 
         ServerFile file = localFileServer.getServerFileProvider()
-                .openFile(fileProperties.getMetaPath(), fileName + CONTAINER_META_SUFFIX);
+                .openFile(fileProperties.getMetaPath(), fileName + ContainerMetaKeys.CONTAINER_META_SUFFIX);
         boolean createState = file.createFile();
         SerializedContainerGroupMeta containerGroupMeta = readContainerMeta(file);
 
@@ -344,7 +341,7 @@ public class ContainerService implements ContainerAllocator {
 
     @Override
     @Nullable
-    public Container findContainer(String containerId, long serial) {
+    public Container findContainer(String containerId, long serial, String source) {
         ContainerGroup group = findGroup(containerId);
         if (group == null) {
             return null;
@@ -354,8 +351,8 @@ public class ContainerService implements ContainerAllocator {
 
     @Override
     @NonNull
-    public List<Container> findContainersByFile(String fileId) {
-        ContainerGroup group = findContainerGroupByFile(fileId);
+    public List<Container> findContainersByFile(String fileId, String source) {
+        ContainerGroup group = findContainerGroupByFile(fileId, source);
         if (group == null) {
             return List.of();
         }
@@ -363,7 +360,7 @@ public class ContainerService implements ContainerAllocator {
     }
 
     @Override
-    public ContainerGroup findContainerGroupByFile(String fileId) {
+    public ContainerGroup findContainerGroupByFile(String fileId, String source) {
         final String containerId = ContainerIdentity.toContainerId(fileId);
         return findGroup(containerId);
     }

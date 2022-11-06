@@ -23,6 +23,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class ContainerFileWriter implements Closeable {
     private final String fileId;
     private final long fileSize;
+    private final String source;
     private final ContainerAllocator containerAllocator;
     private final ContainerWriterOpener containerWriterOpener;
     private final FileWriteStrategy fileWriteStrategy;
@@ -32,11 +33,12 @@ public class ContainerFileWriter implements Closeable {
     private List<Container> allowWriteContainers;
     private Iterator<Container> containerIterator;
 
-    public ContainerFileWriter(String fileId, long fileSize,
+    public ContainerFileWriter(String fileId, long fileSize, String source,
                                ContainerAllocator containerAllocator,
                                ContainerWriterOpener containerWriterOpener,
                                FileWriteStrategy fileWriteStrategy) {
         this.fileId = fileId;
+        this.source = source;
         this.fileSize = fileSize;
         this.containerAllocator = containerAllocator;
         this.containerWriterOpener = containerWriterOpener;
@@ -46,7 +48,7 @@ public class ContainerFileWriter implements Closeable {
 
     private void preAllocateContainers() {
         allowWriteContainers =
-                new ArrayList<>(containerAllocator.allocateContainers(fileId, fileSize));
+                new ArrayList<>(containerAllocator.allocateContainers(fileId, fileSize, source));
         containerIterator = allowWriteContainers.iterator();
     }
 
@@ -58,7 +60,7 @@ public class ContainerFileWriter implements Closeable {
         if (writeBlocksSum.get() > expectBlocks) {
             return null;
         }
-        return containerAllocator.allocateNewContainer(fileId);
+        return containerAllocator.allocateNewContainer(fileId, source);
     }
 
     private record WriteResult(ContainerWriter writer,

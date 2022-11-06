@@ -1,25 +1,39 @@
 package org.huel.cloudhub.meta.server.service.file;
 
+import com.google.common.hash.HashCode;
+import com.google.common.hash.Hasher;
+import org.huel.cloudhub.file.io.HasherOutputStream;
+
 import java.io.*;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author RollW
  */
 public class ReopenableInputStream extends FilterInputStream {
     private final File file;
+    private final Map<String, HashCode> hashCodeMap = new HashMap<>();
     private final long length;
 
-    public ReopenableInputStream(InputStream in, File tempFile) throws IOException {
+    public ReopenableInputStream(InputStream in, File tempFile, Hasher... hashers) throws IOException {
         super(in);
         this.file = tempFile;
-        this.length = initial();
+        this.length = initial(hashers);
     }
 
-    private long initial() throws IOException {
+    private long initial(Hasher... hashers) throws IOException {
         file.createNewFile();
-        FileOutputStream outputStream = new FileOutputStream(file, false);
+        HasherOutputStream outputStream = new HasherOutputStream(new FileOutputStream(file, false));
+        for (Hasher hasher : hashers) {
+            outputStream.addHasher(hasher.getClass().getCanonicalName(), hasher);
+        }
         long bytes = copy(in, outputStream);
         in.close();
+        for (Hasher hasher : hashers) {
+            String key = hasher.getClass().getCanonicalName();
+            hashCodeMap.put(key, outputStream.getHash(key));
+        }
         outputStream.close();
         in = new FileInputStream(file);
         return bytes;
@@ -39,6 +53,10 @@ public class ReopenableInputStream extends FilterInputStream {
         in = new FileInputStream(file);
     }
 
+    public HashCode getHash(Hasher hasher) {
+        return hashCodeMap.get(hasher.getClass().getCanonicalName());
+    }
+
     @Override
     public synchronized void mark(int readlimit) {
         in.mark(readlimit);
@@ -49,7 +67,6 @@ public class ReopenableInputStream extends FilterInputStream {
         try {
             in.reset();
         } catch (IOException ignored) {
-
         }
     }
 
@@ -72,7 +89,7 @@ public class ReopenableInputStream extends FilterInputStream {
 
         byte[] buffer = new byte[DEFAULT_BUFFER_SIZE];
         long count = 0;
-        int n = 0;
+        int n;
         while (EOF != (n = input.read(buffer))) {
             output.write(buffer, 0, n);
             count += n;

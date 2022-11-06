@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "org.huel.cloudhub.file.rpc.block";
+option java_outer_classname = "DeleteBlocksProtos";
+
+// TODO:
+message DeleteBlocksRequest {
+  string file_id = 1;
+}
+
+message DeleteBlocksResponse {
+
+}
+
+// Delete file service.
+service DeleteBlocksService {
+  rpc deleteBlocks(DeleteBlocksRequest) returns (DeleteBlocksResponse);
+}

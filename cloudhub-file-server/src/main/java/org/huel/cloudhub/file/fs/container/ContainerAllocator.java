@@ -13,25 +13,23 @@ import java.util.List;
  * @author RollW
  */
 public interface ContainerAllocator {
-    String CONTAINER_META_SUFFIX = ".cmeta";
-
     String LOCAL = "[LOCAL]";
 
     @NonNull
-    Container allocateNewContainer(String id);
+    Container allocateNewContainer(String id, String source);
 
     @NonNull
-    List<Container> allocateContainers(String id, long size);
+    List<Container> allocateContainers(String id, long size, String source);
 
-    boolean dataExists(String fileId);
+    boolean dataExists(String fileId, String source);
 
     @Nullable
-    Container findContainer(String containerId, long serial);
+    Container findContainer(String containerId, long serial, String source);
 
     @NonNull
-    List<Container> findContainersByFile(String fileId);
+    List<Container> findContainersByFile(String fileId, String source);
 
-    ContainerGroup findContainerGroupByFile(String fileId);
+    ContainerGroup findContainerGroupByFile(String fileId, String source);
 
     void createsContainerFileWithMeta(Container container) throws IOException;
 

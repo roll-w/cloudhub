@@ -98,7 +98,7 @@ public class BlockReceiveService extends BlockUploadServiceGrpc.BlockUploadServi
         }
 
         private void checkExistsWithClose(String fileId) {
-            boolean exists = containerAllocator.dataExists(fileId);
+            boolean exists = containerAllocator.dataExists(fileId, ContainerAllocator.LOCAL);
             UploadBlocksResponse response = UploadBlocksResponse.newBuilder()
                     .setFileExists(exists)
                     .build();
@@ -106,7 +106,7 @@ public class BlockReceiveService extends BlockUploadServiceGrpc.BlockUploadServi
             if (!exists) {
                 return;
             }
-            logger.debug("file exists, id={}", fileId);
+            logger.debug("File exists, id={}", fileId);
             responseObserver.onCompleted();
         }
 
@@ -115,7 +115,7 @@ public class BlockReceiveService extends BlockUploadServiceGrpc.BlockUploadServi
             validBytes = checkMessage.getValidBytes();
             fileLength = checkMessage.getFileLength();
             checkValue = checkMessage.getCheckValue();
-            logger.debug("receive upload message. count={};validBytes={};fileLen={};check={}",
+            logger.debug("Receive upload message. count={};validBytes={};fileLen={};check={}",
                     indexCount, validBytes, fileLength, checkValue);
             try {
                 stagingOut = stagingFile.openOutput();
@@ -245,7 +245,7 @@ public class BlockReceiveService extends BlockUploadServiceGrpc.BlockUploadServi
             }
 
             try (ContainerFileWriter containerFileWriter = new ContainerFileWriter(fileId,
-                    savedLength, containerAllocator, containerWriterOpener, FileWriteStrategy.SEQUENCE)) {
+                    savedLength, ContainerAllocator.LOCAL, containerAllocator, containerWriterOpener, FileWriteStrategy.SEQUENCE)) {
                 writeUntilEnd(containerFileWriter, stagingFile.openInput(), BUFFERED_BLOCK_SIZE, validBytes);
             } catch (IOException | MetaException e) {
                 logger.error("Occurred error here while saving to container.", e);

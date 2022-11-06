@@ -7,16 +7,40 @@ option java_multiple_files = true;
 option java_package = "org.huel.cloudhub.file.rpc.replica";
 option java_outer_classname = "ReplicaProtos";
 
-// TODO:
+message ReplicaData {
+  bytes data = 1;
+}
 
+message ReplicaBlockInfo {
+  int32 start_index = 1;
+  int32 end_index = 2;
+}
 
+message SerializedReplicaDataInfo {
+  int32 index = 1;
+  repeated ReplicaData data = 3;
+}
 
 message ReplicaRequest {
-  // source host id
-  SerializedFileServer source = 1;
-
+  message CheckMessage {
+    // source host file-server
+    SerializedFileServer source = 1;
+    SerializedContainerBlockMeta block_meta = 2;
+    string id = 3;
+    int64 serial = 4;
+    int64 version = 5;
+    optional ReplicaBlockInfo block_info = 6;
+  }
+  oneof replica_message {
+    CheckMessage check_message = 1;
+    SerializedReplicaDataInfo replica_data_info = 2;
+  }
 }
 
 message ReplicaResponse {
+  string check_value = 1;
+}
 
+service ReplicaService {
+  rpc sendReplica(stream ReplicaRequest) returns (stream ReplicaResponse);
 }

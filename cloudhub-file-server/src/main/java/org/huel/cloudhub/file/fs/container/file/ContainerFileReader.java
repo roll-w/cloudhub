@@ -8,6 +8,7 @@ import org.huel.cloudhub.file.fs.block.ContainerBlock;
 import org.huel.cloudhub.file.fs.block.FileBlockMetaInfo;
 import org.huel.cloudhub.file.fs.container.*;
 import org.huel.cloudhub.file.io.IoUtils;
+import org.huel.cloudhub.util.math.Maths;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -32,9 +33,9 @@ public class ContainerFileReader implements Closeable {
 
     public ContainerFileReader(ContainerReadOpener containerReadOpener,
                                ContainerAllocator containerAllocator,
-                               String fileId) throws ContainerException {
+                               String fileId, String source) throws ContainerException {
         this.containerReadOpener = containerReadOpener;
-        this.containerGroup = containerAllocator.findContainerGroupByFile(fileId);
+        this.containerGroup = containerAllocator.findContainerGroupByFile(fileId, source);
         this.containerAllocator = containerAllocator;
         this.containers = containerGroup.containersWithFile(fileId);
         this.fileBlockMetaInfo = containerGroup.getFileBlockMetaInfo(fileId);
@@ -80,6 +81,23 @@ public class ContainerFileReader implements Closeable {
     }
 
     private ReadResult lastResult = null;
+
+    private static final int SKIP_BUFFER_SIZE = 640;
+
+    public void skip(int size) throws LockException, IOException {
+        if (size <= 0) {
+            return;
+        }
+        int times = Maths.ceilDivide(size, SKIP_BUFFER_SIZE) - 1;
+        for (int i = 0; i < times; i++) {
+            read(SKIP_BUFFER_SIZE);
+        }
+        read(size - SKIP_BUFFER_SIZE * times);
+    }
+
+    private void seek(int index) {
+        // TODO: modify lastResult to allow it seek, and perhaps needs reset iterator.
+    }
 
     public List<ContainerBlock> read(int readBlocks) throws IOException, LockException {
         if (lastResult == null) {

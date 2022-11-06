@@ -7,11 +7,11 @@ option java_outer_classname = "SynchroProtos";
 // TODO:
 
 // container request
-message ContainerRequest {
-
-}
-
-
 message SynchroRequest {
 
 }
+
+message SynchroResponse {
+
+}
+

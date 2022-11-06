@@ -29,6 +29,7 @@ public class Container {
     private long version;// start from 0
 
     private final String source;
+    private final ContainerType containerType;
 
     private final ContainerLocation location;
     private final ContainerIdentity identity;
@@ -46,25 +47,6 @@ public class Container {
     }
 
     public Container(@NonNull ContainerLocation location,
-                     int usedBlock,
-                     String source,
-                     @NonNull ContainerIdentity identity,
-                     @NonNull Collection<BlockMetaInfo> blockMetaInfos,
-                     long version, boolean usable) {
-        this.usedBlock = usedBlock;
-        this.source = source;
-        this.location = location;
-        this.identity = identity;
-        this.usable = usable;
-        this.blockMetaInfos.addAll(blockMetaInfos);
-        this.version = version;
-        if (usedBlock < 0) {
-            calcUsedBlocks(this.blockMetaInfos);
-        }
-        this.freeBlockInfos = calcFreeBlocks(this.blockMetaInfos);
-    }
-
-    public Container(@NonNull ContainerLocation location,
                      String source,
                      int usedBlock,
                      @NonNull ContainerIdentity identity,
@@ -72,6 +54,7 @@ public class Container {
                      long version, boolean usable) {
         this.usedBlock = usedBlock;
         this.source = source;
+        this.containerType = calcContainerType(source);
         this.location = location;
         this.identity = identity;
         this.usable = usable;
@@ -118,6 +101,21 @@ public class Container {
         getBlockMetaInfos().forEach(blockMetaInfo ->
                 serializeBlockFileMetas.add(blockMetaInfo.serialize()));
         return serializeBlockFileMetas;
+    }
+
+    private ContainerType calcContainerType(String source) {
+        if (source == null || source.equals(ContainerAllocator.LOCAL)) {
+            return ContainerType.ORIGINAL;
+        }
+        return ContainerType.REPLICA;
+    }
+
+    public ContainerType getContainerType() {
+        return containerType;
+    }
+
+    public String getSource() {
+        return source;
     }
 
     public boolean isUsable() {

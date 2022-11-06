@@ -42,3 +42,15 @@ message SerializedContainerMeta {
 message SerializedContainerGroupMeta {
   repeated SerializedContainerMeta meta = 1;
 }
+
+// part of .rcmeta
+message SerializedReplicaContainerMeta {
+  string locator = 1;
+  int64 version = 2;
+}
+
+// .rcmeta file
+message SerializedReplicaContainerGroupMeta {
+  string source = 1;
+  repeated SerializedContainerMeta meta = 2;
+}

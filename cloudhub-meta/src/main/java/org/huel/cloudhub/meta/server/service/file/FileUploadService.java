@@ -1,9 +1,7 @@
 package org.huel.cloudhub.meta.server.service.file;
 
-import com.google.common.hash.Funnels;
 import com.google.common.hash.Hasher;
 import com.google.common.hash.Hashing;
-import com.google.common.io.ByteStreams;
 import com.google.protobuf.ByteString;
 import io.grpc.ManagedChannel;
 import io.grpc.stub.StreamObserver;
@@ -39,6 +37,8 @@ public class FileUploadService {
         this.heartbeatService = heartbeatService;
         this.fileProperties = fileProperties;
         this.nodeChannelPool = new NodeChannelPool(fileProperties);
+
+        initial();
     }
 
     private final Logger logger = LoggerFactory.getLogger(FileUploadService.class);
@@ -47,32 +47,18 @@ public class FileUploadService {
     // TODO: 发送时，对大小超过某个值的文件
     //  分块后发送到不同的file server上，以使得下载可以并行。
 
-    @SuppressWarnings("all")
-    private static String hashStream(InputStream stream) throws IOException {
-        return hasherStream(Hashing.sha256().newHasher(), stream);
-    }
-
-    private static String crc32Stream(InputStream stream) throws IOException {
-        return hasherStream(Hashing.crc32().newHasher(), stream);
-    }
-
-    @SuppressWarnings("all")
-    private static String hasherStream(Hasher hasher, InputStream stream) throws IOException {
-        ByteStreams.copy(stream, Funnels.asOutputStream(hasher));
-        return hasher.hash().toString();
-    }
-
     public void uploadFile(InputStream inputStream) throws IOException {
         // TODO: add hash and file length param.
-        logger.info("start calculation on the given input stream.");
+        logger.debug("Start calculation on the given input stream.");
         // 创建本地文件耗费IO时间。客户端上传时直接携带hash值和长度以便于计算
-        ReopenableInputStream reopenableInputStream = convertInputStream(inputStream);
-        final String hash = hashStream(reopenableInputStream);
-        reopenableInputStream.reopen();
-        final String crc32 = crc32Stream(reopenableInputStream);
+        Hasher crc32Hasher = Hashing.crc32().newHasher();
+        Hasher sha256Hasher = Hashing.sha256().newHasher();
+        ReopenableInputStream reopenableInputStream = convertInputStream(inputStream, crc32Hasher, sha256Hasher);
+        final String hash = reopenableInputStream.getHash(sha256Hasher).toString();
+        final String crc32 = reopenableInputStream.getHash(crc32Hasher).toString();
         reopenableInputStream.reopen();
 
-        logger.info("start upload fileId={}", hash);
+        logger.debug("Start upload fileId={}", hash);
 
         final long maxBlocksValue = fileProperties.getMaxRequestSizeBytes() >> 1;
         final int blockSizeInBytes = fileProperties.getBlockSizeInBytes();
@@ -81,7 +67,7 @@ public class FileUploadService {
         // calcs how many requests will be sent.
         final int requestCount = Maths.ceilDivideReturnsInt(reopenableInputStream.getLength(), maxBlocksValue);
         final long validBytes = reopenableInputStream.getLength() % blockSizeInBytes;
-        logger.info("calc: length={};maxBlocksValue={};blockSizeInBytes={};maxUploadBlockCount={};requestCount={};validBytes={}",
+        logger.debug("Calc: length={};maxBlocksValue={};blockSizeInBytes={};maxUploadBlockCount={};requestCount={};validBytes={}",
                 reopenableInputStream.getLength(), maxBlocksValue, blockSizeInBytes, maxUploadBlockCount, requestCount, validBytes);
 
         // TODO: verify the file exists first using data in the meta-server
@@ -105,7 +91,7 @@ public class FileUploadService {
         StreamObserver<UploadBlocksRequest> requestStreamObserver = stub.uploadBlocks(
                 responseStreamObserver);
         responseStreamObserver.setRequestStreamObserver(requestStreamObserver);
-        logger.info("start requesting......");
+        logger.debug("Start requesting......");
         requestStreamObserver.onNext(firstRequest);
     }
 
@@ -160,7 +146,7 @@ public class FileUploadService {
             if (value.getBlockResponseCase() ==
                     UploadBlocksResponse.BlockResponseCase.FILE_EXISTS) {
                 if (value.getFileExists()) {
-                    logger.info("file exists.");
+                    logger.debug("File exists.");
                     requestStreamObserver.onCompleted();
                     return;
                 }
@@ -183,7 +169,7 @@ public class FileUploadService {
                 stream.close();
             } catch (IOException ignored) {
             }
-            logger.error("error receive upload blocks response", t);
+            logger.error("Error receive upload blocks response", t);
         }
 
         @Override
@@ -192,7 +178,7 @@ public class FileUploadService {
                 stream.close();
             } catch (IOException ignored) {
             }
-            logger.debug("upload block complete.");
+            logger.debug("Upload file complete.");
         }
 
         private void sendData() throws IOException {
@@ -233,13 +219,18 @@ public class FileUploadService {
                 .build();
     }
 
-    private ReopenableInputStream convertInputStream(InputStream inputStream) throws IOException {
+    private ReopenableInputStream convertInputStream(InputStream inputStream, Hasher... hashers) throws IOException {
         File tempDir = new File(fileProperties.getTempFilePath());
-        if (!tempDir.exists()) {
-            tempDir.mkdirs();
-        }
         File tempFile = new File(tempDir,
                 RandomStringUtils.randomAlphanumeric(20));
-        return new ReopenableInputStream(inputStream, tempFile);
+        return new ReopenableInputStream(inputStream, tempFile, hashers);
+    }
+
+    private void initial() {
+        File tempDir = new File(fileProperties.getTempFilePath());
+        if (tempDir.exists()) {
+            tempDir.delete();
+        }
+        tempDir.mkdirs();
     }
 }
