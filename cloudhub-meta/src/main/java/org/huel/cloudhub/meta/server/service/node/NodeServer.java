@@ -1,5 +1,6 @@
 package org.huel.cloudhub.meta.server.service.node;
 
+import org.huel.cloudhub.meta.server.service.node.util.ConsistentHashServerMap;
 import org.huel.cloudhub.server.rpc.heartbeat.Heartbeat;
 
 /**
@@ -8,7 +9,10 @@ import org.huel.cloudhub.server.rpc.heartbeat.Heartbeat;
  * @param id server id
  * @author RollW
  */
-public record NodeServer(String id, String host, int port) {
+public record NodeServer(
+        String id,
+        String host,
+        int port) implements ConsistentHashServerMap.Server {
 
     public String toAddress() {
         return host() + ":" + port();
@@ -20,5 +24,10 @@ public record NodeServer(String id, String host, int port) {
 
     public static NodeServer fromHeartbeat(Heartbeat heartbeat) {
         return new NodeServer(heartbeat.getId(), heartbeat.getHost(), heartbeat.getPort());
+    }
+
+    @Override
+    public String getId() {
+        return id();
     }
 }

@@ -9,6 +9,7 @@ import org.springframework.shell.standard.ShellMethod;
 import org.springframework.shell.standard.ShellOption;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -27,7 +28,9 @@ public class NodeCommand extends AbstractShellComponent {
     @ShellMethod(value = "node operations.", key = {"node"})
     public void nodeAction(
             @ShellOption(help = "options of node", defaultValue = "show",
-                    value = {"--option", "-o"}) String option) throws IOException {
+                    value = {"--option", "-o"}) String option,
+            @ShellOption(help = "", defaultValue = "key",
+                    value = {"-k"}) String key) throws IOException {
         if (option == null) {
             getTerminal().writer().println("no option provide");
             return;
@@ -35,13 +38,14 @@ public class NodeCommand extends AbstractShellComponent {
         switch (option) {
             case "show" -> showActiveNodes();
             case "heartbeat" -> showActiveHeartbeatWatchers();
+            case "mapping" -> testMapping(key);
             default -> getTerminal().writer().println("Unknown node command '%s'.".formatted(option));
         }
         getTerminal().writer().flush();
     }
 
     private void showActiveNodes() {
-        List<NodeServer> activeNodes = heartbeatService.activeServers();
+        Collection<NodeServer> activeNodes = heartbeatService.activeServers();
         getTerminal().writer().println("shows all active nodes: active nodes count = [%d]"
                 .formatted(activeNodes.size()));
         activeNodes
@@ -56,6 +60,13 @@ public class NodeCommand extends AbstractShellComponent {
                 .formatted(heartbeatWatchers.size()));
         heartbeatWatchers
                 .forEach(getTerminal().writer()::println);
+        getTerminal().writer().flush();
+    }
+
+    private void testMapping(String key) {
+        NodeServer server = heartbeatService.getNodeAllocator().allocateNode(key);
+        getTerminal().writer().printf("test mapping key %s.\nmapping to: %s\n", key,
+                server);
         getTerminal().writer().flush();
     }
 }

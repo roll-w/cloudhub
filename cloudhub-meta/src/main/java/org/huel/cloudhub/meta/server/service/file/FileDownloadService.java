@@ -4,6 +4,7 @@ import io.grpc.ManagedChannel;
 import io.grpc.stub.StreamObserver;
 import org.huel.cloudhub.file.rpc.block.*;
 import org.huel.cloudhub.meta.server.service.node.HeartbeatService;
+import org.huel.cloudhub.meta.server.service.node.NodeAllocator;
 import org.huel.cloudhub.meta.server.service.node.NodeChannelPool;
 import org.huel.cloudhub.server.file.FileProperties;
 import org.slf4j.Logger;
@@ -22,13 +23,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class FileDownloadService {
     private final Logger logger = LoggerFactory.getLogger(FileDownloadService.class);
 
-    private final HeartbeatService heartbeatService;
+    private final NodeAllocator nodeAllocator;
     private final FileProperties fileProperties;
     private final NodeChannelPool nodeChannelPool;
 
     public FileDownloadService(HeartbeatService heartbeatService,
                                FileProperties fileProperties) {
-        this.heartbeatService = heartbeatService;
+        this.nodeAllocator = heartbeatService.getNodeAllocator();
         this.fileProperties = fileProperties;
         this.nodeChannelPool = new NodeChannelPool(fileProperties);
     }
@@ -46,7 +47,7 @@ public class FileDownloadService {
 
     private BlockDownloadServiceGrpc.BlockDownloadServiceStub requireStub(String fileId) {
         ManagedChannel channel = nodeChannelPool.getChannel(
-                heartbeatService.randomServer());
+                nodeAllocator.allocateNode(fileId));
         // TODO: replace with {NodeAllocator}
 
         BlockDownloadServiceGrpc.BlockDownloadServiceStub stub =

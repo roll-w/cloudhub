@@ -1,8 +1,11 @@
 package org.huel.cloudhub.meta.server.service.node;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.huel.cloudhub.server.rpc.heartbeat.Heartbeat;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -11,31 +14,32 @@ import java.util.concurrent.TimeUnit;
 /**
  * @author RollW
  */
-public final class HeartbeatWatcherPool {
-    private final Map<String, HeartbeatWatcher> activeHeartbeatWatchers =
+public final class HeartbeatWatcherPool implements ServerChecker {
+    private final Map<String, HeartbeatWatcher> heartbeatWatchers =
             new ConcurrentHashMap<>();
 
     private final int standardPeriod;
     private final int timeoutCycle;
     private final int timeoutTime;
-    private final ServerRemovable serverRemovable;
     private final int frequency; // in ms.
 
     private final RCheckTimeoutRunnable checkTimeoutRunnable;
+    private final ServerEventCallback callback;
 
     public HeartbeatWatcherPool(int standardPeriod,
                                 int timeoutCycle,
-                                ServerRemovable removable) {
+                                ServerEventCallback callback) {
         this.standardPeriod = standardPeriod;
         this.timeoutCycle = timeoutCycle;
-        this.serverRemovable = removable;
+        this.callback = callback;
         this.timeoutTime = standardPeriod * timeoutCycle;
-        frequency = standardPeriod / 2;
+        this.frequency = standardPeriod / 2;
         this.checkTimeoutRunnable = new RCheckTimeoutRunnable();
     }
 
-    public void pushWatcher(HeartbeatWatcher heartbeatWatcher) {
-        activeHeartbeatWatchers.put(heartbeatWatcher.getServerId(), heartbeatWatcher);
+    private void pushWatcher(HeartbeatWatcher heartbeatWatcher) {
+        heartbeatWatchers.put(heartbeatWatcher.getServerId(), heartbeatWatcher);
+        callback.addActiveServer(heartbeatWatcher.getNodeServer());
     }
 
     public void pushNodeServerWatcher(NodeServer nodeServer) {
@@ -45,32 +49,90 @@ public final class HeartbeatWatcherPool {
     }
 
     public void updateWatcher(Heartbeat heartbeat) {
-        if (!activeHeartbeatWatchers.containsKey(heartbeat.getId())) {
+        if (!heartbeatWatchers.containsKey(heartbeat.getId())) {
             return;
         }
-        activeHeartbeatWatchers.get(heartbeat.getId())
+        heartbeatWatchers.get(heartbeat.getId())
                 .updateHeartbeat(heartbeat);
     }
 
     public HeartbeatWatcher getWatcher(String id) {
-        return activeHeartbeatWatchers.get(id);
+        return heartbeatWatchers.get(id);
     }
 
     public List<HeartbeatWatcher> activeWatchers() {
-        List<HeartbeatWatcher> heartbeatWatchers = new ArrayList<>();
-        activeHeartbeatWatchers.values().forEach(heartbeatWatcher ->
-                heartbeatWatchers.add(heartbeatWatcher.fork()));
-        return heartbeatWatchers;
+        long time = System.currentTimeMillis();
+        return this.heartbeatWatchers.values()
+                .stream()
+                .parallel()
+                .filter(heartbeatWatcher -> !heartbeatWatcher.isTimeout(time))
+                .toList();
     }
+
+    public List<HeartbeatWatcher> deadWatchers() {
+        long time = System.currentTimeMillis();
+        return this.heartbeatWatchers.values()
+                .stream()
+                .parallel()
+                .filter(heartbeatWatcher -> heartbeatWatcher.isTimeout(time))
+                .toList();
+    }
+
+    @Override
+    public Collection<NodeServer> getActiveServers() {
+        return activeWatchers().stream()
+                .map(HeartbeatWatcher::getNodeServer)
+                .toList();
+    }
+
+    @Override
+    public Collection<NodeServer> getDeadServers() {
+        return deadWatchers().stream()
+                .map(HeartbeatWatcher::getNodeServer)
+                .toList();
+    }
+
+    @Override
+    public boolean isActive(@Nullable NodeServer nodeServer) {
+        if (nodeServer == null) {
+            return false;
+        }
+        return isActive(nodeServer.id());
+    }
+
+    public boolean isActive(@Nullable String id) {
+        if (id == null || id.isEmpty()) {
+            return false;
+        }
+
+        long time = System.currentTimeMillis();
+        HeartbeatWatcher watcher = getWatcher(id);
+        if (watcher == null) {
+            return false;
+        }
+        return !watcher.isTimeout(time);
+    }
+
+    public int getStandardPeriod() {
+        return standardPeriod;
+    }
+
+    public int getTimeoutCycle() {
+        return timeoutCycle;
+    }
+
+    public int getTimeoutTime() {
+        return timeoutTime;
+    }
+
 
     private class RCheckTimeoutRunnable implements Runnable {
         @Override
         public void run() {
             long time = System.currentTimeMillis();
-            activeHeartbeatWatchers.values().stream().parallel().forEach(heartbeatWatcher -> {
+            activeWatchers().stream().parallel().forEach(heartbeatWatcher -> {
                 if (heartbeatWatcher.isTimeout(time)) {
-                    serverRemovable.removeActiveServer(heartbeatWatcher.getNodeServer());
-                    activeHeartbeatWatchers.remove(heartbeatWatcher.getServerId());
+                    callback.removeActiveServer(heartbeatWatcher.getNodeServer());
                 }
             });
         }
@@ -90,7 +152,9 @@ public final class HeartbeatWatcherPool {
     final ScheduledExecutorService service =
             Executors.newSingleThreadScheduledExecutor();
 
-    public interface ServerRemovable {
+    public interface ServerEventCallback {
         void removeActiveServer(NodeServer nodeServer);
+
+        void addActiveServer(NodeServer nodeServer);
     }
 }

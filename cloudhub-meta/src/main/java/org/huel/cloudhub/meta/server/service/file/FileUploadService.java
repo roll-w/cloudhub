@@ -8,6 +8,7 @@ import io.grpc.stub.StreamObserver;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.huel.cloudhub.file.rpc.block.*;
 import org.huel.cloudhub.meta.server.service.node.HeartbeatService;
+import org.huel.cloudhub.meta.server.service.node.NodeAllocator;
 import org.huel.cloudhub.meta.server.service.node.NodeChannelPool;
 import org.huel.cloudhub.server.StreamObserverWrapper;
 import org.huel.cloudhub.server.file.FileProperties;
@@ -28,13 +29,13 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 @Service
 public class FileUploadService {
-    private final HeartbeatService heartbeatService;
+    private final NodeAllocator nodeAllocator;
     private final FileProperties fileProperties;
     private final NodeChannelPool nodeChannelPool;
 
     public FileUploadService(HeartbeatService heartbeatService,
                              FileProperties fileProperties) {
-        this.heartbeatService = heartbeatService;
+        this.nodeAllocator = heartbeatService.getNodeAllocator();
         this.fileProperties = fileProperties;
         this.nodeChannelPool = new NodeChannelPool(fileProperties);
 
@@ -97,8 +98,7 @@ public class FileUploadService {
 
     private BlockUploadServiceGrpc.BlockUploadServiceStub requiredBlockUploadServiceStub(String hash) {
         ManagedChannel channel = nodeChannelPool.getChannel(
-                heartbeatService.randomServer());
-        // TODO: replace with {NodeAllocator}
+                nodeAllocator.allocateNode(hash));
 
         BlockUploadServiceGrpc.BlockUploadServiceStub stub =
                 BlockUploadServiceGrpc.newStub(channel);
