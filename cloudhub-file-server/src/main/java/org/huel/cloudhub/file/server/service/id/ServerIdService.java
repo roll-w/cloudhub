@@ -1,7 +1,7 @@
 package org.huel.cloudhub.file.server.service.id;
 
 import com.google.common.io.Files;
-import org.huel.cloudhub.server.file.FileProperties;
+import org.huel.cloudhub.file.fs.container.ContainerProperties;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -17,13 +17,13 @@ public class ServerIdService {
     private final UUID uuid;
     private final String uuidString;
 
-    private final FileProperties fileProperties;
+    private final ContainerProperties containerProperties;
 
     public static final String ID_KEY = "fid";
 
 
-    public ServerIdService(FileProperties fileProperties) throws IOException {
-        this.fileProperties = fileProperties;
+    public ServerIdService(ContainerProperties containerProperties) throws IOException {
+        this.containerProperties = containerProperties;
         uuid = initialId();
         uuidString = uuid.toString();
     }
@@ -31,7 +31,7 @@ public class ServerIdService {
     private UUID initialId() throws IOException {
         // TODO: move to properties
 
-        File file = new File(fileProperties.getFilePath(), "ID_VERSION");
+        File file = new File(containerProperties.getFilePath(), "ID_VERSION");
         if (!file.exists()) {
             file.createNewFile();
             UUID uid = UUID.randomUUID();

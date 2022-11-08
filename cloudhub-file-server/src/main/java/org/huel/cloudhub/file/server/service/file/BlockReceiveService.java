@@ -8,13 +8,13 @@ import org.huel.cloudhub.file.fs.LockException;
 import org.huel.cloudhub.file.fs.ServerFile;
 import org.huel.cloudhub.file.fs.block.Block;
 import org.huel.cloudhub.file.fs.container.ContainerAllocator;
+import org.huel.cloudhub.file.fs.container.ContainerProperties;
 import org.huel.cloudhub.file.fs.container.ContainerWriterOpener;
 import org.huel.cloudhub.file.fs.container.file.ContainerFileWriter;
 import org.huel.cloudhub.file.fs.container.file.FileWriteStrategy;
 import org.huel.cloudhub.file.fs.meta.MetaException;
 import org.huel.cloudhub.file.rpc.block.*;
 import org.huel.cloudhub.server.StreamObserverWrapper;
-import org.huel.cloudhub.server.file.FileProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -32,33 +32,33 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Service
 public class BlockReceiveService extends BlockUploadServiceGrpc.BlockUploadServiceImplBase {
     private final Logger logger = LoggerFactory.getLogger(BlockReceiveService.class);
-    private final FileProperties fileProperties;
     private final ContainerAllocator containerAllocator;
+    private final ContainerProperties containerProperties;
     private final ContainerWriterOpener containerWriterOpener;
     private final LocalFileServer localFileServer;
 
     private static final int BUFFERED_BLOCK_SIZE = 320;
 
     public BlockReceiveService(ContainerAllocator containerAllocator,
-                               FileProperties fileProperties,
+                               ContainerProperties containerProperties,
                                ContainerWriterOpener containerWriterOpener,
                                LocalFileServer localFileServer) throws IOException {
         this.containerAllocator = containerAllocator;
+        this.containerProperties = containerProperties;
         this.containerWriterOpener = containerWriterOpener;
         this.localFileServer = localFileServer;
-        this.fileProperties = fileProperties;
         initStagingDirectory();
     }
 
     private void initStagingDirectory() throws IOException {
         ServerFile file = localFileServer.getServerFileProvider()
-                .openFile(fileProperties.getStageFilePath());
+                .openFile(containerProperties.getStagePath());
         file.mkdirs();
     }
 
     private ServerFile openNewStagingFile() throws IOException {
         ServerFile file = localFileServer.getServerFileProvider().openFile(
-                fileProperties.getStageFilePath(),
+                containerProperties.getStagePath(),
                 RandomStringUtils.randomAlphanumeric(20));
         if (file.exists()) {
             return openNewStagingFile();
@@ -278,7 +278,7 @@ public class BlockReceiveService extends BlockUploadServiceGrpc.BlockUploadServi
     }
 
     private Block readBlock(InputStream inputStream, long validBytes) throws IOException {
-        int size = fileProperties.getBlockSizeInBytes();
+        int size = containerProperties.getBlockSizeInBytes();
         byte[] chunk = new byte[size];
         int read = inputStream.read(chunk);
         if (read == -1) {

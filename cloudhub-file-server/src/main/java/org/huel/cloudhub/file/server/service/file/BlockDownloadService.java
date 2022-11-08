@@ -8,11 +8,12 @@ import org.huel.cloudhub.file.fs.block.ContainerBlock;
 import org.huel.cloudhub.file.fs.block.FileBlockMetaInfo;
 import org.huel.cloudhub.file.fs.container.ContainerAllocator;
 import org.huel.cloudhub.file.fs.container.ContainerGroup;
+import org.huel.cloudhub.file.fs.container.ContainerProperties;
 import org.huel.cloudhub.file.fs.container.ContainerReadOpener;
 import org.huel.cloudhub.file.fs.container.file.ContainerFileReader;
 import org.huel.cloudhub.file.rpc.block.*;
+import org.huel.cloudhub.file.server.service.GrpcProperties;
 import org.huel.cloudhub.file.server.service.id.ServerIdService;
-import org.huel.cloudhub.server.file.FileProperties;
 import org.huel.cloudhub.util.math.Maths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,15 +31,19 @@ public class BlockDownloadService extends BlockDownloadServiceGrpc.BlockDownload
     private final Logger logger = LoggerFactory.getLogger(BlockDownloadService.class);
     private final ContainerReadOpener containerReadOpener;
     private final ContainerAllocator containerAllocator;
-    private final FileProperties fileProperties;
+    private final ContainerProperties containerProperties;
+    private final GrpcProperties grpcProperties;
     private final ServerIdService serverIdService;
 
     public BlockDownloadService(ContainerReadOpener containerReadOpener,
                                 ContainerAllocator containerAllocator,
-                                FileProperties fileProperties, ServerIdService serverIdService) {
+                                ContainerProperties containerProperties,
+                                GrpcProperties grpcProperties,
+                                ServerIdService serverIdService) {
         this.containerReadOpener = containerReadOpener;
         this.containerAllocator = containerAllocator;
-        this.fileProperties = fileProperties;
+        this.containerProperties = containerProperties;
+        this.grpcProperties = grpcProperties;
         this.serverIdService = serverIdService;
     }
 
@@ -57,9 +62,9 @@ public class BlockDownloadService extends BlockDownloadServiceGrpc.BlockDownload
         }
 
         final long fileLength = fileBlockMetaInfo.getFileLength();
-        final long responseSize = fileProperties.getMaxRequestSizeBytes() >> 1;
+        final long responseSize = grpcProperties.getMaxRequestSizeBytes() >> 1;
         final int responseCount = Maths.ceilDivideReturnsInt(fileLength, responseSize);
-        final int maxBlocksInResponse = (int) (responseSize / fileProperties.getBlockSizeInBytes());
+        final int maxBlocksInResponse = (int) (responseSize / containerProperties.getBlockSizeInBytes());
 
         DownloadBlockResponse firstResponse = buildFirstResponse(fileBlockMetaInfo,
                 responseCount,

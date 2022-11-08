@@ -2,7 +2,7 @@ package org.huel.cloudhub.meta.server.service.node;
 
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
-import org.huel.cloudhub.server.file.FileProperties;
+import org.huel.cloudhub.meta.server.configuration.FileProperties;
 
 import java.util.HashMap;
 import java.util.Map;

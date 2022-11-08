@@ -1,18 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <assembly>
-    <id>server</id>
+    <id>starter</id>
     <formats>
         <format>tar.gz</format>
     </formats>
     <fileSets>
         <fileSet>
             <directory>${project.basedir}/src/main/resources</directory>
-            <outputDirectory>config</outputDirectory>
+            <outputDirectory>conf</outputDirectory>
             <includes>
-                <include>**/*.properties</include>
-                <include>*.properties</include>
-                <include>*.xml</include>
+                <include>*.conf</include>
             </includes>
             <excludes>
                 <exclude>assembly.xml</exclude>
@@ -29,17 +27,30 @@
             <directory>${project.basedir}/src/bin</directory>
             <outputDirectory>bin</outputDirectory>
             <includes>
-                <include>*.sh</include>
-                <include>*.md</include>
-                <include>*.txt</include>
+                <include>*</include>
             </includes>
             <fileMode>0755</fileMode>
+        </fileSet>
+        <fileSet>
+            <directory>${project.basedir}/src/sbin</directory>
+            <outputDirectory>sbin</outputDirectory>
+            <includes>
+                <include>*</include>
+            </includes>
+            <fileMode>0755</fileMode>
+        </fileSet>
+        <fileSet>
+            <directory>${project.basedir}/src/base</directory>
+            <outputDirectory>/</outputDirectory>
+            <includes>
+                <include>*</include>
+            </includes>
         </fileSet>
     </fileSets>
     <files>
         <file>
             <source>target/${project.artifactId}.jar</source>
-            <outputDirectory>.</outputDirectory>
+            <outputDirectory>/bin</outputDirectory>
         </file>
     </files>
     <dependencySets>

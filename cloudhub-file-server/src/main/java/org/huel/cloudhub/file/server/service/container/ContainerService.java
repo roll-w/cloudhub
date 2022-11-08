@@ -11,7 +11,6 @@ import org.huel.cloudhub.file.fs.block.BlockMetaInfo;
 import org.huel.cloudhub.file.fs.container.*;
 import org.huel.cloudhub.file.fs.meta.*;
 import org.huel.cloudhub.file.server.service.file.FileUtils;
-import org.huel.cloudhub.server.file.FileProperties;
 import org.huel.cloudhub.util.math.Maths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,23 +30,23 @@ public class ContainerService implements ContainerAllocator {
     private final Cache<String, ContainerGroup> containerCache =
             Caffeine.newBuilder()
                     .build();
-    private final FileProperties fileProperties;
+    private final ContainerProperties containerProperties;
     private final LocalFileServer localFileServer;
     private final Logger logger = LoggerFactory.getLogger(ContainerService.class);
     private final ServerFile containerDir;
 
-    public ContainerService(FileProperties fileProperties,
+    public ContainerService(ContainerProperties containerProperties,
                             LocalFileServer localFileServer) throws IOException {
-        this.fileProperties = fileProperties;
+        this.containerProperties = containerProperties;
         this.localFileServer = localFileServer;
         this.containerDir =
-                localFileServer.getServerFileProvider().openFile(fileProperties.getContainerPath());
+                localFileServer.getServerFileProvider().openFile(containerProperties.getContainerPath());
         loadContainers();
     }
 
     private void loadContainers() throws IOException {
         ServerFile metaDir =
-                localFileServer.getServerFileProvider().openFile(fileProperties.getMetaPath());
+                localFileServer.getServerFileProvider().openFile(containerProperties.getMetaPath());
         metaDir.mkdirs();
         containerDir.mkdirs();
 
@@ -127,12 +126,12 @@ public class ContainerService implements ContainerAllocator {
     public @NonNull List<Container> allocateContainers(String id, long size, String source) {
         final String containerId = ContainerIdentity.toContainerId(id);
         ContainerGroup containerGroup = containerCache.getIfPresent(containerId);
-        final int needBlocks = Maths.ceilDivideReturnsInt(size, fileProperties.getBlockSizeInBytes());
+        final int needBlocks = Maths.ceilDivideReturnsInt(size, containerProperties.getBlockSizeInBytes());
 
         if (containerGroup == null) {
             // allocate containers starting at 1.
             logger.info("containerGroup null, allocates from 1.");
-            final int needContainers = Maths.ceilDivide(needBlocks, fileProperties.getBlockCount());
+            final int needContainers = Maths.ceilDivide(needBlocks, containerProperties.getBlockCount());
             List<Container> containers = allocateContainersFrom(
                     containerId, 1L, needContainers);
 
@@ -155,7 +154,7 @@ public class ContainerService implements ContainerAllocator {
         }
 
         final int stillNeedContainers = Maths.ceilDivide(remainBlockSize,
-                fileProperties.getBlockCount());
+                containerProperties.getBlockCount());
         List<Container> more = allocateContainersFrom(containerId, containerGroup.lastSerial(), stillNeedContainers);
         res.addAll(more);
         return res;
@@ -189,12 +188,12 @@ public class ContainerService implements ContainerAllocator {
             return;
         }
         logger.info("creates container, locator: {}, ", container.getResourceLocator());
-        ServerFile containerFile = localFileServer.getServerFileProvider().openFile(fileProperties.getContainerPath(),
+        ServerFile containerFile = localFileServer.getServerFileProvider().openFile(containerProperties.getContainerPath(),
                 container.getResourceLocator());
-        ServerFile containerMetaFile = localFileServer.getServerFileProvider().openFile(fileProperties.getContainerPath(),
+        ServerFile containerMetaFile = localFileServer.getServerFileProvider().openFile(containerProperties.getContainerPath(),
                 container.getResourceLocator() + ContainerLocation.META_SUFFIX);
         ServerFile metaFile = localFileServer.getServerFileProvider().openFile(
-                fileProperties.getMetaPath(),
+                containerProperties.getMetaPath(),
                 ContainerIdentity.toCmetaId(container.getResourceLocator()) + ContainerMetaKeys.CONTAINER_META_SUFFIX);
         containerFile.createFile();
         containerMetaFile.createFile();
@@ -221,7 +220,7 @@ public class ContainerService implements ContainerAllocator {
         if (!container.isUsable()) {
             throw new MetaException("Not valid container.");
         }
-        ServerFile containerMetaFile = localFileServer.getServerFileProvider().openFile(fileProperties.getContainerPath(),
+        ServerFile containerMetaFile = localFileServer.getServerFileProvider().openFile(containerProperties.getContainerPath(),
                 container.getResourceLocator() + ContainerLocation.META_SUFFIX);
         SerializedContainerBlockMeta containerBlockMeta = SerializedContainerBlockMeta.newBuilder()
                 .setBlockSize(container.getIdentity().blockSize())
@@ -247,8 +246,8 @@ public class ContainerService implements ContainerAllocator {
                 fileNameMeta.getId(),
                 ContainerIdentity.INVALID_CRC,
                 fileNameMeta.getSerial(),
-                fileProperties.getBlockCount(),
-                fileProperties.getBlockSize());
+                containerProperties.getBlockCount(),
+                containerProperties.getBlockSize());
 
         ContainerLocation location = new ContainerLocation(
                 ContainerLocation.toDataPath(containerDir, fileNameMeta.getName())
@@ -300,7 +299,7 @@ public class ContainerService implements ContainerAllocator {
         String fileName = ContainerIdentity.toCmetaId(fileNameMeta.getId());
 
         ServerFile file = localFileServer.getServerFileProvider()
-                .openFile(fileProperties.getMetaPath(), fileName + ContainerMetaKeys.CONTAINER_META_SUFFIX);
+                .openFile(containerProperties.getMetaPath(), fileName + ContainerMetaKeys.CONTAINER_META_SUFFIX);
         boolean createState = file.createFile();
         SerializedContainerGroupMeta containerGroupMeta = readContainerMeta(file);
 

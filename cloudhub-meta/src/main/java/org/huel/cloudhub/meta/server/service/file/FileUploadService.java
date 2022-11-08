@@ -11,7 +11,7 @@ import org.huel.cloudhub.meta.server.service.node.HeartbeatService;
 import org.huel.cloudhub.meta.server.service.node.NodeAllocator;
 import org.huel.cloudhub.meta.server.service.node.NodeChannelPool;
 import org.huel.cloudhub.server.StreamObserverWrapper;
-import org.huel.cloudhub.server.file.FileProperties;
+import org.huel.cloudhub.meta.server.configuration.FileProperties;
 import org.huel.cloudhub.util.math.Maths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

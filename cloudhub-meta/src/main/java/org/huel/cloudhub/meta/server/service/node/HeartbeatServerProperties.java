@@ -11,7 +11,7 @@ public class HeartbeatServerProperties {
      * In ms, the standard heartbeat period.
      * Will sends to file servers.
      */
-    private int standardPeriod = 200;
+    private int standardPeriod = 1000;
     /**
      * Timeout cycles for the heartbeat period.
      * <p>

@@ -1,4 +1,4 @@
-package org.huel.cloudhub.server.file;
+package org.huel.cloudhub.meta.server.configuration;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
@@ -112,6 +112,4 @@ public class FileProperties {
     public long getContainerSizeBytes() {
         return (long) blockCount * getBlockSizeInBytes();
     }
-
-
 }

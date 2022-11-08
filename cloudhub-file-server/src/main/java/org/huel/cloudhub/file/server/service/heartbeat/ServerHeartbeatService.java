@@ -1,6 +1,7 @@
 package org.huel.cloudhub.file.server.service.heartbeat;
 
 import io.grpc.ManagedChannel;
+import org.huel.cloudhub.file.server.service.GrpcProperties;
 import org.huel.cloudhub.file.server.service.id.ServerIdService;
 import org.huel.cloudhub.server.rpc.heartbeat.Heartbeat;
 import org.huel.cloudhub.server.rpc.heartbeat.HeartbeatResponse;
@@ -16,25 +17,26 @@ import java.net.InetAddress;
  */
 @Service
 public class ServerHeartbeatService {
-    private final ManagedChannel channel;
     private final HeartbeatServiceGrpc.HeartbeatServiceBlockingStub serviceStub;
     private final Logger logger = LoggerFactory.getLogger(ServerHeartbeatService.class);
     private final InetAddress inetAddress;
+    private final GrpcProperties grpcProperties;
     private final ServerIdService serverIdService;
 
     public ServerHeartbeatService(ManagedChannel channel,
                                   InetAddress inetAddress,
+                                  GrpcProperties grpcProperties,
                                   ServerIdService serverIdService) {
-        this.channel = channel;
         this.serviceStub = HeartbeatServiceGrpc.newBlockingStub(channel);
         this.inetAddress = inetAddress;
+        this.grpcProperties = grpcProperties;
         this.serverIdService = serverIdService;
     }
 
     public HeartbeatResponse sendHeartbeat() {
         Heartbeat heartbeat = Heartbeat.newBuilder()
                 .setHost(inetAddress.getHostAddress())
-                .setPort(7021)
+                .setPort(grpcProperties.getPort())
                 .setId(serverIdService.getServerId())
                 .build();
         // logger.info("send heartbeat, address= {}:{}", heartbeat.getHost(), heartbeat.getPort());
@@ -44,4 +46,5 @@ public class ServerHeartbeatService {
         //        response.getErrorCode(), response.getMessage(), response.getPeriod());
         return response;
     }
+
 }

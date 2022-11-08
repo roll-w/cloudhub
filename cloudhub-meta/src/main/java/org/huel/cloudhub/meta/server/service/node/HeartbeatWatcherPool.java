@@ -130,7 +130,7 @@ public final class HeartbeatWatcherPool implements ServerChecker {
         @Override
         public void run() {
             long time = System.currentTimeMillis();
-            activeWatchers().stream().parallel().forEach(heartbeatWatcher -> {
+            heartbeatWatchers.values().stream().parallel().forEach(heartbeatWatcher -> {
                 if (heartbeatWatcher.isTimeout(time)) {
                     callback.removeActiveServer(heartbeatWatcher.getNodeServer());
                 }

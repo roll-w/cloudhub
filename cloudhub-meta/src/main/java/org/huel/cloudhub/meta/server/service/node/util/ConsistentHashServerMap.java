@@ -101,6 +101,7 @@ public class ConsistentHashServerMap<S extends ConsistentHashServerMap.Server> {
         synchronized (mLock) {
             serverWeights.removeIf(sServerWeight ->
                     Objects.equals(sServerWeight.server.getId(), server.getId()));
+            remappingServers();
         }
     }
 
@@ -139,15 +140,11 @@ public class ConsistentHashServerMap<S extends ConsistentHashServerMap.Server> {
                 .hashString(key, StandardCharsets.UTF_8)
                 .asBytes();
 
-        return takeHigh8Bytes(hashBytes);
+        return takeHigh4Bytes(hashBytes);
     }
 
-    private long takeHigh8Bytes(byte[] bytes) {
-        return ((long) (bytes[7] & 0xFF) << 56)
-                | ((long) (bytes[6] & 0xFF) << 48)
-                | ((long) (bytes[5] & 0xFF) << 40)
-                | ((long) (bytes[4] & 0xFF) << 32)
-                | ((long) (bytes[3] & 0xFF) << 24)
+    private long takeHigh4Bytes(byte[] bytes) {
+        return ((long) (bytes[3] & 0xFF) << 24)
                 | ((long) (bytes[2] & 0xFF) << 16)
                 | ((long) (bytes[1] & 0xFF) << 8)
                 | ((long) bytes[0] & 0xFF << 1);
