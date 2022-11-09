@@ -1,21 +1,26 @@
 package org.huel.cloudhub.server;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.ConstructorBinding;
-
 /**
  * @author RollW
  */
-@ConfigurationProperties("cloudhub.grpc")
 public class GrpcProperties {
     private final int port;
+    private final int maxRequestSize;
 
-    @ConstructorBinding
-    public GrpcProperties(int port) {
+    public GrpcProperties(int port, int maxRequestSize) {
         this.port = port;
+        this.maxRequestSize = maxRequestSize;
     }
 
     public int getPort() {
         return port;
+    }
+
+    public int getMaxRequestSize() {
+        return maxRequestSize;
+    }
+
+    public long getMaxRequestSizeBytes() {
+        return maxRequestSize * 1024L * 1024L;
     }
 }

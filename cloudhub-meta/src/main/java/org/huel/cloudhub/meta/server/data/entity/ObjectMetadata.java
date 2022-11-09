@@ -5,5 +5,5 @@ package org.huel.cloudhub.meta.server.data.entity;
  */
 public class ObjectMetadata {
     // TODO
-    private String type;
+    private String mimeType;
 }

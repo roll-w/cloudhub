@@ -1,8 +1,8 @@
 package org.huel.cloudhub.file.server.service.heartbeat;
 
 import io.grpc.ManagedChannel;
-import org.huel.cloudhub.file.server.service.GrpcProperties;
 import org.huel.cloudhub.file.server.service.id.ServerIdService;
+import org.huel.cloudhub.server.GrpcProperties;
 import org.huel.cloudhub.server.rpc.heartbeat.Heartbeat;
 import org.huel.cloudhub.server.rpc.heartbeat.HeartbeatResponse;
 import org.huel.cloudhub.server.rpc.heartbeat.HeartbeatServiceGrpc;

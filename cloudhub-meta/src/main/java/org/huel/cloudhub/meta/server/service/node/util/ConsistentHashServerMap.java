@@ -89,9 +89,7 @@ public class ConsistentHashServerMap<S extends ConsistentHashServerMap.Server> {
     }
 
     public void addServer(S server) {
-        synchronized (mLock) {
-            addServer(server, DISABLE_WEIGHT);
-        }
+        addServer(server, DISABLE_WEIGHT);
     }
 
     public void removeServer(S server) {

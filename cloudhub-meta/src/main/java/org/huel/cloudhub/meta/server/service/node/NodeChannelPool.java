@@ -2,7 +2,7 @@ package org.huel.cloudhub.meta.server.service.node;
 
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
-import org.huel.cloudhub.meta.server.configuration.FileProperties;
+import org.huel.cloudhub.server.GrpcProperties;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -14,17 +14,17 @@ public class NodeChannelPool {
     private final Map<NodeServer, ManagedChannel> channelMap =
             new HashMap<>();
 
-    private final FileProperties fileProperties;
+    private final GrpcProperties grpcProperties;
 
-    public NodeChannelPool(FileProperties fileProperties) {
-        this.fileProperties = fileProperties;
+    public NodeChannelPool(GrpcProperties grpcProperties) {
+        this.grpcProperties = grpcProperties;
     }
 
     private ManagedChannel establish(NodeServer server) {
         ManagedChannel managedChannel =
                 ManagedChannelBuilder.forAddress(server.host(), server.port())
                         .usePlaintext()
-                        .maxInboundMessageSize((int) fileProperties.getMaxRequestSizeBytes() * 2)
+                        .maxInboundMessageSize((int) grpcProperties.getMaxRequestSizeBytes() * 2)
                         .build();
         channelMap.put(server, managedChannel);
         return managedChannel;

@@ -6,7 +6,7 @@ import org.huel.cloudhub.file.rpc.block.*;
 import org.huel.cloudhub.meta.server.service.node.HeartbeatService;
 import org.huel.cloudhub.meta.server.service.node.NodeAllocator;
 import org.huel.cloudhub.meta.server.service.node.NodeChannelPool;
-import org.huel.cloudhub.meta.server.configuration.FileProperties;
+import org.huel.cloudhub.server.GrpcProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -24,14 +24,14 @@ public class FileDownloadService {
     private final Logger logger = LoggerFactory.getLogger(FileDownloadService.class);
 
     private final NodeAllocator nodeAllocator;
-    private final FileProperties fileProperties;
+    private final GrpcProperties grpcProperties;
     private final NodeChannelPool nodeChannelPool;
 
     public FileDownloadService(HeartbeatService heartbeatService,
-                               FileProperties fileProperties) {
+                               GrpcProperties grpcProperties) {
         this.nodeAllocator = heartbeatService.getNodeAllocator();
-        this.fileProperties = fileProperties;
-        this.nodeChannelPool = new NodeChannelPool(fileProperties);
+        this.grpcProperties = grpcProperties;
+        this.nodeChannelPool = new NodeChannelPool(grpcProperties);
     }
 
     public void downloadFile(OutputStream outputStream, String fileId) {

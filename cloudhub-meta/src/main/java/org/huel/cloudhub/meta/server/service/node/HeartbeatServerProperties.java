@@ -1,17 +1,14 @@
 package org.huel.cloudhub.meta.server.service.node;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
-
 /**
  * @author RollW
  */
-@ConfigurationProperties("cloudhub.heartbeat")
 public class HeartbeatServerProperties {
     /**
      * In ms, the standard heartbeat period.
      * Will sends to file servers.
      */
-    private int standardPeriod = 1000;
+    private int standardPeriod;
     /**
      * Timeout cycles for the heartbeat period.
      * <p>
@@ -20,14 +17,11 @@ public class HeartbeatServerProperties {
      * when the last heartbeat to now interval exceeds 400ms,
      * the server will be removed from the active servers list.
      */
-    private int timeoutCycle = 2;
+    private int timeoutCycle;
 
     public HeartbeatServerProperties(int standardPeriod, int timeoutCycle) {
         this.standardPeriod = standardPeriod;
         this.timeoutCycle = timeoutCycle;
-    }
-
-    public HeartbeatServerProperties() {
     }
 
     public int getStandardPeriod() {

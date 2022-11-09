@@ -1,6 +1,10 @@
 spring:
   banner:
     charset: UTF-8
+  shell:
+    command:
+      history:
+        enabled: false
 logging:
   level:
     org.huel.cloudhub: debug

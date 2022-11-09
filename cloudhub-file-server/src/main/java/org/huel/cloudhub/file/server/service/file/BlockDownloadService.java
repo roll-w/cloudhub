@@ -12,15 +12,15 @@ import org.huel.cloudhub.file.fs.container.ContainerProperties;
 import org.huel.cloudhub.file.fs.container.ContainerReadOpener;
 import org.huel.cloudhub.file.fs.container.file.ContainerFileReader;
 import org.huel.cloudhub.file.rpc.block.*;
-import org.huel.cloudhub.file.server.service.GrpcProperties;
 import org.huel.cloudhub.file.server.service.id.ServerIdService;
+import org.huel.cloudhub.server.GrpcProperties;
 import org.huel.cloudhub.util.math.Maths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -134,7 +134,7 @@ public class BlockDownloadService extends BlockDownloadServiceGrpc.BlockDownload
     }
 
     private DownloadBlockResponse buildBlockDataResponse(List<ContainerBlock> containerBlocks, int index) {
-        List<DownloadBlockData> downloadBlockData = new LinkedList<>();
+        List<DownloadBlockData> downloadBlockData = new ArrayList<>();
         containerBlocks.forEach(containerBlock -> {
             downloadBlockData.add(DownloadBlockData.newBuilder()
                     .setData(ByteString.copyFrom(

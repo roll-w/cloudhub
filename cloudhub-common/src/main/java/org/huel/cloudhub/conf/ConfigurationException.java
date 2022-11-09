@@ -1,4 +1,4 @@
-package org.huel.cloudhub.file.conf;
+package org.huel.cloudhub.conf;
 
 /**
  * @author RollW

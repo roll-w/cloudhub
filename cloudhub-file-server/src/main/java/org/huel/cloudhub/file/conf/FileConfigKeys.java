@@ -1,9 +1,11 @@
 package org.huel.cloudhub.file.conf;
 
 /**
+ * File-server configuration keys.
+ *
  * @author RollW
  */
-public class ConfigKeys {
+public class FileConfigKeys {
     /**
      * Cloudhub file-server rpc port.
      * receive remote call through the port.
@@ -45,4 +47,7 @@ public class ConfigKeys {
      * How many blocks are contained in the container.
      */
     public static final String CONTAINER_BLOCK_NUM = "cloudhub.file.cont.block_num";
+
+    private FileConfigKeys() {
+    }
 }

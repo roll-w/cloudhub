@@ -13,7 +13,6 @@ import org.huel.cloudhub.util.math.Maths;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -131,7 +130,7 @@ public class ContainerFileReader implements Closeable {
             return null;
         }
 
-        List<ContainerBlock> containerBlocksRes = new LinkedList<>();
+        List<ContainerBlock> containerBlocksRes = new ArrayList<>();
         long serial = 1;
         int start = 0;
         if (lastRead != null) {
@@ -183,7 +182,7 @@ public class ContainerFileReader implements Closeable {
                                   BlockMetaInfo blockMetaInfo,
                                   int start,
                                   int toReadSize) throws IOException {
-        List<ContainerBlock> containerBlocks = new LinkedList<>();
+        List<ContainerBlock> containerBlocks = new ArrayList<>();
         int index = 0, sizeRead = 0, endBlock = 0;
         List<BlockGroup> blockGroups = blockMetaInfo.getBlockGroups();
         for (BlockGroup blockGroup : blockGroups) {

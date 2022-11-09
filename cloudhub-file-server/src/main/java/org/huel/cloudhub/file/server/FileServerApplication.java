@@ -1,7 +1,7 @@
 package org.huel.cloudhub.file.server;
 
 import io.grpc.Server;
-import org.huel.cloudhub.file.conf.ConfigLoader;
+import org.huel.cloudhub.file.conf.FileConfigLoader;
 import org.huel.cloudhub.file.server.service.heartbeat.HeartbeatTask;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
@@ -11,6 +11,7 @@ import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.scheduling.annotation.EnableAsync;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
@@ -35,7 +36,7 @@ public class FileServerApplication implements ApplicationRunner {
     public static void main(String[] args) throws Exception {
         SpringApplication application =
                 new SpringApplication(FileServerApplication.class);
-        ConfigLoader loader = ConfigLoader.tryOpenDefault();
+        FileConfigLoader loader = FileConfigLoader.tryOpenDefault();
 
         Map<String, Object> overrideProperties = new HashMap<>();
         overrideProperties.put("server.port", loader.getWebPort());
@@ -51,15 +52,23 @@ public class FileServerApplication implements ApplicationRunner {
         heartbeatTask.startSendHeartbeat();
     }
 
+    @PreDestroy
+    public void stopSendHeartbeat() {
+        heartbeatTask.stop();
+    }
+
     @PostConstruct
     public void startServer() throws IOException {
         server.start();
     }
 
+    @PreDestroy
+    public void stopServer() {
+        server.shutdown();
+    }
 
     @Override
     public void run(ApplicationArguments args) {
     }
-
 
 }

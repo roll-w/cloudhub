@@ -10,6 +10,7 @@ import org.huel.cloudhub.file.rpc.block.*;
 import org.huel.cloudhub.meta.server.service.node.HeartbeatService;
 import org.huel.cloudhub.meta.server.service.node.NodeAllocator;
 import org.huel.cloudhub.meta.server.service.node.NodeChannelPool;
+import org.huel.cloudhub.server.GrpcProperties;
 import org.huel.cloudhub.server.StreamObserverWrapper;
 import org.huel.cloudhub.meta.server.configuration.FileProperties;
 import org.huel.cloudhub.util.math.Maths;
@@ -31,13 +32,16 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class FileUploadService {
     private final NodeAllocator nodeAllocator;
     private final FileProperties fileProperties;
+    private final GrpcProperties grpcProperties;
     private final NodeChannelPool nodeChannelPool;
 
     public FileUploadService(HeartbeatService heartbeatService,
-                             FileProperties fileProperties) {
+                             FileProperties fileProperties,
+                             GrpcProperties grpcProperties) {
         this.nodeAllocator = heartbeatService.getNodeAllocator();
         this.fileProperties = fileProperties;
-        this.nodeChannelPool = new NodeChannelPool(fileProperties);
+        this.nodeChannelPool = new NodeChannelPool(grpcProperties);
+        this.grpcProperties = grpcProperties;
 
         initial();
     }
@@ -61,7 +65,7 @@ public class FileUploadService {
 
         logger.debug("Start upload fileId={}", hash);
 
-        final long maxBlocksValue = fileProperties.getMaxRequestSizeBytes() >> 1;
+        final long maxBlocksValue = grpcProperties.getMaxRequestSizeBytes() >> 1;
         final int blockSizeInBytes = fileProperties.getBlockSizeInBytes();
         // calcs how many [UploadBlock]s a request can contain at most
         final int maxUploadBlockCount = (int) (maxBlocksValue / blockSizeInBytes);
