@@ -182,6 +182,9 @@
             <resource>
                 <directory>src/main/resources</directory>
                 <includes>
+                    <include>static/**</include>
+                    <include>public/**</include>
+                    <include>template/**</include>
                     <include>*</include>
                     <include>*.yml</include>
                     <include>*.properties</include>
@@ -205,6 +208,10 @@
                                 <Create-By>Apache Maven</Create-By>
                             </manifestEntries>
                         </archive>
+                        <excludes>
+                            <exclude>*.conf</exclude>
+                            <exclude>assembly.xml</exclude>
+                        </excludes>
                     </configuration>
                 </plugin>
 

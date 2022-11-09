@@ -1,0 +1,9 @@
+This package contains only files for file-server.
+
+Before the startup, configure environment variables (such as 'JAVA_HOME')
+and configuration files ('cloudhub.conf' file in the 'conf' directory).
+
+For details about the default configuration, see the documentation.
+
+How to start:
+exec the 'start-file-server.sh' shell script in the 'sbin' directory.
