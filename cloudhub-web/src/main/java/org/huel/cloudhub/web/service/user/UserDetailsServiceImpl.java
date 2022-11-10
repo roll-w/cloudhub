@@ -1,7 +1,7 @@
 package org.huel.cloudhub.web.service.user;
 
 import org.huel.cloudhub.web.data.database.repository.UserRepository;
-import org.huel.cloudhub.web.data.entity.User;
+import org.huel.cloudhub.web.data.entity.user.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;

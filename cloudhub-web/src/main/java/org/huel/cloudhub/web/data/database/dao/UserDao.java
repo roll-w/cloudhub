@@ -1,7 +1,7 @@
 package org.huel.cloudhub.web.data.database.dao;
 
 import org.huel.cloudhub.web.data.dto.UserInfo;
-import org.huel.cloudhub.web.data.entity.User;
+import org.huel.cloudhub.web.data.entity.user.User;
 import space.lingu.light.*;
 
 import java.util.List;

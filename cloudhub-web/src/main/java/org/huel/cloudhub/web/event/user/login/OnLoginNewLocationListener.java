@@ -46,7 +46,7 @@ public class OnLoginNewLocationListener implements ApplicationListener<OnLoginNe
         }
         // TODO: temp disable
 
-        final String subject = "[Lingu] Login at a new position";
+        final String subject = "[Cloudhub] Login at a new position";
         String greeting = "Dear " + userInfo.username();
         final String message = greeting +
                 ", \nYou are logging in through a new address, " +

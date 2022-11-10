@@ -1,6 +1,6 @@
 package org.huel.cloudhub.web.data.database.dao;
 
-import org.huel.cloudhub.web.data.entity.RegisterVerificationToken;
+import org.huel.cloudhub.web.data.entity.token.RegisterVerificationToken;
 import space.lingu.light.*;
 
 import java.util.List;

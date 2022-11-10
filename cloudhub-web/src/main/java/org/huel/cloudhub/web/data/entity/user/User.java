@@ -1,4 +1,4 @@
-package org.huel.cloudhub.web.data.entity;
+package org.huel.cloudhub.web.data.entity.user;
 
 import org.huel.cloudhub.web.data.dto.UserInfo;
 import org.springframework.security.core.GrantedAuthority;

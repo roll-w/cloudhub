@@ -1,6 +1,6 @@
 package org.huel.cloudhub.web.service.user;
 
-import org.huel.cloudhub.web.data.entity.Role;
+import org.huel.cloudhub.web.data.entity.user.Role;
 
 import java.util.List;
 

@@ -1,6 +1,6 @@
 package org.huel.cloudhub.web.data.dto;
 
-import org.huel.cloudhub.web.data.entity.User;
+import org.huel.cloudhub.web.data.entity.user.User;
 import space.lingu.light.DataColumn;
 
 /**

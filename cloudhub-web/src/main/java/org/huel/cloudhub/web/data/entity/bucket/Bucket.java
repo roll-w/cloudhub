@@ -1,4 +1,4 @@
-package org.huel.cloudhub.web.data.entity;
+package org.huel.cloudhub.web.data.entity.bucket;
 
 import space.lingu.light.DataColumn;
 import space.lingu.light.DataTable;
@@ -58,4 +58,5 @@ public class Bucket {
         }
         return userId + "-" + name;
     }
+
 }

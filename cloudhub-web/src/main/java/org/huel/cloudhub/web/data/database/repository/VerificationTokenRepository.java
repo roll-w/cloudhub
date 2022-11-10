@@ -2,8 +2,8 @@ package org.huel.cloudhub.web.data.database.repository;
 
 import org.huel.cloudhub.web.data.database.CloudhubDatabase;
 import org.huel.cloudhub.web.data.database.dao.VerificationTokenDao;
-import org.huel.cloudhub.web.data.entity.RegisterVerificationToken;
-import org.huel.cloudhub.web.data.entity.User;
+import org.huel.cloudhub.web.data.entity.token.RegisterVerificationToken;
+import org.huel.cloudhub.web.data.entity.user.User;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Repository;
 

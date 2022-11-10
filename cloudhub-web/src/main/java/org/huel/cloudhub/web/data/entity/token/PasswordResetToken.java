@@ -1,4 +1,4 @@
-package org.huel.cloudhub.web.data.entity;
+package org.huel.cloudhub.web.data.entity.token;
 
 import org.huel.cloudhub.web.data.dto.VerifiableToken;
 import space.lingu.light.DataTable;

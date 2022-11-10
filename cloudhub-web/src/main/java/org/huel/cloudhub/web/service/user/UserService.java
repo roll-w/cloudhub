@@ -2,7 +2,7 @@ package org.huel.cloudhub.web.service.user;
 
 import org.huel.cloudhub.common.MessagePackage;
 import org.huel.cloudhub.web.data.dto.UserInfo;
-import org.huel.cloudhub.web.data.entity.Role;
+import org.huel.cloudhub.web.data.entity.user.Role;
 
 import javax.servlet.http.HttpServletRequest;
 
