@@ -20,10 +20,8 @@ import java.io.IOException;
  * @author RollW
  */
 public class SessionRequestFilter implements Filter {
-    // TODO: 更换为Json Web Token
-
-
-    UserDetailsService userDetailsService;
+    // TODO: 更换为JWT
+    private UserDetailsService userDetailsService;
 
     @Autowired
     public void setUserDetailsService(UserDetailsService userDetailsService) {

@@ -69,7 +69,7 @@ public class WebSecurityConfiguration {
 //
 ////                .and()
 ////                    .rememberMe()
-////                    .key("Remember@ Don;t 1eAve me-")
+////                    .key("RememberMeKey...547DSdplowFrHtqs4eTGsr1aSQh13F4Kl3ZIQBTzeIViG7Qbvl9tNG5wE67F")
 //        security
 //                .csrf().disable();
 //        security.sessionManagement()
