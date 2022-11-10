@@ -10,6 +10,8 @@ import java.util.List;
  * @author RollW
  */
 public interface UserManageService {
+    // TODO: 需要实现。
+
     void createUser(String username, String password, String email, Role role);
 
     void createUser(String username, String password, String email, Role role, boolean discardEmail);

@@ -8,65 +8,56 @@ import space.lingu.light.*;
 @DataTable(tableName = "file_object_storage_table", configuration =
 @LightConfiguration(key = LightConfiguration.KEY_VARCHAR_LENGTH, value = "120"))
 public class FileObjectStorage {
-    @DataColumn(name = "file_id")
+    /**
+     * 存储桶ID。格式: 用户ID-存储桶名称
+     */
+    @DataColumn(name = "bucket_id")
     @PrimaryKey
-    private String id;// id in meta server
+    private String bucketId;
 
+    @DataColumn(name = "file_id")
+    private String fileId;// id in meta server
+
+    @PrimaryKey
     @DataColumn(name = "file_display_path")
-    private String displayPath;// user defined path
-
-    @DataColumn(name = "file_cache_path", configuration =
-    @LightConfiguration(key = LightConfiguration.KEY_VARCHAR_LENGTH, value = "255"))
-    private String cachePath;
+    private String objectName;// user defined path
 
     @DataColumn(name = "file_size")
     private long fileSize;
 
-    @DataColumn(name = "file_last_access_time")
-    private long lastAccessTime;
-
     public FileObjectStorage() {
     }
 
-    @Constructor
-    public FileObjectStorage(String id, String displayPath, String cachePath, long fileSize, long lastAccessTime) {
-        this.id = id;
-        this.displayPath = displayPath;
-        this.cachePath = cachePath;
-        this.fileSize = fileSize;
-        this.lastAccessTime = lastAccessTime;
-    }
-
-    public FileObjectStorage(String displayPath, String cachePath, long fileSize) {
-        this.displayPath = displayPath;
-        this.cachePath = cachePath;
+    public FileObjectStorage(String bucketId, String fileId, String objectName, long fileSize) {
+        this.bucketId = bucketId;
+        this.fileId = fileId;
+        this.objectName = objectName;
         this.fileSize = fileSize;
     }
 
-    public String getId() {
-        return id;
+    public String getBucketId() {
+        return bucketId;
     }
 
-    public FileObjectStorage setId(String id) {
-        this.id = id;
+    public void setBucketId(String bucketId) {
+        this.bucketId = bucketId;
+    }
+
+    public String getFileId() {
+        return fileId;
+    }
+
+    public FileObjectStorage setFileId(String fileId) {
+        this.fileId = fileId;
         return this;
     }
 
-    public String getDisplayPath() {
-        return displayPath;
+    public String getObjectName() {
+        return objectName;
     }
 
-    public FileObjectStorage setDisplayPath(String displayPath) {
-        this.displayPath = displayPath;
-        return this;
-    }
-
-    public String getCachePath() {
-        return cachePath;
-    }
-
-    public FileObjectStorage setCachePath(String cachePath) {
-        this.cachePath = cachePath;
+    public FileObjectStorage setObjectName(String objectName) {
+        this.objectName = objectName;
         return this;
     }
 
@@ -79,12 +70,4 @@ public class FileObjectStorage {
         return this;
     }
 
-    public long getLastAccessTime() {
-        return lastAccessTime;
-    }
-
-    public FileObjectStorage setLastAccessTime(long lastAccessTime) {
-        this.lastAccessTime = lastAccessTime;
-        return this;
-    }
 }

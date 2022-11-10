@@ -12,8 +12,9 @@ import space.lingu.light.LightDatabase;
  * @author RollW
  */
 @Database(name = "cloudhub_database", version = 1,
-        tables = {User.class, FileObjectStorage.class,
-                UserUploadFileStorage.class, RegisterVerificationToken.class,
+        tables = {User.class,
+                //FileObjectStorage.class, UserUploadFileStorage.class,
+                RegisterVerificationToken.class,
                 UserGroupConfig.class, GroupedUser.class,
                 SettingItem.class},
         configuration = @LightConfiguration(key = LightConfiguration.KEY_VARCHAR_LENGTH, value = "255"))

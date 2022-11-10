@@ -2,7 +2,7 @@ package org.huel.cloudhub.web.controller.file;
 
 import org.huel.cloudhub.common.ErrorCode;
 import org.huel.cloudhub.common.HttpResponseEntity;
-import org.huel.cloudhub.web.service.file.FileService;
+import org.huel.cloudhub.web.service.file.ObjectService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.RequestPart;
@@ -18,7 +18,7 @@ import java.io.IOException;
 @RestController
 @FileApi
 public class FileUploadController {
-    FileService fileService;
+    ObjectService objectService;
 
 
     // @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -34,7 +34,7 @@ public class FileUploadController {
         logger.info("upload file, name:{}, size: {}, content-type: {}",
                 file.getName(), file.getSize(), file.getContentType());
         return HttpResponseEntity.create(
-                fileService.saveImage(request, file.getBytes()).toResponseBody()
+                objectService.saveObject(request, file.getBytes()).toResponseBody()
         );
     }
 

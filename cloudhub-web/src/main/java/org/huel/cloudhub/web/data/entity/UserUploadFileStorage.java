@@ -15,11 +15,11 @@ public record UserUploadFileStorage(
         @PrimaryKey
         Long id,
 
-        @DataColumn(name = "image_id")
+        @DataColumn(name = "file_id")
         @PrimaryKey
-        String imageId,
+        String fileId,
 
-        @DataColumn(name = "image_file_size")
+        @DataColumn(name = "file_size")
         Long fileSize
 ) {
 
