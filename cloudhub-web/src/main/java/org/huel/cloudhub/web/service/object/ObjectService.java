@@ -1,4 +1,4 @@
-package org.huel.cloudhub.web.service.file;
+package org.huel.cloudhub.web.service.object;
 
 import org.huel.cloudhub.common.MessagePackage;
 

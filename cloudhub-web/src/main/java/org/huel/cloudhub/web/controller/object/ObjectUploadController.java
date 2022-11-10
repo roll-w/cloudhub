@@ -1,8 +1,7 @@
-package org.huel.cloudhub.web.controller.file;
+package org.huel.cloudhub.web.controller.object;
 
-import org.huel.cloudhub.common.ErrorCode;
 import org.huel.cloudhub.common.HttpResponseEntity;
-import org.huel.cloudhub.web.service.file.ObjectService;
+import org.huel.cloudhub.web.service.object.ObjectService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.RequestPart;
@@ -16,21 +15,17 @@ import java.io.IOException;
  * @author RollW
  */
 @RestController
-@FileApi
-public class FileUploadController {
+@ObjectApi
+public class ObjectUploadController {
     ObjectService objectService;
 
 
     // @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     // TODO: 待修改
-    public HttpResponseEntity<String> uploadImage(HttpServletRequest request,
-                                                  @RequestPart(name = "image") MultipartFile file)
+    public HttpResponseEntity<String> uploadObject(HttpServletRequest request,
+                                                   @RequestPart(name = "object") MultipartFile file)
             throws IOException {
         String contentType = file.getContentType();
-        if (contentType == null || !contentType.startsWith("image/")) {
-            return HttpResponseEntity.failure("Non-image format files or unrecognized.",
-                    ErrorCode.ERROR_FILE_UNMATCHED);
-        }
         logger.info("upload file, name:{}, size: {}, content-type: {}",
                 file.getName(), file.getSize(), file.getContentType());
         return HttpResponseEntity.create(
@@ -39,6 +34,6 @@ public class FileUploadController {
     }
 
 
-    private final Logger logger = LoggerFactory.getLogger(FileUploadController.class);
+    private final Logger logger = LoggerFactory.getLogger(ObjectUploadController.class);
 
 }

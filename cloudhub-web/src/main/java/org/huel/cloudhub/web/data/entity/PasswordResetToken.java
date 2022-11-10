@@ -1,5 +1,6 @@
 package org.huel.cloudhub.web.data.entity;
 
+import org.huel.cloudhub.web.data.dto.VerifiableToken;
 import space.lingu.light.DataTable;
 
 /**
@@ -8,7 +9,7 @@ import space.lingu.light.DataTable;
  * @author RollW
  */
 @DataTable(tableName = "password_reset_token")
-public record PasswordResetToken(
+public record PasswordResetToken (
         String token,
-        Long userId) {
+        Long userId) implements VerifiableToken {
 }

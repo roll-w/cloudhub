@@ -1,4 +1,4 @@
-package org.huel.cloudhub.web.controller.file;
+package org.huel.cloudhub.web.controller.object;
 
 import org.springframework.web.bind.annotation.RequestMapping;
 
@@ -10,6 +10,6 @@ import java.lang.annotation.*;
 @Documented
 @Target({ElementType.TYPE,ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
-@RequestMapping("/api/file/")
-public @interface FileApi {
+@RequestMapping("/api/object/")
+public @interface ObjectApi {
 }

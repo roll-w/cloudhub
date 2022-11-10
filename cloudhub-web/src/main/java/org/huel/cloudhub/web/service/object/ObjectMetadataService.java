@@ -1,4 +1,4 @@
-package org.huel.cloudhub.web.service.file;
+package org.huel.cloudhub.web.service.object;
 
 /**
  * @author RollW
