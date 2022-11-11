@@ -1,7 +1,7 @@
 package org.huel.cloudhub.web.data.entity.bucket;
 
 /**
- * 桶可见性。
+ * 桶可见性（桶策略）。
  *
  * @author RollW
  */

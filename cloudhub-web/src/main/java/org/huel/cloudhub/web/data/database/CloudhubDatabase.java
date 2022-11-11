@@ -4,7 +4,7 @@ import org.huel.cloudhub.web.data.database.dao.FileObjectStorageDao;
 import org.huel.cloudhub.web.data.database.dao.SettingDao;
 import org.huel.cloudhub.web.data.database.dao.UserDao;
 import org.huel.cloudhub.web.data.database.dao.VerificationTokenDao;
-import org.huel.cloudhub.web.data.entity.FileObjectStorage;
+import org.huel.cloudhub.web.data.entity.object.FileObjectStorage;
 import org.huel.cloudhub.web.data.entity.SettingItem;
 import org.huel.cloudhub.web.data.entity.token.RegisterVerificationToken;
 import org.huel.cloudhub.web.data.entity.user.User;

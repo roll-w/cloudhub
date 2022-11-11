@@ -1,4 +1,4 @@
-package org.huel.cloudhub.web.data.entity;
+package org.huel.cloudhub.web.data.entity.object;
 
 import java.util.Map;
 
