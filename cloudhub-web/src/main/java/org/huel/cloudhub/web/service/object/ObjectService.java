@@ -15,5 +15,5 @@ public interface ObjectService {
 
     MessagePackage<String> saveObject(HttpServletRequest request, InputStream stream) throws IOException;
 
-    byte[] getObjectDataBytes(String bucketId, String fileId) throws IOException;
+    byte[] getObjectDataBytes(String bucketId, String objectName) throws IOException;
 }

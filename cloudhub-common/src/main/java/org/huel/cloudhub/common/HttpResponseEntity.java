@@ -5,7 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.util.MultiValueMap;
 
 /**
- * Http 响应实体。携带Http状态码。
+ * Http响应实体。携带Http状态码及Header。
  *
  * @author RollW
  */
@@ -26,6 +26,11 @@ public class HttpResponseEntity<D> extends ResponseEntity<HttpResponseBody<D>> {
         return new HttpResponseEntity<>(body);
     }
 
+    public static <D> HttpResponseEntity<D> create(HttpResponseBody<D> body,
+                                                   MultiValueMap<String, String> headers) {
+        return new HttpResponseEntity<>(body, headers);
+    }
+
     public static <D> HttpResponseEntity<D> success() {
         return HttpResponseEntity.create(
                 HttpResponseBody.success()
@@ -38,15 +43,33 @@ public class HttpResponseEntity<D> extends ResponseEntity<HttpResponseBody<D>> {
         );
     }
 
+    public static <D> HttpResponseEntity<D> success(String message, MultiValueMap<String, String> headers) {
+        return HttpResponseEntity.create(
+                HttpResponseBody.success(message), headers
+        );
+    }
+
     public static <D> HttpResponseEntity<D> success(String message, D data) {
         return HttpResponseEntity.create(
                 HttpResponseBody.success(message, data)
         );
     }
 
+    public static <D> HttpResponseEntity<D> success(String message, D data, MultiValueMap<String, String> headers) {
+        return HttpResponseEntity.create(
+                HttpResponseBody.success(message, data), headers
+        );
+    }
+
     public static <D> HttpResponseEntity<D> success(D data) {
         return HttpResponseEntity.create(
                 HttpResponseBody.success(data)
+        );
+    }
+
+    public static <D> HttpResponseEntity<D> success(D data, MultiValueMap<String, String> headers) {
+        return HttpResponseEntity.create(
+                HttpResponseBody.success(data), headers
         );
     }
 
@@ -61,6 +84,16 @@ public class HttpResponseEntity<D> extends ResponseEntity<HttpResponseBody<D>> {
         );
     }
 
+    public static <D> HttpResponseEntity<D> failure(HttpStatus status,
+                                                    String message,
+                                                    ErrorCode errorCode,
+                                                    D data,
+                                                    MultiValueMap<String, String> headers) {
+        return HttpResponseEntity.create(
+                HttpResponseBody.failure(status, message, errorCode, data), headers
+        );
+    }
+
     public static <D> HttpResponseEntity<D> failure(String message,
                                                     ErrorCode errorCode) {
         return HttpResponseEntity.create(
@@ -70,9 +103,25 @@ public class HttpResponseEntity<D> extends ResponseEntity<HttpResponseBody<D>> {
 
     public static <D> HttpResponseEntity<D> failure(String message,
                                                     ErrorCode errorCode,
+                                                    MultiValueMap<String, String> headers) {
+        return HttpResponseEntity.create(
+                HttpResponseBody.failure(message, errorCode), headers
+        );
+    }
+
+    public static <D> HttpResponseEntity<D> failure(String message,
+                                                    ErrorCode errorCode,
                                                     D data) {
         return HttpResponseEntity.create(
                 HttpResponseBody.failure(message, errorCode, data)
+        );
+    }
+
+    public static <D> HttpResponseEntity<D> failure(String message,
+                                                    ErrorCode errorCode,
+                                                    D data, MultiValueMap<String, String> headers) {
+        return HttpResponseEntity.create(
+                HttpResponseBody.failure(message, errorCode, data), headers
         );
     }
 }

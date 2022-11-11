@@ -5,6 +5,8 @@ import org.huel.cloudhub.web.data.dto.UserInfo;
 import org.huel.cloudhub.web.data.entity.token.PasswordResetToken;
 
 /**
+ * User info setting.
+ *
  * @author RollW
  */
 // TODO
@@ -13,6 +15,8 @@ public interface UserSettingService {
 
     // 旧密码正确无需重置令牌
     MessagePackage<UserInfo> resetPassword(long userId, String oldPassword, String newPassword);
+
+    MessagePackage<UserInfo> resetPassword(long userId, String newPassword);
 
     // 忘记密码，需要令牌
     MessagePackage<UserInfo> resetPassword(long userId, String newPassword,
