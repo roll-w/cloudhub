@@ -18,9 +18,11 @@
     <modules>
         <module>../cloudhub-meta</module>
         <module>../cloudhub-file-server</module>
-        <module>../cloudhub-web</module>
+        <module>../cloudhub-client</module>
         <module>../cloudhub-common</module>
-        <module>../cloudhub-rpc-api</module>
+        <module>../cloudhub-grpc-parent</module>
+        <module>../cloudhub-meta-rpc-api</module>
+        <module>../cloudhub-client-rpc-api</module>
     </modules>
 
     <properties>
@@ -37,7 +39,6 @@
         <jjwt.version>0.11.5</jjwt.version>
         <light.version>0.3.1</light.version>
         <fiesta.version>0.2.0</fiesta.version>
-        <hardwood-command.version>0.1.0-SNAPSHOT</hardwood-command.version>
         <spring-shell.version>2.1.2</spring-shell.version>
         <tomcat-api.version>6.0.53</tomcat-api.version>
     </properties>
@@ -108,7 +109,13 @@
 
             <dependency>
                 <groupId>org.huel.cloudhub</groupId>
-                <artifactId>cloudhub-rpc-api</artifactId>
+                <artifactId>cloudhub-meta-rpc-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.huel.cloudhub</groupId>
+                <artifactId>cloudhub-client-rpc-api</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
@@ -161,12 +168,6 @@
                 <artifactId>fiesta-checker</artifactId>
                 <version>${fiesta.version}</version>
                 <scope>provided</scope>
-            </dependency>
-
-            <dependency>
-                <groupId>space.lingu.hardwood</groupId>
-                <artifactId>hardwood-command</artifactId>
-                <version>${hardwood-command.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
