@@ -16,7 +16,7 @@
     <packaging>pom</packaging>
 
     <modules>
-        <module>../cloudhub-meta</module>
+        <module>../cloudhub-meta-server</module>
         <module>../cloudhub-file-server</module>
         <module>../cloudhub-client</module>
         <module>../cloudhub-common</module>
@@ -104,6 +104,12 @@
             <dependency>
                 <groupId>org.huel.cloudhub</groupId>
                 <artifactId>cloudhub-common</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.huel.cloudhub</groupId>
+                <artifactId>cloudhub-grpc-common</artifactId>
                 <version>${project.version}</version>
             </dependency>
 

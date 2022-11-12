@@ -18,4 +18,10 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
+    <dependencies>
+        <dependency>
+            <groupId>org.huel.cloudhub</groupId>
+            <artifactId>cloudhub-grpc-common</artifactId>
+        </dependency>
+    </dependencies>
 </project>

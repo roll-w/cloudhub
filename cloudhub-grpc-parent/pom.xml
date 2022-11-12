@@ -11,6 +11,9 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>cloudhub-grpc-parent</artifactId>
     <packaging>pom</packaging>
+    <modules>
+        <module>../cloudhub-grpc-common</module>
+    </modules>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
