@@ -21,7 +21,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @author RollW
  */
 public class ContainerFileReader implements Closeable {
-    private final ContainerAllocator containerAllocator;
+    private final ContainerFinder containerFinder;
     private final ContainerReadOpener containerReadOpener;
     private final ContainerGroup containerGroup;
     private final List<Container> containers;
@@ -31,11 +31,11 @@ public class ContainerFileReader implements Closeable {
     private final AtomicInteger currentRead = new AtomicInteger(0);
 
     public ContainerFileReader(ContainerReadOpener containerReadOpener,
-                               ContainerAllocator containerAllocator,
+                               ContainerFinder containerFinder,
                                String fileId, String source) throws ContainerException {
         this.containerReadOpener = containerReadOpener;
-        this.containerGroup = containerAllocator.findContainerGroupByFile(fileId, source);
-        this.containerAllocator = containerAllocator;
+        this.containerGroup = containerFinder.findContainerGroupByFile(fileId, source);
+        this.containerFinder = containerFinder;
         this.containers = containerGroup.containersWithFile(fileId);
         this.fileBlockMetaInfo = containerGroup.getFileBlockMetaInfo(fileId);
         if (fileBlockMetaInfo == null) {
@@ -46,13 +46,13 @@ public class ContainerFileReader implements Closeable {
     }
 
     public ContainerFileReader(ContainerReadOpener containerReadOpener,
-                               ContainerAllocator containerAllocator,
+                               ContainerFinder containerFinder,
                                String fileId,
                                ContainerGroup containerGroup,
                                FileBlockMetaInfo fileBlockMetaInfo) throws ContainerException {
         this.containerReadOpener = containerReadOpener;
         this.containerGroup = containerGroup;
-        this.containerAllocator = containerAllocator;
+        this.containerFinder = containerFinder;
         this.containers = containerGroup.containersWithFile(fileId);
         this.fileBlockMetaInfo = fileBlockMetaInfo;
         if (fileBlockMetaInfo == null) {

@@ -8,11 +8,12 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.scheduling.annotation.EnableAsync;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import java.io.*;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -33,6 +34,8 @@ public class FileServerApplication implements ApplicationRunner {
         this.heartbeatTask = heartbeatTask;
     }
 
+    private static ConfigurableApplicationContext sContext;
+
     public static void main(String[] args) throws Exception {
         SpringApplication application =
                 new SpringApplication(FileServerApplication.class);
@@ -42,10 +45,14 @@ public class FileServerApplication implements ApplicationRunner {
         overrideProperties.put("server.port", loader.getWebPort());
 
         application.setDefaultProperties(overrideProperties);
-        application.run();
+        sContext = application.run();
     }
 
     private final HeartbeatTask heartbeatTask;
+
+    public static void exit(int exitCode) {
+        SpringApplication.exit(sContext, () -> exitCode);
+    }
 
     @PostConstruct
     public void startSendHeartbeat() {

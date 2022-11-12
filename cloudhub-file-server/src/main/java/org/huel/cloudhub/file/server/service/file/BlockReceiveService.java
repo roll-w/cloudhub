@@ -8,6 +8,7 @@ import org.huel.cloudhub.file.fs.LockException;
 import org.huel.cloudhub.file.fs.ServerFile;
 import org.huel.cloudhub.file.fs.block.Block;
 import org.huel.cloudhub.file.fs.container.ContainerAllocator;
+import org.huel.cloudhub.file.fs.container.ContainerFinder;
 import org.huel.cloudhub.file.fs.container.ContainerProperties;
 import org.huel.cloudhub.file.fs.container.ContainerWriterOpener;
 import org.huel.cloudhub.file.fs.container.file.ContainerFileWriter;
@@ -33,6 +34,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class BlockReceiveService extends BlockUploadServiceGrpc.BlockUploadServiceImplBase {
     private final Logger logger = LoggerFactory.getLogger(BlockReceiveService.class);
     private final ContainerAllocator containerAllocator;
+    private final ContainerFinder containerFinder;
     private final ContainerProperties containerProperties;
     private final ContainerWriterOpener containerWriterOpener;
     private final LocalFileServer localFileServer;
@@ -40,10 +42,12 @@ public class BlockReceiveService extends BlockUploadServiceGrpc.BlockUploadServi
     private static final int BUFFERED_BLOCK_SIZE = 320;
 
     public BlockReceiveService(ContainerAllocator containerAllocator,
+                               ContainerFinder containerFinder,
                                ContainerProperties containerProperties,
                                ContainerWriterOpener containerWriterOpener,
                                LocalFileServer localFileServer) throws IOException {
         this.containerAllocator = containerAllocator;
+        this.containerFinder = containerFinder;
         this.containerProperties = containerProperties;
         this.containerWriterOpener = containerWriterOpener;
         this.localFileServer = localFileServer;
@@ -98,7 +102,7 @@ public class BlockReceiveService extends BlockUploadServiceGrpc.BlockUploadServi
         }
 
         private void checkExistsWithClose(String fileId) {
-            boolean exists = containerAllocator.dataExists(fileId, ContainerAllocator.LOCAL);
+            boolean exists = containerFinder.dataExists(fileId, ContainerAllocator.LOCAL);
             UploadBlocksResponse response = UploadBlocksResponse.newBuilder()
                     .setFileExists(exists)
                     .build();

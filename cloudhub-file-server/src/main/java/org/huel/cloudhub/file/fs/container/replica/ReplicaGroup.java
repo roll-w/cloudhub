@@ -1,0 +1,47 @@
+package org.huel.cloudhub.file.fs.container.replica;
+
+import org.huel.cloudhub.file.fs.container.Container;
+import org.huel.cloudhub.file.fs.container.ContainerGroup;
+
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+
+/**
+ * @author RollW
+ */
+public class ReplicaGroup {
+    private final String sourceId;
+    private final Map<String, ContainerGroup> containerGroupMap =
+            new HashMap<>();
+
+    public ReplicaGroup(String sourceId) {
+        this.sourceId = sourceId;
+    }
+
+    public void put(Container container) {
+        ContainerGroup group = getGroup(container.getIdentity().id());
+        if (group == null) {
+            group = newGroup(container.getIdentity().id());
+            containerGroupMap.put(group.getContainerId(), group);
+        }
+        group.put(container);
+    }
+
+
+    private ContainerGroup newGroup(String containerId) {
+        return new ContainerGroup(containerId, sourceId);
+    }
+
+    private ContainerGroup newGroup(String containerId, Collection<Container> containers) {
+        return new ContainerGroup(containerId, sourceId, containers);
+    }
+
+    public ContainerGroup getGroup(String containerId) {
+        return containerGroupMap.getOrDefault(containerId, null);
+    }
+
+    public String getSourceId() {
+        return sourceId;
+    }
+}

@@ -24,12 +24,12 @@ message Heartbeat {
   // when receive a response contains period from meta server,
   // the server should declare the period it now has.
   optional int32 period = 4;
-  optional SerializedFileServerStatus status = 5;
+  SerializedServerStatusCode status_code = 5;
+  optional SerializedFileServerStatus status = 6;
 }
 
 message HeartbeatResponse {
-  string errorCode = 1;
-  string message = 2;
+  optional string message = 2;
 
   // when receive first heartbeat from file-server,
   // the meta server needs respond a standard period

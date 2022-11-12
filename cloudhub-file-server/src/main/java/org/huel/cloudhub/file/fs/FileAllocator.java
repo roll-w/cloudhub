@@ -15,7 +15,7 @@ public class FileAllocator implements Closeable {
     private final FileChannel fileChannel;
     private final RandomAccessFile accessFile;
 
-    public FileAllocator(RepresentFile file) throws FileNotFoundException {
+    public FileAllocator(RepresentFile file) throws IOException {
         this.accessFile =
                 new RandomAccessFile(file.toFile(), "rw");
         this.fileChannel = accessFile.getChannel();

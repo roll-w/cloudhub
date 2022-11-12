@@ -12,7 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author RollW
  */
 public class ContainerGroup {
-    private final String sourceId = null;
+    private final String sourceId;
     private final String containerId;
     private long blockSizeInBytes = -1;
     private volatile long latestSerial;
@@ -21,20 +21,24 @@ public class ContainerGroup {
     private final Map<Long, List<FreeBlockInfo>> serialFreeBlockInfos = new ConcurrentHashMap<>();
     private final Set<String> fileIds = ConcurrentHashMap.newKeySet();
 
-    public ContainerGroup(String containerId) {
+    public ContainerGroup(String containerId, String sourceId) {
         this.containerId = containerId;
+        this.sourceId = sourceId;
     }
 
-    public ContainerGroup(String containerId, Collection<Container> containers) {
+    public ContainerGroup(String containerId, String sourceId, Collection<Container> containers) {
         this.containerId = containerId;
+        this.sourceId = sourceId;
         containers.forEach(this::put);
     }
 
-    public ContainerGroup(String containerId, Container container) {
+    public ContainerGroup(String containerId, String sourceId, Container container) {
         this.containerId = containerId;
+        this.sourceId = sourceId;
         put(container);
     }
 
+    @SuppressWarnings("all")
     public void put(Container container) {
         final long latestSerial = Math.max(container.getIdentity().serial(), this.latestSerial);
         this.latestSerial = latestSerial;
@@ -89,6 +93,10 @@ public class ContainerGroup {
                 .filter(container -> container.hasFileId(fileId))
                 .sorted(Comparator.comparingLong(container -> container.getIdentity().serial()))
                 .toList();
+    }
+
+    public String getSourceId() {
+        return sourceId;
     }
 
     public String getContainerId() {

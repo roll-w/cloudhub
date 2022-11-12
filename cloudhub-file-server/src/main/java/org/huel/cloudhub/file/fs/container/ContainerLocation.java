@@ -11,6 +11,7 @@ import java.util.Objects;
  */
 public class ContainerLocation implements RepresentFile {
     public static final String META_SUFFIX = ".meta";
+    public static final String REPLICA_META_SUFFIX = ".rmeta";
 
     private final String childPath;
     private final String dirPath;
@@ -52,6 +53,11 @@ public class ContainerLocation implements RepresentFile {
     @Override
     public File toFile() {
         return new File(dataPath);
+    }
+
+    @Override
+    public boolean exists() {
+        return toFile().exists();
     }
 
     public String getMetaPath() {

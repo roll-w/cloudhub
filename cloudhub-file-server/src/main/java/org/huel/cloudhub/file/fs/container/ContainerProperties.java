@@ -3,6 +3,8 @@ package org.huel.cloudhub.file.fs.container;
 import java.io.File;
 
 /**
+ * Container Properties.
+ *
  * @author RollW
  */
 public class ContainerProperties {

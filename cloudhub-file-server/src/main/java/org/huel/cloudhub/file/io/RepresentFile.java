@@ -10,4 +10,6 @@ public interface RepresentFile {
     String getLocalPath();
 
     File toFile();
+
+    boolean exists();
 }

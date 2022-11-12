@@ -44,6 +44,11 @@ public class ContainerNameMeta {
                 Long.parseLong(metas[1]));
     }
 
+    public static boolean check(String name) {
+        String[] metas = name.split(Pattern.quote("_"));
+        return metas.length == 2;
+    }
+
     public ContainerNameMeta forkSerial(long serial) {
         return new ContainerNameMeta(id, serial);
     }

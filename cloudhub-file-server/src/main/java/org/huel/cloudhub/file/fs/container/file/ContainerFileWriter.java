@@ -18,6 +18,8 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
+ * Container File Writer. Not working for replica container.
+ *
  * @author RollW
  */
 public class ContainerFileWriter implements Closeable {
@@ -48,7 +50,7 @@ public class ContainerFileWriter implements Closeable {
 
     private void preAllocateContainers() {
         allowWriteContainers =
-                new ArrayList<>(containerAllocator.allocateContainers(fileId, fileSize, source));
+                new ArrayList<>(containerAllocator.allocateContainers(fileId, fileSize));
         containerIterator = allowWriteContainers.iterator();
     }
 
@@ -60,7 +62,7 @@ public class ContainerFileWriter implements Closeable {
         if (writeBlocksSum.get() > expectBlocks) {
             return null;
         }
-        return containerAllocator.allocateNewContainer(fileId, source);
+        return containerAllocator.allocateNewContainer(fileId);
     }
 
     private record WriteResult(ContainerWriter writer,
