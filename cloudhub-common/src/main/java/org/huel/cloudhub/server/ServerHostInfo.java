@@ -29,7 +29,6 @@ public class ServerHostInfo {
     @JsonIgnore
     private final NetworkIF networkIF;
 
-    // TODO
     @JsonProperty("cpu")
     private final CpuUsageInfo cpuUsageInfo;
 
@@ -180,5 +179,25 @@ public class ServerHostInfo {
             }
         }
         return hwDiskStores.get(0);
+    }
+
+    public NetworkUsageInfo getPersistedNetworkInfo() {
+        return networkUsageInfo.fork();
+    }
+
+    public CpuUsageInfo getPersistedCpuUsageInfo() {
+        return cpuUsageInfo.fork();
+    }
+
+    public DiskUsageInfo getPersistedDiskUsageInfo() {
+        return diskUsageInfo.fork();
+    }
+
+    public JvmUsageInfo getPersistedJvmUsageInfo() {
+        return jvmUsageInfo.fork();
+    }
+
+    public MemoryUsageInfo getPersistedMemoryUsageInfo() {
+        return memoryUsageInfo.fork();
     }
 }

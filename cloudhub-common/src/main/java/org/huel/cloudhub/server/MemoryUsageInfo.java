@@ -33,7 +33,11 @@ public class MemoryUsageInfo {
         return free;
     }
 
-    public MemoryUsageInfo reload(GlobalMemory memory) {
+    public MemoryUsageInfo fork() {
+        return new MemoryUsageInfo(total, used, free);
+    }
+
+    protected MemoryUsageInfo reload(GlobalMemory memory) {
         this.total = memory.getTotal();
         this.free = memory.getAvailable();
         this.used = memory.getTotal() - memory.getAvailable();

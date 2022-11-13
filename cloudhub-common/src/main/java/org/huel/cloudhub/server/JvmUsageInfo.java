@@ -30,7 +30,11 @@ public class JvmUsageInfo {
         return total - free;
     }
 
-    public JvmUsageInfo reload() {
+    public JvmUsageInfo fork() {
+        return new JvmUsageInfo(total, max, free);
+    }
+
+    protected JvmUsageInfo reload() {
         this.total = Runtime.getRuntime().totalMemory();
         this.max = Runtime.getRuntime().maxMemory();
         this.free = Runtime.getRuntime().freeMemory();

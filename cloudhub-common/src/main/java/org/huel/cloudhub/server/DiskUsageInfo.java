@@ -39,7 +39,11 @@ public class DiskUsageInfo {
         return free;
     }
 
-    public DiskUsageInfo reload(HWDiskStore store, long ms) {
+    public DiskUsageInfo fork() {
+        return new DiskUsageInfo(total, free, read, write, file);
+    }
+
+    protected DiskUsageInfo reload(HWDiskStore store, long ms) {
         final long prevReads = store.getReadBytes();
         final long prevWrites = store.getWriteBytes();
         store.updateAttributes();

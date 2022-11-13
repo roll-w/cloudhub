@@ -17,14 +17,13 @@ public class Bucket {
     /**
      * 桶名称由用户指定。
      * <p>
-     * 同一用户下不能包含相同的桶名称
+     * 不能包含相同的桶名称（唯一ID）
      */
     @PrimaryKey
     @DataColumn(name = "bucket_name")
     private String name;
-    // 最终访问时需要再附上用户ID。
-    // 格式类似于: 用户ID-桶名称。
-    @PrimaryKey
+
+    // 此桶所从属于的用户ID
     @DataColumn(name = "bucket_user_id")
     private Long userId;
 

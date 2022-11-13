@@ -46,7 +46,11 @@ public class CpuUsageInfo {
         return free;
     }
 
-    public CpuUsageInfo reload(CentralProcessor centralProcessor, long ms) {
+    public CpuUsageInfo fork() {
+        return new CpuUsageInfo(cpuCores, sysUsed, userUsed, wait, free);
+    }
+
+    protected CpuUsageInfo reload(CentralProcessor centralProcessor, long ms) {
         long[] prevTicks = centralProcessor.getSystemCpuLoadTicks();
         Util.sleep(ms);
         long[] ticks = centralProcessor.getSystemCpuLoadTicks();

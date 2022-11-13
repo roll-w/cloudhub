@@ -12,7 +12,7 @@ public class FileObjectStorage {
     public static final long INVALID_VERSION = -1L;
 
     /**
-     * 存储桶ID。格式: 用户ID-存储桶名称
+     * 存储桶ID
      */
     @DataColumn(name = "bucket_id")
     @PrimaryKey

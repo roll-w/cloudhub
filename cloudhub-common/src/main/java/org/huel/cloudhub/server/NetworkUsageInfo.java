@@ -29,7 +29,11 @@ public class NetworkUsageInfo {
         return speed;
     }
 
-    public NetworkUsageInfo reload(NetworkIF networkIF, long ms) {
+    public NetworkUsageInfo fork() {
+        return new NetworkUsageInfo(recv, sent, speed);
+    }
+
+    protected NetworkUsageInfo reload(NetworkIF networkIF, long ms) {
         long lastRecv = networkIF.getBytesRecv();
         long lastSent = networkIF.getBytesSent();
         Util.sleep(ms);
@@ -45,6 +49,6 @@ public class NetworkUsageInfo {
     public static NetworkUsageInfo load(NetworkIF networkIF) {
         return new NetworkUsageInfo(
                 0, 0,
-                networkIF.getSpeed());
+                networkIF.getSpeed() / 8);
     }
 }
