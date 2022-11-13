@@ -18,8 +18,9 @@ public class FileObjectStorage {
     @PrimaryKey
     private String bucketId;
 
-    @DataColumn(name = "object_version")
-    @PrimaryKey
+    //@DataColumn(name = "object_version")
+    //@PrimaryKey
+    // TODO: Version 在VersionedObject表中，此表只包含最新版本的Object
     private Long version = INVALID_VERSION;
 
     /**
@@ -38,10 +39,10 @@ public class FileObjectStorage {
     public FileObjectStorage() {
     }
 
-    public FileObjectStorage(String bucketId, long version,
-                             String fileId, String objectName, long objectSize) {
+    public FileObjectStorage(String bucketId,
+                             String fileId,
+                             String objectName, long objectSize) {
         this.bucketId = bucketId;
-        this.version = version;
         this.fileId = fileId;
         this.objectName = objectName;
         this.objectSize = objectSize;
