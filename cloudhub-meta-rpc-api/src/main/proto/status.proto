@@ -6,11 +6,19 @@ option java_outer_classname = "StatProtos";
 
 enum SerializedServerStatusCode {
   HEALTHY = 0;
-  ERROR = 1;
+  DAMAGED = 1;
+  DOWN = 2;
+}
+
+//
+message SerializedDamagedContainerReport {
+  string container_id = 1;
+  repeated string file_id = 2;
 }
 
 message SerializedServerStatus {
   map<string, string> status = 2;
+  repeated SerializedDamagedContainerReport report = 3;
 }
 
 

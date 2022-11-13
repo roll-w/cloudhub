@@ -27,9 +27,19 @@ public class Bucket {
     @DataColumn(name = "bucket_user_id")
     private Long userId;
 
-    public Bucket(String name, Long userId) {
+    @DataColumn(name = "bucket_create_time")
+    private long createTime;
+
+    @DataColumn(name = "bucket_visibility", configuration =
+    @LightConfiguration(key = LightConfiguration.KEY_VARCHAR_LENGTH, value = "20"))
+    private BucketVisibility bucketVisibility;
+
+    public Bucket(String name, Long userId,
+                  long createTime, BucketVisibility bucketVisibility) {
         this.name = name;
         this.userId = userId;
+        this.createTime = createTime;
+        this.bucketVisibility = bucketVisibility;
     }
 
     public Bucket() {
@@ -51,11 +61,19 @@ public class Bucket {
         this.userId = userId;
     }
 
-    public String toBucketId() {
-        if (userId == null || name == null) {
-            throw new NullPointerException();
-        }
-        return userId + "-" + name;
+    public long getCreateTime() {
+        return createTime;
     }
 
+    public void setCreateTime(long createTime) {
+        this.createTime = createTime;
+    }
+
+    public BucketVisibility getBucketVisibility() {
+        return bucketVisibility;
+    }
+
+    public void setBucketVisibility(BucketVisibility bucketVisibility) {
+        this.bucketVisibility = bucketVisibility;
+    }
 }

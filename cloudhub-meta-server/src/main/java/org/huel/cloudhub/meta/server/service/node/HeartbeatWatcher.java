@@ -29,7 +29,7 @@ public class HeartbeatWatcher {
     }
 
     public boolean isTimeoutOrError(long time) {
-        if (statusCode != SerializedServerStatusCode.HEALTHY) {
+        if (statusCode == SerializedServerStatusCode.DOWN) {
             return true;
         }
         return isTimeout(time);
