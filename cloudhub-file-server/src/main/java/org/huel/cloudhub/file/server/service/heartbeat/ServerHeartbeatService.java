@@ -6,6 +6,7 @@ import org.huel.cloudhub.server.GrpcProperties;
 import org.huel.cloudhub.server.rpc.heartbeat.Heartbeat;
 import org.huel.cloudhub.server.rpc.heartbeat.HeartbeatResponse;
 import org.huel.cloudhub.server.rpc.heartbeat.HeartbeatServiceGrpc;
+import org.huel.cloudhub.server.rpc.status.SerializedServerStatusCode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -37,6 +38,7 @@ public class ServerHeartbeatService {
         Heartbeat heartbeat = Heartbeat.newBuilder()
                 .setHost(inetAddress.getHostAddress())
                 .setPort(grpcProperties.getPort())
+                .setStatusCode(SerializedServerStatusCode.HEALTHY)
                 .setId(serverIdService.getServerId())
                 .build();
         // logger.info("send heartbeat, address= {}:{}", heartbeat.getHost(), heartbeat.getPort());

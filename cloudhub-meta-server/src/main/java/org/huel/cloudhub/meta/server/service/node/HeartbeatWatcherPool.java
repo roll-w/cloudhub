@@ -166,7 +166,7 @@ public final class HeartbeatWatcherPool implements ServerChecker {
     public void start() {
         service.scheduleAtFixedRate(
                 checkTimeoutRunnable,
-                10, frequency,
+                frequency / 2, frequency,
                 TimeUnit.MILLISECONDS);
     }
 

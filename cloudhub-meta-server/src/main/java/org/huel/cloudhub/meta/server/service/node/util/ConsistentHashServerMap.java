@@ -2,8 +2,6 @@ package org.huel.cloudhub.meta.server.service.node.util;
 
 import com.google.common.hash.Hashing;
 import org.huel.cloudhub.util.math.Maths;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -20,8 +18,6 @@ public class ConsistentHashServerMap<S extends ConsistentHashServerMap.Server> {
     private final TreeMap<Long, String> hashServersPool = new TreeMap<>();
     private final List<ServerWeight<S>> serverWeights = new ArrayList<>();
 
-    private final Logger logger = LoggerFactory.getLogger(ConsistentHashServerMap.class);
-
     private final byte[] mLock = new byte[0];
 
     public void addServer(S server, int weight) {
@@ -29,7 +25,6 @@ public class ConsistentHashServerMap<S extends ConsistentHashServerMap.Server> {
             ServerWeight<S> serverWeight = new ServerWeight<>(server, weight);
             addServerToMap(serverWeight);
             serverWeights.add(serverWeight);
-            logger.debug("++ add server {} with weight={}", server.getId(), weight);
             remappingServers();
         }
     }
@@ -74,7 +69,6 @@ public class ConsistentHashServerMap<S extends ConsistentHashServerMap.Server> {
     }
 
     private void addNodesToHashServers(Server server, long nodes) {
-        logger.debug("++ add nodes id={}, virtuals={}", server.getId(), nodes);
         for (long i = 0; i < nodes; i++) {
             final String key = server.getId() + "-" + i;
             byte[] kBytes = Hashing.sha256().hashString(key, StandardCharsets.UTF_8).asBytes();
@@ -106,15 +100,11 @@ public class ConsistentHashServerMap<S extends ConsistentHashServerMap.Server> {
     public S allocateServer(String id) {
         // rehash key.
         long hash = hashKey(id);
-        logger.debug("++ hash key from {} to {}.", id, hash);
         final int poolSize = hashServersPool.size();
-        logger.debug("++ pool size = {}.", poolSize);
         int tries = 0;
         while (tries++ < poolSize) {
-            logger.debug("++ tries={}", tries);
             String serverId = hashServersPool.get(findNodeFor(hash));
             if (serverId != null) {
-                logger.debug("++ finds id = {}", serverId);
                 return serverPool.get(serverId);
             }
             hash += Long.hashCode(hashKey(tries + id));

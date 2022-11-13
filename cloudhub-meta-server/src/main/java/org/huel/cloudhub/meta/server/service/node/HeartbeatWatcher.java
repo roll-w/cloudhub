@@ -25,7 +25,7 @@ public class HeartbeatWatcher {
     }
 
     public boolean isTimeout(long time) {
-        return time - lastHeartbeat > timeoutTime;
+        return time - lastHeartbeat > (long) timeoutTime << 2;// 考虑到网络延迟
     }
 
     public boolean isTimeoutOrError(long time) {

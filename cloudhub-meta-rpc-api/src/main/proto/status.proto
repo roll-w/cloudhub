@@ -9,7 +9,7 @@ enum SerializedServerStatusCode {
   ERROR = 1;
 }
 
-message SerializedFileServerStatus {
+message SerializedServerStatus {
   map<string, string> status = 2;
 }
 
