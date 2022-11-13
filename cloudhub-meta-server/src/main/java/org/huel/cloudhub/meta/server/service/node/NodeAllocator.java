@@ -13,4 +13,6 @@ public interface NodeAllocator {
 
     @Nullable
     NodeServer findNodeServer(String serverId);
+
+    void registerNodeServer(NodeServer server);
 }

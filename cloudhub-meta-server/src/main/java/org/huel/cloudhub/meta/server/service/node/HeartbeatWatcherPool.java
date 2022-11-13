@@ -42,12 +42,14 @@ public final class HeartbeatWatcherPool implements ServerChecker {
     }
 
     private void pushWatcher(HeartbeatWatcher heartbeatWatcher) {
+        callback.registerServer(heartbeatWatcher.getNodeServer());
         heartbeatWatchers.put(heartbeatWatcher.getServerId(), heartbeatWatcher);
         setActiveWatcher(heartbeatWatcher);
         callback.addActiveServer(heartbeatWatcher.getNodeServer());
     }
 
     public void pushNodeServerWatcher(NodeServer nodeServer) {
+
         pushWatcher(
                 new HeartbeatWatcher(nodeServer, timeoutTime, System.currentTimeMillis())
         );
@@ -178,6 +180,8 @@ public final class HeartbeatWatcherPool implements ServerChecker {
             Executors.newSingleThreadScheduledExecutor();
 
     public interface ServerEventCallback {
+        void registerServer(NodeServer server);
+
         void removeActiveServer(NodeServer nodeServer);
 
         void addActiveServer(NodeServer nodeServer);

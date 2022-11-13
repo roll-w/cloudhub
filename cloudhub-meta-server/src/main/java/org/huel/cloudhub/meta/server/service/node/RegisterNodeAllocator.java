@@ -21,6 +21,7 @@ public class RegisterNodeAllocator implements
         this.nodeWeightProvider = nodeWeightProvider;
     }
 
+    @Override
     public void registerNodeServer(NodeServer nodeServer) {
         if (nodeServers.containsKey(nodeServer.id())) {
             return;
@@ -37,6 +38,11 @@ public class RegisterNodeAllocator implements
     @Nullable
     public NodeServer findNodeServer(String serverId) {
         return nodeServers.get(serverId);
+    }
+
+    @Override
+    public void registerServer(NodeServer server) {
+        registerNodeServer(server);
     }
 
     @Override
