@@ -143,6 +143,11 @@
                 <version>${jjwt.version}</version>
             </dependency>
 
+            <dependency>
+                <groupId>com.github.oshi</groupId>
+                <artifactId>oshi-core</artifactId>
+                <version>6.3.1</version>
+            </dependency>
 
             <dependency>
                 <groupId>space.lingu.light</groupId>
@@ -175,6 +180,8 @@
                 <version>${fiesta.version}</version>
                 <scope>provided</scope>
             </dependency>
+
+
         </dependencies>
     </dependencyManagement>
 
