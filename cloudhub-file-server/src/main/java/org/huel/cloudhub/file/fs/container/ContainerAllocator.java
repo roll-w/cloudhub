@@ -12,8 +12,6 @@ import java.util.List;
  * @author RollW
  */
 public interface ContainerAllocator {
-    String LOCAL = "[LOCAL]";
-
     @NonNull
     Container allocateNewContainer(String id);
 
@@ -24,10 +22,4 @@ public interface ContainerAllocator {
 
     void updatesContainerMetadata(Container container) throws MetaException, IOException;
 
-    static boolean isLocal(String source) {
-        if (source == null) {
-            return false;
-        }
-        return source.equals(LOCAL);
-    }
 }

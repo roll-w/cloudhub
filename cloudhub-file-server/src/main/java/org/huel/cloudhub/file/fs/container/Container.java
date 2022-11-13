@@ -42,7 +42,7 @@ public class Container {
                      @NonNull ContainerIdentity identity,
                      @NonNull Collection<BlockMetaInfo> blockMetaInfos,
                      long version, boolean usable) {
-        this(location, ContainerAllocator.LOCAL,
+        this(location, ContainerFinder.LOCAL,
                 usedBlock, identity, blockMetaInfos, version, usable);
     }
 
@@ -104,7 +104,7 @@ public class Container {
     }
 
     private ContainerType calcContainerType(String source) {
-        if (source == null || source.equals(ContainerAllocator.LOCAL)) {
+        if (source == null || source.equals(ContainerFinder.LOCAL)) {
             return ContainerType.ORIGINAL;
         }
         return ContainerType.REPLICA;

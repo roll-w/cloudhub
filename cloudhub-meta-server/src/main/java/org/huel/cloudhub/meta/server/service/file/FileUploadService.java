@@ -305,6 +305,9 @@ public class FileUploadService {
 
     private ReopenableInputStream convertInputStream(InputStream inputStream, Hasher... hashers) throws IOException {
         File tempDir = new File(fileProperties.getTempFilePath());
+        if (!tempDir.exists()) {
+            tempDir.mkdirs();
+        }
         File tempFile = new File(tempDir,
                 RandomStringUtils.randomAlphanumeric(20));
         return new ReopenableInputStream(inputStream, tempFile, hashers);

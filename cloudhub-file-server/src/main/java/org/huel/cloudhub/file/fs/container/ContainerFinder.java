@@ -9,6 +9,8 @@ import java.util.List;
  * @author RollW
  */
 public interface ContainerFinder {
+    String LOCAL = "[LOCAL]";
+
     boolean dataExists(String fileId, String source);
 
     @Nullable
@@ -18,4 +20,11 @@ public interface ContainerFinder {
     List<Container> findContainersByFile(String fileId, String source);
 
     ContainerGroup findContainerGroupByFile(String fileId, String source);
+
+    static boolean isLocal(String source) {
+        if (source == null) {
+            return false;
+        }
+        return source.equals(LOCAL);
+    }
 }

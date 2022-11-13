@@ -153,11 +153,11 @@ public class BlockDownloadService extends BlockDownloadServiceGrpc.BlockDownload
 
     private String getId(DownloadBlockRequest request) {
         if (!request.hasSourceId()) {
-            return ContainerAllocator.LOCAL;
+            return ContainerFinder.LOCAL;
         }
         final String id = request.getSourceId();
         if (id.equals(serverIdService.getServerId())) {
-            return ContainerAllocator.LOCAL;
+            return ContainerFinder.LOCAL;
         }
         return id;
     }

@@ -4,6 +4,7 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.huel.cloudhub.file.fs.container.ContainerDeleter;
 import org.huel.cloudhub.file.fs.FileAllocator;
 import org.huel.cloudhub.file.fs.LocalFileServer;
 import org.huel.cloudhub.file.fs.ServerFile;
@@ -27,7 +28,7 @@ import java.util.List;
  * @author RollW
  */
 @Service
-public class ContainerService implements ContainerAllocator, ContainerFinder {
+public class ContainerService implements ContainerAllocator, ContainerFinder, ContainerDeleter {
     private final Cache<String, ContainerGroup> containerCache =
             Caffeine.newBuilder()
                     .build();
@@ -121,7 +122,7 @@ public class ContainerService implements ContainerAllocator, ContainerFinder {
             logger.info("allocate new container, containerGroup null");
 
             Container container = createsNewContainer(containerId, 1);
-            ContainerGroup newGroup = new ContainerGroup(containerId, ContainerAllocator.LOCAL, container);
+            ContainerGroup newGroup = new ContainerGroup(containerId, ContainerFinder.LOCAL, container);
 
             containerCache.put(containerId, newGroup);
             return container;
@@ -148,7 +149,7 @@ public class ContainerService implements ContainerAllocator, ContainerFinder {
                     containerId, 1L, needContainers);
 
             ContainerGroup newGroup =
-                    new ContainerGroup(containerId, ContainerAllocator.LOCAL, containers);
+                    new ContainerGroup(containerId, ContainerFinder.LOCAL, containers);
             containerCache.put(containerId, newGroup);
             return containers;
         }
@@ -285,7 +286,7 @@ public class ContainerService implements ContainerAllocator, ContainerFinder {
         ContainerGroup containerGroup =
                 containerCache.getIfPresent(container.getIdentity().id());
         if (containerGroup == null) {
-            containerGroup = new ContainerGroup(container.getIdentity().id(), ContainerAllocator.LOCAL, container);
+            containerGroup = new ContainerGroup(container.getIdentity().id(), ContainerFinder.LOCAL, container);
             containerCache.put(container.getIdentity().id(), containerGroup);
             return;
         }
@@ -315,22 +316,15 @@ public class ContainerService implements ContainerAllocator, ContainerFinder {
         MetaReadWriteHelper.writeContainerGroupMeta(containerGroupMeta, file);
     }
 
-    private boolean checkHasContainer(String containerId, long serial) {
-        ContainerGroup group = findGroup(containerId);
-        if (group == null) {
-            return false;
-        }
-        return serial <= group.lastSerial();
-    }
-
-    private ContainerGroup findGroup(String containerId) {
+    private ContainerGroup findGroup(String containerId, String source) {
+        // TODO: replica
         return containerCache.getIfPresent(containerId);
     }
 
     @Override
     @Nullable
     public Container findContainer(String containerId, long serial, String source) {
-        ContainerGroup group = findGroup(containerId);
+        ContainerGroup group = findGroup(containerId, source);
         if (group == null) {
             return null;
         }
@@ -350,7 +344,31 @@ public class ContainerService implements ContainerAllocator, ContainerFinder {
     @Override
     public ContainerGroup findContainerGroupByFile(String fileId, String source) {
         final String containerId = ContainerIdentity.toContainerId(fileId);
-        return findGroup(containerId);
+        return findGroup(containerId, source);
     }
 
+    @Override
+    public void deleteContainer(String id, long serial, String source) throws IOException {
+        ContainerGroup group = findGroup(id, source);
+        if (group == null) {
+            return;
+        }
+        Container container = group.getContainer(serial);
+        if (container == null) {
+            return;
+        }
+        group.remove(container);
+        removeContainer(container);
+    }
+
+    @Override
+    public void deleteContainer(Container container) throws IOException {
+        deleteContainer(container.getIdentity().id(), container.getSerial(), container.getSource());
+    }
+
+    private void removeContainer(Container container) throws IOException {
+        ServerFile file = localFileServer.getServerFileProvider().openFile(containerDir,
+                container.getResourceLocator());
+        file.delete();
+    }
 }

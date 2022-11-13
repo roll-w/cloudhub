@@ -48,13 +48,25 @@ public class ContainerGroup {
         List<FreeBlockInfo> containerFreeBlocks = serialFreeBlockInfos
                 .computeIfAbsent(container.getIdentity().serial(),
                         v -> new ArrayList<>());
-
         containerFreeBlocks.addAll(container.getFreeBlockInfos());
         if (blockSizeInBytes >= 0) {
             return;
         }
         // lazy load
         blockSizeInBytes = container.getIdentity().blockSizeBytes();
+    }
+
+    public void remove(Container container) {
+        containers.remove(container.getResourceLocator());
+        container.getBlockMetaInfos().forEach(blockMetaInfo ->
+                fileIds.remove(blockMetaInfo.getFileId()));
+        // Delete the file id directly.
+        // Because even if there were any files left,
+        // it wouldn't be complete.
+        serialFreeBlockInfos.remove(container.getIdentity().serial());
+        if (container.getIdentity().serial() == latestSerial) {
+            latestSerial = latestSerial - 1;
+        }
     }
 
     public Collection<Container> containers() {

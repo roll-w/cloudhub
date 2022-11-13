@@ -38,7 +38,7 @@ public class BlockReceiveService extends BlockUploadServiceGrpc.BlockUploadServi
     private final ContainerProperties containerProperties;
     private final ContainerWriterOpener containerWriterOpener;
     private final LocalFileServer localFileServer;
-
+    private final ServerFile stagingDir;
     private static final int BUFFERED_BLOCK_SIZE = 320;
 
     public BlockReceiveService(ContainerAllocator containerAllocator,
@@ -51,16 +51,20 @@ public class BlockReceiveService extends BlockUploadServiceGrpc.BlockUploadServi
         this.containerProperties = containerProperties;
         this.containerWriterOpener = containerWriterOpener;
         this.localFileServer = localFileServer;
+        this.stagingDir = localFileServer.getServerFileProvider()
+                .openFile(containerProperties.getStagePath());
         initStagingDirectory();
     }
 
     private void initStagingDirectory() throws IOException {
-        ServerFile file = localFileServer.getServerFileProvider()
-                .openFile(containerProperties.getStagePath());
-        file.mkdirs();
+        if (stagingDir.exists()) {
+            return;
+        }
+        stagingDir.mkdirs();
     }
 
     private ServerFile openNewStagingFile() throws IOException {
+        initStagingDirectory();
         ServerFile file = localFileServer.getServerFileProvider().openFile(
                 containerProperties.getStagePath(),
                 RandomStringUtils.randomAlphanumeric(20));
@@ -102,7 +106,7 @@ public class BlockReceiveService extends BlockUploadServiceGrpc.BlockUploadServi
         }
 
         private void checkExistsWithClose(String fileId) {
-            boolean exists = containerFinder.dataExists(fileId, ContainerAllocator.LOCAL);
+            boolean exists = containerFinder.dataExists(fileId, ContainerFinder.LOCAL);
             UploadBlocksResponse response = UploadBlocksResponse.newBuilder()
                     .setFileExists(exists)
                     .build();
@@ -249,7 +253,7 @@ public class BlockReceiveService extends BlockUploadServiceGrpc.BlockUploadServi
             }
 
             try (ContainerFileWriter containerFileWriter = new ContainerFileWriter(fileId,
-                    savedLength, ContainerAllocator.LOCAL, containerAllocator, containerWriterOpener, FileWriteStrategy.SEQUENCE)) {
+                    savedLength, ContainerFinder.LOCAL, containerAllocator, containerWriterOpener, FileWriteStrategy.SEQUENCE)) {
                 writeUntilEnd(containerFileWriter, stagingFile.openInput(), BUFFERED_BLOCK_SIZE, validBytes);
             } catch (IOException | MetaException e) {
                 logger.error("Occurred error here while saving to container.", e);
