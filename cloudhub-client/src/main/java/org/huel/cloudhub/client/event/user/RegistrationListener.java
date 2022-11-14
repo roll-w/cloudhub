@@ -1,4 +1,4 @@
-package org.huel.cloudhub.client.event.user.register;
+package org.huel.cloudhub.client.event.user;
 
 import org.huel.cloudhub.common.MailConstant;
 import org.huel.cloudhub.client.data.dto.UserInfo;

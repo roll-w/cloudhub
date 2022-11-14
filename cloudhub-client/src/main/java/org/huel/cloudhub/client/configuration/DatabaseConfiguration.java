@@ -15,7 +15,7 @@ import space.lingu.light.sql.MySQLDialectProvider;
 public class DatabaseConfiguration {
 
     @Bean
-    public CloudhubDatabase imageHostDatabase() {
+    public CloudhubDatabase cloudhubDatabase() {
         return Light.databaseBuilder(CloudhubDatabase.class,
                         MySQLDialectProvider.class)
                 .setConnectionPool(HikariConnectionPool.class)
