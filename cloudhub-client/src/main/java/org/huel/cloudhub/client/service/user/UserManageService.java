@@ -1,6 +1,8 @@
 package org.huel.cloudhub.client.service.user;
 
+import org.huel.cloudhub.client.data.dto.UserInfo;
 import org.huel.cloudhub.client.data.entity.user.Role;
+import org.huel.cloudhub.common.MessagePackage;
 
 import java.util.List;
 
@@ -12,23 +14,23 @@ import java.util.List;
 public interface UserManageService {
     // TODO: 需要实现。
 
-    default void createUser(String username, String password, String email, Role role) {
-        createUser(username, password, email, role, false);
+    default MessagePackage<UserInfo> createUser(String username, String password, String email, Role role) {
+        return createUser(username, password, email, role, false);
     }
 
-    default void createUser(String username, String password, String email) {
-        createUser(username, password, email, Role.USER);
+    default MessagePackage<UserInfo> createUser(String username, String password, String email) {
+        return createUser(username, password, email, Role.USER);
     }
 
-    default void createUser(String username, String password, String email, boolean discardEmail) {
-        createUser(username, password, email, Role.USER, discardEmail);
+    default MessagePackage<UserInfo> createUser(String username, String password, String email, boolean discardEmail) {
+        return createUser(username, password, email, Role.USER, discardEmail);
     }
 
-    void createUser(String username, String password, String email, Role role, boolean discardEmail);
+    MessagePackage<UserInfo> createUser(String username, String password, String email, Role role, boolean discardEmail);
 
-    void deleteUser(long userId);
+    MessagePackage<Void> deleteUser(long userId);
 
-    void deleteUsers(List<Long> userId);
+    MessagePackage<Void> deleteUsers(List<Long> userId);
 
-    void setRoleTo(long userId, Role role);
+    MessagePackage<UserInfo> setRoleTo(long userId, Role role);
 }
