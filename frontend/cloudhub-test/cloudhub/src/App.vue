@@ -20,6 +20,10 @@ body {
   background-image: url("@/assets/background/Img3.png");
   background-size: cover;
 }
-
-
+th,td{
+  text-align: center;
+}
+.div-right-float {
+  float: right;
+}
 </style>

@@ -9,7 +9,7 @@
     <hr>
     <table class="table table-hover" style="text-align: center ">
       <thead class="table-light">
-      <tr >
+      <tr>
         <th></th>
         <th scope="col">名称</th>
         <th scope="col">修改日期</th>
@@ -24,7 +24,7 @@
 
       <tr v-for="file in files" :key="file.fileSize">
         <th>
-            <input class="form-check-input mt-0" type="checkbox" value="" aria-label="Checkbox for following text input">
+          <input class="form-check-input mt-0" type="checkbox" value="" aria-label="Checkbox for following text input">
         </th>
         <th scope="row">{{ file.fileName }}</th>
         <th scope="row">{{ file.fileDate }}</th>
@@ -37,25 +37,28 @@
           </div>
         </th>
         <th scope="row">
-          <button type="button" class="btn btn-primary">查看</button>
+          <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#fileInfo">查看</button>
         </th>
       </tr>
 
       </tbody>
     </table>
+    <!-- 查看文件详情信息: 为避免table的CSS样式影响该组件样式，将该组件放在table外-->
+    <ModalFileInfo></ModalFileInfo>
   </ContentBase>
 </template>
 
 <script>
 import ContentBase from "@/components/ContentBase";
+import ModalFileInfo from "@/components/modal/ModalFileInfo";
 import {useRouter} from "vue-router";
 import {ref} from "vue";
 
 export default {
   name: "FileView",
   components: {
-
     ContentBase,
+    ModalFileInfo
   },
   setup() {
     // 模拟windows资源管理器
@@ -89,7 +92,7 @@ export default {
 
     const route = useRouter()
 
-    const back = () =>{
+    const back = () => {
       route.push('bucket')
     }
 

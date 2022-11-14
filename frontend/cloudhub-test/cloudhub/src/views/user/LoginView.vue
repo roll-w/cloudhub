@@ -61,8 +61,10 @@ export default {
   font-family: 'Roboto', sans-serif;
   height: 100%;
   width: 100%;
+  position: relative;
   top: 0;
   left: 0;
+
 }
 
 /*内容div*/
@@ -70,7 +72,6 @@ export default {
   width: 400px;
   height: 500px;
   margin: 50px auto;
-  position: relative;
   background-color: #ffffff;
   border-radius: 25px;
   overflow: hidden;

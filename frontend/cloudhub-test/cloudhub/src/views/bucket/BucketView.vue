@@ -14,7 +14,7 @@
         <th scope="col">桶策略</th>
         <th scope="col">对象数量</th>
         <th scope="col">详情信息</th>
-        <th scope="col">操作</th>
+        <th scope="col">编辑</th>
       </tr>
       </thead>
 
@@ -32,6 +32,11 @@
         </td>
         <td>
           <div class="btn-group" role="group" aria-label="Basic outlined example">
+            <button type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#bucketAuthority">
+              权限
+            </button>
+          </div>
+          <div class="btn-group" role="group" aria-label="Basic outlined example">
             <button type="button" class="btn btn-danger">删除</button>
           </div>
         </td>
@@ -39,19 +44,25 @@
 
       </tbody>
     </table>
+
+    <!-- 修改桶的权限（把组件放在table标签之外是为了免除table的CSS样式对该组件的内容产生影响） -->
+    <ModalBucketAuthority></ModalBucketAuthority>
+
   </ContentBase>
 </template>
 
 <script>
 import ContentBase from "@/components/ContentBase";
 import ModalAddBucket from "@/components/modal/ModalAddBucket";
+import ModalBucketAuthority from "@/components/modal/ModalBucketAuthority";
 import {useRouter} from 'vue-router'
 
 export default {
   name: "BucketView",
   components: {
     ContentBase,
-    ModalAddBucket
+    ModalAddBucket,
+    ModalBucketAuthority
   },
   setup() {
     // 桶列表

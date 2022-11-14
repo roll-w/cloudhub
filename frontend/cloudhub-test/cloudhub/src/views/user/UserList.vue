@@ -12,6 +12,7 @@
         <th scope="col">角色ID</th>
         <th scope="col">用户名</th>
         <th scope="col">用户密码</th>
+        <th scope="col">用户文件</th>
         <th scope="col">操作</th>
       </tr>
       </thead>
@@ -24,7 +25,12 @@
         <td>{{ user.password }}</td>
         <td>
           <div class="btn-group" role="group" aria-label="Basic outlined example">
-            <button type="button" class="btn btn-primary">编辑</button>
+            <button type="button" class="btn btn-primary">查看</button>
+          </div>
+        </td>
+        <td>
+          <div class="btn-group" role="group" aria-label="Basic outlined example">
+            <button type="button" class="btn btn-secondary">编辑</button>
           </div>
         </td>
       </tr>
