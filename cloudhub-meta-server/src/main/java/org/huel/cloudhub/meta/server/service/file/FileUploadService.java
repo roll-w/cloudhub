@@ -11,9 +11,10 @@ import org.huel.cloudhub.meta.server.configuration.FileProperties;
 import org.huel.cloudhub.meta.server.data.database.repository.FileStorageLocationRepository;
 import org.huel.cloudhub.meta.server.data.entity.FileStorageLocation;
 import org.huel.cloudhub.meta.server.service.node.*;
-import org.huel.cloudhub.server.GrpcProperties;
-import org.huel.cloudhub.server.StreamObserverWrapper;
-import org.huel.cloudhub.server.rpc.heartbeat.SerializedFileServer;
+import org.huel.cloudhub.rpc.GrpcProperties;
+import org.huel.cloudhub.rpc.GrpcServiceStubPool;
+import org.huel.cloudhub.rpc.StreamObserverWrapper;
+import org.huel.cloudhub.rpc.heartbeat.SerializedFileServer;
 import org.huel.cloudhub.util.math.Maths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,6 +38,8 @@ public class FileUploadService {
     private final GrpcProperties grpcProperties;
     private final FileStorageLocationRepository storageLocationRepository;
     private final NodeChannelPool nodeChannelPool;
+    private final GrpcServiceStubPool<BlockUploadServiceGrpc.BlockUploadServiceStub>
+            blockUploadServiceStubPool;
     private final ServerChecker serverChecker;
 
     public FileUploadService(HeartbeatService heartbeatService,
@@ -49,7 +52,7 @@ public class FileUploadService {
         this.nodeChannelPool = new NodeChannelPool(grpcProperties);
         this.grpcProperties = grpcProperties;
         this.serverChecker = heartbeatService.getServerChecker();
-
+        this.blockUploadServiceStubPool = new GrpcServiceStubPool<>();
         initial();
     }
 
@@ -98,9 +101,9 @@ public class FileUploadService {
 
         final long maxBlocksValue = grpcProperties.getMaxRequestSizeBytes() >> 1;
         final int blockSizeInBytes = fileProperties.getBlockSizeInBytes();
-        // calcs how many [UploadBlock]s a request can contain at most
+        // calc how many [UploadBlock]s a request can contain at most
         final int maxUploadBlockCount = (int) (maxBlocksValue / blockSizeInBytes);
-        // calcs how many requests will be sent.
+        // calc how many requests will be sent.
         final int requestCount = Maths.ceilDivideReturnsInt(reopenableInputStream.getLength(), maxBlocksValue);
         final long validBytes = reopenableInputStream.getLength() % blockSizeInBytes;
         logger.debug("Calc: length={};maxBlocksValue={};blockSizeInBytes={};maxUploadBlockCount={};requestCount={};validBytes={}",
@@ -109,9 +112,11 @@ public class FileUploadService {
         NodeServer master = nodeAllocator.allocateNode(hash);
         BlockUploadServiceGrpc.BlockUploadServiceStub stub =
                 requiredBlockUploadServiceStub(master);
+        List<SerializedFileServer> servers = allocateSerializedReplicaServers(hash, master.id());
+        logger.debug("Allocate replicas = {}", servers);
         UploadBlocksRequest firstRequest = buildFirstRequest(hash, crc32, validBytes,
                 reopenableInputStream.getLength(), requestCount,
-                List.of());// TODO: allocates replica servers
+                servers);
 
         UploadBlocksResponseStreamObserver responseStreamObserver =
                 new UploadBlocksResponseStreamObserver(hash, reopenableInputStream,
@@ -128,10 +133,13 @@ public class FileUploadService {
 
     private BlockUploadServiceGrpc.BlockUploadServiceStub requiredBlockUploadServiceStub(NodeServer nodeServer) {
         ManagedChannel channel = nodeChannelPool.getChannel(nodeServer);
-
         BlockUploadServiceGrpc.BlockUploadServiceStub stub =
-                BlockUploadServiceGrpc.newStub(channel);
-        // TODO: caching stub
+                blockUploadServiceStubPool.getStub(nodeServer.id());
+        if (stub != null) {
+            return stub;
+        }
+        stub = BlockUploadServiceGrpc.newStub(channel);
+        blockUploadServiceStubPool.registerStub(nodeServer.id(), stub);
         return stub;
     }
 
@@ -321,12 +329,34 @@ public class FileUploadService {
         tempDir.mkdirs();
     }
 
+    private List<SerializedFileServer> allocateSerializedReplicaServers(String hash, String masterId) {
+        int replicas = calcReplicas();
+        List<NodeServer> replicaServers = allocatesReplicaServers(hash, replicas, masterId);
+        if (replicaServers.isEmpty()) {
+            return List.of();
+        }
+        return toSerialized(replicaServers);
+    }
+
     // finds replica servers.
-    private List<NodeServer> allocatesReplicaServers(String hash, int replicas) {
+    private List<NodeServer> allocatesReplicaServers(String hash, int replicas, String masterId) {
+        if (replicas <= 0) {
+            return List.of();
+        }
         List<NodeServer> servers = new ArrayList<>();
-        for (int i = 0; i < replicas; i++) {
+        int reps = replicas, retries = 0;
+        for (int i = 0; i < reps; i++) {
             NodeServer server =
                     nodeAllocator.allocateNode(hash + "-" + i);
+            if (retries > 5) {
+                // still cannot allocate given replicas count after 5 tries.
+                return servers;
+            }
+            if (server.id().equals(masterId)) {
+                reps++;
+                retries++;
+                continue;
+            }
             servers.add(server);
         }
         return servers;
@@ -339,7 +369,22 @@ public class FileUploadService {
      */
     private int calcReplicas() {
         int activeServerSize = serverChecker.getActiveServerCount();
-        return Math.min(activeServerSize, 3);
-        //return (activeServerSize / 3) * 3 - (activeServerSize / 3 - 1);
+        if (activeServerSize == 1) {
+            return 0;
+        }
+
+        return Math.min(activeServerSize, 2);
+        // 1 master with 2 replicas
+    }
+
+    private static List<SerializedFileServer> toSerialized(List<NodeServer> nodeServers) {
+        List<SerializedFileServer> servers = new ArrayList<>();
+        nodeServers.forEach(nodeServer -> servers.add(
+                SerializedFileServer.newBuilder()
+                        .setHost(nodeServer.host())
+                        .setId(nodeServer.id())
+                        .setPort(nodeServer.port())
+                        .build()));
+        return servers;
     }
 }

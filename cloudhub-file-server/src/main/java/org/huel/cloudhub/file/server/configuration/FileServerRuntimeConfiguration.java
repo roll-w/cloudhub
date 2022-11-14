@@ -5,7 +5,7 @@ import org.huel.cloudhub.file.conf.FileConfigKeys;
 import org.huel.cloudhub.file.conf.FileConfigLoader;
 import org.huel.cloudhub.file.fs.container.ContainerProperties;
 import org.huel.cloudhub.file.server.service.heartbeat.HeartbeatHostProperties;
-import org.huel.cloudhub.server.GrpcProperties;
+import org.huel.cloudhub.rpc.GrpcProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 

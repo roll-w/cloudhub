@@ -10,7 +10,7 @@ import org.huel.cloudhub.file.fs.container.*;
 import org.huel.cloudhub.file.fs.container.file.ContainerFileReader;
 import org.huel.cloudhub.file.rpc.block.*;
 import org.huel.cloudhub.file.server.service.id.ServerIdService;
-import org.huel.cloudhub.server.GrpcProperties;
+import org.huel.cloudhub.rpc.GrpcProperties;
 import org.huel.cloudhub.util.math.Maths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -4,6 +4,8 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.huel.cloudhub.file.diagnosis.Diagnosable;
+import org.huel.cloudhub.file.diagnosis.DiagnosisReport;
 import org.huel.cloudhub.file.fs.container.ContainerDeleter;
 import org.huel.cloudhub.file.fs.FileAllocator;
 import org.huel.cloudhub.file.fs.LocalFileServer;
@@ -12,6 +14,7 @@ import org.huel.cloudhub.file.fs.block.BlockMetaInfo;
 import org.huel.cloudhub.file.fs.container.*;
 import org.huel.cloudhub.file.fs.container.replica.ReplicaContainerLoader;
 import org.huel.cloudhub.file.fs.meta.*;
+import org.huel.cloudhub.rpc.status.SerializedDamagedContainerReport;
 import org.huel.cloudhub.util.math.Maths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,16 +22,14 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author RollW
  */
 @Service
-public class ContainerService implements ContainerAllocator, ContainerFinder, ContainerDeleter {
+public class ContainerService implements ContainerAllocator, ContainerFinder, ContainerDeleter,
+        Diagnosable<SerializedDamagedContainerReport> {
     private final Cache<String, ContainerGroup> containerCache =
             Caffeine.newBuilder()
                     .build();
@@ -72,7 +73,7 @@ public class ContainerService implements ContainerAllocator, ContainerFinder, Co
 
         for (SerializedContainerMeta serializedContainerMeta : serializedContainerMetas) {
             Container container = loadInContainer(serializedContainerMeta);
-            updatesContainer(container);
+            updatesContainerInContainerGroup(container);
         }
     }
 
@@ -132,6 +133,7 @@ public class ContainerService implements ContainerAllocator, ContainerFinder, Co
                 containerGroup.lastSerial() + 1);
         logger.info("allocate new container, locator={}", container.getResourceLocator());
         containerGroup.put(container);
+        // although a new container has been allocated, but it actually not usable.
         return container;
     }
 
@@ -200,7 +202,7 @@ public class ContainerService implements ContainerAllocator, ContainerFinder, Co
         if (container.isUsable()) {
             return;
         }
-        logger.info("creates container, locator: {}, ", container.getResourceLocator());
+        logger.info("Creates container, locator: {}, ", container.getResourceLocator());
         ServerFile containerFile = localFileServer.getServerFileProvider().openFile(containerProperties.getContainerPath(),
                 container.getResourceLocator());
         ServerFile containerMetaFile = localFileServer.getServerFileProvider().openFile(containerProperties.getContainerPath(),
@@ -214,7 +216,7 @@ public class ContainerService implements ContainerAllocator, ContainerFinder, Co
 
         allocateContainerSize(container);
 
-        var meta = SerializedContainerMeta.newBuilder()
+        SerializedContainerMeta meta = SerializedContainerMeta.newBuilder()
                 .setLocator(container.getResourceLocator())
                 .setVersion(0)
                 .build();
@@ -243,8 +245,9 @@ public class ContainerService implements ContainerAllocator, ContainerFinder, Co
                 .setCrc(container.getIdentity().crc())
                 .build();
 
-        updatesContainer(container);
+        updatesContainerInContainerGroup(container);
         MetaReadWriteHelper.writeContainerBlockMeta(containerBlockMeta, containerMetaFile);
+        updateContainerGroupMeta(container);
     }
 
 
@@ -281,8 +284,7 @@ public class ContainerService implements ContainerAllocator, ContainerFinder, Co
         return containers;
     }
 
-    @Async
-    void updatesContainer(Container container) {
+    private void updatesContainerInContainerGroup(Container container) {
         ContainerGroup containerGroup =
                 containerCache.getIfPresent(container.getIdentity().id());
         if (containerGroup == null) {
@@ -294,6 +296,14 @@ public class ContainerService implements ContainerAllocator, ContainerFinder, Co
         containerGroup.put(container);
     }
 
+
+    private void updateContainerGroupMeta(Container container) throws IOException {
+        SerializedContainerMeta meta = SerializedContainerMeta.newBuilder()
+                .setLocator(container.getResourceLocator())
+                .setVersion(container.getVersion())
+                .build();
+        writeContainerMeta(meta);
+    }
 
     @Async
     void writeContainerMeta(SerializedContainerMeta containerMeta) throws IOException {
@@ -307,8 +317,10 @@ public class ContainerService implements ContainerAllocator, ContainerFinder, Co
         SerializedContainerGroupMeta containerGroupMeta = MetaReadWriteHelper.readContainerMeta(file);
 
         List<SerializedContainerMeta> containerMetas = new ArrayList<>(containerGroupMeta.getMetaList());
+        containerMetas.removeIf(serializedContainerMeta ->
+                serializedContainerMeta.getLocator().equals(containerMeta.getLocator()));
         containerMetas.add(containerMeta);
-        containerMetas = containerMetas.stream().distinct().toList();
+
         containerGroupMeta = SerializedContainerGroupMeta.newBuilder()
                 .addAllMeta(containerMetas)
                 .build();
@@ -370,5 +382,11 @@ public class ContainerService implements ContainerAllocator, ContainerFinder, Co
         ServerFile file = localFileServer.getServerFileProvider().openFile(containerDir,
                 container.getResourceLocator());
         file.delete();
+    }
+
+    @Override
+    public DiagnosisReport<SerializedDamagedContainerReport> getDiagnosisReport() {
+        // TODO: diagnosis report
+        return null;
     }
 }

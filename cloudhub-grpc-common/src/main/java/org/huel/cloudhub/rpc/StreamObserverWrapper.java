@@ -1,4 +1,4 @@
-package org.huel.cloudhub.server;
+package org.huel.cloudhub.rpc;
 
 import io.grpc.stub.StreamObserver;
 

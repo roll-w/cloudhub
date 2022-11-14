@@ -10,7 +10,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author RollW
  */
 public class RegisterNodeAllocator implements
-        HeartbeatWatcherPool.ServerEventCallback, NodeAllocator {
+        ServerEventRegistry.ServerEventCallback, NodeAllocator {
     private final NodeWeightProvider nodeWeightProvider;
     private final Map<String, NodeServer> nodeServers =
             new ConcurrentHashMap<>();

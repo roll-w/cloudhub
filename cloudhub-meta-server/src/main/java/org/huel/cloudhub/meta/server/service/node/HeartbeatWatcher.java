@@ -1,7 +1,7 @@
 package org.huel.cloudhub.meta.server.service.node;
 
-import org.huel.cloudhub.server.rpc.heartbeat.Heartbeat;
-import org.huel.cloudhub.server.rpc.status.SerializedServerStatusCode;
+import org.huel.cloudhub.rpc.heartbeat.Heartbeat;
+import org.huel.cloudhub.rpc.status.SerializedServerStatusCode;
 
 /**
  * @author RollW

@@ -15,7 +15,7 @@ import org.huel.cloudhub.file.fs.container.file.ContainerFileWriter;
 import org.huel.cloudhub.file.fs.container.file.FileWriteStrategy;
 import org.huel.cloudhub.file.fs.meta.MetaException;
 import org.huel.cloudhub.file.rpc.block.*;
-import org.huel.cloudhub.server.StreamObserverWrapper;
+import org.huel.cloudhub.rpc.StreamObserverWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;

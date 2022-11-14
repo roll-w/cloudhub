@@ -28,6 +28,13 @@ public class ReplicaGroup {
         group.put(container);
     }
 
+    public Container getContainer(String containerId, long serial) {
+        ContainerGroup group = getGroup(containerId);
+        if (group == null) {
+            return null;
+        }
+        return group.getContainer(serial);
+    }
 
     private ContainerGroup newGroup(String containerId) {
         return new ContainerGroup(containerId, sourceId);

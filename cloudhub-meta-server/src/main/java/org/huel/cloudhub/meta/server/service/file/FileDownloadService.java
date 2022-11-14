@@ -6,7 +6,7 @@ import org.huel.cloudhub.file.rpc.block.*;
 import org.huel.cloudhub.meta.server.data.database.repository.FileStorageLocationRepository;
 import org.huel.cloudhub.meta.server.data.entity.FileStorageLocation;
 import org.huel.cloudhub.meta.server.service.node.*;
-import org.huel.cloudhub.server.GrpcProperties;
+import org.huel.cloudhub.rpc.GrpcProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;

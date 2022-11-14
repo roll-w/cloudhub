@@ -2,7 +2,7 @@ package org.huel.cloudhub.meta.server.configuration;
 
 import org.huel.cloudhub.meta.conf.MetaConfigLoader;
 import org.huel.cloudhub.meta.server.service.node.HeartbeatServerProperties;
-import org.huel.cloudhub.server.GrpcProperties;
+import org.huel.cloudhub.rpc.GrpcProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import space.lingu.light.DatasourceConfig;

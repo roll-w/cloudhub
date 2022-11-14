@@ -23,7 +23,7 @@ public final class MetaReadWriteHelper {
     }
 
     public static void writeContainerGroupMeta(SerializedContainerGroupMeta containerGroupMeta,
-                                         ServerFile file) throws IOException {
+                                               ServerFile file) throws IOException {
         try (OutputStream outputStream = file.openOutput(true)) {
             containerGroupMeta.writeTo(outputStream);
         }

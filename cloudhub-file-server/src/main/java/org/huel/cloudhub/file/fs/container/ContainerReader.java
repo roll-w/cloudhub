@@ -40,6 +40,37 @@ public class ContainerReader implements Closeable {
         return new LimitedSeekableInputStream(stream, limit);
     }
 
+    public void seek(int index) throws IOException {
+        if (index < 0) {
+            seek(0);
+            return;
+        }
+
+        long blockSizeBytes = container.getIdentity().blockSizeBytes();
+        containerInputStream.seek(blockSizeBytes * index);
+    }
+
+    public List<ContainerBlock> readBlocks(final int count) throws IOException {
+        if (count <= 0) {
+            return List.of();
+        }
+        long blockSizeBytes = container.getIdentity().blockSizeBytes();
+        List<ContainerBlock> containerBlocks = new ArrayList<>();
+        for (int i = 0; i < count; i++) {
+            byte[] chuck = new byte[(int) blockSizeBytes];
+            int read = containerInputStream.read(chuck);
+            if (read == -1) {
+                throw new ContainerException("Incorrect termination block in [%d], count=%d."
+                        .formatted(i, count));
+            }
+            ContainerBlock containerBlock = new ContainerBlock(
+                    container.getLocation(), i, chuck,
+                    container.getIdentity().blockSizeBytes());
+            containerBlocks.add(containerBlock);
+        }
+        return containerBlocks;
+    }
+
     public List<ContainerBlock> readBlocks(final int start, final int end) throws IOException {
         if (start >= container.getIdentity().blockLimit() || end >= container.getIdentity().blockLimit()) {
             throw new IllegalArgumentException("Invalid start or end, exceeded container's max.");
@@ -53,7 +84,8 @@ public class ContainerReader implements Closeable {
 
         List<ContainerBlock> containerBlocks = new ArrayList<>();
         long blockSizeBytes = container.getIdentity().blockSizeBytes();
-        containerInputStream.seek(blockSizeBytes * start);
+        // TODO(Optimise): record last position, if equals, there is no need to seek
+        seek(start);
         for (int index = start; index <= end; index++){
             byte[] chuck = new byte[(int) blockSizeBytes];
             int read = containerInputStream.read(chuck);
@@ -62,8 +94,9 @@ public class ContainerReader implements Closeable {
                         .formatted(index, end));
             }
             final long validBytes = calcValidBytes(index, end, container.getIdentity().blockSizeBytes());
-            ContainerBlock containerBlock =
-                    new ContainerBlock(container.getLocation(), index, chuck, validBytes);
+            // actually we don't know how many valid bytes here.
+            ContainerBlock containerBlock = new ContainerBlock(
+                    container.getLocation(), index, chuck, validBytes);
             containerBlocks.add(containerBlock);
         }
 

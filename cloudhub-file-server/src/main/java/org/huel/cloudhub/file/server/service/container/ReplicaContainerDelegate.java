@@ -5,13 +5,11 @@ import org.huel.cloudhub.file.fs.LocalFileServer;
 import org.huel.cloudhub.file.fs.ServerFile;
 import org.huel.cloudhub.file.fs.block.BlockMetaInfo;
 import org.huel.cloudhub.file.fs.container.*;
+import org.huel.cloudhub.file.fs.container.replica.ReplicaContainerCreator;
 import org.huel.cloudhub.file.fs.container.replica.ReplicaContainerLoader;
 import org.huel.cloudhub.file.fs.container.replica.ReplicaContainerNameMeta;
 import org.huel.cloudhub.file.fs.container.replica.ReplicaGroup;
-import org.huel.cloudhub.file.fs.meta.MetaReadWriteHelper;
-import org.huel.cloudhub.file.fs.meta.SerializedContainerBlockMeta;
-import org.huel.cloudhub.file.fs.meta.SerializedContainerGroupMeta;
-import org.huel.cloudhub.file.fs.meta.SerializedContainerMeta;
+import org.huel.cloudhub.file.fs.meta.*;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -25,7 +23,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author RollW
  */
 @Service
-public class ReplicaContainerDelegate implements ReplicaContainerLoader {
+public class ReplicaContainerDelegate implements ReplicaContainerLoader, ReplicaContainerCreator {
     private final Map<String, ReplicaGroup> replicaContainerGroups =
             new ConcurrentHashMap<>();
     private final ContainerProperties containerProperties;
@@ -48,16 +46,11 @@ public class ReplicaContainerDelegate implements ReplicaContainerLoader {
         }
     }
 
-    @Override
-    public Container findContainer(String id, String source) {
-        return null;
-    }
-
     private void updatesContainer(Container container) {
-        ReplicaGroup replicaGroup = replicaContainerGroups.get(container.getIdentity().id());
+        ReplicaGroup replicaGroup = replicaContainerGroups.get(container.getSource());
         if (replicaGroup == null) {
             replicaGroup = new ReplicaGroup(container.getSource());
-            replicaContainerGroups.put(container.getIdentity().id(), replicaGroup);
+            replicaContainerGroups.put(container.getSource(), replicaGroup);
         }
         replicaGroup.put(container);
     }
@@ -83,8 +76,16 @@ public class ReplicaContainerDelegate implements ReplicaContainerLoader {
                 identity, blockMetaInfos, serializedContainerMeta.getVersion(), true);
     }
 
-    public void createLocalReplica() {
-
+    @Override
+    public Container findOrCreateContainer(String id, String source, long serial, SerializedContainerBlockMeta serializedContainerBlockMeta) throws IOException {
+        ReplicaGroup replicaGroup = replicaContainerGroups.get(source);
+        Container container = replicaGroup.getContainer(id, serial);
+        if (container != null) {
+            return container;
+        }
+        container = createReplicaContainer(id, source, serial, serializedContainerBlockMeta);
+        replicaGroup.put(container);
+        return container;
     }
 
     private Container createReplicaContainer(String id,
@@ -98,20 +99,9 @@ public class ReplicaContainerDelegate implements ReplicaContainerLoader {
                 toDataPath(containerNameMeta.getName()),
                 ContainerLocation.REPLICA_META_SUFFIX);
         ContainerIdentity identity = buildIdentityFrom(containerNameMeta, containerBlockMeta);
-        Container container = new Container(location, source,
+        return new Container(location, source,
                 containerBlockMeta.getUsedBlock(),
                 identity, List.of(), 1, true);
-        allocateContainerSize(container);
-        return container;
-    }
-
-    private void allocateContainerSize(Container container) throws IOException {
-        if (container.getLocation().exists()) {
-            return;
-        }
-        try (FileAllocator allocator = new FileAllocator(container.getLocation())) {
-            allocator.allocateSize(container.getLimitBytes());
-        }
     }
 
     private ContainerIdentity buildIdentityFrom(ReplicaContainerNameMeta nameMeta,
@@ -125,5 +115,28 @@ public class ReplicaContainerDelegate implements ReplicaContainerLoader {
 
     private String toDataPath(String name) {
         return containerProperties.getContainerPath() + File.separator + name;
+    }
+
+    @Override
+    public void createContainerWithMeta(Container container,
+                                        SerializedContainerBlockMeta serializedContainerBlockMeta) throws IOException {
+        containerDir.mkdirs();
+        ServerFile containerFile = localFileServer.getServerFileProvider()
+                .openFile(containerDir, container.getResourceLocator());
+        boolean containerExists = containerFile.exists();
+        containerFile.createFile();
+        ServerFile metaFile = localFileServer.getServerFileProvider()
+                .openFile(containerDir, container.getResourceLocator() + ContainerLocation.REPLICA_META_SUFFIX);
+        metaFile.createFile();
+        if (!containerExists) {
+            allocateContainerSize(container);
+        }
+        MetaReadWriteHelper.writeContainerBlockMeta(serializedContainerBlockMeta, metaFile);
+    }
+
+    private void allocateContainerSize(Container container) throws IOException {
+        try (FileAllocator allocator = new FileAllocator(container.getLocation())) {
+            allocator.allocateSize(container.getLimitBytes());
+        }
     }
 }

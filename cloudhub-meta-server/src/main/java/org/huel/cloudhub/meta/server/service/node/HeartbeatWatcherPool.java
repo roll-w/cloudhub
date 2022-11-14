@@ -1,10 +1,12 @@
 package org.huel.cloudhub.meta.server.service.node;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.huel.cloudhub.server.rpc.heartbeat.Heartbeat;
+import org.huel.cloudhub.rpc.heartbeat.Heartbeat;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -13,7 +15,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * @author RollW
  */
-public final class HeartbeatWatcherPool implements ServerChecker {
+public final class HeartbeatWatcherPool implements ServerChecker, ServerEventRegistry {
     // lower latency, but more mem space occupied.
     private final Map<String, HeartbeatWatcher> heartbeatWatchers =
             new ConcurrentHashMap<>();
@@ -21,6 +23,8 @@ public final class HeartbeatWatcherPool implements ServerChecker {
             new ConcurrentHashMap<>();
     private final Map<String, HeartbeatWatcher> deadHeartbeatWatchers =
             new ConcurrentHashMap<>();
+    private final Set<ServerEventCallback> serverEventCallbacks =
+            new HashSet<>();
 
     private final int standardPeriod;
     private final int timeoutCycle;
@@ -28,24 +32,21 @@ public final class HeartbeatWatcherPool implements ServerChecker {
     private final int frequency; // in ms.
 
     private final RCheckTimeoutRunnable checkTimeoutRunnable;
-    private final ServerEventCallback callback;
 
     public HeartbeatWatcherPool(int standardPeriod,
-                                int timeoutCycle,
-                                ServerEventCallback callback) {
+                                int timeoutCycle) {
         this.standardPeriod = standardPeriod;
         this.timeoutCycle = timeoutCycle;
-        this.callback = callback;
         this.timeoutTime = standardPeriod * timeoutCycle;
         this.frequency = standardPeriod / 2;
         this.checkTimeoutRunnable = new RCheckTimeoutRunnable();
     }
 
     private void pushWatcher(HeartbeatWatcher heartbeatWatcher) {
-        callback.registerServer(heartbeatWatcher.getNodeServer());
+        callRegisterServer(heartbeatWatcher.getNodeServer());
         heartbeatWatchers.put(heartbeatWatcher.getServerId(), heartbeatWatcher);
         setActiveWatcher(heartbeatWatcher);
-        callback.addActiveServer(heartbeatWatcher.getNodeServer());
+        callAddActiveServer(heartbeatWatcher.getNodeServer());
     }
 
     public void pushNodeServerWatcher(NodeServer nodeServer) {
@@ -129,6 +130,11 @@ public final class HeartbeatWatcherPool implements ServerChecker {
         return timeoutTime;
     }
 
+    @Override
+    public void registerCallback(ServerEventCallback serverEventCallback) {
+        serverEventCallbacks.add(serverEventCallback);
+    }
+
 
     private class RCheckTimeoutRunnable implements Runnable {
         @Override
@@ -137,7 +143,7 @@ public final class HeartbeatWatcherPool implements ServerChecker {
             heartbeatWatchers.values().stream().parallel().forEach(heartbeatWatcher -> {
                 if (heartbeatWatcher.isTimeoutOrError(time)) {
                     setDeadWatcher(heartbeatWatcher);
-                    callback.removeActiveServer(heartbeatWatcher.getNodeServer());
+                    callRemoveActiveServer(heartbeatWatcher.getNodeServer());
                 }
             });
         }
@@ -179,11 +185,18 @@ public final class HeartbeatWatcherPool implements ServerChecker {
     final ScheduledExecutorService service =
             Executors.newSingleThreadScheduledExecutor();
 
-    public interface ServerEventCallback {
-        void registerServer(NodeServer server);
+    private void callAddActiveServer(NodeServer nodeServer) {
+        serverEventCallbacks.forEach(callback ->
+                callback.addActiveServer(nodeServer));
+    }
 
-        void removeActiveServer(NodeServer nodeServer);
+    private void callRemoveActiveServer(NodeServer nodeServer) {
+        serverEventCallbacks.forEach(callback ->
+                callback.removeActiveServer(nodeServer));
+    }
 
-        void addActiveServer(NodeServer nodeServer);
+    private void callRegisterServer(NodeServer nodeServer) {
+        serverEventCallbacks.forEach(callback ->
+                callback.registerServer(nodeServer));
     }
 }

@@ -2,45 +2,41 @@ package org.huel.cloudhub.meta.server.service.node;
 
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
-import org.huel.cloudhub.server.GrpcProperties;
-
-import java.util.HashMap;
-import java.util.Map;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.huel.cloudhub.rpc.GrpcChannelPool;
+import org.huel.cloudhub.rpc.GrpcProperties;
 
 /**
  * @author RollW
  */
-public class NodeChannelPool {
-    private final Map<NodeServer, ManagedChannel> channelMap =
-            new HashMap<>();
-
+public class NodeChannelPool extends GrpcChannelPool<NodeServer>
+        implements ServerEventRegistry.ServerEventCallback {
     private final GrpcProperties grpcProperties;
 
     public NodeChannelPool(GrpcProperties grpcProperties) {
         this.grpcProperties = grpcProperties;
     }
 
-    private ManagedChannel establish(NodeServer server) {
-        ManagedChannel managedChannel =
-                ManagedChannelBuilder.forAddress(server.host(), server.port())
-                        .usePlaintext()
-                        .maxInboundMessageSize((int) grpcProperties.getMaxRequestSizeBytes() * 2)
-                        .build();
-        channelMap.put(server, managedChannel);
-        return managedChannel;
+    @Override
+    @NonNull
+    protected ManagedChannel buildChannel(NodeServer server) {
+        return ManagedChannelBuilder.forAddress(server.host(), server.port())
+                .usePlaintext()
+                .maxInboundMessageSize((int) grpcProperties.getMaxRequestSizeBytes() * 2)
+                .build();
     }
 
-    public ManagedChannel getChannel(NodeServer server) {
-        if (channelMap.containsKey(server)) {
-            return channelMap.get(server);
-        }
-        return establish(server);
+    @Override
+    public void registerServer(NodeServer server) {
     }
 
-    public void disconnect(NodeServer server) {
-        if (!channelMap.containsKey(server)) {
-            return;
-        }
-        channelMap.get(server).shutdown();
+    @Override
+    public void removeActiveServer(NodeServer nodeServer) {
+        disconnect(nodeServer);
+    }
+
+    @Override
+    public void addActiveServer(NodeServer nodeServer) {
+        establish(nodeServer);
     }
 }

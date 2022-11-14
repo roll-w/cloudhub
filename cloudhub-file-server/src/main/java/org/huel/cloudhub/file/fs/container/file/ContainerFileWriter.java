@@ -203,6 +203,7 @@ public class ContainerFileWriter implements Closeable {
                 result.validBytes(),
                 container.getSerial(),
                 nextSerial);
+        container.updatesVersion();
         container.addBlockMetaInfos(blockMetaInfo);
         containerAllocator.updatesContainerMetadata(container);
         // get prepared for next write.

@@ -1,6 +1,6 @@
 package org.huel.cloudhub.file.server.service.heartbeat;
 
-import org.huel.cloudhub.server.rpc.heartbeat.HeartbeatResponse;
+import org.huel.cloudhub.rpc.heartbeat.HeartbeatResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -33,7 +33,7 @@ public class HeartbeatTask {
         } else {
             period = response.getPeriod();
         }
-        logger.info("first receive heartbeat response, set period to {}.", period);
+        logger.info("First receive heartbeat response, set period to {}.", period);
         if (period <= 0) {
             throw new IllegalStateException("Not has a legal period.");
         }
