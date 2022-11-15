@@ -14,7 +14,7 @@ import org.huel.cloudhub.meta.server.service.node.*;
 import org.huel.cloudhub.rpc.GrpcProperties;
 import org.huel.cloudhub.rpc.GrpcServiceStubPool;
 import org.huel.cloudhub.rpc.StreamObserverWrapper;
-import org.huel.cloudhub.rpc.heartbeat.SerializedFileServer;
+import org.huel.cloudhub.server.rpc.heartbeat.SerializedFileServer;
 import org.huel.cloudhub.util.math.Maths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,9 +23,7 @@ import org.springframework.stereotype.Service;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -113,7 +111,6 @@ public class FileUploadService {
         BlockUploadServiceGrpc.BlockUploadServiceStub stub =
                 requiredBlockUploadServiceStub(master);
         List<SerializedFileServer> servers = allocateSerializedReplicaServers(hash, master.id());
-        logger.debug("Allocate replicas = {}", servers);
         UploadBlocksRequest firstRequest = buildFirstRequest(hash, crc32, validBytes,
                 reopenableInputStream.getLength(), requestCount,
                 servers);
@@ -298,6 +295,16 @@ public class FileUploadService {
         }
     }
 
+    private List<SerializedFileServer> allocateSerializedReplicaServers(String hash, String masterId) {
+        int replicas = calcReplicas();
+        List<NodeServer> replicaServers = allocatesReplicaServers(hash, replicas, masterId);
+        logger.debug("Allocate replicas = {}", replicaServers);
+        if (replicaServers.isEmpty()) {
+            return List.of();
+        }
+        return toSerialized(replicaServers);
+    }
+
     private UploadBlocksRequest buildUploadBlocksRequest(String fileId,
                                                          List<UploadBlockData> uploadBlocks,
                                                          int index) {
@@ -329,20 +336,13 @@ public class FileUploadService {
         tempDir.mkdirs();
     }
 
-    private List<SerializedFileServer> allocateSerializedReplicaServers(String hash, String masterId) {
-        int replicas = calcReplicas();
-        List<NodeServer> replicaServers = allocatesReplicaServers(hash, replicas, masterId);
-        if (replicaServers.isEmpty()) {
-            return List.of();
-        }
-        return toSerialized(replicaServers);
-    }
-
     // finds replica servers.
     private List<NodeServer> allocatesReplicaServers(String hash, int replicas, String masterId) {
         if (replicas <= 0) {
             return List.of();
         }
+        Set<String> ids = new HashSet<>();
+        ids.add(masterId);
         List<NodeServer> servers = new ArrayList<>();
         int reps = replicas, retries = 0;
         for (int i = 0; i < reps; i++) {
@@ -352,11 +352,13 @@ public class FileUploadService {
                 // still cannot allocate given replicas count after 5 tries.
                 return servers;
             }
-            if (server.id().equals(masterId)) {
+            if (ids.contains(server.id())) {
                 reps++;
                 retries++;
+                logger.debug("The same server, tries={}", retries);
                 continue;
             }
+            ids.add(server.id());
             servers.add(server);
         }
         return servers;

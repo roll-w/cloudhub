@@ -1,5 +1,8 @@
 package org.huel.cloudhub.file.server.configuration;
 
+import org.huel.cloudhub.file.server.service.SourceServerGetter;
+import org.huel.cloudhub.file.server.service.id.ServerIdService;
+import org.huel.cloudhub.rpc.GrpcProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -13,7 +16,24 @@ import java.util.Enumeration;
  * @author RollW
  */
 @Configuration
-public class ServerInfoConfiguration {
+public class ServerInfoConfiguration implements SourceServerGetter {
+    private final ServerInfo serverInfo;
+
+
+
+    public ServerInfoConfiguration(ServerIdService serverIdService,
+                                   GrpcProperties grpcProperties)
+            throws UnknownHostException {
+        this.serverInfo = new ServerInfo(serverIdService.getServerId(),
+                localhostInetAddress().getHostAddress(),
+                grpcProperties.getPort());
+    }
+
+    @Override
+    @Bean
+    public ServerInfo getLocalServer() {
+        return serverInfo;
+    }
 
     private InetAddress tryGetLocalOutboundAddress() throws UnknownHostException, SocketException {
         InetAddress candidateAddress = null;
@@ -39,8 +59,7 @@ public class ServerInfoConfiguration {
                 : candidateAddress;
     }
 
-    @Bean
-    public InetAddress localhostInetAddress() throws UnknownHostException, SocketException {
+    public InetAddress localhostInetAddress() throws UnknownHostException {
         return InetAddress.getLocalHost();
     }
 }

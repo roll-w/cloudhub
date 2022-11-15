@@ -9,7 +9,6 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.scheduling.annotation.EnableAsync;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -24,7 +23,6 @@ import java.util.Map;
  */
 @SpringBootApplication
 @ConfigurationPropertiesScan
-@EnableAsync(proxyTargetClass = true)
 public class FileServerApplication implements ApplicationRunner {
     private final Server server;
 

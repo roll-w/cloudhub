@@ -181,6 +181,15 @@ public class ServerHostInfo {
         return hwDiskStores.get(0);
     }
 
+    public ServerHostInfo fork() {
+        return new ServerHostInfo(hwDiskStore, networkIF,
+                getPersistedCpuUsageInfo(),
+                getPersistedJvmUsageInfo(),
+                getPersistedMemoryUsageInfo(),
+                getPersistedDiskUsageInfo(),
+                getPersistedNetworkInfo());
+    }
+
     public NetworkUsageInfo getPersistedNetworkInfo() {
         return networkUsageInfo.fork();
     }

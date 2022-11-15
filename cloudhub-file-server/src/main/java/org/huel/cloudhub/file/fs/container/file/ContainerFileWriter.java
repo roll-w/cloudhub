@@ -275,10 +275,6 @@ public class ContainerFileWriter implements Closeable {
         return fileWriteStrategy;
     }
 
-    public void updatesContainer() throws IOException {
-        close();
-    }
-
     @Override
     public void close() throws IOException {
         if (lastResult == null) {

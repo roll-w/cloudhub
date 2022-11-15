@@ -1,7 +1,7 @@
 package org.huel.cloudhub.meta.server.service.node;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.huel.cloudhub.rpc.heartbeat.Heartbeat;
+import org.huel.cloudhub.server.rpc.heartbeat.Heartbeat;
 
 import java.util.Collection;
 import java.util.HashSet;

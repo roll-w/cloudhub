@@ -8,6 +8,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.huel.cloudhub.file.fs.LockException;
 import org.huel.cloudhub.file.fs.block.ContainerBlock;
 import org.huel.cloudhub.file.fs.container.Container;
+import org.huel.cloudhub.file.fs.container.ContainerChecker;
 import org.huel.cloudhub.file.fs.container.ContainerReadOpener;
 import org.huel.cloudhub.file.fs.container.ContainerReader;
 import org.huel.cloudhub.file.rpc.replica.*;
@@ -16,7 +17,7 @@ import org.huel.cloudhub.rpc.GrpcChannelPool;
 import org.huel.cloudhub.rpc.GrpcProperties;
 import org.huel.cloudhub.rpc.GrpcServiceStubPool;
 import org.huel.cloudhub.rpc.StreamObserverWrapper;
-import org.huel.cloudhub.rpc.heartbeat.SerializedFileServer;
+import org.huel.cloudhub.server.rpc.heartbeat.SerializedFileServer;
 import org.huel.cloudhub.util.math.Maths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,6 +27,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author RollW
@@ -38,23 +40,26 @@ public class ReplicaService {
     private final GrpcServiceStubPool<ReplicaServiceGrpc.ReplicaServiceStub>
             replicaServiceStubPool;
     private final ContainerReadOpener containerReadOpener;
+    private final ContainerChecker containerChecker;
     private final Logger logger = LoggerFactory.getLogger(ReplicaService.class);
 
     public ReplicaService(GrpcProperties grpcProperties,
                           SourceServerGetter sourceServerGetter,
-                          ContainerReadOpener containerReadOpener) {
+                          ContainerReadOpener containerReadOpener,
+                          ContainerChecker containerChecker) {
         this.grpcProperties = grpcProperties;
         this.fileServerChannelPool = new FileServerChannelPool(grpcProperties);
         this.server = toSerializedServer(sourceServerGetter.getLocalServer());
+        this.containerChecker = containerChecker;
         this.replicaServiceStubPool = new GrpcServiceStubPool<>();
         this.containerReadOpener = containerReadOpener;
     }
 
-    private SerializedFileServer toSerializedServer(SourceServerGetter.Server server) {
+    private SerializedFileServer toSerializedServer(SourceServerGetter.ServerInfo serverInfo) {
         return SerializedFileServer.newBuilder()
-                .setPort(server.port())
-                .setId(server.id())
-                .setHost(server.host())
+                .setPort(serverInfo.port())
+                .setId(serverInfo.id())
+                .setHost(serverInfo.host())
                 .build();
     }
 
@@ -65,7 +70,7 @@ public class ReplicaService {
         }
         ReplicaServiceGrpc.ReplicaServiceStub stub =
                 requireReplicaServiceStub(dest);
-
+        logger.debug("Load stub successful, target server id={}.", dest.getId());
         ReplicaServiceStreamObserver observer =
                 new ReplicaServiceStreamObserver(replicaSynchroParts);
         StreamObserver<ReplicaRequest> replicaRequestStreamObserver =
@@ -76,8 +81,8 @@ public class ReplicaService {
 
     private class ReplicaServiceStreamObserver implements StreamObserver<ReplicaResponse> {
         private final ListIterator<ReplicaSynchroPart> partIterator;
-
         private StreamObserverWrapper<ReplicaRequest> requestObserver;
+        private String contCrc;
         private Read lastRead = null;
         private int blocksInRequest = 20;
 
@@ -89,71 +94,78 @@ public class ReplicaService {
         public void onNext(ReplicaResponse value) {
             if (value != null) {
                 String checkValue = value.getCheckValue();
+                logger.info("Received check value={}, saved check value={}.", checkValue, contCrc);
             }
-
-            // TODO: check value is equals or not.
+            logger.debug("Get prepared for next request.");
             if (!partIterator.hasNext()) {
                 requestObserver.onCompleted();
                 return;
             }
             if (lastRead != null) {
-                try {
-                    sendUtilEnd(lastRead, blocksInRequest);
-                } catch (IOException e) {
-                    requestObserver.onError(e);
-                    logger.error("Error: container read error.", e);
-                }
-                lastRead = null;
+                logger.debug("Last read not null, probably be a bug.");
                 return;
             }
-
             ReplicaSynchroPart part = partIterator.next();
+            logger.debug("Next part: `container_id`={}",
+                    part.getContainer().getIdentity().id());
             ReplicaRequest.CheckMessage checkMessage =
                     buildCheckMessage(part);
+            logger.debug("Build check message and send.");
             requestObserver.onNext(ReplicaRequest.newBuilder()
                     .setCheckMessage(checkMessage)
                     .build()
             );
+            logger.debug("Send check message successful.");
             Container container = part.getContainer();
             blocksInRequest = calcBlocksInRequest(container);
             try {
                 ContainerReader containerReader = new ContainerReader(container, containerReadOpener);
-                lastRead = new Read(containerReader, part, 0);
+                lastRead = new Read(containerReader, part);
             } catch (IOException | LockException e) {
                 requestObserver.onError(e);
                 logger.error("Error: container open error.", e);
             }
-        }
 
-        private void sendUtilEnd(@NonNull Read read, final int blocksInRequest) throws IOException {
-            Read tRead = read;
-            while (tRead != null) {
-                tRead = readAndSendNext(tRead, blocksInRequest);
+            try {
+                readAndSendNext(lastRead, blocksInRequest);
+            } catch (IOException e) {
+                logger.error("Error: container read error.", e);
+                requestObserver.onError(e);
             }
+            lastRead = null;
         }
 
-        private Read readAndSendNext(@NonNull Read read, final int blocksInRequest) throws IOException {
+        private void readAndSendNext(@NonNull Read read, final int blocksInRequest) throws IOException {
             ReplicaSynchroPart part = read.part();
-            if (read.readBlocks() >= part.getCount()) {
-                read.containerReader().close();
-                return null;
-            }
             ContainerReader reader = read.containerReader();
-            final int readBlocks = read.readBlocks, count = part.getCount();
-            if (readBlocks == 0) {
-                reader.seek(part.getStart());
+
+            int[] blocks = part.getBlockGroupsInfo().flatToBlocksIndex();
+            List<ContainerBlock> containerBlocks = new ArrayList<>();
+            int reads = 0;
+            for (int block : blocks) {
+                if (reads >= blocksInRequest) {
+                    reads = 0;
+                    sendReplicaRequest(containerBlocks);
+                    containerBlocks = new ArrayList<>();
+                }
+
+                containerBlocks.add(reader.readBlock(block));
+                reads++;
             }
-            int thisRead = blocksInRequest;
-            if (readBlocks + blocksInRequest >= count) {
-                thisRead = count - readBlocks;
+            sendReplicaRequest(containerBlocks);
+            reader.close();
+        }
+
+        private void sendReplicaRequest(List<ContainerBlock> containerBlocks) {
+            if (containerBlocks.isEmpty()) {
+                return;
             }
-            List<ContainerBlock> reads = reader.readBlocks(thisRead);
-            List<ReplicaData> replicaDataList = serializedFromBlock(reads);
+            logger.debug("Send replica data request.");
+            List<ReplicaData> replicaDataList = serializedFromBlock(containerBlocks);
             ReplicaRequest replicaRequest = buildDataRequest(replicaDataList);
             requestObserver.onNext(replicaRequest);
-
-            return new Read(read.containerReader, part, readBlocks + thisRead);
         }
+
 
         @Override
         public void onError(Throwable t) {
@@ -178,13 +190,6 @@ public class ReplicaService {
                 .setSerial(container.getSerial())
                 .setVersion(container.getVersion())
                 .setSource(server);
-        if (replicaSynchroPart.getStart() > 0) {
-            builder.setBlockInfo(ReplicaBlockInfo.newBuilder()
-                    .setStartIndex(replicaSynchroPart.getStart())
-                    .setEndIndex(replicaSynchroPart.getEnd())
-                    .build()
-            );
-        }
         return builder.build();
     }
 
@@ -200,6 +205,8 @@ public class ReplicaService {
         protected ManagedChannel buildChannel(SerializedFileServer key) {
             return ManagedChannelBuilder.forAddress(key.getHost(), key.getPort())
                     .usePlaintext()
+                    .keepAliveTime(5, TimeUnit.MINUTES)
+                    .keepAliveTimeout(2, TimeUnit.MINUTES)
                     .maxInboundMessageSize((int) grpcProperties.getMaxRequestSizeBytes() * 2)
                     .build();
         }
@@ -249,6 +256,6 @@ public class ReplicaService {
     }
 
     private record Read(ContainerReader containerReader,
-                        ReplicaSynchroPart part, int readBlocks) {
+                        ReplicaSynchroPart part) {
     }
 }

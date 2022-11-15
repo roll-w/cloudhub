@@ -18,7 +18,8 @@ message ReplicaBlockInfo {
 
 message SerializedReplicaDataInfo {
   int32 index = 1;
-  repeated ReplicaData data = 3;
+  repeated ReplicaData data = 2;
+  optional ReplicaBlockInfo block_info = 3;
 }
 
 message ReplicaRequest {
@@ -29,7 +30,7 @@ message ReplicaRequest {
     string id = 3;
     int64 serial = 4;
     int64 version = 5;
-    optional ReplicaBlockInfo block_info = 6;
+    //bool no_need_resp = 7;
   }
   oneof replica_message {
     CheckMessage check_message = 1;

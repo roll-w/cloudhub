@@ -41,14 +41,14 @@ public class LimitedSeekableOutputStream extends SeekableOutputStream {
         if (close) {
             throw new IOException("Stream closed");
         }
-        int readLength = len - off;
-        if (readLength > limit) {
-            throw new ReachLimitException("reach limit.");
+        int writeLength = len - off;
+        if (writeLength > limit) {
+            throw new ReachLimitException("reach limit, limit=%d.".formatted(limit));
         }
-        if (writeBytes.get() + readLength > limit) {
-            throw new ReachLimitException("reach limit.");
+        if (writeBytes.get() + writeLength > limit) {
+            throw new ReachLimitException("reach limit, limit=%d.".formatted(limit));
         }
-        writeBytes.addAndGet(readLength);
+        writeBytes.addAndGet(writeLength);
         out.write(b, off, len);
     }
 

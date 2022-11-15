@@ -4,8 +4,8 @@ package org.huel.cloudhub.file.server.service;
  * @author RollW
  */
 public interface SourceServerGetter {
-    Server getLocalServer();
+    ServerInfo getLocalServer();
 
-    record Server(String id, String host, int port) {
+    record ServerInfo(String id, String host, int port) {
     }
 }

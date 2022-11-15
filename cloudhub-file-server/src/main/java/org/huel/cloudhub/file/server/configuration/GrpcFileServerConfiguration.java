@@ -25,7 +25,6 @@ public class GrpcFileServerConfiguration {
     private final BlockDownloadService blockDownloadService;
     private final BlockDeleteService blockDeleteService;
     private final ReplicaReceiveService replicaReceiveService;
-
     private final GrpcProperties grpcProperties;
 
     public GrpcFileServerConfiguration(HeartbeatHostProperties heartbeatHostProperties,
@@ -55,10 +54,13 @@ public class GrpcFileServerConfiguration {
                 .maxInboundMessageSize((int) grpcProperties.getMaxRequestSizeBytes())
                 .maxConnectionAge(5, TimeUnit.MINUTES)
                 .handshakeTimeout(2, TimeUnit.MINUTES)
+                .keepAliveTime(5, TimeUnit.MINUTES)
                 .addService(blockReceiveService)
                 .addService(blockDownloadService)
                 .addService(replicaReceiveService)
                 .addService(blockDeleteService)
                 .build();
     }
+
+
 }

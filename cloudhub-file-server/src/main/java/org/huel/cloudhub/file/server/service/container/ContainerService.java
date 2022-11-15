@@ -14,7 +14,7 @@ import org.huel.cloudhub.file.fs.block.BlockMetaInfo;
 import org.huel.cloudhub.file.fs.container.*;
 import org.huel.cloudhub.file.fs.container.replica.ReplicaContainerLoader;
 import org.huel.cloudhub.file.fs.meta.*;
-import org.huel.cloudhub.rpc.status.SerializedDamagedContainerReport;
+import org.huel.cloudhub.server.rpc.status.SerializedDamagedContainerReport;
 import org.huel.cloudhub.util.math.Maths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -298,6 +298,10 @@ public class ContainerService implements ContainerAllocator, ContainerFinder, Co
 
 
     private void updateContainerGroupMeta(Container container) throws IOException {
+        if (!container.isUsable()) {
+            return;
+        }
+
         SerializedContainerMeta meta = SerializedContainerMeta.newBuilder()
                 .setLocator(container.getResourceLocator())
                 .setVersion(container.getVersion())
