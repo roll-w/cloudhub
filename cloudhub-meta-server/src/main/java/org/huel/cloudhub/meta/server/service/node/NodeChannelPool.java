@@ -6,6 +6,8 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.huel.cloudhub.rpc.GrpcChannelPool;
 import org.huel.cloudhub.rpc.GrpcProperties;
 
+import java.util.concurrent.TimeUnit;
+
 /**
  * @author RollW
  */
@@ -22,6 +24,8 @@ public class NodeChannelPool extends GrpcChannelPool<NodeServer>
     protected ManagedChannel buildChannel(NodeServer server) {
         return ManagedChannelBuilder.forAddress(server.host(), server.port())
                 .usePlaintext()
+                .keepAliveTime(5, TimeUnit.MINUTES)
+                .keepAliveTimeout(2, TimeUnit.MINUTES)
                 .maxInboundMessageSize((int) grpcProperties.getMaxRequestSizeBytes() * 2)
                 .build();
     }

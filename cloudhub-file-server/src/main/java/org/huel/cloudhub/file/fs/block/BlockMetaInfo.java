@@ -13,7 +13,7 @@ public class BlockMetaInfo {
     public static final int NOT_CROSS_CONTAINER = -1;
 
     private final String fileId;
-    private List<BlockGroup> blockGroups = new ArrayList<>();
+    private final BlockGroupsInfo blockGroupsInfo;
     private final long containerSerial;
     private final long validBytes;
     private final long nextContainerSerial;
@@ -25,7 +25,7 @@ public class BlockMetaInfo {
         this.validBytes = validBytes;
         this.containerSerial = containerSerial;
         this.nextContainerSerial = nextContainerSerial;
-        this.blockGroups.add(new BlockGroup(start, end));
+        this.blockGroupsInfo = new BlockGroupsInfo(List.of(new BlockGroup(start, end)));
     }
 
     public BlockMetaInfo(String fileId, Collection<BlockGroup> blockGroups,
@@ -34,24 +34,16 @@ public class BlockMetaInfo {
         this.containerSerial = containerSerial;
         this.validBytes = validBytes;
         this.nextContainerSerial = nextContainerSerial;
-        this.blockGroups.addAll(blockGroups);
-        sort();
+        this.blockGroupsInfo = new BlockGroupsInfo(blockGroups);
     }
 
-    private void sort() {
-        blockGroups.sort(Comparator.comparingInt(BlockGroup::start));
-        blockGroups = mergeBlockGroups(blockGroups);
-        if (!blockGroups.isEmpty()) {
-            blockGroups.sort(Comparator.comparingInt(BlockGroup::start));
-        }
-    }
 
     public String getFileId() {
         return fileId;
     }
 
-    public List<BlockGroup> getBlockGroups() {
-        return Collections.unmodifiableList(blockGroups);
+    public BlockGroupsInfo getBlockGroupsInfo() {
+        return blockGroupsInfo;
     }
 
     public long getValidBytes() {
@@ -74,104 +66,38 @@ public class BlockMetaInfo {
         return getBlocksCountAfter(start) >= offset;
     }
 
-    private List<BlockGroup> mergeBlockGroups(List<BlockGroup> blockGroups) {
-        // here the blockGroups have been sorted by start.
-        if (blockGroups.isEmpty()) {
-            return List.of();
-        }
-        List<BlockGroup> res = new ArrayList<>();
-        final int size = blockGroups.size();
-        BlockGroup first = blockGroups.get(0);
-        int l = first.start(), r = first.end(), i = 0;
-        for (BlockGroup blockGroup : blockGroups) {
-            if (i == 0) {
-                i++;
-                continue;
-            }
-            if (blockGroup.start() - 1 > r) {
-                res.add(new BlockGroup(l, r));
-                l = blockGroup.start();
-                r = blockGroup.end();
-            } else {
-                r = Math.max(r, blockGroup.end());
-            }
-            i++;
-        }
-        res.add(new BlockGroup(l, r));
-        return res;
-    }
-
     public int getBlocksCountAfter(int blockIndex) {
-        List<BlockGroup> subs = getBlockGroupAfter(blockIndex);
-        if (subs.isEmpty()) {
-            return 0;
-        }
-        int count = 0;
-
-        for (BlockGroup sub : subs) {
-            if (blockIndex >= 0 && sub.contains(blockIndex)) {
-                count += sub.end() - blockIndex + 1;
-                continue;
-            }
-            count += sub.occupiedBlocks();
-        }
-        return count;
+        return blockGroupsInfo.getBlocksCountAfter(blockIndex);
     }
 
     public List<BlockGroup> getBlockGroupAfter(int blockIndex) {
-        if (blockGroups.isEmpty()) {
-            return List.of();
-        }
-        if (blockIndex > blockGroups.get(blockGroups.size() - 1).end()) {
-            return List.of();
-        }
-        if (blockIndex < 0 || blockIndex <= blockGroups.get(0).start()) {
-            return getBlockGroups();
-        }
-
-        int index = 0;
-        for (BlockGroup blockGroup : blockGroups) {
-            if (blockGroup.contains(blockIndex)) {
-                break;
-            }
-            index++;
-        }
-        // TODO: binary search.
-        final int size = blockGroups.size();
-        if (size - 1 == index) {
-            return List.of(blockGroupAt(size - 1));
-        }
-        return blockGroups.subList(index, size - 1);
+        return blockGroupsInfo.getBlockGroupAfter(blockIndex);
     }
 
     public int getBlockGroupsCount() {
-        return blockGroups.size();
+        return blockGroupsInfo.getBlockGroupsCount();
     }
 
     public BlockGroup blockGroupAt(int index) {
-        return blockGroups.get(index);
+        return blockGroupsInfo.blockGroupAt(index);
     }
 
     public boolean contains(int index) {
-        for (BlockGroup blockGroup : blockGroups) {
-            if (blockGroup.contains(index)) {
-                return true;
-            }
-        }
-        return false;
+        return blockGroupsInfo.contains(index);
     }
 
     public int occupiedBlocks() {
-        int sum = 0;
-        for (BlockGroup blockGroup : blockGroups) {
-            sum += blockGroup.occupiedBlocks();
-        }
-        return sum;
+        return blockGroupsInfo.occupiedBlocks();
+    }
+
+    public List<BlockGroup> getBlockGroups() {
+        return blockGroupsInfo.getBlockGroups();
     }
 
     public long validBytesAt(int index, long blockSizeInBytes) {
         // because of BlockMeta not hold block size value,
         // so you need pass this "blockSizeInBytes" value.
+        List<BlockGroup> blockGroups = getBlockGroups();
         BlockGroup lastGroup = blockGroups.get(blockGroups.size() - 1);
         if (lastGroup.end() == index) {
             return validBytes;
@@ -183,6 +109,7 @@ public class BlockMetaInfo {
     }
 
     public SerializedBlockFileMeta serialize() {
+        List<BlockGroup> blockGroups = getBlockGroups();
         List<SerializedBlockGroup> serializedBlockGroups = new ArrayList<>();
         blockGroups.forEach(blockGroup ->
                 serializedBlockGroups.add(blockGroup.serialize()));
@@ -208,6 +135,7 @@ public class BlockMetaInfo {
     }
 
     public BlockMetaInfo forkNextSerial(long nextContainerSerial) {
+        List<BlockGroup> blockGroups = getBlockGroups();
         return new BlockMetaInfo(fileId,
                 blockGroups, validBytes,
                 containerSerial, nextContainerSerial);
@@ -218,19 +146,19 @@ public class BlockMetaInfo {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         BlockMetaInfo that = (BlockMetaInfo) o;
-        return containerSerial == that.containerSerial && validBytes == that.validBytes && nextContainerSerial == that.nextContainerSerial && Objects.equals(fileId, that.fileId) && Objects.equals(blockGroups, that.blockGroups);
+        return containerSerial == that.containerSerial && validBytes == that.validBytes && nextContainerSerial == that.nextContainerSerial && Objects.equals(fileId, that.fileId) && Objects.equals(blockGroupsInfo, that.blockGroupsInfo);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(fileId, blockGroups, containerSerial, validBytes, nextContainerSerial);
+        return Objects.hash(fileId, blockGroupsInfo, containerSerial, validBytes, nextContainerSerial);
     }
 
     @Override
     public String toString() {
         return "BlockMetaInfo[" +
                 "fileId=" + fileId +
-                ";blockGroups=" + blockGroups +
+                ";blockGroups=" + blockGroupsInfo +
                 ";validBytes=" + validBytes +
                 ";nextContainerSerial=" + nextContainerSerial +
                 "]";

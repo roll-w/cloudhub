@@ -10,6 +10,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author RollW
@@ -18,6 +19,7 @@ public class ContainerReader implements Closeable {
     private final Container container;
     private final ContainerReadOpener containerReadOpener;
     private final LimitedSeekableInputStream containerInputStream;
+    private final AtomicInteger lastPos = new AtomicInteger(0);
 
     public ContainerReader(Container container,
                            ContainerReadOpener containerReadOpener) throws IOException, LockException {
@@ -48,6 +50,7 @@ public class ContainerReader implements Closeable {
 
         long blockSizeBytes = container.getIdentity().blockSizeBytes();
         containerInputStream.seek(blockSizeBytes * index);
+        lastPos.set(index);
     }
 
     public List<ContainerBlock> readBlocks(final int count) throws IOException {
@@ -63,6 +66,7 @@ public class ContainerReader implements Closeable {
                 throw new ContainerException("Incorrect termination block in [%d], count=%d."
                         .formatted(i, count));
             }
+            lastPos.incrementAndGet();
             ContainerBlock containerBlock = new ContainerBlock(
                     container.getLocation(), i, chuck,
                     container.getIdentity().blockSizeBytes());
@@ -84,8 +88,9 @@ public class ContainerReader implements Closeable {
 
         List<ContainerBlock> containerBlocks = new ArrayList<>();
         long blockSizeBytes = container.getIdentity().blockSizeBytes();
-        // TODO(Optimise): record last position, if equals, there is no need to seek
-        seek(start);
+        if (lastPos.get() != start) {
+            seek(start);
+        }
         for (int index = start; index <= end; index++){
             byte[] chuck = new byte[(int) blockSizeBytes];
             int read = containerInputStream.read(chuck);
@@ -93,6 +98,7 @@ public class ContainerReader implements Closeable {
                 throw new ContainerException("Incorrect termination block in [%d], end=%d."
                         .formatted(index, end));
             }
+            lastPos.incrementAndGet();
             final long validBytes = calcValidBytes(index, end, container.getIdentity().blockSizeBytes());
             // actually we don't know how many valid bytes here.
             ContainerBlock containerBlock = new ContainerBlock(
@@ -124,14 +130,26 @@ public class ContainerReader implements Closeable {
             return null;
         }
         long validBytes = container.getValidBytes(index);
+        return new ContainerBlock(container.getLocation(),
+                index, chuck, validBytes);
+    }
+
+    private ContainerBlock readNext() throws IOException {
+        // TODO: read next.
+        byte[] chuck = readAt(lastPos.get());
+        if (chuck == null) {
+            return null;
+        }
+        long validBytes = container.getValidBytes(lastPos.get());
         return new ContainerBlock(
-                container.getLocation(), index, chuck, validBytes);
+                container.getLocation(), lastPos.get(), chuck, validBytes);
     }
 
     private byte[] readAt(int index) throws IOException {
         long blockSizeBytes = container.getIdentity().blockSizeBytes();
-        containerInputStream.seek(
-                blockSizeBytes * index);
+        if (lastPos.get() != index) {
+            seek(index);
+        }
         byte[] chuck = new byte[(int) blockSizeBytes];
         int read = containerInputStream.read(chuck);
         if (read == -1) {

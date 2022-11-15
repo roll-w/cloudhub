@@ -1,5 +1,6 @@
 package org.huel.cloudhub.file.server.service.file;
 
+import io.grpc.Context;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -7,17 +8,20 @@ import org.huel.cloudhub.file.fs.LocalFileServer;
 import org.huel.cloudhub.file.fs.LockException;
 import org.huel.cloudhub.file.fs.ServerFile;
 import org.huel.cloudhub.file.fs.block.Block;
-import org.huel.cloudhub.file.fs.container.ContainerAllocator;
-import org.huel.cloudhub.file.fs.container.ContainerFinder;
-import org.huel.cloudhub.file.fs.container.ContainerProperties;
-import org.huel.cloudhub.file.fs.container.ContainerWriterOpener;
+import org.huel.cloudhub.file.fs.block.BlockMetaInfo;
+import org.huel.cloudhub.file.fs.block.FileBlockMetaInfo;
+import org.huel.cloudhub.file.fs.container.*;
 import org.huel.cloudhub.file.fs.container.file.ContainerFileWriter;
 import org.huel.cloudhub.file.fs.container.file.FileWriteStrategy;
 import org.huel.cloudhub.file.fs.meta.MetaException;
 import org.huel.cloudhub.file.rpc.block.*;
+import org.huel.cloudhub.file.server.service.replica.ReplicaService;
+import org.huel.cloudhub.file.server.service.replica.ReplicaSynchroPart;
 import org.huel.cloudhub.rpc.StreamObserverWrapper;
+import org.huel.cloudhub.server.rpc.heartbeat.SerializedFileServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -37,6 +41,7 @@ public class BlockReceiveService extends BlockUploadServiceGrpc.BlockUploadServi
     private final ContainerFinder containerFinder;
     private final ContainerProperties containerProperties;
     private final ContainerWriterOpener containerWriterOpener;
+    private final ReplicaService replicaService;
     private final LocalFileServer localFileServer;
     private final ServerFile stagingDir;
     private static final int BUFFERED_BLOCK_SIZE = 320;
@@ -45,11 +50,13 @@ public class BlockReceiveService extends BlockUploadServiceGrpc.BlockUploadServi
                                ContainerFinder containerFinder,
                                ContainerProperties containerProperties,
                                ContainerWriterOpener containerWriterOpener,
+                               ReplicaService replicaService,
                                LocalFileServer localFileServer) throws IOException {
         this.containerAllocator = containerAllocator;
         this.containerFinder = containerFinder;
         this.containerProperties = containerProperties;
         this.containerWriterOpener = containerWriterOpener;
+        this.replicaService = replicaService;
         this.localFileServer = localFileServer;
         this.stagingDir = localFileServer.getServerFileProvider()
                 .openFile(containerProperties.getStagePath());
@@ -99,6 +106,7 @@ public class BlockReceiveService extends BlockUploadServiceGrpc.BlockUploadServi
         private long validBytes;
         private long fileLength;
         private String checkValue;
+        private List<SerializedFileServer> fileServers;
 
         UploadBlocksRequestObserver(StreamObserver<UploadBlocksResponse> responseObserver) throws IOException {
             this.responseObserver = new StreamObserverWrapper<>(responseObserver);
@@ -123,6 +131,7 @@ public class BlockReceiveService extends BlockUploadServiceGrpc.BlockUploadServi
             validBytes = checkMessage.getValidBytes();
             fileLength = checkMessage.getFileLength();
             checkValue = checkMessage.getCheckValue();
+            fileServers = checkMessage.getReplicaHostsList();
             logger.debug("Receive upload message. count={};validBytes={};fileLen={};check={}",
                     indexCount, validBytes, fileLength, checkValue);
             try {
@@ -142,10 +151,8 @@ public class BlockReceiveService extends BlockUploadServiceGrpc.BlockUploadServi
                 return;
             }
             if (fileId != null && !fileId.equals(request.getIdentity())) {
-                Exception exception =
-                        new IllegalStateException("The ids of the files before and after are different.");
-                responseObserver.onError(exception);
-                logger.error("error receive blocks: {}.", exception.getMessage());
+                responseObserver.onError(Status.INVALID_ARGUMENT.asRuntimeException());
+                logger.error("Error receive blocks: The ids of the files before and after are different.");
                 return;
             }
             fileId = request.getIdentity();
@@ -158,7 +165,7 @@ public class BlockReceiveService extends BlockUploadServiceGrpc.BlockUploadServi
 
             UploadBlocksInfo uploadBlocksInfo = request.getUploadBlocks();
             final int count = uploadBlocksInfo.getBlocksCount();
-            logger.debug("receive blocks. index={};count=[{}];id={};",
+            logger.debug("Receive blocks. index={};count=[{}];id={};",
                     uploadBlocksInfo.getIndex(), count, request.getIdentity());
             received.incrementAndGet();
             long valid = uploadBlocksInfo.getIndex() == count ? validBytes : -1;
@@ -187,7 +194,7 @@ public class BlockReceiveService extends BlockUploadServiceGrpc.BlockUploadServi
 
         @Override
         public void onError(Throwable t) {
-            logger.error("receive blocks error.", t);
+            logger.error("Receive blocks error.", t);
         }
 
         private void closeAndExit() {
@@ -219,6 +226,7 @@ public class BlockReceiveService extends BlockUploadServiceGrpc.BlockUploadServi
 
         @Override
         public void onCompleted() {
+            // TODO(style): method body too long.
             if (indexCount <= 0 && responseObserver.isOpen()) {
                 closeAndExit();
                 logger.error("Invalid index count {} in uploading {}", indexCount, fileId);
@@ -260,10 +268,15 @@ public class BlockReceiveService extends BlockUploadServiceGrpc.BlockUploadServi
             } catch (LockException e) {
                 logger.error("Cannot get container's lock.", e);
             }
+            Context context = Context.current().fork();
             responseObserver.onNext(UploadBlocksResponse.newBuilder().build());
             responseObserver.onCompleted();
             delete();
+            context.run(() -> {
+                sendReplicaRequest(fileId, fileServers);
+            });
         }
+
     }
 
     private void writeUntilEnd(ContainerFileWriter writer,
@@ -296,6 +309,28 @@ public class BlockReceiveService extends BlockUploadServiceGrpc.BlockUploadServi
             return new Block(chunk, validBytes);
         }
         return new Block(chunk, read);
+    }
+
+    @Async
+    void sendReplicaRequest(String fileId, List<SerializedFileServer> servers) {
+        List<ReplicaSynchroPart> parts = buildSynchroParts(fileId);
+        servers.forEach(server -> replicaService.requestReplicasSynchro(parts, server));
+    }
+
+    private List<ReplicaSynchroPart> buildSynchroParts(String fileId) {
+        ContainerGroup group =
+                containerFinder.findContainerGroupByFile(fileId, ContainerFinder.LOCAL);
+        List<ReplicaSynchroPart> synchroParts = new ArrayList<>();
+        FileBlockMetaInfo fileBlockMetaInfo = group.getFileBlockMetaInfo(fileId);
+        for (BlockMetaInfo blockMetaInfo : fileBlockMetaInfo.getBlockMetaInfos()) {
+            Container container =
+                    group.getContainer(blockMetaInfo.getContainerSerial());
+            ReplicaSynchroPart part = new ReplicaSynchroPart(container,
+                    blockMetaInfo.getBlockGroupsInfo(),
+                    blockMetaInfo.occupiedBlocks());
+            synchroParts.add(part);
+        }
+        return synchroParts;
     }
 
 }

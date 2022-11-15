@@ -1,9 +1,9 @@
 package org.huel.cloudhub.meta.server.service.node;
 
 import io.grpc.stub.StreamObserver;
-import org.huel.cloudhub.rpc.heartbeat.Heartbeat;
-import org.huel.cloudhub.rpc.heartbeat.HeartbeatResponse;
-import org.huel.cloudhub.rpc.heartbeat.HeartbeatServiceGrpc;
+import org.huel.cloudhub.server.rpc.heartbeat.Heartbeat;
+import org.huel.cloudhub.server.rpc.heartbeat.HeartbeatResponse;
+import org.huel.cloudhub.server.rpc.heartbeat.HeartbeatServiceGrpc;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -31,13 +31,10 @@ public class HeartbeatService extends HeartbeatServiceGrpc.HeartbeatServiceImplB
                 heartbeatServerProperties.getTimeoutCycle());
         heartbeatWatcherPool.registerCallback(registerNodeAllocator);
         heartbeatWatcherPool.start();
-        // or HeartbeatConfiguration?
     }
 
     @Override
     public void receiveHeartbeat(Heartbeat request, StreamObserver<HeartbeatResponse> responseObserver) {
-//        logger.info("receive heartbeat, address: {}:{}, id: {}",
-//                request.getHost(), request.getPort(), request.getId());
         if (!heartbeatWatcherPool.isActive(request.getId())) {
             responseObserver.onNext(
                     HeartbeatResponse.newBuilder()
@@ -76,6 +73,11 @@ public class HeartbeatService extends HeartbeatServiceGrpc.HeartbeatServiceImplB
     public int getWeightOf(NodeServer nodeServer) {
         // TODO:
         return 1;
+    }
+
+    private int scaleDiskSize(long freeSpaceInBytes) {
+        // TODO:
+        return 0;
     }
 
     public ServerChecker getServerChecker() {

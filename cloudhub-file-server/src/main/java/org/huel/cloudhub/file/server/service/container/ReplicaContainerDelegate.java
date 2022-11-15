@@ -78,7 +78,8 @@ public class ReplicaContainerDelegate implements ReplicaContainerLoader, Replica
 
     @Override
     public Container findOrCreateContainer(String id, String source, long serial, SerializedContainerBlockMeta serializedContainerBlockMeta) throws IOException {
-        ReplicaGroup replicaGroup = replicaContainerGroups.get(source);
+        final ReplicaGroup replicaGroup = replicaContainerGroups
+                .computeIfAbsent(source, ReplicaGroup::new);
         Container container = replicaGroup.getContainer(id, serial);
         if (container != null) {
             return container;
