@@ -154,6 +154,14 @@ public class Container {
         version++;
     }
 
+    public void updatesVersion(long version) {
+        if (containerType != ContainerType.REPLICA) {
+            return;
+        }
+        // only works when container is a replica
+        this.version = version;
+    }
+
     public int getUsedBlocksCount() {
         return usedBlock;
     }

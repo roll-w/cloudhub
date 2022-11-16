@@ -66,7 +66,6 @@ public class ReplicaReceiveService extends ReplicaServiceGrpc.ReplicaServiceImpl
                 containerWriter.close();
             }
             if (checkId(checkMessage.getSource().getId())) {
-                logger.debug("id equals");
                 responseObserver.onError(Status.INVALID_ARGUMENT.asException());
                 return;
             }
@@ -74,10 +73,20 @@ public class ReplicaReceiveService extends ReplicaServiceGrpc.ReplicaServiceImpl
                     checkMessage.getSource().getId(),
                     checkMessage.getId(),
                     checkMessage.getSerial());
+            long version = checkMessage.getVersion();
             replicaContainer = replicaContainerCreator.findOrCreateContainer(nameMeta.getId(),
                     nameMeta.getSourceId(), nameMeta.getSerial(), checkMessage.getBlockMeta());
+            replicaContainer.updatesVersion(version);
             replicaContainerCreator.createContainerWithMeta(replicaContainer, checkMessage.getBlockMeta());
             containerWriter = new ContainerWriter(replicaContainer, containerWriterOpener);
+        }
+
+        private boolean checkLastCheckMessage(ReplicaRequest replicaRequest) {
+            ReplicaRequest.CheckMessage checkMessage = replicaRequest.getCheckMessage();
+            if (!checkMessage.hasLastReq()) {
+                return false;
+            }
+            return checkMessage.getLastReq();
         }
 
         @Override
@@ -88,6 +97,11 @@ public class ReplicaReceiveService extends ReplicaServiceGrpc.ReplicaServiceImpl
             }
             if (value.getReplicaMessageCase() == ReplicaRequest.ReplicaMessageCase.CHECK_MESSAGE) {
                 sendCheckValue(replicaContainer);// TODO: check value
+                if (checkLastCheckMessage(value)) {
+                    logger.debug("Last replica request, close observer.");
+                    responseObserver.onCompleted();
+                    return;
+                }
 
                 ReplicaRequest.CheckMessage checkMessage = value.getCheckMessage();
                 SerializedFileServer server = checkMessage.getSource();
@@ -107,10 +121,10 @@ public class ReplicaReceiveService extends ReplicaServiceGrpc.ReplicaServiceImpl
             try {
                 containerWriter.write(blocks, true);
             } catch (IOException e) {
-                // FIXME: ReachLimit Exception, It should be caused by sending and reading more than expect
+                responseObserver.onError(Status.INTERNAL.asRuntimeException());
                 logger.error("Error: write error, message=%s".formatted(e.getMessage()), e);
             }
-            logger.debug("write replica data");
+            logger.debug("Write replica data");
         }
 
 
@@ -121,6 +135,7 @@ public class ReplicaReceiveService extends ReplicaServiceGrpc.ReplicaServiceImpl
 
         @Override
         public void onCompleted() {
+            logger.info("On completed.");
             if (containerWriter != null) {
                 try {
                     containerWriter.close();
@@ -128,15 +143,13 @@ public class ReplicaReceiveService extends ReplicaServiceGrpc.ReplicaServiceImpl
                     logger.debug("Error occurred while closing the container.", e);
                 }
             }
-            sendCheckValue(replicaContainer);
-            responseObserver.onCompleted();
         }
 
         private void sendCheckValue(Container container) {
             if (container == null) {
                 return;
             }
-            logger.debug("send check value: cont={}.", container.getResourceLocator());
+            logger.debug("Send check value: cont={}.", container.getResourceLocator());
             try {
                 String value = containerChecker.calculateChecksum(container);
                 responseObserver.onNext(ReplicaResponse.newBuilder()

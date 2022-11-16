@@ -10,10 +10,21 @@ enum SerializedServerStatusCode {
   DOWN = 2;
 }
 
-//
+enum SerializedContainerType {
+  CONTAINER = 0;
+  REPLICA = 1;
+}
+
+// also record the replica error, and
 message SerializedDamagedContainerReport {
+  // If the specific damaged file cannot be located,
+  // all files starting with this id are considered damaged.
   string container_id = 1;
-  repeated string file_id = 2;
+  SerializedContainerType type = 2;
+  // damaged file ids.
+  repeated string dam_file_id = 3;
+  // available file ids.
+  repeated string ava_file_id = 4;
 }
 
 message SerializedServerStatus {

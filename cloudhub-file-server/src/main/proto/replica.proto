@@ -30,7 +30,7 @@ message ReplicaRequest {
     string id = 3;
     int64 serial = 4;
     int64 version = 5;
-    //bool no_need_resp = 7;
+    optional bool last_req = 7;
   }
   oneof replica_message {
     CheckMessage check_message = 1;

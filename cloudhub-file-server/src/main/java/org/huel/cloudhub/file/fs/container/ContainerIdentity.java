@@ -1,5 +1,7 @@
 package org.huel.cloudhub.file.fs.container;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
+
 import java.util.Objects;
 
 /**
@@ -7,7 +9,7 @@ import java.util.Objects;
  */
 public class ContainerIdentity {
     private final String id;
-    private final String crc;
+    private String crc;
     private final long serial;
     private final int blockLimit;
     private final int blockSize;
@@ -38,6 +40,10 @@ public class ContainerIdentity {
 
     public String crc() {
         return crc;
+    }
+
+    public void updatesChecksum(@NonNull String crc) {
+        this.crc = crc;
     }
 
     public long serial() {
