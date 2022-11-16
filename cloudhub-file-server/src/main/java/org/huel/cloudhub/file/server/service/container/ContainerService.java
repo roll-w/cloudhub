@@ -4,9 +4,6 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.huel.cloudhub.file.diagnosis.Diagnosable;
-import org.huel.cloudhub.file.diagnosis.DiagnosisReport;
-import org.huel.cloudhub.file.fs.container.ContainerDeleter;
 import org.huel.cloudhub.file.fs.FileAllocator;
 import org.huel.cloudhub.file.fs.LocalFileServer;
 import org.huel.cloudhub.file.fs.ServerFile;
@@ -14,7 +11,6 @@ import org.huel.cloudhub.file.fs.block.BlockMetaInfo;
 import org.huel.cloudhub.file.fs.container.*;
 import org.huel.cloudhub.file.fs.container.replica.ReplicaContainerLoader;
 import org.huel.cloudhub.file.fs.meta.*;
-import org.huel.cloudhub.server.rpc.status.SerializedDamagedContainerReport;
 import org.huel.cloudhub.util.math.Maths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,14 +18,16 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * @author RollW
  */
 @Service
-public class ContainerService implements ContainerAllocator, ContainerFinder, ContainerDeleter,
-        Diagnosable<SerializedDamagedContainerReport> {
+public class ContainerService implements ContainerAllocator, ContainerFinder, ContainerDeleter {
     private final Cache<String, ContainerGroup> containerCache =
             Caffeine.newBuilder()
                     .build();
@@ -120,7 +118,7 @@ public class ContainerService implements ContainerAllocator, ContainerFinder, Co
         final String containerId = ContainerIdentity.toContainerId(id);
         ContainerGroup containerGroup = containerCache.getIfPresent(containerId);
         if (containerGroup == null) {
-            logger.info("allocate new container, containerGroup null");
+            logger.info("Allocate new container, containerGroup null");
 
             Container container = createsNewContainer(containerId, 1);
             ContainerGroup newGroup = new ContainerGroup(containerId, ContainerFinder.LOCAL, container);
@@ -131,7 +129,7 @@ public class ContainerService implements ContainerAllocator, ContainerFinder, Co
 
         Container container = createsNewContainer(containerId,
                 containerGroup.lastSerial() + 1);
-        logger.info("allocate new container, locator={}", container.getResourceLocator());
+        logger.info("Allocate new container, locator={}", container.getResourceLocator());
         containerGroup.put(container);
         // although a new container has been allocated, but it actually not usable.
         return container;
@@ -145,7 +143,7 @@ public class ContainerService implements ContainerAllocator, ContainerFinder, Co
 
         if (containerGroup == null) {
             // allocate containers starting at 1.
-            logger.info("containerGroup null, allocates from 1.");
+            logger.debug("ContainerGroup null, allocates from 1.");
             final int needContainers = Maths.ceilDivide(needBlocks, containerProperties.getBlockCount());
             List<Container> containers = allocateContainersFrom(
                     containerId, 1L, needContainers);
@@ -386,11 +384,5 @@ public class ContainerService implements ContainerAllocator, ContainerFinder, Co
         ServerFile file = localFileServer.getServerFileProvider().openFile(containerDir,
                 container.getResourceLocator());
         file.delete();
-    }
-
-    @Override
-    public DiagnosisReport<SerializedDamagedContainerReport> getDiagnosisReport() {
-        // TODO: diagnosis report
-        return null;
     }
 }

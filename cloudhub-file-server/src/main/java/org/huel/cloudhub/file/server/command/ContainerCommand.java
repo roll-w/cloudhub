@@ -3,6 +3,7 @@ package org.huel.cloudhub.file.server.command;
 import org.huel.cloudhub.file.fs.container.Container;
 import org.huel.cloudhub.file.fs.container.ContainerProperties;
 import org.huel.cloudhub.file.server.service.container.ContainerService;
+import org.huel.cloudhub.file.server.service.container.ReplicaContainerDelegate;
 import org.springframework.shell.standard.AbstractShellComponent;
 import org.springframework.shell.standard.ShellComponent;
 import org.springframework.shell.standard.ShellMethod;
@@ -19,18 +20,21 @@ import java.util.Collection;
 @ShellComponent
 public class ContainerCommand extends AbstractShellComponent {
     private final ContainerService containerService;
+    private final ReplicaContainerDelegate replicaContainerDelegate;
     private final ContainerProperties containerProperties;
 
     public ContainerCommand(ContainerService containerService,
+                            ReplicaContainerDelegate replicaContainerDelegate,
                             ContainerProperties containerProperties) {
         this.containerService = containerService;
+        this.replicaContainerDelegate = replicaContainerDelegate;
         this.containerProperties = containerProperties;
     }
 
     @ShellMethod(value = "container operations.", key = {"cont"})
     public void contAction(
             @ShellOption(help = "options of container", defaultValue = "show",
-                    value = {"--option", "-o"}) String option) throws IOException {
+                    value = {"--option", "-o"}) String option) {
         if (option == null) {
             getTerminal().writer().println("no option provide");
             return;
@@ -42,6 +46,12 @@ public class ContainerCommand extends AbstractShellComponent {
         }
         getTerminal().writer().flush();
     }
+    @ShellMethod(value = "replica container operations.", key = {"rcont show"})
+    public void contAction() {
+        showReplicaContainers();
+        getTerminal().writer().flush();
+    }
+
 
     private void deleteAll(String path) throws IOException {
         File file = new File(path);
@@ -50,6 +60,15 @@ public class ContainerCommand extends AbstractShellComponent {
         }
         Files.walk(file.toPath()).forEach(p ->
                 p.toFile().delete());
+    }
+
+    private void showReplicaContainers() {
+        Collection<Container> containers = replicaContainerDelegate.listContainers();
+        getTerminal().writer().println("shows all replica containers.\tcount = [%d]"
+                .formatted(containers.size()));
+        containers
+                .forEach(getTerminal().writer()::println);
+        getTerminal().writer().flush();
     }
 
     private void showContainers() {
@@ -69,6 +88,4 @@ public class ContainerCommand extends AbstractShellComponent {
                 .forEach(getTerminal().writer()::println);
         getTerminal().writer().flush();
     }
-
-
 }

@@ -22,8 +22,22 @@ public final class MetaReadWriteHelper {
         }
     }
 
+
+    public static SerializedReplicaContainerGroupMeta readReplicaContainerMeta(ServerFile serverFile) throws IOException {
+        try (InputStream inputStream = serverFile.openInput()) {
+            return SerializedReplicaContainerGroupMeta.parseFrom(inputStream);
+        }
+    }
+
     public static void writeContainerGroupMeta(SerializedContainerGroupMeta containerGroupMeta,
                                                ServerFile file) throws IOException {
+        try (OutputStream outputStream = file.openOutput(true)) {
+            containerGroupMeta.writeTo(outputStream);
+        }
+    }
+
+    public static void writeReplicaContainerGroupMeta(SerializedReplicaContainerGroupMeta containerGroupMeta,
+                                                      ServerFile file) throws IOException {
         try (OutputStream outputStream = file.openOutput(true)) {
             containerGroupMeta.writeTo(outputStream);
         }

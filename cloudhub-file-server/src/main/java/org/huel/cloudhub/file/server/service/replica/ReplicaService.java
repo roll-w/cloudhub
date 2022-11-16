@@ -7,10 +7,8 @@ import io.grpc.stub.StreamObserver;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.huel.cloudhub.file.fs.LockException;
 import org.huel.cloudhub.file.fs.block.ContainerBlock;
-import org.huel.cloudhub.file.fs.container.Container;
-import org.huel.cloudhub.file.fs.container.ContainerChecker;
-import org.huel.cloudhub.file.fs.container.ContainerReadOpener;
-import org.huel.cloudhub.file.fs.container.ContainerReader;
+import org.huel.cloudhub.file.fs.container.*;
+import org.huel.cloudhub.file.fs.meta.SerializedContainerBlockMeta;
 import org.huel.cloudhub.file.rpc.replica.*;
 import org.huel.cloudhub.file.server.service.SourceServerGetter;
 import org.huel.cloudhub.rpc.GrpcChannelPool;
@@ -83,7 +81,6 @@ public class ReplicaService {
         private final ListIterator<ReplicaSynchroPart> partIterator;
         private StreamObserverWrapper<ReplicaRequest> requestObserver;
         private String contCrc;
-        private Read lastRead = null;
         private int blocksInRequest = 20;
 
         private ReplicaServiceStreamObserver(List<ReplicaSynchroPart> replicaSynchroParts) {
@@ -94,48 +91,45 @@ public class ReplicaService {
         public void onNext(ReplicaResponse value) {
             if (value != null) {
                 String checkValue = value.getCheckValue();
-                logger.info("Received check value={}, saved check value={}.", checkValue, contCrc);
+                logger.debug("Received check value={}, saved check value={}.", checkValue, contCrc);
             }
-            logger.debug("Get prepared for next request.");
+            if (requestObserver.isClose()) {
+                return;
+            }
             if (!partIterator.hasNext()) {
                 requestObserver.onCompleted();
                 return;
             }
-            if (lastRead != null) {
-                logger.debug("Last read not null, probably be a bug.");
-                return;
-            }
+            logger.debug("Get prepared for next request.");
             ReplicaSynchroPart part = partIterator.next();
-            logger.debug("Next part: `container_id`={}",
+            logger.debug("Next part: container_id={}",
                     part.getContainer().getIdentity().id());
             ReplicaRequest.CheckMessage checkMessage =
                     buildCheckMessage(part);
-            logger.debug("Build check message and send.");
             requestObserver.onNext(ReplicaRequest.newBuilder()
                     .setCheckMessage(checkMessage)
                     .build()
             );
-            logger.debug("Send check message successful.");
             Container container = part.getContainer();
             blocksInRequest = calcBlocksInRequest(container);
             try {
+                contCrc = containerChecker.calculateChecksum(container);
                 ContainerReader containerReader = new ContainerReader(container, containerReadOpener);
-                lastRead = new Read(containerReader, part);
+                Read read = new Read(containerReader, part);
+                readAndSendNext(read, blocksInRequest);
             } catch (IOException | LockException e) {
                 requestObserver.onError(e);
-                logger.error("Error: container open error.", e);
+                logger.error("Error: container open or read error.", e);
             }
-
-            try {
-                readAndSendNext(lastRead, blocksInRequest);
-            } catch (IOException e) {
-                logger.error("Error: container read error.", e);
-                requestObserver.onError(e);
+            if (!partIterator.hasNext()) {
+                requestObserver.onNext(buildLastRequest());
             }
-            lastRead = null;
         }
 
-        private void readAndSendNext(@NonNull Read read, final int blocksInRequest) throws IOException {
+        private void readAndSendNext(Read read, final int blocksInRequest) throws IOException {
+            if (read == null) {
+                return;
+            }
             ReplicaSynchroPart part = read.part();
             ContainerReader reader = read.containerReader();
 
@@ -160,7 +154,6 @@ public class ReplicaService {
             if (containerBlocks.isEmpty()) {
                 return;
             }
-            logger.debug("Send replica data request.");
             List<ReplicaData> replicaDataList = serializedFromBlock(containerBlocks);
             ReplicaRequest replicaRequest = buildDataRequest(replicaDataList);
             requestObserver.onNext(replicaRequest);
@@ -182,6 +175,14 @@ public class ReplicaService {
         }
     }
 
+    private ReplicaRequest buildLastRequest() {
+        return ReplicaRequest.newBuilder()
+                .setCheckMessage(ReplicaRequest.CheckMessage.newBuilder()
+                        .setLastReq(true)
+                        .build())
+                .build();
+    }
+
     private ReplicaRequest.CheckMessage buildCheckMessage(ReplicaSynchroPart replicaSynchroPart) {
         Container container = replicaSynchroPart.getContainer();
 
@@ -189,8 +190,20 @@ public class ReplicaService {
                 .setId(container.getIdentity().id())
                 .setSerial(container.getSerial())
                 .setVersion(container.getVersion())
+                .setBlockMeta(toSerializedContainerBlockMeta(container))
                 .setSource(server);
         return builder.build();
+    }
+
+    private SerializedContainerBlockMeta toSerializedContainerBlockMeta(Container container) {
+        ContainerIdentity identity = container.getIdentity();
+        return SerializedContainerBlockMeta.newBuilder()
+                .addAllBlockMetas(container.getSerializedMetaInfos())
+                .setUsedBlock(container.getUsedBlocksCount())
+                .setBlockCap(identity.blockLimit())
+                .setBlockSize(identity.blockSize())
+                .setCrc(identity.crc())
+                .build();
     }
 
     private static class FileServerChannelPool extends GrpcChannelPool<SerializedFileServer> {

@@ -52,5 +52,5 @@ message SerializedReplicaContainerMeta {
 // .rcmeta file
 message SerializedReplicaContainerGroupMeta {
   string source = 1;
-  repeated SerializedContainerMeta meta = 2;
+  repeated SerializedReplicaContainerMeta meta = 2;
 }

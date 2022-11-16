@@ -10,6 +10,7 @@ import org.huel.cloudhub.file.fs.container.replica.ReplicaContainerLoader;
 import org.huel.cloudhub.file.fs.container.replica.ReplicaContainerNameMeta;
 import org.huel.cloudhub.file.fs.container.replica.ReplicaGroup;
 import org.huel.cloudhub.file.fs.meta.*;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -86,7 +87,12 @@ public class ReplicaContainerDelegate implements ReplicaContainerLoader, Replica
         }
         container = createReplicaContainer(id, source, serial, serializedContainerBlockMeta);
         replicaGroup.put(container);
+        // TODO: add to .rcmeta file to allow be indexed.
         return container;
+    }
+
+    private void updatesToReplicaGroupIndex() {
+
     }
 
     private Container createReplicaContainer(String id,
@@ -102,7 +108,7 @@ public class ReplicaContainerDelegate implements ReplicaContainerLoader, Replica
         ContainerIdentity identity = buildIdentityFrom(containerNameMeta, containerBlockMeta);
         return new Container(location, source,
                 containerBlockMeta.getUsedBlock(),
-                identity, List.of(), 1, true);
+                identity, List.of(), 1, false);
     }
 
     private ContainerIdentity buildIdentityFrom(ReplicaContainerNameMeta nameMeta,
@@ -124,13 +130,16 @@ public class ReplicaContainerDelegate implements ReplicaContainerLoader, Replica
         containerDir.mkdirs();
         ServerFile containerFile = localFileServer.getServerFileProvider()
                 .openFile(containerDir, container.getResourceLocator());
-        boolean containerExists = containerFile.exists();
+        boolean containerExists = container.isUsable();
         containerFile.createFile();
         ServerFile metaFile = localFileServer.getServerFileProvider()
                 .openFile(containerDir, container.getResourceLocator() + ContainerLocation.REPLICA_META_SUFFIX);
         metaFile.createFile();
         if (!containerExists) {
+            // first time create.
             allocateContainerSize(container);
+            container.setUsable();
+            updateContainerGroupMeta(container);
         }
         MetaReadWriteHelper.writeContainerBlockMeta(serializedContainerBlockMeta, metaFile);
     }
@@ -139,5 +148,49 @@ public class ReplicaContainerDelegate implements ReplicaContainerLoader, Replica
         try (FileAllocator allocator = new FileAllocator(container.getLocation())) {
             allocator.allocateSize(container.getLimitBytes());
         }
+    }
+
+    public List<Container> listContainers() {
+        return replicaContainerGroups
+                .values().stream()
+                .flatMap(replicaGroup ->
+                        replicaGroup.listGroup().stream())
+                .flatMap(containerGroup ->
+                        containerGroup.containers().stream())
+                .toList();
+    }
+
+    private void updateContainerGroupMeta(Container container) throws IOException {
+        if (!container.isUsable()) {
+            return;
+        }
+        SerializedReplicaContainerMeta meta = SerializedReplicaContainerMeta.newBuilder()
+                .setLocator(container.getResourceLocator())
+                .setVersion(container.getVersion())
+                .build();
+        writeContainerMeta(meta);
+    }
+
+    @Async
+    void writeContainerMeta(SerializedReplicaContainerMeta containerMeta) throws IOException {
+        ReplicaContainerNameMeta fileNameMeta =
+                ReplicaContainerNameMeta.parse(containerMeta.getLocator());
+        String fileName = ContainerIdentity.toCmetaId(fileNameMeta.getId());
+
+        ServerFile file = localFileServer.getServerFileProvider()
+                .openFile(containerProperties.getMetaPath(), fileName + ContainerMetaKeys.CONTAINER_META_SUFFIX);
+        file.createFile();
+        SerializedReplicaContainerGroupMeta containerGroupMeta = MetaReadWriteHelper.readReplicaContainerMeta(file);
+
+        List<SerializedReplicaContainerMeta> containerMetas = new ArrayList<>(containerGroupMeta.getMetaList());
+        containerMetas.removeIf(serializedContainerMeta ->
+                serializedContainerMeta.getLocator().equals(containerMeta.getLocator()));
+        containerMetas.add(containerMeta);
+
+        containerGroupMeta = SerializedReplicaContainerGroupMeta.newBuilder()
+                .addAllMeta(containerMetas)
+                .build();
+
+        MetaReadWriteHelper.writeReplicaContainerGroupMeta(containerGroupMeta, file);
     }
 }

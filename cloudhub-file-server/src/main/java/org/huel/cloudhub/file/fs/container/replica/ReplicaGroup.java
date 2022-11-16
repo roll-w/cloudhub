@@ -5,6 +5,7 @@ import org.huel.cloudhub.file.fs.container.ContainerGroup;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -50,5 +51,9 @@ public class ReplicaGroup {
 
     public String getSourceId() {
         return sourceId;
+    }
+
+    public List<ContainerGroup> listGroup() {
+        return containerGroupMap.values().stream().toList();
     }
 }

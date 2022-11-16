@@ -272,9 +272,8 @@ public class BlockReceiveService extends BlockUploadServiceGrpc.BlockUploadServi
             responseObserver.onNext(UploadBlocksResponse.newBuilder().build());
             responseObserver.onCompleted();
             delete();
-            context.run(() -> {
-                sendReplicaRequest(fileId, fileServers);
-            });
+            context.run(() ->
+                    sendReplicaRequest(fileId, fileServers));
         }
 
     }
@@ -311,11 +310,16 @@ public class BlockReceiveService extends BlockUploadServiceGrpc.BlockUploadServi
         return new Block(chunk, read);
     }
 
-    @Async
-    void sendReplicaRequest(String fileId, List<SerializedFileServer> servers) {
+    private void sendReplicaRequest(String fileId, List<SerializedFileServer> servers) {
         List<ReplicaSynchroPart> parts = buildSynchroParts(fileId);
-        servers.forEach(server -> replicaService.requestReplicasSynchro(parts, server));
+        servers.forEach(server -> callRequestReplicaSynchro(parts, server));
     }
+
+    @Async
+    void callRequestReplicaSynchro(List<ReplicaSynchroPart> parts, SerializedFileServer server) {
+        replicaService.requestReplicasSynchro(parts, server);
+    }
+
 
     private List<ReplicaSynchroPart> buildSynchroParts(String fileId) {
         ContainerGroup group =

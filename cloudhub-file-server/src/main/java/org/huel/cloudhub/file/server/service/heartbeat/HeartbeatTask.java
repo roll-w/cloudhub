@@ -1,6 +1,10 @@
 package org.huel.cloudhub.file.server.service.heartbeat;
 
+import io.grpc.ManagedChannel;
+import org.huel.cloudhub.file.diagnosis.Diagnosable;
+import org.huel.cloudhub.file.server.service.SourceServerGetter;
 import org.huel.cloudhub.server.rpc.heartbeat.HeartbeatResponse;
+import org.huel.cloudhub.server.rpc.status.SerializedDamagedContainerReport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -14,14 +18,17 @@ import java.util.concurrent.TimeUnit;
  */
 @Component
 public class HeartbeatTask {
-    private final ServerHeartbeatService service;
+    private final HeartbeatSender service;
     private final HeartbeatHostProperties properties;
 
     private final Logger logger = LoggerFactory.getLogger(HeartbeatTask.class);
 
-    public HeartbeatTask(ServerHeartbeatService service,
+    public HeartbeatTask(ManagedChannel managedChannel,
+                         Diagnosable<SerializedDamagedContainerReport> damagedContainerDiagnosis,
+                         SourceServerGetter sourceServerGetter,
                          HeartbeatHostProperties properties) {
-        this.service = service;
+        this.service = new HeartbeatSender(managedChannel,
+                damagedContainerDiagnosis, sourceServerGetter);
         this.properties = properties;
     }
 
