@@ -13,8 +13,6 @@ import java.util.List;
  * @author RollW
  */
 public interface UserManageService {
-    // TODO: 需要实现。
-
     default MessagePackage<UserInfo> createUser(String username, String password, String email, Role role) {
         return createUser(username, password, email, role, false);
     }
@@ -29,11 +27,25 @@ public interface UserManageService {
 
     User queryUser(String username);
 
-    MessagePackage<UserInfo> createUser(String username, String password, String email, Role role, boolean discardEmail);
+    /**
+     * 创建用户。
+     *
+     * @param username     用户名
+     * @param password     密码
+     * @param email        邮箱地址
+     * @param role         用户身份
+     * @param discardEmail 是否忽略邮件重复，{@code true}忽略重复。
+     * @return {@link MessagePackage}
+     */
+    MessagePackage<UserInfo> createUser(String username, String password,
+                                        String email, Role role, boolean discardEmail);
 
     MessagePackage<Void> deleteUser(long userId);
 
     MessagePackage<Void> deleteUsers(List<Long> userId);
 
+    /**
+     * 修改用户身份
+     */
     MessagePackage<UserInfo> setRoleTo(long userId, Role role);
 }
