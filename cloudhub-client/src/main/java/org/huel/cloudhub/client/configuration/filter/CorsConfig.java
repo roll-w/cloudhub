@@ -7,7 +7,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 /**
- * Author Cheng
+ * @author Cheng
  * Date 2022/11/14 17:53解决前后端跨域问题
  */
 

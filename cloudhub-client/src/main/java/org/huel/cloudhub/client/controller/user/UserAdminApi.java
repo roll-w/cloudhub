@@ -12,4 +12,5 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @RequestMapping("/api/user/admin/")
 public @interface UserAdminApi {
+
 }

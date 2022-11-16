@@ -4,7 +4,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.huel.cloudhub.common.ErrorCode;
 import org.huel.cloudhub.client.data.dto.UserPasswordDto;
 import space.lingu.NonNull;
-
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 

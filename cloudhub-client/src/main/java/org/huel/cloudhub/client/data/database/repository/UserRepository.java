@@ -47,6 +47,11 @@ public class UserRepository {
         userDao.update(user);
     }
 
+    public void delete(long userId){
+        User user = userDao.getUserById(userId);
+        userDao.delete(user);
+    }
+
     public User getUserById(long userId) {
         return userDao.getUserById(userId);
     }
