@@ -11,7 +11,7 @@ public class HeartbeatWatcher {
     private final int timeoutTime;
     private volatile long lastHeartbeat;
     private volatile SerializedServerStatusCode statusCode;
-
+    private static final int TIMEOUT_COMPENSATION = 1000;
 
     public HeartbeatWatcher(NodeServer nodeServer, int timeoutTime, long initialTime) {
         this.nodeServer = nodeServer;
@@ -25,7 +25,7 @@ public class HeartbeatWatcher {
     }
 
     public boolean isTimeout(long time) {
-        return time - lastHeartbeat > (long) timeoutTime << 2;// 考虑到网络延迟
+        return time - lastHeartbeat > (long) timeoutTime + TIMEOUT_COMPENSATION;// 考虑到网络延迟
     }
 
     public boolean isTimeoutOrError(long time) {
