@@ -90,9 +90,18 @@ public enum ErrorCode implements ErrorEnum {
      */
     ERROR_EMAIL_EXISTED("A0214"),
     /**
+     * 权限错误
+     */
+    ERROR_PERMISSION("A0300"),
+    /**
+     * 权限不允许
+     */
+    ERROR_PERMISSION_NOT_ALLOWED("A0310"),
+    /**
      * 登陆状态过期
      */
     ERROR_LOGIN_EXPIRED("A0311"),
+
     /**
      * 用量上限
      */
