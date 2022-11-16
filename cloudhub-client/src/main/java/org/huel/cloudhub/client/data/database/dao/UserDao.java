@@ -1,6 +1,6 @@
 package org.huel.cloudhub.client.data.database.dao;
 
-import org.huel.cloudhub.client.data.dto.UserInfo;
+import org.huel.cloudhub.client.data.dto.user.UserInfo;
 import org.huel.cloudhub.client.data.entity.user.User;
 import space.lingu.light.*;
 
@@ -33,6 +33,12 @@ public abstract class UserDao {
     @Delete("DELETE FROM user_table WHERE user_id = {info.id()}")
     public abstract void delete(UserInfo info);
 
+    @Delete("DELETE FROM user_table WHERE user_id = {id}")
+    public abstract void deleteById(long id);
+
+    @Delete("DELETE FROM user_table WHERE user_id IN {id}")
+    public abstract void deleteByIds(List<Long> ids);
+
     @Delete
     public abstract void delete(List<User> users);
 
@@ -53,4 +59,10 @@ public abstract class UserDao {
 
     @Query("SELECT user_name FROM user_table WHERE user_id = {id}")
     public abstract String getUsernameById(long id);
+
+    // 检查根据用户名查到的用户名
+    // 如果SELECT * 会导致查询的量增大，影响速度
+    @Query("SELECT user_name FROM user_table WHERE user_name = {name}")
+    public abstract String getUsernameByName(String name);
+
 }

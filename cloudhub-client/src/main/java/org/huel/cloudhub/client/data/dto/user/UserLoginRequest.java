@@ -1,4 +1,4 @@
-package org.huel.cloudhub.client.data.dto.request;
+package org.huel.cloudhub.client.data.dto.user;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

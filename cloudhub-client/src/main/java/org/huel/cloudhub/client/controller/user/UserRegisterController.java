@@ -1,8 +1,8 @@
 package org.huel.cloudhub.client.controller.user;
 
 import org.apache.commons.lang3.Validate;
-import org.huel.cloudhub.client.data.dto.UserInfo;
-import org.huel.cloudhub.client.data.dto.request.UserRegisterRequest;
+import org.huel.cloudhub.client.data.dto.user.UserInfo;
+import org.huel.cloudhub.client.data.dto.user.UserRegisterRequest;
 import org.huel.cloudhub.client.service.user.UserService;
 import org.huel.cloudhub.common.HttpResponseEntity;
 import org.huel.cloudhub.common.MessagePackage;

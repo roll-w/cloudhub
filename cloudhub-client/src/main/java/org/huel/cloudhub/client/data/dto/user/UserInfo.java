@@ -1,4 +1,4 @@
-package org.huel.cloudhub.client.data.dto;
+package org.huel.cloudhub.client.data.dto.user;
 
 import org.huel.cloudhub.client.data.entity.user.User;
 import space.lingu.light.DataColumn;

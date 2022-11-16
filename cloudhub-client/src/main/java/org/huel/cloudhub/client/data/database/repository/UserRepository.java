@@ -6,6 +6,8 @@ import org.huel.cloudhub.client.data.entity.user.User;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 /**
  * @author RollW
  */
@@ -23,6 +25,10 @@ public class UserRepository {
 
     public boolean isExistById(long id) {
         return userDao.getUsernameById(id) != null;
+    }
+
+    public boolean isExistByName(String name) {
+        return userDao.getUsernameByName(name) != null;
     }
 
     @Async
@@ -47,9 +53,12 @@ public class UserRepository {
         userDao.update(user);
     }
 
-    public void delete(long userId){
-        User user = userDao.getUserById(userId);
-        userDao.delete(user);
+    public void deleteById(long userId){
+        userDao.deleteById(userId);
+    }
+
+    public void deleteByIds(List<Long> ids) {
+        userDao.deleteByIds(ids);
     }
 
     public User getUserById(long userId) {

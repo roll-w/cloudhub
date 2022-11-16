@@ -2,7 +2,7 @@ package org.huel.cloudhub.client.controller.user;
 
 import org.huel.cloudhub.common.HttpResponseEntity;
 import org.huel.cloudhub.common.MessagePackage;
-import org.huel.cloudhub.client.data.dto.UserInfo;
+import org.huel.cloudhub.client.data.dto.user.UserInfo;
 import org.huel.cloudhub.client.service.user.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

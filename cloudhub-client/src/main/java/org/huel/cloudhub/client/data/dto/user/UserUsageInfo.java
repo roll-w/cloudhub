@@ -1,4 +1,4 @@
-package org.huel.cloudhub.client.data.dto;
+package org.huel.cloudhub.client.data.dto.user;
 
 /**
  * 用户用量信息

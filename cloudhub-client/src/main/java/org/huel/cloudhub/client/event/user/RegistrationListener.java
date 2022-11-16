@@ -1,7 +1,7 @@
 package org.huel.cloudhub.client.event.user;
 
 import org.huel.cloudhub.common.MailConstant;
-import org.huel.cloudhub.client.data.dto.UserInfo;
+import org.huel.cloudhub.client.data.dto.user.UserInfo;
 import org.huel.cloudhub.client.service.user.UserService;
 import org.huel.cloudhub.client.util.SimpleMailMessageBuilder;
 import org.springframework.beans.factory.annotation.Autowired;

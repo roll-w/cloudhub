@@ -86,6 +86,10 @@ public enum ErrorCode implements ErrorEnum {
      */
     ERROR_EMAIL_NON_COMPLIANCE("A0213"),
     /**
+     * 邮件已存在
+     */
+    ERROR_EMAIL_EXISTED("A0214"),
+    /**
      * 登陆状态过期
      */
     ERROR_LOGIN_EXPIRED("A0311"),

@@ -1,6 +1,6 @@
 package org.huel.cloudhub.client.event.user;
 
-import org.huel.cloudhub.client.data.dto.UserInfo;
+import org.huel.cloudhub.client.data.dto.user.UserInfo;
 import org.springframework.context.ApplicationEvent;
 
 import java.util.Locale;

@@ -1,7 +1,7 @@
 package org.huel.cloudhub.client.configuration.filter;
 
 import org.huel.cloudhub.client.controller.SessionConstants;
-import org.huel.cloudhub.client.data.dto.UserInfo;
+import org.huel.cloudhub.client.data.dto.user.UserInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

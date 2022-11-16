@@ -1,13 +1,14 @@
 package org.huel.cloudhub.client.service.user;
 
+import org.apache.commons.lang3.Validate;
 import org.huel.cloudhub.client.data.database.repository.UserRepository;
-import org.huel.cloudhub.client.data.dto.UserInfo;
+import org.huel.cloudhub.client.data.dto.user.UserInfo;
 import org.huel.cloudhub.client.data.entity.user.Role;
 import org.huel.cloudhub.client.data.entity.user.User;
 import org.huel.cloudhub.common.ErrorCode;
 import org.huel.cloudhub.common.MessagePackage;
 import org.springframework.stereotype.Service;
-import java.util.Date;
+
 import java.util.List;
 
 /**
@@ -16,43 +17,71 @@ import java.util.List;
 @Service
 public class UserManagerServiceImpl implements UserManageService {
 
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
 
-    public UserManagerServiceImpl (UserRepository userRepository){
+    public UserManagerServiceImpl(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
 
     @Override
     public User queryUser(String username) {
-        User user = userRepository.getUserByName(username);
-        return user;
+        return userRepository.getUserByName(username);
     }
 
-    // TODO:
     @Override
-    public MessagePackage<UserInfo> createUser(String username, String password, String email, Role role, boolean discardEmail) {
-        User user = new User(username,password,Role.USER,new Date().getTime(),email);
-        userRepository.save(user);
-        return  new MessagePackage<UserInfo>(ErrorCode.SUCCESS, "", null);
+    public MessagePackage<UserInfo> createUser(String username, String password,
+                                               String email, Role role,
+                                               boolean discardEmail) {
+        Validate.notEmpty(username, "Username cannot be null or empty.");
+        Validate.notEmpty(password, "Password cannot be null or empty.");
+        Validate.isTrue(!(!discardEmail && email == null), "Email cannot be null");
+
+        // TODO: 还要检查用户名和密码是否合法
+        if (userRepository.isExistByName(username)) {
+            return new MessagePackage<>(ErrorCode.ERROR_USER_EXISTED,
+                    "User existed.", null);
+        }
+        Role newRole = role == null ? Role.USER : role;
+        User user = new User(username, password, newRole,
+                System.currentTimeMillis(), email);
+        user.setEnabled(true);
+        if (discardEmail) {
+            userRepository.save(user);
+            return new MessagePackage<>(ErrorCode.SUCCESS, user.toInfo());
+        }
+        if (userRepository.isExistByEmail(email)) {
+            return new MessagePackage<>(ErrorCode.ERROR_EMAIL_EXISTED,
+                    "Email address existed.", null);
+        }
+        return new MessagePackage<>(ErrorCode.SUCCESS, user.toInfo());
     }
 
     @Override
     public MessagePackage<Void> deleteUser(long userId) {
-        if (userRepository.isExistById(userId)){
-            userRepository.delete(userId);
-            return new MessagePackage<>(ErrorCode.SUCCESS, "", null);
-        }else {
-            return new MessagePackage<>(ErrorCode.ERROR_USER_NOT_EXIST, "", null);
+        if (userRepository.isExistById(userId)) {
+            userRepository.deleteById(userId);
+            return new MessagePackage<>(ErrorCode.SUCCESS, null);
         }
+        return new MessagePackage<>(ErrorCode.ERROR_USER_NOT_EXIST,
+                "User not exist.", null);
     }
 
     @Override
-    public MessagePackage<Void> deleteUsers(List<Long> userId) {
-        return new MessagePackage<>(ErrorCode.SUCCESS, "", null);
+    public MessagePackage<Void> deleteUsers(List<Long> userIds) {
+        // 不管是否存在
+        userRepository.deleteByIds(userIds);
+        return new MessagePackage<>(ErrorCode.SUCCESS, null);
     }
 
     @Override
     public MessagePackage<UserInfo> setRoleTo(long userId, Role role) {
-        return null;
+        User user = userRepository.getUserById(userId);
+        if (user == null) {
+            return new MessagePackage<>(ErrorCode.ERROR_USER_NOT_EXIST,
+                    "User not exists", null);
+        }
+        user.setRole(role);
+        userRepository.save(user);
+        return new MessagePackage<>(ErrorCode.SUCCESS, user.toInfo());
     }
 }

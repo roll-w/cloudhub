@@ -1,6 +1,6 @@
 package org.huel.cloudhub.client.service.user;
 
-import org.huel.cloudhub.client.data.dto.UserInfo;
+import org.huel.cloudhub.client.data.dto.user.UserInfo;
 import org.huel.cloudhub.client.data.entity.user.Role;
 import org.huel.cloudhub.client.data.entity.user.User;
 import org.huel.cloudhub.common.MessagePackage;

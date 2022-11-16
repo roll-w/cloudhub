@@ -1,6 +1,6 @@
 package org.huel.cloudhub.client.data.entity.user;
 
-import org.huel.cloudhub.client.data.dto.UserInfo;
+import org.huel.cloudhub.client.data.dto.user.UserInfo;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import space.lingu.light.*;
