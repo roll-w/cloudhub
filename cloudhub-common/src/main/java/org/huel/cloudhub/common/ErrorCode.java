@@ -92,11 +92,11 @@ public enum ErrorCode implements ErrorEnum {
     /**
      * 权限错误
      */
-    ERROR_PERMISSION("A0300"),
+    ERROR_PERMISSION("A0300", 401),
     /**
      * 权限不允许
      */
-    ERROR_PERMISSION_NOT_ALLOWED("A0310"),
+    ERROR_PERMISSION_NOT_ALLOWED("A0310", 401),
     /**
      * 登陆状态过期
      */
