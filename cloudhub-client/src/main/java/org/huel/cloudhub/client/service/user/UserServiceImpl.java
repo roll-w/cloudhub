@@ -69,7 +69,7 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.getUserByName(username);
         if (user != null) {
             return new MessagePackage<>(ErrorCode.ERROR_USER_EXISTED,
-                    "A user with same name is existed.", user.toInfo());
+                    "A user with same name is existed.", null);
         }
         User newUser = new User()
                 .setUsername(username)
@@ -83,7 +83,7 @@ public class UserServiceImpl implements UserService {
         }
         if (userRepository.isExistByEmail(email)) {
             return new MessagePackage<>(ErrorCode.ERROR_USER_EXISTED,
-                    "Has an existing email address.", newUser.toInfo());
+                    "Has an existing email address.", null);
         }
         long time = System.currentTimeMillis();
         final String encodePassword = passwordEncoder.encode(password);

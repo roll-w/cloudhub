@@ -67,7 +67,7 @@ public abstract class UserDao {
     public abstract String getUsernameByName(String name);
 
     //登录查询用户的角色信息进行授权
-    @Query("SELECT user_role FROM user_table WHERE user_id = {id")
+    @Query("SELECT user_role FROM user_table WHERE user_id = {id}")
     public abstract Role getRoleByName(long id);
 
 }
