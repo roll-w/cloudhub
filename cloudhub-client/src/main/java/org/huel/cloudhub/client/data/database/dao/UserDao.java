@@ -36,7 +36,7 @@ public abstract class UserDao {
     @Delete("DELETE FROM user_table WHERE user_id = {id}")
     public abstract void deleteById(long id);
 
-    @Delete("DELETE FROM user_table WHERE user_id IN {id}")
+    @Delete("DELETE FROM user_table WHERE user_id IN {ids}")
     public abstract void deleteByIds(List<Long> ids);
 
     @Delete
