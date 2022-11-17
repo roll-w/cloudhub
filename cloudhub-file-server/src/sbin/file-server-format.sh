@@ -12,14 +12,18 @@ if [ "$CLOUDHUB_FILE_HOME" = '' ]; then
   echo "Not set CLOUDHUB_FILE_HOME variable in the env, program exit with code 2."
   exit 2
 fi
-
-function prop {
-	[ -f "$CONF_DIR" ] && grep -P "^\s*[^#]?${1}=.*$" "$CONF_DIR" | cut -d'=' -f2
-}
+cd "$CLOUDHUB_FILE_HOME" || exit 2
 
 CONF_DIR=$CLOUDHUB_FILE_HOME/conf
 
+prop(){
+    grep "${1}" "$CONF_DIR"/cloudhub.conf | cut -d'=' -f2 | sed 's/\r//'
+}
+
 DATA_DIR=$(prop "cloudhub.file.store_dir")
 
-rm -rf "$DATA_DIR"/data "$DATA_DIR"/meta
+echo "Now clear data store directory: $DATA_DIR"
 
+rm -rf "$DATA_DIR"/data/ "$DATA_DIR"/meta/
+
+printf "Clear successfully.\n"

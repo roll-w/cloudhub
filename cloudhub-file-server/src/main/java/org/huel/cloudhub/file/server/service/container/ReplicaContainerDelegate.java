@@ -5,11 +5,10 @@ import org.huel.cloudhub.file.fs.LocalFileServer;
 import org.huel.cloudhub.file.fs.ServerFile;
 import org.huel.cloudhub.file.fs.block.BlockMetaInfo;
 import org.huel.cloudhub.file.fs.container.*;
-import org.huel.cloudhub.file.fs.container.replica.ReplicaContainerCreator;
-import org.huel.cloudhub.file.fs.container.replica.ReplicaContainerLoader;
-import org.huel.cloudhub.file.fs.container.replica.ReplicaContainerNameMeta;
-import org.huel.cloudhub.file.fs.container.replica.ReplicaGroup;
+import org.huel.cloudhub.file.fs.container.replica.*;
 import org.huel.cloudhub.file.fs.meta.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -24,12 +23,14 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author RollW
  */
 @Service
-public class ReplicaContainerDelegate implements ReplicaContainerLoader, ReplicaContainerCreator {
+public class ReplicaContainerDelegate implements ReplicaContainerLoader,
+        ReplicaContainerCreator, ReplicaContainerFinder {
     private final Map<String, ReplicaGroup> replicaContainerGroups =
             new ConcurrentHashMap<>();
     private final ContainerProperties containerProperties;
     private final LocalFileServer localFileServer;
     private final ServerFile containerDir;
+    private final Logger logger = LoggerFactory.getLogger(ReplicaContainerDelegate.class);
 
     public ReplicaContainerDelegate(ContainerProperties containerProperties,
                                     LocalFileServer localFileServer) {
@@ -40,8 +41,8 @@ public class ReplicaContainerDelegate implements ReplicaContainerLoader, Replica
     }
 
     @Override
-    public void loadInReplicaContainers(SerializedContainerGroupMeta containerMeta) throws IOException {
-        for (SerializedContainerMeta serializedContainerMeta : containerMeta.getMetaList()) {
+    public void loadInReplicaContainers(SerializedReplicaContainerGroupMeta containerMeta) throws IOException {
+        for (SerializedReplicaContainerMeta serializedContainerMeta : containerMeta.getMetaList()) {
             Container container = loadInContainer(serializedContainerMeta);
             updatesContainer(container);
         }
@@ -56,12 +57,12 @@ public class ReplicaContainerDelegate implements ReplicaContainerLoader, Replica
         replicaGroup.put(container);
     }
 
-    private Container loadInContainer(SerializedContainerMeta serializedContainerMeta) throws IOException {
+    private Container loadInContainer(SerializedReplicaContainerMeta serializedContainerMeta) throws IOException {
         final String locator = serializedContainerMeta.getLocator();
         ServerFile file = localFileServer.getServerFileProvider()
                 .openFile(containerDir, locator);
         ServerFile metaFile = localFileServer.getServerFileProvider()
-                .openFile(containerDir, locator + ContainerLocation.META_SUFFIX);
+                .openFile(containerDir, locator + ContainerLocation.REPLICA_META_SUFFIX);
         SerializedContainerBlockMeta containerBlockMeta = MetaReadWriteHelper.readContainerBlockMeta(metaFile);
         ReplicaContainerNameMeta nameMeta = ReplicaContainerNameMeta.parse(locator);
 
@@ -87,12 +88,7 @@ public class ReplicaContainerDelegate implements ReplicaContainerLoader, Replica
         }
         container = createReplicaContainer(id, source, serial, serializedContainerBlockMeta);
         replicaGroup.put(container);
-        // TODO: add to .rcmeta file to allow be indexed.
         return container;
-    }
-
-    private void updatesToReplicaGroupIndex() {
-
     }
 
     private Container createReplicaContainer(String id,
@@ -106,9 +102,15 @@ public class ReplicaContainerDelegate implements ReplicaContainerLoader, Replica
                 toDataPath(containerNameMeta.getName()),
                 ContainerLocation.REPLICA_META_SUFFIX);
         ContainerIdentity identity = buildIdentityFrom(containerNameMeta, containerBlockMeta);
+        List<BlockMetaInfo> blockMetaInfos = new ArrayList<>();
+        for (SerializedBlockFileMeta serializedBlockFileMeta : containerBlockMeta.getBlockMetasList()) {
+            BlockMetaInfo blockMetaInfo =
+                    BlockMetaInfo.deserialize(serializedBlockFileMeta, identity.serial());
+            blockMetaInfos.add(blockMetaInfo);
+        }
         return new Container(location, source,
                 containerBlockMeta.getUsedBlock(),
-                identity, List.of(), 1, false);
+                identity, blockMetaInfos, 1, false);
     }
 
     private ContainerIdentity buildIdentityFrom(ReplicaContainerNameMeta nameMeta,
@@ -175,10 +177,11 @@ public class ReplicaContainerDelegate implements ReplicaContainerLoader, Replica
     void writeContainerMeta(SerializedReplicaContainerMeta containerMeta) throws IOException {
         ReplicaContainerNameMeta fileNameMeta =
                 ReplicaContainerNameMeta.parse(containerMeta.getLocator());
-        String fileName = ContainerIdentity.toCmetaId(fileNameMeta.getId());
+        String fileName = fileNameMeta.getSourceId() + "_" +
+                ContainerIdentity.toCmetaId(fileNameMeta.getId());
 
         ServerFile file = localFileServer.getServerFileProvider()
-                .openFile(containerProperties.getMetaPath(), fileName + ContainerMetaKeys.CONTAINER_META_SUFFIX);
+                .openFile(containerProperties.getMetaPath(), fileName + ContainerMetaKeys.REPLICA_CONTAINER_META_SUFFIX);
         file.createFile();
         SerializedReplicaContainerGroupMeta containerGroupMeta = MetaReadWriteHelper.readReplicaContainerMeta(file);
 
@@ -192,5 +195,14 @@ public class ReplicaContainerDelegate implements ReplicaContainerLoader, Replica
                 .build();
 
         MetaReadWriteHelper.writeReplicaContainerGroupMeta(containerGroupMeta, file);
+    }
+
+    @Override
+    public ContainerGroup findContainerGroup(String containerId, String source) {
+        ReplicaGroup group = replicaContainerGroups.get(source);
+        if (group == null) {
+            return null;
+        }
+        return group.getGroup(containerId);
     }
 }

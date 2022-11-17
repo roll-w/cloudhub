@@ -38,7 +38,8 @@ message DownloadBlockResponse {
   // and not included in the response body.
   oneof download_message {
     CheckMessage check_message = 1;
-    DownloadBlocksInfo download_blocks = 2;
+    bool file_exists = 2;
+    DownloadBlocksInfo download_blocks = 3;
   }
 }
 

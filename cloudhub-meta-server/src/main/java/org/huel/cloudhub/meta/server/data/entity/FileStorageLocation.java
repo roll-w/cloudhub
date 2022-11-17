@@ -7,6 +7,7 @@ import space.lingu.light.PrimaryKey;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.BiConsumer;
 
 /**
@@ -109,5 +110,31 @@ public class FileStorageLocation {
         MASTER,
         REPLICA,
         ALIAS;
+    }
+
+    @Override
+    public String toString() {
+        return "FileStorageLocation{" +
+                "fileId='" + fileId + '\'' +
+                ", masterServerId='" + masterServerId + '\'' +
+                ", replicaIds=" + Arrays.toString(replicaIds) +
+                ", aliasIds=" + Arrays.toString(aliasIds) +
+                '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        FileStorageLocation location = (FileStorageLocation) o;
+        return Objects.equals(fileId, location.fileId) && Objects.equals(masterServerId, location.masterServerId) && Arrays.equals(replicaIds, location.replicaIds) && Arrays.equals(aliasIds, location.aliasIds);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = Objects.hash(fileId, masterServerId);
+        result = 31 * result + Arrays.hashCode(replicaIds);
+        result = 31 * result + Arrays.hashCode(aliasIds);
+        return result;
     }
 }

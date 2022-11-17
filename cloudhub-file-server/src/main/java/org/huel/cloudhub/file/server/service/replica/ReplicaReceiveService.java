@@ -10,6 +10,7 @@ import org.huel.cloudhub.file.fs.container.ContainerWriter;
 import org.huel.cloudhub.file.fs.container.ContainerWriterOpener;
 import org.huel.cloudhub.file.fs.container.replica.ReplicaContainerCreator;
 import org.huel.cloudhub.file.fs.container.replica.ReplicaContainerNameMeta;
+import org.huel.cloudhub.file.io.IoUtils;
 import org.huel.cloudhub.file.rpc.replica.*;
 import org.huel.cloudhub.file.server.service.SourceServerGetter;
 import org.huel.cloudhub.rpc.StreamObserverWrapper;
@@ -124,7 +125,7 @@ public class ReplicaReceiveService extends ReplicaServiceGrpc.ReplicaServiceImpl
                 responseObserver.onError(Status.INTERNAL.asRuntimeException());
                 logger.error("Error: write error, message=%s".formatted(e.getMessage()), e);
             }
-            logger.debug("Write replica data");
+            logger.debug("Write replica data, size={}", blocks.size());
         }
 
 
@@ -136,13 +137,7 @@ public class ReplicaReceiveService extends ReplicaServiceGrpc.ReplicaServiceImpl
         @Override
         public void onCompleted() {
             logger.info("On completed.");
-            if (containerWriter != null) {
-                try {
-                    containerWriter.close();
-                } catch (IOException e) {
-                    logger.debug("Error occurred while closing the container.", e);
-                }
-            }
+            IoUtils.closeQuietly(containerWriter);
         }
 
         private void sendCheckValue(Container container) {
@@ -164,7 +159,7 @@ public class ReplicaReceiveService extends ReplicaServiceGrpc.ReplicaServiceImpl
     private List<Block> toBlockList(List<ReplicaData> replicaDataList) {
         List<Block> blocks = new ArrayList<>();
         for (ReplicaData replicaData : replicaDataList) {
-            byte[] data = replicaData.toByteArray();
+            byte[] data = replicaData.getData().toByteArray();
             Block block = new Block(data, data.length);
             blocks.add(block);
         }
@@ -174,12 +169,18 @@ public class ReplicaReceiveService extends ReplicaServiceGrpc.ReplicaServiceImpl
     private void trySeek(SerializedReplicaDataInfo dataInfo,
                          ContainerWriter writer) {
         if (!dataInfo.hasBlockInfo()) {
+            try {
+                writer.seek(0);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
             return;
         }
         int i = dataInfo.getBlockInfo().getStartIndex();
         if (i < 0) {
             return;
         }
+        logger.info("Seek to {}", i);
         try {
             writer.seek(i);
         } catch (IOException e) {

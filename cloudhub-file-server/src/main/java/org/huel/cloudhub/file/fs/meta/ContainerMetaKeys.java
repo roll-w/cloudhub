@@ -3,7 +3,6 @@ package org.huel.cloudhub.file.fs.meta;
 import org.huel.cloudhub.file.server.service.file.FileUtils;
 
 import java.util.Objects;
-import java.util.regex.Pattern;
 
 /**
  * @author RollW
@@ -33,7 +32,7 @@ public final class ContainerMetaKeys {
         if (metaFileName == null) {
             throw new NullPointerException();
         }
-        return metaFileName.contains(Pattern.quote("_"));
+        return metaFileName.contains("_");
     }
 
     private ContainerMetaKeys() {

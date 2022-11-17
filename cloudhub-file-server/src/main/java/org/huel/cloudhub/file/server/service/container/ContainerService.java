@@ -2,6 +2,7 @@ package org.huel.cloudhub.file.server.service.container;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import com.google.protobuf.InvalidProtocolBufferException;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.huel.cloudhub.file.fs.FileAllocator;
@@ -9,19 +10,18 @@ import org.huel.cloudhub.file.fs.LocalFileServer;
 import org.huel.cloudhub.file.fs.ServerFile;
 import org.huel.cloudhub.file.fs.block.BlockMetaInfo;
 import org.huel.cloudhub.file.fs.container.*;
+import org.huel.cloudhub.file.fs.container.replica.ReplicaContainerFinder;
 import org.huel.cloudhub.file.fs.container.replica.ReplicaContainerLoader;
 import org.huel.cloudhub.file.fs.meta.*;
 import org.huel.cloudhub.util.math.Maths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author RollW
@@ -33,16 +33,22 @@ public class ContainerService implements ContainerAllocator, ContainerFinder, Co
                     .build();
     private final ContainerProperties containerProperties;
     private final ReplicaContainerLoader replicaContainerLoader;
+    private final ReplicaContainerFinder replicaContainerFinder;
     private final LocalFileServer localFileServer;
+    private final ApplicationEventPublisher eventPublisher;
     private final Logger logger = LoggerFactory.getLogger(ContainerService.class);
     private final ServerFile containerDir;
 
     public ContainerService(ContainerProperties containerProperties,
                             ReplicaContainerLoader replicaContainerLoader,
-                            LocalFileServer localFileServer) throws IOException {
+                            ReplicaContainerFinder replicaContainerFinder,
+                            LocalFileServer localFileServer,
+                            ApplicationEventPublisher eventPublisher) throws IOException {
         this.containerProperties = containerProperties;
         this.replicaContainerLoader = replicaContainerLoader;
+        this.replicaContainerFinder = replicaContainerFinder;
         this.localFileServer = localFileServer;
+        this.eventPublisher = eventPublisher;
         this.containerDir =
                 localFileServer.getServerFileProvider().openFile(containerProperties.getContainerPath());
         loadContainers();
@@ -53,6 +59,8 @@ public class ContainerService implements ContainerAllocator, ContainerFinder, Co
                 localFileServer.getServerFileProvider().openFile(containerProperties.getMetaPath());
         metaDir.mkdirs();
         containerDir.mkdirs();
+        Set<String> damagedContainerLocators = new HashSet<>();
+        Set<String> healthyContainerLocators = new HashSet<>();
 
         List<ServerFile> metaFiles = metaDir.listFiles();
         List<SerializedContainerMeta> serializedContainerMetas = new ArrayList<>();
@@ -61,29 +69,74 @@ public class ContainerService implements ContainerAllocator, ContainerFinder, Co
             if (!ContainerMetaKeys.isMetaFile(fileName)) {
                 continue;
             }
-            SerializedContainerGroupMeta fileMeta = MetaReadWriteHelper.readContainerMeta(metaFile);
             if (ContainerMetaKeys.isReplicaMetaFile(fileName)) {
+                SerializedReplicaContainerGroupMeta fileMeta =
+                        MetaReadWriteHelper.readReplicaContainerMeta(metaFile);
                 replicaContainerLoader.loadInReplicaContainers(fileMeta);
                 continue;
             }
+            SerializedContainerGroupMeta fileMeta =
+                    MetaReadWriteHelper.readContainerMeta(metaFile);
             serializedContainerMetas.addAll(fileMeta.getMetaList());
         }
 
         for (SerializedContainerMeta serializedContainerMeta : serializedContainerMetas) {
-            Container container = loadInContainer(serializedContainerMeta);
+            Container container = null;
+            try {
+                container = loadInContainer(serializedContainerMeta);
+                healthyContainerLocators.add(serializedContainerMeta.getLocator());
+            } catch (MetaLostException e) {
+                logger.info("Found meta lost of container={}.", e.getContainerLocator());
+                damagedContainerLocators.add(e.getContainerLocator());
+            }
             updatesContainerInContainerGroup(container);
+        }
+        checkContainerFiles(healthyContainerLocators, damagedContainerLocators);
+    }
+
+    @Async
+    void checkContainerFiles(Set<String> healthyLocators, Set<String> damagedLocators) throws IOException {
+        Set<ServerFile> unindexedContainerFiles = new HashSet<>();
+        // TODO: check containers
+        if (containerDir.exists()) {
+            List<ServerFile> files =
+                    containerDir.listFiles();
+            for (ServerFile file : files) {
+                String locator = file.getName();
+                if (locator.contains(".")) {
+                    continue;
+                }
+                if (healthyLocators.contains(locator)) {
+                    continue;
+                }
+                ServerFile metaFile = localFileServer.getServerFileProvider()
+                        .openFile(containerDir, locator + ContainerLocation.META_SUFFIX);
+                if (!metaFile.exists()) {
+                    // index lost, meta lost. cannot get container info anymore.
+
+                }
+                // try parse meta
+            }
         }
     }
 
-    private Container loadInContainer(SerializedContainerMeta serializedContainerMeta) throws IOException {
+    private Container loadInContainer(SerializedContainerMeta serializedContainerMeta) throws IOException, MetaLostException {
         final String locator = serializedContainerMeta.getLocator();
         ServerFile file = localFileServer.getServerFileProvider()
                 .openFile(containerDir, locator);
+        ContainerNameMeta nameMeta = ContainerNameMeta.parse(locator);
         ServerFile metaFile = localFileServer.getServerFileProvider()
                 .openFile(containerDir, locator + ContainerLocation.META_SUFFIX);
-        SerializedContainerBlockMeta containerBlockMeta = MetaReadWriteHelper.readContainerBlockMeta(metaFile);
-        ContainerNameMeta nameMeta = ContainerNameMeta.parse(locator);
+        if (!metaFile.exists()) {
+            throw new MetaLostException(serializedContainerMeta.getLocator());
+        }
 
+        SerializedContainerBlockMeta containerBlockMeta;
+        try {
+            containerBlockMeta = MetaReadWriteHelper.readContainerBlockMeta(metaFile);
+        } catch (InvalidProtocolBufferException e) {
+            throw new MetaLostException(serializedContainerMeta.getLocator());
+        }
         List<BlockMetaInfo> blockMetaInfos = new ArrayList<>();
         containerBlockMeta.getBlockMetasList().forEach(serializeBlockFileMeta ->
                 blockMetaInfos.add(BlockMetaInfo.deserialize(
@@ -283,6 +336,10 @@ public class ContainerService implements ContainerAllocator, ContainerFinder, Co
     }
 
     private void updatesContainerInContainerGroup(Container container) {
+        if (container == null) {
+            return;
+        }
+
         ContainerGroup containerGroup =
                 containerCache.getIfPresent(container.getIdentity().id());
         if (containerGroup == null) {
@@ -331,8 +388,10 @@ public class ContainerService implements ContainerAllocator, ContainerFinder, Co
     }
 
     private ContainerGroup findGroup(String containerId, String source) {
-        // TODO: replica
-        return containerCache.getIfPresent(containerId);
+        if (ContainerFinder.isLocal(source)) {
+            return containerCache.getIfPresent(containerId);
+        }
+        return replicaContainerFinder.findContainerGroup(containerId, source);
     }
 
     @Override

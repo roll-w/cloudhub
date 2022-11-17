@@ -336,9 +336,10 @@ public class Container {
         return "Container{" +
                 "usedBlock=" + usedBlock +
                 ", location=" + location +
+                ", version=" + version +
                 ", identity=" + identity +
                 ", blockMetaInfos=" + blockMetaInfos +
-                ", valid=" + usable +
+                ", usable=" + usable +
                 '}';
     }
 }

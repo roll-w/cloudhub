@@ -52,15 +52,25 @@ public class FileDownloadService {
         RequestServer first = activeServers.get(0);
         // TODO: load balance. fragment request to the other servers.
 
-        DownloadBlockRequest request = DownloadBlockRequest.newBuilder()
-                .setFileId(fileId)
-                .build();
+        DownloadBlockRequest request = buildFirstRequest(first, location, fileId);
         BlockDownloadServiceGrpc.BlockDownloadServiceStub stub =
                 requireStub(first.server());
 
         logger.debug("Start downloading file id={}", fileId);
         // async here, needs callback
         stub.downloadBlocks(request, new DownloadBlockStreamObserver(outputStream));
+    }
+
+    private DownloadBlockRequest buildFirstRequest(RequestServer server, FileStorageLocation location, String fileId) {
+        if (server.serverType == FileStorageLocation.ServerType.REPLICA) {
+            return DownloadBlockRequest.newBuilder()
+                    .setFileId(fileId)
+                    .setSourceId(location.getMasterServerId())
+                    .build();
+        }
+        return DownloadBlockRequest.newBuilder()
+                .setFileId(fileId)
+                .build();
     }
 
     private BlockDownloadServiceGrpc.BlockDownloadServiceStub requireStub(NodeServer server) {
@@ -119,6 +129,12 @@ public class FileDownloadService {
                 logger.error("--- not a valid response.");
                 throw new IllegalArgumentException("Not valid response.");
             }
+            if (value.getDownloadMessageCase() == DownloadBlockResponse.DownloadMessageCase.FILE_EXISTS) {
+                logger.debug("File not exists");
+                onFileNotExists();
+                return;
+            }
+
             if (value.getDownloadMessageCase() ==
                     DownloadBlockResponse.DownloadMessageCase.CHECK_MESSAGE) {
                 saveCheckMessage(value.getCheckMessage());
@@ -146,7 +162,6 @@ public class FileDownloadService {
         @Override
         public void onError(Throwable t) {
             logger.error("download file error.", t);
-
             try {
                 outputStream.close();
             } catch (IOException e) {
@@ -163,6 +178,10 @@ public class FileDownloadService {
             } catch (IOException e) {
                 logger.debug("close error.", e);
             }
+        }
+
+        private void onFileNotExists() {
+            // TODO: file not exists, choose other server
         }
     }
 

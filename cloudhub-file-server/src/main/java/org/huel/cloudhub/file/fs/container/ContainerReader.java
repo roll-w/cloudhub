@@ -47,9 +47,12 @@ public class ContainerReader implements Closeable {
             seek(0);
             return;
         }
-
-        long blockSizeBytes = container.getIdentity().blockSizeBytes();
-        containerInputStream.seek(blockSizeBytes * index);
+        if (index == 0) {
+            containerInputStream.seek(0);
+        } else {
+            long blockSizeBytes = container.getIdentity().blockSizeBytes();
+            containerInputStream.seek(blockSizeBytes * index);
+        }
         lastPos.set(index);
     }
 

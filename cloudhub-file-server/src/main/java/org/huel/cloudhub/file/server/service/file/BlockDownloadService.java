@@ -6,10 +6,13 @@ import io.grpc.stub.StreamObserver;
 import org.huel.cloudhub.file.fs.LockException;
 import org.huel.cloudhub.file.fs.block.ContainerBlock;
 import org.huel.cloudhub.file.fs.block.FileBlockMetaInfo;
-import org.huel.cloudhub.file.fs.container.*;
+import org.huel.cloudhub.file.fs.container.ContainerFinder;
+import org.huel.cloudhub.file.fs.container.ContainerGroup;
+import org.huel.cloudhub.file.fs.container.ContainerProperties;
+import org.huel.cloudhub.file.fs.container.ContainerReadOpener;
 import org.huel.cloudhub.file.fs.container.file.ContainerFileReader;
 import org.huel.cloudhub.file.rpc.block.*;
-import org.huel.cloudhub.file.server.service.id.ServerIdService;
+import org.huel.cloudhub.file.server.service.SourceServerGetter;
 import org.huel.cloudhub.rpc.GrpcProperties;
 import org.huel.cloudhub.util.math.Maths;
 import org.slf4j.Logger;
@@ -30,18 +33,18 @@ public class BlockDownloadService extends BlockDownloadServiceGrpc.BlockDownload
     private final ContainerFinder containerFinder;
     private final ContainerProperties containerProperties;
     private final GrpcProperties grpcProperties;
-    private final ServerIdService serverIdService;
+    private final SourceServerGetter.ServerInfo serverInfo;
 
     public BlockDownloadService(ContainerReadOpener containerReadOpener,
                                 ContainerFinder containerFinder,
                                 ContainerProperties containerProperties,
                                 GrpcProperties grpcProperties,
-                                ServerIdService serverIdService) {
+                                SourceServerGetter sourceServerGetter) {
         this.containerReadOpener = containerReadOpener;
         this.containerFinder = containerFinder;
         this.containerProperties = containerProperties;
         this.grpcProperties = grpcProperties;
-        this.serverIdService = serverIdService;
+        this.serverInfo = sourceServerGetter.getLocalServer();
     }
 
     @Override
@@ -51,10 +54,13 @@ public class BlockDownloadService extends BlockDownloadServiceGrpc.BlockDownload
         final String source = getId(request);
         ContainerGroup containerGroup =
                 containerFinder.findContainerGroupByFile(fileId, source);
+        if (containerGroup == null) {
+            responseFileNotExists(responseObserver);
+            return;
+        }
         FileBlockMetaInfo fileBlockMetaInfo = containerGroup.getFileBlockMetaInfo(fileId);
         if (fileBlockMetaInfo == null) {
-            responseObserver.onError(Status.NOT_FOUND.asException());
-            responseObserver.onCompleted();
+            responseFileNotExists(responseObserver);
             return;
         }
 
@@ -71,6 +77,13 @@ public class BlockDownloadService extends BlockDownloadServiceGrpc.BlockDownload
         readSendResponse(fileId, containerGroup, fileBlockMetaInfo,
                 responseObserver, maxBlocksInResponse, 0);
 
+    }
+
+    private void responseFileNotExists(StreamObserver<DownloadBlockResponse> responseObserver) {
+        responseObserver.onNext(DownloadBlockResponse.newBuilder()
+                .setFileExists(false)
+                .build());
+        responseObserver.onCompleted();
     }
 
     // TODO: set by meta-server.
@@ -156,7 +169,7 @@ public class BlockDownloadService extends BlockDownloadServiceGrpc.BlockDownload
             return ContainerFinder.LOCAL;
         }
         final String id = request.getSourceId();
-        if (id.equals(serverIdService.getServerId())) {
+        if (id.equals(serverInfo.id())) {
             return ContainerFinder.LOCAL;
         }
         return id;

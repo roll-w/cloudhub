@@ -118,7 +118,7 @@ public class FileUploadService {
         UploadBlocksResponseStreamObserver responseStreamObserver =
                 new UploadBlocksResponseStreamObserver(hash, reopenableInputStream,
                         master,
-                        List.of(),
+                        servers,
                         maxUploadBlockCount, blockSizeInBytes, requestCount);
 
         StreamObserver<UploadBlocksRequest> requestStreamObserver = stub.uploadBlocks(
@@ -206,14 +206,14 @@ public class FileUploadService {
         UploadBlocksResponseStreamObserver(String fileId,
                                            ReopenableInputStream stream,
                                            NodeServer master,
-                                           List<NodeServer> replicas,
+                                           List<SerializedFileServer> replicas,
                                            int maxUploadBlockCount,
                                            int blockSizeInBytes,
                                            int requestCount) {
             this.stream = stream;
             this.fileId = fileId;
             this.master = master;
-            this.replicaIds = replicas.stream().map(NodeServer::id).toList();
+            this.replicaIds = replicas.stream().map(SerializedFileServer::getId).toList();
             this.maxUploadBlockCount = maxUploadBlockCount;
             this.blockSizeInBytes = blockSizeInBytes;
             this.requestCount = requestCount;
@@ -348,14 +348,13 @@ public class FileUploadService {
         for (int i = 0; i < reps; i++) {
             NodeServer server =
                     nodeAllocator.allocateNode(hash + "-" + i);
-            if (retries > 5) {
-                // still cannot allocate given replicas count after 5 tries.
+            if (retries >= 20) {
+                // still cannot allocate given replicas count after 20 tries.
                 return servers;
             }
             if (ids.contains(server.id())) {
                 reps++;
                 retries++;
-                logger.debug("The same server, tries={}", retries);
                 continue;
             }
             ids.add(server.id());

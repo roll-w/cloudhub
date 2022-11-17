@@ -252,8 +252,9 @@ public class ReplicaService {
         }
         List<ReplicaData> replicaDataList = new ArrayList<>();
         for (ContainerBlock containerBlock : containerBlocks) {
+            byte[] bytes = containerBlock.getData();
             ReplicaData data = ReplicaData.newBuilder()
-                    .setData(ByteString.copyFrom(containerBlock.getData()))
+                    .setData(ByteString.copyFrom(bytes, 0, bytes.length))
                     .build();
             containerBlock.release();
             replicaDataList.add(data);

@@ -1,6 +1,6 @@
 package org.huel.cloudhub.file.fs.container.replica;
 
-import org.huel.cloudhub.file.fs.meta.SerializedContainerGroupMeta;
+import org.huel.cloudhub.file.fs.meta.SerializedReplicaContainerGroupMeta;
 
 import java.io.IOException;
 
@@ -8,5 +8,5 @@ import java.io.IOException;
  * @author RollW
  */
 public interface ReplicaContainerLoader {
-    void loadInReplicaContainers(SerializedContainerGroupMeta containerGroupMeta) throws IOException;
+    void loadInReplicaContainers(SerializedReplicaContainerGroupMeta containerGroupMeta) throws IOException;
 }
