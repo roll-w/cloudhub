@@ -11,7 +11,7 @@ import org.huel.cloudhub.client.data.entity.token.PasswordResetToken;
  */
 // TODO
 public interface UserSettingService {
-    MessagePackage<PasswordResetToken> createPasswordResetToken();
+    PasswordResetToken createPasswordResetToken(long userId);
 
     // 旧密码正确无需重置令牌
     MessagePackage<UserInfo> resetPassword(long userId, String oldPassword, String newPassword);
