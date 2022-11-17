@@ -1,6 +1,7 @@
 package org.huel.cloudhub.client.data.database.dao;
 
 import org.huel.cloudhub.client.data.dto.user.UserInfo;
+import org.huel.cloudhub.client.data.entity.user.Role;
 import org.huel.cloudhub.client.data.entity.user.User;
 import space.lingu.light.*;
 
@@ -64,5 +65,9 @@ public abstract class UserDao {
     // 如果SELECT * 会导致查询的量增大，影响速度
     @Query("SELECT user_name FROM user_table WHERE user_name = {name}")
     public abstract String getUsernameByName(String name);
+
+    //登录查询用户的角色信息进行授权
+    @Query("SELECT user_role FROM user_table WHERE user_id = {id")
+    public abstract Role getRoleByName(long id);
 
 }

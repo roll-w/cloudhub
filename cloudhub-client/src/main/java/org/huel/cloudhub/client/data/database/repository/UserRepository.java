@@ -2,6 +2,7 @@ package org.huel.cloudhub.client.data.database.repository;
 
 import org.huel.cloudhub.client.data.database.CloudhubDatabase;
 import org.huel.cloudhub.client.data.database.dao.UserDao;
+import org.huel.cloudhub.client.data.entity.user.Role;
 import org.huel.cloudhub.client.data.entity.user.User;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Repository;
@@ -67,5 +68,9 @@ public class UserRepository {
 
     public User getUserByName(String username) {
         return userDao.getUserByName(username);
+    }
+
+    public Role getRoleById(long id){
+        return userDao.getRoleByName(id);
     }
 }

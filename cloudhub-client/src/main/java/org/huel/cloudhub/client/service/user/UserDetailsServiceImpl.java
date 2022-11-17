@@ -24,6 +24,9 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         if (user == null) {
             throw new UsernameNotFoundException("Not found username: " + username);
         }
+
+        //进行角色授权
+        user.setRole(userRepository.getRoleById(user.getId()));
         return user;
     }
 }

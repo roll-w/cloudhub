@@ -3,17 +3,23 @@ package org.huel.cloudhub.client.configuration;
 import org.huel.cloudhub.client.configuration.filter.SessionRequestFilter;
 import org.huel.cloudhub.client.configuration.properties.WebUrlsProperties;
 import org.huel.cloudhub.client.service.user.UserDetailsServiceImpl;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.ObjectPostProcessor;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.authentication.configuration.EnableGlobalAuthentication;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
+import org.springframework.security.config.annotation.web.configurers.UrlAuthorizationConfigurer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.intercept.FilterSecurityInterceptor;
 
 /**
  * Spring Security配置
@@ -23,24 +29,45 @@ import org.springframework.security.web.SecurityFilterChain;
 @Configuration
 @EnableWebSecurity
 @EnableGlobalAuthentication
-// @EnableGlobalMethodSecurity(prePostEnabled=true)
+ @EnableGlobalMethodSecurity(prePostEnabled=true)
 public class WebSecurityConfiguration {
     private final UserDetailsServiceImpl userDetailsService;
 
     private final WebUrlsProperties urlsProperties;
 
+    private final CustomSecurityMetaSource customSecurityMetaSource;
+
 
     public WebSecurityConfiguration(UserDetailsServiceImpl userDetailsService,
-                                    WebUrlsProperties urlsProperties) {
+                                    WebUrlsProperties urlsProperties,
+                                    CustomSecurityMetaSource customSecurityMetaSource) {
         this.userDetailsService = userDetailsService;
         this.urlsProperties = urlsProperties;
+        this.customSecurityMetaSource = customSecurityMetaSource;
     }
 
+    protected void configure(AuthenticationManagerBuilder authenticationManagerBuilder) throws Exception{
+            authenticationManagerBuilder.userDetailsService(userDetailsService);
+    }
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity security) throws Exception {
         security.csrf().disable()
                 .authorizeRequests().antMatchers("/").permitAll();
         // 暂时禁用Spring Security
+        ApplicationContext applicationContext = security.getSharedObject(ApplicationContext.class);
+
+        security.apply(new UrlAuthorizationConfigurer<>(applicationContext))
+                .withObjectPostProcessor(new ObjectPostProcessor<FilterSecurityInterceptor>() {
+
+                    @Override
+                    public <O extends FilterSecurityInterceptor> O postProcess(O object) {
+                        object.setSecurityMetadataSource(customSecurityMetaSource);
+                        object.setRejectPublicInvocations(true);
+                        return object;
+                    }
+                });
+
+
         return security.build();
 
 //        security.addFilterBefore(sessionRequestFilter(),

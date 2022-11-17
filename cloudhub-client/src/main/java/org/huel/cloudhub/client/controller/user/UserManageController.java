@@ -6,6 +6,7 @@ import org.huel.cloudhub.client.data.entity.user.User;
 import org.huel.cloudhub.client.service.user.UserManageService;
 import org.huel.cloudhub.common.ErrorCode;
 import org.huel.cloudhub.common.HttpResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
