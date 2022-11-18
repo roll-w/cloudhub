@@ -5,4 +5,5 @@ package org.huel.cloudhub.client.service.bucket;
  */
 public interface BucketManageService {
     // TODO:
+
 }
