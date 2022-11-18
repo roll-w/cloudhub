@@ -7,7 +7,7 @@ import space.lingu.light.PrimaryKey;
 
 /**
  * 存储桶（文件的容器）
- *
+ *  需要实现桶的增删改查
  * @author RollW
  */
 // TODO:
