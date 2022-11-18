@@ -14,7 +14,7 @@ import java.util.Objects;
  * @author Cheng
  */
 @Service
-public class UserSettingServiceImpl implements UserSettingService{
+public class UserSettingServiceImpl implements UserSettingService {
 
     private final UserRepository userRepository;
 
@@ -23,40 +23,60 @@ public class UserSettingServiceImpl implements UserSettingService{
         this.userRepository = userRepository;
     }
 
-//    无令牌
+    // 无令牌
     @Override
     public PasswordResetToken createPasswordResetToken(long userId) {
         return null;
     }
-    //更新密码
+
+    // 更新密码
     @Override
     public MessagePackage<UserInfo> resetPassword(long userId, String oldPassword, String newPassword) {
         User user = userRepository.getUserById(userId);
-        if (Objects.equals(user.getPassword(), oldPassword)){
-            User user_New = user.setPassword(newPassword);
-            userRepository.update(user_New);
+        if (user == null) {
+            return new MessagePackage<>(ErrorCode.ERROR_USER_NOT_EXIST,
+                    "User not exist.", null);
+        }
+        if (Objects.equals(user.getPassword(), oldPassword)) {
+            User userNew = user.setPassword(newPassword);
+            userRepository.update(userNew);
             new MessagePackage<>(ErrorCode.SUCCESS, user.toInfo());
         }
-        return new MessagePackage<>(ErrorCode.ERROR_PASSWORD_NOT_CORRECT, "OldPassword Error",null);
+        return new MessagePackage<>(ErrorCode.ERROR_PASSWORD_NOT_CORRECT,
+                "Old password not correct.", null);
     }
+
     //忘记密码
     @Override
     public MessagePackage<UserInfo> resetPassword(long userId, String newPassword) {
         User user = userRepository.getUserById(userId);
-
-        userRepository.update(user.setPassword(newPassword));
+        if (user == null) {
+            return new MessagePackage<>(ErrorCode.ERROR_USER_NOT_EXIST,
+                    "User not exist.", null);
+        }
+        userRepository.save(user.setPassword(newPassword));
         return new MessagePackage<>(ErrorCode.SUCCESS, user.toInfo());
     }
 
     @Override
-    public MessagePackage<UserInfo> resetPassword(long userId, String newPassword, PasswordResetToken resetToken) {
-        return null;
+    public MessagePackage<UserInfo> resetPassword(long userId, String newPassword,
+                                                  PasswordResetToken resetToken) {
+        return resetPassword(userId, newPassword);
     }
+
     //更换用户名
     @Override
     public MessagePackage<UserInfo> resetUsername(long userId, String newUsername) {
+        if (UserChecker.checkUsername(newUsername)) {
+            return new MessagePackage<>(ErrorCode.ERROR_USERNAME_NON_COMPLIANCE,
+                    "Username non compliance.", null);
+        }
+        if (userRepository.isExistByName(newUsername)) {
+            return new MessagePackage<>(ErrorCode.ERROR_USER_EXISTED,
+                    "Username existed.", null);
+        }
         User user = userRepository.getUserById(userId);
-        userRepository.update(user.setUsername(newUsername));
+        userRepository.save(user.setUsername(newUsername));
         return new MessagePackage<>(ErrorCode.SUCCESS, user.toInfo());
     }
 }

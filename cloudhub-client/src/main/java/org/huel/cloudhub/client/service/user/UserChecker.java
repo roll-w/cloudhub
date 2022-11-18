@@ -49,7 +49,7 @@ public class UserChecker {
      * @param username 用户名
      * @return 是否合规
      */
-    private static boolean checkUsername(String username) {
+    public static boolean checkUsername(String username) {
         if (StringUtils.isEmpty(username)) {
             return false;
         }
@@ -71,7 +71,7 @@ public class UserChecker {
      * @param password 密码
      * @return 是否合规
      */
-    private static boolean checkPassword(String password) {
+    public static boolean checkPassword(String password) {
         if (StringUtils.isEmpty(password)) {
             return false;
         }
@@ -82,7 +82,7 @@ public class UserChecker {
         return matcher.matches();
     }
 
-    private static boolean checkEmail(String email) {
+    public static boolean checkEmail(String email) {
         if (StringUtils.isEmpty(email)) {
             return false;
         }
