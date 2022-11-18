@@ -5,4 +5,10 @@ package org.huel.cloudhub.client.data.dto;
  */
 public interface VerifiableToken {
     String token();
+
+    Long userId();
+
+    Long expiryDate();
+
+    boolean used();
 }
