@@ -302,7 +302,7 @@ public class FileUploadService {
         if (replicaServers.isEmpty()) {
             return List.of();
         }
-        return toSerialized(replicaServers);
+        return RequestServer.toSerialized(replicaServers);
     }
 
     private UploadBlocksRequest buildUploadBlocksRequest(String fileId,
@@ -378,14 +378,4 @@ public class FileUploadService {
         // 1 master with 2 replicas
     }
 
-    private static List<SerializedFileServer> toSerialized(List<NodeServer> nodeServers) {
-        List<SerializedFileServer> servers = new ArrayList<>();
-        nodeServers.forEach(nodeServer -> servers.add(
-                SerializedFileServer.newBuilder()
-                        .setHost(nodeServer.host())
-                        .setId(nodeServer.id())
-                        .setPort(nodeServer.port())
-                        .build()));
-        return servers;
-    }
 }

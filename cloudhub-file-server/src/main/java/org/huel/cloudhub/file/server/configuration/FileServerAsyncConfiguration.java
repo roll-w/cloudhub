@@ -21,7 +21,7 @@ public class FileServerAsyncConfiguration {
     public Executor configureExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(20);
-        executor.setMaxPoolSize(40);
+        executor.setMaxPoolSize(60);
         executor.setQueueCapacity(500);
         executor.setKeepAliveSeconds(60);
         executor.setThreadNamePrefix("FS-Main-Executor");

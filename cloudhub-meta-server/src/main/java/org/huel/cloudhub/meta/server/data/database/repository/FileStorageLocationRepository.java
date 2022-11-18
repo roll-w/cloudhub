@@ -3,6 +3,7 @@ package org.huel.cloudhub.meta.server.data.database.repository;
 import org.huel.cloudhub.meta.server.data.database.MetaDatabase;
 import org.huel.cloudhub.meta.server.data.database.dao.FileStorageLocationDao;
 import org.huel.cloudhub.meta.server.data.entity.FileStorageLocation;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -22,5 +23,10 @@ public class FileStorageLocationRepository {
 
     public FileStorageLocation getByFileId(String fileId) {
         return dao.getByFileId(fileId);
+    }
+
+    @Async
+    public void delete(String fileId) {
+        dao.deleteById(fileId);
     }
 }

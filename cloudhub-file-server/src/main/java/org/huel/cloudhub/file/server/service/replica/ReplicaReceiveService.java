@@ -9,6 +9,7 @@ import org.huel.cloudhub.file.fs.container.ContainerChecker;
 import org.huel.cloudhub.file.fs.container.ContainerWriter;
 import org.huel.cloudhub.file.fs.container.ContainerWriterOpener;
 import org.huel.cloudhub.file.fs.container.replica.ReplicaContainerCreator;
+import org.huel.cloudhub.file.fs.container.replica.ReplicaContainerDeleter;
 import org.huel.cloudhub.file.fs.container.replica.ReplicaContainerNameMeta;
 import org.huel.cloudhub.file.io.IoUtils;
 import org.huel.cloudhub.file.rpc.replica.*;
@@ -30,15 +31,18 @@ import java.util.List;
 public class ReplicaReceiveService extends ReplicaServiceGrpc.ReplicaServiceImplBase {
     private final Logger logger = LoggerFactory.getLogger(ReplicaReceiveService.class);
     private final ReplicaContainerCreator replicaContainerCreator;
+    private final ReplicaContainerDeleter replicaContainerDeleter;
     private final ContainerWriterOpener containerWriterOpener;
     private final ContainerChecker containerChecker;
     private final SourceServerGetter.ServerInfo serverInfo;
 
     public ReplicaReceiveService(ReplicaContainerCreator replicaContainerCreator,
+                                 ReplicaContainerDeleter replicaContainerDeleter,
                                  ContainerWriterOpener containerWriterOpener,
                                  ContainerChecker containerChecker,
                                  SourceServerGetter sourceServerGetter) {
         this.replicaContainerCreator = replicaContainerCreator;
+        this.replicaContainerDeleter = replicaContainerDeleter;
         this.containerWriterOpener = containerWriterOpener;
         this.containerChecker = containerChecker;
         this.serverInfo = sourceServerGetter.getLocalServer();
@@ -47,6 +51,19 @@ public class ReplicaReceiveService extends ReplicaServiceGrpc.ReplicaServiceImpl
     @Override
     public StreamObserver<ReplicaRequest> sendReplica(StreamObserver<ReplicaResponse> responseObserver) {
         return new ReplicaRequestObserver(responseObserver);
+    }
+
+    @Override
+    public void deleteReplica(ReplicaDeleteRequest request, StreamObserver<ReplicaDeleteResponse> responseObserver) {
+        try {
+            replicaContainerDeleter.deleteReplicaContainer(request.getId(), request.getSerial(),
+                    request.getSource());
+        } catch (IOException e) {
+            logger.debug("Delete replica error.", e);
+        }
+        responseObserver.onNext(ReplicaDeleteResponse.newBuilder()
+                .build());
+        responseObserver.onCompleted();
     }
 
     private boolean checkId(String id) {
@@ -180,7 +197,6 @@ public class ReplicaReceiveService extends ReplicaServiceGrpc.ReplicaServiceImpl
         if (i < 0) {
             return;
         }
-        logger.info("Seek to {}", i);
         try {
             writer.seek(i);
         } catch (IOException e) {

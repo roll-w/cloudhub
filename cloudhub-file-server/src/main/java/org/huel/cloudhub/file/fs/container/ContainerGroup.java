@@ -77,6 +77,10 @@ public class ContainerGroup {
         return fileIds.contains(fileId);
     }
 
+    public Collection<String> getFileIds() {
+        return Collections.unmodifiableSet(fileIds);
+    }
+
     public long lastSerial() {
         return latestSerial;
     }

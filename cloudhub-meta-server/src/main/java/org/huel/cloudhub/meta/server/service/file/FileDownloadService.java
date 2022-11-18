@@ -7,6 +7,7 @@ import org.huel.cloudhub.meta.server.data.database.repository.FileStorageLocatio
 import org.huel.cloudhub.meta.server.data.entity.FileStorageLocation;
 import org.huel.cloudhub.meta.server.service.node.*;
 import org.huel.cloudhub.rpc.GrpcProperties;
+import org.huel.cloudhub.rpc.GrpcServiceStubPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -27,8 +28,9 @@ public class FileDownloadService {
     private final NodeAllocator nodeAllocator;
     private final ServerChecker serverChecker;
     private final FileStorageLocationRepository repository;
-    private final GrpcProperties grpcProperties;
     private final NodeChannelPool nodeChannelPool;
+    private final GrpcServiceStubPool<BlockDownloadServiceGrpc.BlockDownloadServiceStub>
+            blockDownloadServiceStubPool;
 
     public FileDownloadService(HeartbeatService heartbeatService,
                                FileStorageLocationRepository repository,
@@ -36,8 +38,8 @@ public class FileDownloadService {
         this.nodeAllocator = heartbeatService.getNodeAllocator();
         this.serverChecker = heartbeatService.getServerChecker();
         this.repository = repository;
-        this.grpcProperties = grpcProperties;
         this.nodeChannelPool = new NodeChannelPool(grpcProperties);
+        this.blockDownloadServiceStubPool = new GrpcServiceStubPool<>();
     }
 
     public void downloadFile(OutputStream outputStream, String fileId) {
@@ -57,12 +59,12 @@ public class FileDownloadService {
                 requireStub(first.server());
 
         logger.debug("Start downloading file id={}", fileId);
-        // async here, needs callback
+        // TODO: async here, needs callback
         stub.downloadBlocks(request, new DownloadBlockStreamObserver(outputStream));
     }
 
     private DownloadBlockRequest buildFirstRequest(RequestServer server, FileStorageLocation location, String fileId) {
-        if (server.serverType == FileStorageLocation.ServerType.REPLICA) {
+        if (server.serverType() == FileStorageLocation.ServerType.REPLICA) {
             return DownloadBlockRequest.newBuilder()
                     .setFileId(fileId)
                     .setSourceId(location.getMasterServerId())
@@ -76,8 +78,12 @@ public class FileDownloadService {
     private BlockDownloadServiceGrpc.BlockDownloadServiceStub requireStub(NodeServer server) {
         ManagedChannel channel = nodeChannelPool.getChannel(server);
         BlockDownloadServiceGrpc.BlockDownloadServiceStub stub =
-                BlockDownloadServiceGrpc.newStub(channel);
-        // TODO: caching stub
+                blockDownloadServiceStubPool.getStub(server.id());
+        if (stub != null) {
+            return stub;
+        }
+        stub = BlockDownloadServiceGrpc.newStub(channel);
+        blockDownloadServiceStubPool.registerStub(server.id(), stub);
         return stub;
     }
 
@@ -98,9 +104,6 @@ public class FileDownloadService {
         });
 
         return requestServers;
-    }
-
-    private record RequestServer(NodeServer server, FileStorageLocation.ServerType serverType) {
     }
 
     private class DownloadBlockStreamObserver implements StreamObserver<DownloadBlockResponse> {

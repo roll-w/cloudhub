@@ -6,6 +6,9 @@ import java.util.*;
  * @author RollW
  */
 public class BlockGroupsInfo {
+    public static final BlockGroupsInfo EMPTY =
+            new BlockGroupsInfo(List.of());
+
     private List<BlockGroup> blockGroups = new ArrayList<>();
 
     public BlockGroupsInfo(Collection<BlockGroup> blockGroups) {

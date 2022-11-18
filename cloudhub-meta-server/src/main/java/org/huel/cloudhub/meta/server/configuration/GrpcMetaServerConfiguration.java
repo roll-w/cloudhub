@@ -3,6 +3,7 @@ package org.huel.cloudhub.meta.server.configuration;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import org.huel.cloudhub.meta.server.service.node.HeartbeatService;
+import org.huel.cloudhub.meta.server.service.node.NodeChannelPool;
 import org.huel.cloudhub.rpc.GrpcProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -31,5 +32,10 @@ public class GrpcMetaServerConfiguration {
                 .maxConnectionAge(2, TimeUnit.MINUTES)
                 .addService(heartbeatService)
                 .build();
+    }
+
+    @Bean
+    public NodeChannelPool nodeChannelPool() {
+        return new NodeChannelPool(grpcProperties);
     }
 }
