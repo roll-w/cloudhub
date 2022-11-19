@@ -15,7 +15,6 @@ public class SeekableFileInputStream extends SeekableInputStream implements Seek
                 new RandomAccessFile(representFile.toFile(), "rw");
     }
 
-
     @Override
     public void seek(long position) throws IOException {
         randomAccessFile.seek(position);
@@ -44,5 +43,10 @@ public class SeekableFileInputStream extends SeekableInputStream implements Seek
     @Override
     public long skip(long n) throws IOException {
         return randomAccessFile.skipBytes((int) n);
+    }
+
+    @Override
+    public void close() throws IOException {
+        randomAccessFile.close();
     }
 }

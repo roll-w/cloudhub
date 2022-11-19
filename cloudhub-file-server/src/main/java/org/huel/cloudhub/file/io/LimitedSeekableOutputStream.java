@@ -62,6 +62,7 @@ public class LimitedSeekableOutputStream extends SeekableOutputStream {
         if (close) {
             return;
         }
+        out.close();
         writeBytes.set(0);
         close = true;
     }

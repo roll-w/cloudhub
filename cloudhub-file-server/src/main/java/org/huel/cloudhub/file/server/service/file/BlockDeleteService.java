@@ -53,10 +53,7 @@ public class BlockDeleteService extends BlockDeleteServiceGrpc.BlockDeleteServic
                              StreamObserver<DeleteBlocksResponse> responseObserver) {
         final String fileId = request.getFileId();
         List<SerializedFileServer> replicaServers = request.getServersList();
-        String source = request.getSource();
-        if (source.isEmpty()) {
-            source = serverInfo.id();
-        }
+        final String source = getSourceId(request);
 
         List<Container> containers =
                 containerFinder.findContainersByFile(fileId, ContainerFinder.LOCAL);
@@ -81,6 +78,13 @@ public class BlockDeleteService extends BlockDeleteServiceGrpc.BlockDeleteServic
         responseObserver.onNext(DeleteBlocksResponse.newBuilder().build());
         responseObserver.onCompleted();
         context.run(() -> sendReplicaSynchroRequest(parts, replicaServers));
+    }
+
+    private String getSourceId(DeleteBlocksRequest request) {
+        if (request.hasSource()) {
+            return request.getSource();
+        }
+        return serverInfo.id();
     }
 
     private boolean releaseBlockOccupation(String fileId, String source,
