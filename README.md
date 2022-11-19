@@ -2,6 +2,11 @@
 
 一个简单的分布式对象存储系统。
 
+## 文档指引
+- [`file-server`工作流程说明](cloudhub-file-server/README.md)
+- [`meta-server`工作流程说明](cloudhub-meta-server/README.md)
+- [`client`主要功能说明](cloudhub-client/README.md)
+
 ## 文件系统架构设计
 
 Cloudhub文件系统（下简称CFS）被设计成一个仅限读及有限写操作的、可伸缩的分布式文件系统。
@@ -44,7 +49,7 @@ CFS的其中一个目标就是做到出现故障也能部分的使用服务，�
 
 每个`file-server`周期性的向`meta-server`发送心跳信息。
 当经过一段时间接收不到来自该`file-server`的心跳时，视为服务器宕机并标记为dead，
-并且不会向它们发送或转发任何请求。`file-server`宕机可能导致某些文件副本数变少，
+将不会再向它们发送或转发任何请求。`file-server`宕机可能导致某些文件副本数变少，
 因此`meta-server`需要确认哪些文件副本丢失，并在必要时启动同步过程。
 
 在`file-server`标记为dead后，启动同步过程的时间延迟较长（一般超过10分钟）。
