@@ -1,5 +1,6 @@
 package org.huel.cloudhub.client.data.dto.user;
 
+import org.huel.cloudhub.client.data.entity.user.Role;
 import org.huel.cloudhub.client.data.entity.user.User;
 import space.lingu.light.DataColumn;
 
@@ -16,6 +17,9 @@ public record UserInfo(
         String username,
 
         @DataColumn(name = "user_email")
-        String email
+        String email,
+
+        @DataColumn(name = "user_role")
+        Role role
 ) {
 }

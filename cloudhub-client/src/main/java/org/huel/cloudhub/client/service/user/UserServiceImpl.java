@@ -126,8 +126,9 @@ public class UserServiceImpl implements UserService, UserGetter {
         HttpSession session = request.getSession();
         User user = userRepository.getUserByName(username);
         if (user == null) {
-            return new MessagePackage<>(ErrorCode.ERROR_USER_NOT_EXIST, "User not exist",
-                    new UserInfo(null, username, password));
+            return new MessagePackage<>(ErrorCode.ERROR_USER_NOT_EXIST,
+                    "User not exist",
+                    null);
         }
         if (verifyPassword(password, user.getPassword())) {
             Authentication authentication =
@@ -148,7 +149,8 @@ public class UserServiceImpl implements UserService, UserGetter {
 
             return new MessagePackage<>(ErrorCode.SUCCESS, userInfo);
         }
-        return new MessagePackage<>(ErrorCode.ERROR_PASSWORD_NOT_CORRECT, "Password not correct", null);
+        return new MessagePackage<>(ErrorCode.ERROR_PASSWORD_NOT_CORRECT,
+                "Password not correct", null);
     }
 
     private boolean verifyPassword(String passwordIn, String password) {
