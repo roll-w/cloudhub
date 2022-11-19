@@ -1,8 +1,10 @@
 package org.huel.cloudhub.client.service.bucket;
 
 import org.huel.cloudhub.client.data.dto.bucket.BucketInfo;
+import org.huel.cloudhub.client.data.dto.user.UserInfo;
 import org.huel.cloudhub.client.data.entity.bucket.Bucket;
 import org.huel.cloudhub.client.data.entity.bucket.BucketVisibility;
+import org.huel.cloudhub.client.data.entity.user.Role;
 import org.huel.cloudhub.common.MessagePackage;
 
 import java.util.List;
@@ -18,4 +20,10 @@ public interface BucketService {
     MessagePackage<Void> deleteBucket(long userId, String bucketName);
 
     List<Bucket> getUserBuckets(long userId);
+
+    Bucket queryByName(String name);
+
+    MessagePackage<Void> deleteBucketByName(String name);
+    MessagePackage<BucketInfo> setVisibility(String name, BucketVisibility bucketVisibility);
+
 }

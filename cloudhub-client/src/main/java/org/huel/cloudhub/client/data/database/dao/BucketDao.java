@@ -8,8 +8,8 @@ import java.util.List;
 
 /**
  * @author Cheng
- * 桶的name 相当于id
- * name, userId,createTime, bucketVisibility
+ *
+ * 桶的name是主键唯一
  */
 @Dao
 public abstract class BucketDao {
@@ -47,10 +47,10 @@ public abstract class BucketDao {
     @Query("SELECT * FROM user_buckets_table WHERE bucket_name = {name}")
     public abstract Bucket getBucketByName(String name);
 
-    //  根据用户id查询出桶的名称
+    //  根据用户id查询出桶的集合
     @Query("SELECT bucket_name FROM user_buckets_table WHERE bucket_user_id = {id}")
     public abstract List<Bucket> getBucketsByUserId(long id);
-
+    //  根据用户id查询出桶的名称集合
     @Query("SELECT bucket_name FROM user_buckets_table WHERE bucket_user_id = {id}")
     public abstract List<String> getBucketNamesByUserId(long id);
 

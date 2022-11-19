@@ -1,5 +1,6 @@
 package org.huel.cloudhub.client.data.entity.bucket;
 
+import org.huel.cloudhub.client.data.dto.bucket.BucketInfo;
 import space.lingu.light.DataColumn;
 import space.lingu.light.DataTable;
 import space.lingu.light.LightConfiguration;
@@ -76,4 +77,10 @@ public class Bucket {
     public void setBucketVisibility(BucketVisibility bucketVisibility) {
         this.bucketVisibility = bucketVisibility;
     }
+
+    public BucketInfo toInfo(){
+        return new BucketInfo(name,userId);
+    }
+
+
 }
