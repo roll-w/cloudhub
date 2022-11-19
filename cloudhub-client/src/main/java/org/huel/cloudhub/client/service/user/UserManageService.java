@@ -48,4 +48,6 @@ public interface UserManageService {
      * 修改用户身份
      */
     MessagePackage<UserInfo> setRoleTo(long userId, Role role);
+
+    List<UserInfo> getUsers();
 }

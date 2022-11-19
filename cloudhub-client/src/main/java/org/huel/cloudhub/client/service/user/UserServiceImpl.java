@@ -33,7 +33,7 @@ import java.util.Locale;
  * @author RollW
  */
 @Service
-public class UserServiceImpl implements UserService {
+public class UserServiceImpl implements UserService, UserGetter {
     private final Logger logger = LoggerFactory.getLogger(UserService.class);
 
     private final PasswordEncoder passwordEncoder;
@@ -157,8 +157,6 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserInfo getCurrentUser(HttpServletRequest request) {
-        // logger.info("get current user {}.", ContextHolder.requireContext().getCurrentUser());
-
         HttpSession session = request.getSession();
         Object o = session.getAttribute(SessionConstants.USER_INFO_SESSION_ID);
         if (o == null) {

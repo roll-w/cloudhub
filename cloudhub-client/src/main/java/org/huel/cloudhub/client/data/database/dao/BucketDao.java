@@ -40,7 +40,7 @@ public abstract class BucketDao {
     public abstract void delete(List<Bucket> buckets);
 
     // 包含桶的名称和用户id的集合
-    @Query("SELECT bucket_name, bucket_user_id FROM user_buckets_table")
+    @Query("SELECT * FROM user_buckets_table")
     public abstract List<BucketInfo> bucketInfos();
 
     //    根据名称查询一个桶对象
@@ -48,8 +48,12 @@ public abstract class BucketDao {
     public abstract Bucket getBucketByName(String name);
 
     //  根据用户id查询出桶的集合
-    @Query("SELECT bucket_name FROM user_buckets_table WHERE bucket_user_id = {id}")
+    @Query("SELECT * FROM user_buckets_table WHERE bucket_user_id = {id}")
     public abstract List<Bucket> getBucketsByUserId(long id);
+
+    @Query("SELECT * FROM user_buckets_table WHERE bucket_user_id = {id}")
+    public abstract List<BucketInfo> getBucketInfosByUserId(long id);
+
     //  根据用户id查询出桶的名称集合
     @Query("SELECT bucket_name FROM user_buckets_table WHERE bucket_user_id = {id}")
     public abstract List<String> getBucketNamesByUserId(long id);

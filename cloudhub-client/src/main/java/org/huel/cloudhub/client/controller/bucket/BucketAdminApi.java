@@ -1,4 +1,4 @@
-package org.huel.cloudhub.client.controller.user;
+package org.huel.cloudhub.client.controller.bucket;
 
 import org.springframework.web.bind.annotation.RequestMapping;
 
@@ -10,7 +10,6 @@ import java.lang.annotation.*;
 @Documented
 @Target({ElementType.TYPE,ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
-@RequestMapping("/api/admin/user/")
-public @interface UserAdminApi {
-
+@RequestMapping("/api/admin/bucket/")
+public @interface BucketAdminApi {
 }

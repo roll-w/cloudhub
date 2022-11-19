@@ -9,7 +9,7 @@ import javax.servlet.http.HttpServletRequest;
 /**
  * @author RollW
  */
-public interface UserService extends UserVerifyService {
+public interface UserService extends UserVerifyService, UserGetter {
 
     MessagePackage<UserInfo> registerUser(String username, String password, String email);
 
@@ -18,6 +18,7 @@ public interface UserService extends UserVerifyService {
 
     MessagePackage<UserInfo> loginByUsername(HttpServletRequest request, String username, String password);
 
+    @Override
     UserInfo getCurrentUser(HttpServletRequest request);
 
     void logout(HttpServletRequest request);

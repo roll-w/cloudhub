@@ -2,6 +2,7 @@ package org.huel.cloudhub.client.data.database.repository;
 
 import org.huel.cloudhub.client.data.database.CloudhubDatabase;
 import org.huel.cloudhub.client.data.database.dao.BucketDao;
+import org.huel.cloudhub.client.data.dto.bucket.BucketInfo;
 import org.huel.cloudhub.client.data.entity.bucket.Bucket;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Repository;
@@ -20,12 +21,8 @@ public class BucketRepository {
         this.bucketDao = database.getBucketDao();
     }
 
-    public boolean isExitByName(String name){
-        return bucketDao.getBucketNameByName(name) !=null;
-    }
-
-    public boolean isExitByUserId(long id){
-        return bucketDao.getBucketNamesByUserId(id) !=null;
+    public boolean isExistByName(String name) {
+        return bucketDao.getBucketNameByName(name) != null;
     }
 
     @Async //异步方法
@@ -34,40 +31,46 @@ public class BucketRepository {
     }
 
     private void insertOrUpdate(Bucket bucket) {
-        if (isExitByName(bucket.getName())) {
-           bucketDao.update(bucket);
+        if (isExistByName(bucket.getName())) {
+            bucketDao.update(bucket);
             return;
         }
         bucketDao.insert(bucket);
     }
 
-    public void insert(Bucket bucket){
+    public void insert(Bucket bucket) {
         bucketDao.insert(bucket);
     }
 
-    public void update(Bucket bucket){
+    public void update(Bucket bucket) {
         bucketDao.update(bucket);
     }
 
-    public void deleteByName(String name){
+    public void deleteByName(String name) {
         bucketDao.deleteByName(name);
     }
 
-    public void delete(List<Bucket> buckets){
+    public void delete(List<Bucket> buckets) {
         bucketDao.delete(buckets);
     }
 
-    public Bucket getBucketByName(String name){
+    public void delete(Bucket bucket) {
+        bucketDao.delete(bucket);
+    }
+
+    public Bucket getBucketByName(String name) {
         return bucketDao.getBucketByName(name);
     }
 
-    public List<Bucket> getBucketUserId(long id){
+    public List<Bucket> getBucketUserId(long id) {
         return bucketDao.getBucketsByUserId(id);
     }
 
-    public String getBucketNameByName(String name){
-        return bucketDao.getBucketNameByName(name);
+    public List<BucketInfo> getBucketInfosByUserId(long id) {
+        return bucketDao.getBucketInfosByUserId(id);
     }
 
-
+    public String getBucketNameByName(String name) {
+        return bucketDao.getBucketNameByName(name);
+    }
 }

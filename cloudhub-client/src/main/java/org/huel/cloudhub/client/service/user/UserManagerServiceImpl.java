@@ -84,4 +84,9 @@ public class UserManagerServiceImpl implements UserManageService {
         userRepository.save(user);
         return new MessagePackage<>(ErrorCode.SUCCESS, user.toInfo());
     }
+
+    @Override
+    public List<UserInfo> getUsers() {
+        return userRepository.getUserInfos();
+    }
 }

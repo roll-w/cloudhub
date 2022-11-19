@@ -8,7 +8,8 @@ import space.lingu.light.PrimaryKey;
 
 /**
  * 存储桶（文件的容器）
- *  需要实现桶的增删改查
+ * 需要实现桶的增删改查
+ *
  * @author RollW
  */
 // TODO:
@@ -78,9 +79,7 @@ public class Bucket {
         this.bucketVisibility = bucketVisibility;
     }
 
-    public BucketInfo toInfo(){
-        return new BucketInfo(name,userId);
+    public BucketInfo toInfo() {
+        return new BucketInfo(name, userId, createTime, bucketVisibility);
     }
-
-
 }

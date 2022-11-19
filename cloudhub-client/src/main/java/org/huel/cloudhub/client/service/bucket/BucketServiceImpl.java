@@ -2,6 +2,7 @@ package org.huel.cloudhub.client.service.bucket;
 
 import org.apache.commons.lang3.Validate;
 import org.huel.cloudhub.client.data.database.repository.BucketRepository;
+import org.huel.cloudhub.client.data.database.repository.UserRepository;
 import org.huel.cloudhub.client.data.dto.bucket.BucketInfo;
 import org.huel.cloudhub.client.data.entity.bucket.Bucket;
 import org.huel.cloudhub.client.data.entity.bucket.BucketVisibility;
@@ -15,76 +16,86 @@ import java.util.List;
  * @author Cheng
  */
 @Service
-public class BucketServiceImpl implements BucketService{
+public class BucketServiceImpl implements BucketService {
 
     private final BucketRepository bucketRepository;
+    private final UserRepository userRepository;
 
-    public BucketServiceImpl(BucketRepository bucketRepository){
+    public BucketServiceImpl(BucketRepository bucketRepository,
+                             UserRepository userRepository) {
         this.bucketRepository = bucketRepository;
+        this.userRepository = userRepository;
     }
 
     @Override
-    public MessagePackage<BucketInfo> createBucket(long userId, String bucketName, BucketVisibility visibility) {
-        Validate.notNull(userId,"userID cannot be null or empty.");
-        Validate.notEmpty(bucketName,"bucketName cannot be null or empty");
-        Validate.isTrue(visibility.isNeedAuth());
+    public MessagePackage<BucketInfo> createBucket(long userId, String bucketName,
+                                                   BucketVisibility visibility) {
+        Validate.notEmpty(bucketName, "bucketName cannot be null or empty");
+        Validate.notNull(visibility, "bucketVisibility cannot be null");
 
-        if (bucketRepository.isExitByName(bucketName)){
-            return new MessagePackage<>(ErrorCode.ERROR_DATA_EXISTED,"bucket exited" ,null);
+        if (bucketRepository.isExistByName(bucketName)) {
+            return new MessagePackage<>(ErrorCode.ERROR_DATA_EXISTED,
+                    "bucket exited", null);
         }
-        if (bucketRepository.isExitByUserId(userId)){
+        if (userRepository.isExistById(userId)) {
             return new MessagePackage<>(ErrorCode.ERROR_USER_NOT_EXIST,
                     "User not exist.", null);
         }
-//        省略了桶权限
-        Bucket bucket = new Bucket(bucketName,userId,System.currentTimeMillis(),visibility);
+        Bucket bucket = new Bucket(bucketName, userId,
+                System.currentTimeMillis(), visibility);
         bucketRepository.save(bucket);
 
         return new MessagePackage<>(ErrorCode.SUCCESS, bucket.toInfo());
     }
 
-
     @Override
-    public List<Bucket> getUserBuckets(long userId) {
-        return bucketRepository.getBucketUserId(userId);
+    public List<BucketInfo> getUserBuckets(long userId) {
+        return bucketRepository.getBucketInfosByUserId(userId);
     }
 
-    @Override
-    public Bucket queryByName(String name) {
+    public Bucket getBucketByName(String name) {
         return bucketRepository.getBucketByName(name);
     }
 
     @Override
     public MessagePackage<Void> deleteBucket(long userId, String bucketName) {
-        if (bucketRepository.isExitByUserId(userId)){
-            bucketRepository.deleteByName(bucketName);
-            return new MessagePackage<>(ErrorCode.SUCCESS,null);
+        if (!userRepository.isExistById(userId)) {
+            return new MessagePackage<>(ErrorCode.ERROR_USER_NOT_EXIST,
+                    "User not exist.", null);
         }
-
-        return new MessagePackage<>(ErrorCode.ERROR_USER_NOT_EXIST,
-                "User not exist.", null);
+        Bucket bucket = bucketRepository.getBucketByName(bucketName);
+        if (bucket == null) {
+            return new MessagePackage<>(ErrorCode.ERROR_DATA_NOT_EXIST,
+                    "Bucket not exist.", null);
+        }
+        if (bucket.getUserId() != userId) {
+            return new MessagePackage<>(ErrorCode.ERROR_PERMISSION_NOT_ALLOWED,
+                    "You are not permitted.", null);
+        }
+        bucketRepository.delete(bucket);
+        return new MessagePackage<>(ErrorCode.SUCCESS, null);
     }
 
     @Override
-    public MessagePackage<Void> deleteBucketByName(String name) {
-        if (bucketRepository.isExitByName(name)){
-            bucketRepository.deleteByName(name);
-            return new MessagePackage<>(ErrorCode.SUCCESS,null);
+    public MessagePackage<Void> deleteBucket(String bucketName) {
+        if (bucketRepository.isExistByName(bucketName)) {
+            bucketRepository.deleteByName(bucketName);
+            return new MessagePackage<>(ErrorCode.SUCCESS, null);
         }
-        return new MessagePackage<>(ErrorCode.ERROR_NULL,"Bucket is not exist",null);
+        return new MessagePackage<>(ErrorCode.ERROR_DATA_NOT_EXIST,
+                "Bucket not exist.", null);
     }
 
     @Override
     public MessagePackage<BucketInfo> setVisibility(String name, BucketVisibility bucketVisibility) {
         Bucket bucket = bucketRepository.getBucketByName(name);
-        if (bucket == null){
-            return new MessagePackage<>(ErrorCode.ERROR_NULL,"Bucket is not exist",null);
+        if (bucket == null) {
+            return new MessagePackage<>(ErrorCode.ERROR_DATA_NOT_EXIST,
+                    "Bucket not exist.", null);
         }
 
         bucket.setBucketVisibility(bucketVisibility);
         bucketRepository.save(bucket);
         return new MessagePackage<>(ErrorCode.SUCCESS, bucket.toInfo());
     }
-
-
 }
