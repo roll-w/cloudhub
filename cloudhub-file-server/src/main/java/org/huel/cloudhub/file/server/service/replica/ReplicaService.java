@@ -69,12 +69,28 @@ public class ReplicaService {
         ReplicaServiceGrpc.ReplicaServiceStub stub =
                 requireReplicaServiceStub(dest);
         logger.debug("Load stub successful, target server id={}.", dest.getId());
-        ReplicaServiceStreamObserver observer =
-                new ReplicaServiceStreamObserver(replicaSynchroParts);
+        PartReplicaStreamObserver observer =
+                new PartReplicaStreamObserver(replicaSynchroParts);
         StreamObserver<ReplicaRequest> replicaRequestStreamObserver =
                 stub.sendReplica(observer);
         observer.setRequestObserver(replicaRequestStreamObserver);
         observer.onNext(null);
+    }
+
+    public void requestReplicaFullSync(Container container,
+                                       SerializedFileServer dest) {
+        if (container == null) {
+            return;
+        }
+
+        ReplicaServiceGrpc.ReplicaServiceStub stub =
+                requireReplicaServiceStub(dest);
+        FullSyncStreamObserver syncStreamObserver =
+                new FullSyncStreamObserver(container);
+        StreamObserver<ReplicaRequest> replicaRequestStreamObserver =
+                stub.sendReplica(syncStreamObserver);
+        syncStreamObserver.setRequestObserver(replicaRequestStreamObserver);
+        syncStreamObserver.onNext(null);
     }
 
     public void requestReplicaDelete(Container container, String source,
@@ -107,7 +123,7 @@ public class ReplicaService {
         }
 
         public static ReplicaDeleteStreamObserver getInstance() {
-          return SingletonHolder.INSTANCE;
+            return SingletonHolder.INSTANCE;
         }
 
         private static final class SingletonHolder {
@@ -115,13 +131,13 @@ public class ReplicaService {
         }
     }
 
-    private class ReplicaServiceStreamObserver implements StreamObserver<ReplicaResponse> {
+    private class PartReplicaStreamObserver implements StreamObserver<ReplicaResponse> {
         private final ListIterator<ReplicaSynchroPart> partIterator;
         private StreamObserverWrapper<ReplicaRequest> requestObserver;
         private String contCrc;
         private int blocksInRequest = 20;
 
-        private ReplicaServiceStreamObserver(List<ReplicaSynchroPart> replicaSynchroParts) {
+        private PartReplicaStreamObserver(List<ReplicaSynchroPart> replicaSynchroParts) {
             partIterator = replicaSynchroParts.listIterator();
         }
 
@@ -129,6 +145,12 @@ public class ReplicaService {
         public void onNext(ReplicaResponse value) {
             if (value != null) {
                 String checkValue = value.getCheckValue();
+                if (!checkValue.equals(contCrc)) {
+                    ReplicaSynchroPart part = partIterator.previous();
+                    sendFullSync(part.getContainer());
+                    partIterator.next();
+                    return;
+                }
                 logger.debug("Received check value={}, saved check value={}.", checkValue, contCrc);
             }
             if (requestObserver.isClose()) {
@@ -140,10 +162,17 @@ public class ReplicaService {
             }
             logger.debug("Get prepared for next request.");
             ReplicaSynchroPart part = partIterator.next();
+            sendPart(part);
+        }
+
+        private void sendPart(ReplicaSynchroPart part) {
+            if (part == null) {
+                return;
+            }
             logger.debug("Next part: container_id={}",
                     part.getContainer().getIdentity().id());
             ReplicaRequest.CheckMessage checkMessage =
-                    buildCheckMessage(part);
+                    buildPartCheckMessage(part);
             requestObserver.onNext(ReplicaRequest.newBuilder()
                     .setCheckMessage(checkMessage)
                     .build()
@@ -197,6 +226,13 @@ public class ReplicaService {
             requestObserver.onNext(replicaRequest);
         }
 
+        private void sendFullSync(Container container) {
+            ReplicaRequest.CheckMessage checkMessage =
+                    buildFullSyncCheckMessage(container);
+
+
+        }
+
 
         @Override
         public void onError(Throwable t) {
@@ -213,6 +249,41 @@ public class ReplicaService {
         }
     }
 
+    private class FullSyncStreamObserver implements StreamObserver<ReplicaResponse> {
+        private final Container container;
+        private StreamObserverWrapper<ReplicaRequest> requestObserver;
+
+        private FullSyncStreamObserver(Container container) {
+            this.container = container;
+        }
+
+        @Override
+        public void onNext(ReplicaResponse value) {
+            if (value == null) {
+                sendFirst();
+                return;
+            }
+        }
+
+        private void sendFirst() {
+
+        }
+
+        @Override
+        public void onError(Throwable t) {
+
+        }
+
+        @Override
+        public void onCompleted() {
+
+        }
+
+        public void setRequestObserver(StreamObserver<ReplicaRequest> requestObserver) {
+            this.requestObserver = new StreamObserverWrapper<>(requestObserver);
+        }
+    }
+
     private ReplicaRequest buildLastRequest() {
         return ReplicaRequest.newBuilder()
                 .setCheckMessage(ReplicaRequest.CheckMessage.newBuilder()
@@ -221,9 +292,12 @@ public class ReplicaService {
                 .build();
     }
 
-    private ReplicaRequest.CheckMessage buildCheckMessage(ReplicaSynchroPart replicaSynchroPart) {
+    private ReplicaRequest.CheckMessage buildPartCheckMessage(ReplicaSynchroPart replicaSynchroPart) {
         Container container = replicaSynchroPart.getContainer();
+        return buildFullSyncCheckMessage(container);
+    }
 
+    private ReplicaRequest.CheckMessage buildFullSyncCheckMessage(Container container) {
         ReplicaRequest.CheckMessage.Builder builder = ReplicaRequest.CheckMessage.newBuilder()
                 .setId(container.getIdentity().id())
                 .setSerial(container.getSerial())

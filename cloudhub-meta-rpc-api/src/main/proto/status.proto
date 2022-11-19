@@ -31,6 +31,3 @@ message SerializedServerStatus {
   map<string, string> status = 2;
   repeated SerializedDamagedContainerReport report = 3;
 }
-
-
-

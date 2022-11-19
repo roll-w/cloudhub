@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+import "heartbeat.proto";
+
+option java_multiple_files = true;
+option java_package = "org.huel.cloudhub.file.rpc.block";
+option java_outer_classname = "UploadBlocksProtos";
+
+message FileExistRequest {
+  string file_id = 1;
+  bool include_replica = 2;
+}
+
+message FileExistResponse {
+  bool exist_local = 1;
+  repeated string exist_replicas =  2;
+}
+
+service FileStatusService {
+  rpc checkFileExist(FileExistRequest)returns (FileExistResponse);
+}
