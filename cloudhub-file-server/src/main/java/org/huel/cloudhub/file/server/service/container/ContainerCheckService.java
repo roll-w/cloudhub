@@ -3,6 +3,7 @@ package org.huel.cloudhub.file.server.service.container;
 import com.google.common.hash.Hasher;
 import com.google.common.hash.Hashing;
 import org.huel.cloudhub.file.fs.LockException;
+import org.huel.cloudhub.file.fs.ServerFile;
 import org.huel.cloudhub.file.fs.container.Container;
 import org.huel.cloudhub.file.fs.container.ContainerChecker;
 import org.huel.cloudhub.file.fs.container.ContainerReadOpener;
@@ -40,6 +41,17 @@ public class ContainerCheckService implements ContainerChecker {
         containerReadOpener.closeContainerRead(container, hasherInputStream);
         return hasherInputStream.getHash("CRC32").toString();
     }
+
+    public static String calculateChecksum(ServerFile serverFile) throws IOException {
+        Hasher crc32 = Hashing.crc32().newHasher();
+        InputStream inputStream = serverFile.openInput();
+        HasherInputStream hasherInputStream = new HasherInputStream(inputStream);
+        hasherInputStream.addHasher("CRC32", crc32);
+        readFully(hasherInputStream);
+        inputStream.close();
+        return hasherInputStream.getHash("CRC32").toString();
+    }
+
     private static final int DEFAULT_BUFFER_SIZE = 1024 * 4;
     public static final int EOF = -1;
 

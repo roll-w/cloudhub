@@ -24,7 +24,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Service
 public class ReplicaContainerDelegate implements ReplicaContainerLoader,
-        ReplicaContainerCreator, ReplicaContainerFinder {
+        ReplicaContainerCreator, ReplicaContainerFinder, ReplicaContainerDeleter {
     private final Map<String, ReplicaGroup> replicaContainerGroups =
             new ConcurrentHashMap<>();
     private final ContainerProperties containerProperties;
@@ -79,7 +79,9 @@ public class ReplicaContainerDelegate implements ReplicaContainerLoader,
     }
 
     @Override
-    public Container findOrCreateContainer(String id, String source, long serial, SerializedContainerBlockMeta serializedContainerBlockMeta) throws IOException {
+    public Container findOrCreateContainer(String id, String source,
+                                           long serial,
+                                           SerializedContainerBlockMeta serializedContainerBlockMeta) {
         final ReplicaGroup replicaGroup = replicaContainerGroups
                 .computeIfAbsent(source, ReplicaGroup::new);
         Container container = replicaGroup.getContainer(id, serial);
@@ -94,7 +96,7 @@ public class ReplicaContainerDelegate implements ReplicaContainerLoader,
     private Container createReplicaContainer(String id,
                                              String source,
                                              long serial,
-                                             SerializedContainerBlockMeta containerBlockMeta) throws IOException {
+                                             SerializedContainerBlockMeta containerBlockMeta) {
         final String containerId = ContainerIdentity.toContainerId(id);
         ReplicaContainerNameMeta containerNameMeta =
                 new ReplicaContainerNameMeta(source, containerId, serial);
@@ -180,8 +182,9 @@ public class ReplicaContainerDelegate implements ReplicaContainerLoader,
         String fileName = fileNameMeta.getSourceId() + "_" +
                 ContainerIdentity.toCmetaId(fileNameMeta.getId());
 
-        ServerFile file = localFileServer.getServerFileProvider()
-                .openFile(containerProperties.getMetaPath(), fileName + ContainerMetaKeys.REPLICA_CONTAINER_META_SUFFIX);
+        ServerFile file = localFileServer.getServerFileProvider().openFile(
+                containerProperties.getMetaPath(),
+                fileName + ContainerMetaKeys.REPLICA_CONTAINER_META_SUFFIX);
         file.createFile();
         SerializedReplicaContainerGroupMeta containerGroupMeta = MetaReadWriteHelper.readReplicaContainerMeta(file);
 
@@ -204,5 +207,64 @@ public class ReplicaContainerDelegate implements ReplicaContainerLoader,
             return null;
         }
         return group.getGroup(containerId);
+    }
+
+    @Override
+    public void deleteReplicaContainer(String id, long serial, String source) throws IOException {
+        ContainerGroup group = findContainerGroup(id, source);
+        if (group == null) {
+            return;
+        }
+        Container container = group.getContainer(serial);
+        if (container == null) {
+            return;
+        }
+        group.remove(container);
+        removeContainer(container);
+    }
+
+    private void removeContainer(Container container) throws IOException {
+        ServerFile file = localFileServer.getServerFileProvider().openFile(containerDir,
+                container.getResourceLocator());
+        ServerFile metaFile = localFileServer.getServerFileProvider().openFile(containerDir,
+                container.getResourceLocator() + ContainerLocation.REPLICA_META_SUFFIX);
+        removeContainerGroupMeta(container);
+        file.delete();
+        metaFile.delete();
+    }
+
+    private void removeContainerGroupMeta(Container container) throws IOException {
+        if (!container.isUsable()) {
+            return;
+        }
+        removeContainerMeta(container.getSource(),
+                container.getIdentity().id(), container.getSerial());
+    }
+
+    @Async
+    void removeContainerMeta(String source, String containerId, long serial) throws IOException {
+        if (ContainerFinder.isLocal(source)) {
+            return;
+        }
+        String fileName = source + "_" + ContainerIdentity.toCmetaId(containerId);
+        ServerFile file = localFileServer.getServerFileProvider()
+                .openFile(containerProperties.getMetaPath(),
+                        fileName + ContainerMetaKeys.REPLICA_CONTAINER_META_SUFFIX);
+        if (!file.exists()) {
+            return;
+        }
+        SerializedReplicaContainerGroupMeta containerGroupMeta = MetaReadWriteHelper.readReplicaContainerMeta(file);
+        List<SerializedReplicaContainerMeta> containerMetas = new ArrayList<>(containerGroupMeta.getMetaList());
+        String containerLocator = new ReplicaContainerNameMeta(source, containerId, serial).getName();
+        containerMetas.removeIf(serializedContainerMeta ->
+                serializedContainerMeta.getLocator().equals(containerLocator));
+        containerGroupMeta = SerializedReplicaContainerGroupMeta.newBuilder()
+                .addAllMeta(containerMetas)
+                .build();
+        MetaReadWriteHelper.writeReplicaContainerGroupMeta(containerGroupMeta, file);
+
+        if (file.length() == 0) {
+            file.delete();
+        }
     }
 }

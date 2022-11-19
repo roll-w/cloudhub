@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+import "heartbeat.proto";
+
 option java_multiple_files = true;
 option java_package = "org.huel.cloudhub.file.rpc.block";
 option java_outer_classname = "DeleteBlocksProtos";
@@ -7,6 +9,8 @@ option java_outer_classname = "DeleteBlocksProtos";
 // TODO:
 message DeleteBlocksRequest {
   string file_id = 1;
+  optional string source = 2;
+  repeated SerializedFileServer servers = 3;
 }
 
 message DeleteBlocksResponse {
@@ -14,6 +18,6 @@ message DeleteBlocksResponse {
 }
 
 // Delete file service.
-service DeleteBlocksService {
+service BlockDeleteService {
   rpc deleteBlocks(DeleteBlocksRequest) returns (DeleteBlocksResponse);
 }

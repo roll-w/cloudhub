@@ -56,11 +56,12 @@ public class LimitedSeekableInputStream extends SeekableInputStream
     }
 
     @Override
-    public void close() {
+    public void close() throws IOException {
         if (close) {
             return;
         }
         readBytes.set(0);
+        in.close();
         close = true;
     }
 

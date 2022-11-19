@@ -77,15 +77,19 @@ public class ContainerGroup {
         return fileIds.contains(fileId);
     }
 
+    public Collection<String> getFileIds() {
+        return Collections.unmodifiableSet(fileIds);
+    }
+
     public long lastSerial() {
         return latestSerial;
     }
 
     @Nullable
     public Container getContainer(long serial) {
-        ContainerNameMeta meta =
-                new ContainerNameMeta(containerId, serial);
-        return containers.get(meta.getName());
+        String name =
+                ContainerLocation.toContainerName(containerId, sourceId, serial);
+        return containers.get(name);
     }
 
     public Container latestContainer() {

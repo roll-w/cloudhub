@@ -15,3 +15,6 @@ message SynchroResponse {
 
 }
 
+service SynchroService {
+  rpc sendSynchro(SynchroRequest) returns (SynchroResponse);
+}

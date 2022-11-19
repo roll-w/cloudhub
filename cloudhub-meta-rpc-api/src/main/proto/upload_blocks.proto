@@ -6,12 +6,6 @@ option java_multiple_files = true;
 option java_package = "org.huel.cloudhub.file.rpc.block";
 option java_outer_classname = "UploadBlocksProtos";
 
-enum BlockRequestCompressType {
-  NONE = 0;
-  ZIP = 1;
-  TAR = 3;
-}
-
 message UploadBlockData {
   bytes data = 1;
 }
@@ -30,8 +24,8 @@ message UploadBlocksRequest {
     string check_value = 3;
     int64 file_length = 4;
     repeated SerializedFileServer replicaHosts = 8;
-    // FIRST REQUEST. compress type
-    BlockRequestCompressType compress_type = 9;
+    // Tell the server to modify the source information.
+    optional string source = 9;
   }
 
   string identity = 1;

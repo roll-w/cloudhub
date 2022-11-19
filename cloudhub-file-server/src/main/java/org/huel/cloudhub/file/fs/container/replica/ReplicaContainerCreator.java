@@ -11,7 +11,7 @@ import java.io.IOException;
 public interface ReplicaContainerCreator {
     // will not create local files
     Container findOrCreateContainer(String id, String source, long serial,
-                                    SerializedContainerBlockMeta serializedContainerBlockMeta) throws IOException;
+                                    SerializedContainerBlockMeta serializedContainerBlockMeta);
 
     // will create local files, and will update if exists.
     void createContainerWithMeta(Container container,

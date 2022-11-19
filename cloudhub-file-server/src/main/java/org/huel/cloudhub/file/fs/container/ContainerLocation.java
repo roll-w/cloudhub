@@ -1,6 +1,7 @@
 package org.huel.cloudhub.file.fs.container;
 
 import org.huel.cloudhub.file.fs.ServerFile;
+import org.huel.cloudhub.file.fs.container.replica.ReplicaContainerNameMeta;
 import org.huel.cloudhub.file.io.RepresentFile;
 
 import java.io.File;
@@ -97,5 +98,12 @@ public class ContainerLocation implements RepresentFile {
                 ", dataPath='" + dataPath + '\'' +
                 ", metaSuffix='" + metaSuffix + '\'' +
                 '}';
+    }
+
+    public static String toContainerName(String id, String source, long serial) {
+        if (ContainerFinder.isLocal(source)) {
+            return new ContainerNameMeta(id, serial).getName();
+        }
+        return new ReplicaContainerNameMeta(source, id, serial).getName();
     }
 }

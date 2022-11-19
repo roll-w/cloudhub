@@ -1,5 +1,7 @@
 package org.huel.cloudhub.file.fs;
 
+import space.lingu.NonNull;
+
 import java.io.*;
 import java.nio.file.Files;
 import java.util.ArrayList;
@@ -104,6 +106,7 @@ public class LocalFile implements ServerFile {
         return new LocalFile(file.getParentFile());
     }
 
+    @NonNull
     @Override
     public List<ServerFile> listFiles() throws IOException {
         File[] files = file.listFiles();
@@ -118,6 +121,7 @@ public class LocalFile implements ServerFile {
         return serverFiles;
     }
 
+    @NonNull
     @Override
     public List<ServerFile> listFiles(boolean recursive) throws IOException {
         // todo:

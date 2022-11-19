@@ -46,7 +46,7 @@ public class DiagnosisRecorder<D> {
     }
 
     public DiagnosisReport<D> generateReport() {
-        return new DiagnosisReport<>();
+        return new DiagnosisReport<>(List.of());
     }
 
 }

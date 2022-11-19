@@ -77,6 +77,44 @@ public class ReplicaService {
         observer.onNext(null);
     }
 
+    public void requestReplicaDelete(Container container, String source,
+                                     SerializedFileServer server) {
+        ReplicaServiceGrpc.ReplicaServiceStub stub =
+                requireReplicaServiceStub(server);
+        logger.debug("Start request replica delete for {}", server.getId());
+        ReplicaDeleteRequest request = ReplicaDeleteRequest.newBuilder()
+                .setSerial(container.getSerial())
+                .setSource(source)
+                .setId(container.getIdentity().id())
+                .build();
+        stub.deleteReplica(request, ReplicaDeleteStreamObserver.getInstance());
+    }
+
+    private static class ReplicaDeleteStreamObserver implements StreamObserver<ReplicaDeleteResponse> {
+        private final Logger logger = LoggerFactory.getLogger(ReplicaDeleteStreamObserver.class);
+
+        @Override
+        public void onNext(ReplicaDeleteResponse value) {
+        }
+
+        @Override
+        public void onError(Throwable t) {
+            logger.error("Delete error.", t);
+        }
+
+        @Override
+        public void onCompleted() {
+        }
+
+        public static ReplicaDeleteStreamObserver getInstance() {
+          return SingletonHolder.INSTANCE;
+        }
+
+        private static final class SingletonHolder {
+            static final ReplicaDeleteStreamObserver INSTANCE = new ReplicaDeleteStreamObserver();
+        }
+    }
+
     private class ReplicaServiceStreamObserver implements StreamObserver<ReplicaResponse> {
         private final ListIterator<ReplicaSynchroPart> partIterator;
         private StreamObserverWrapper<ReplicaRequest> requestObserver;

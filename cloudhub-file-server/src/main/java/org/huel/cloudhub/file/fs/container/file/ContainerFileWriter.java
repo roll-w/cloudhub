@@ -55,11 +55,14 @@ public class ContainerFileWriter implements Closeable {
     }
 
     private void calcExpectBlocks(int blockSizeInBytes) {
+        if (expectBlocks >= 0) {
+            return;
+        }
         expectBlocks = Maths.ceilDivideReturnsInt(fileSize, blockSizeInBytes);
     }
 
     private Container requireNewContainer() {
-        if (writeBlocksSum.get() > expectBlocks) {
+        if (writeBlocksSum.get() >= expectBlocks) {
             return null;
         }
         return containerAllocator.allocateNewContainer(fileId);

@@ -28,6 +28,10 @@ public abstract class FileStorageLocationDao {
     @Delete
     public abstract void delete(FileStorageLocation... fileStorageLocations);
 
+
+    @Delete("DELETE FROM file_storage_location_table WHERE file_id = {fileId}")
+    public abstract void deleteById(String fileId);
+
     @Query("SELECT * FROM file_storage_location_table WHERE file_id = {fileId}")
     public abstract FileStorageLocation getByFileId(String fileId);
 

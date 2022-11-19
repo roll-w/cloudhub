@@ -27,6 +27,9 @@ public class LimitedInputStream extends FilterInputStream {
 
     @Override
     public int read(byte[] b) throws IOException {
+        if (close) {
+            throw new IOException("Stream closed");
+        }
         return read(b, 0, b.length);
     }
 
@@ -36,20 +39,24 @@ public class LimitedInputStream extends FilterInputStream {
     }
 
     void skipOver() throws IOException {
+        if (close) {
+            throw new IOException("Stream closed");
+        }
         int available = available();
         long s = skip(available);
     }
 
     @Override
     public long skip(long n) throws IOException {
+        if (close) {
+            throw new IOException("Stream closed");
+        }
         return skipN(n, limit, readBytes, in);
     }
 
     @Override
-    public void close() {
-        if (close) {
-            return;
-        }
+    public void close() throws IOException {
+        in.close();
         readBytes.set(0);
         close = true;
     }

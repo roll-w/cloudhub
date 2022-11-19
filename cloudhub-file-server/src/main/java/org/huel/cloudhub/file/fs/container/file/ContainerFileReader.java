@@ -199,7 +199,6 @@ public class ContainerFileReader implements Closeable {
                 return new ReadResult(containerBlocks, reader,
                         new ReadBlockDest(blockMetaInfo.getContainerSerial(), endBlock));
             }
-            // get -p test_d.flac -f e1c60e484e2b49ee1bf405fc937afb57fa02c1581cf0de31ef769ab6ee736934
             endBlock = blockGroup.end();
             List<ContainerBlock> readBlocks = reader.readBlocks(startBlock, endBlock);
             sizeRead += willReadBlocks;

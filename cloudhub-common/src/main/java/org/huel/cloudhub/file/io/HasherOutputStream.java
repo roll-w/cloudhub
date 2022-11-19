@@ -53,4 +53,9 @@ public class HasherOutputStream extends FilterOutputStream {
         }
         return hashers.get(key).hash();
     }
+
+    @Override
+    public void close() throws IOException {
+        super.close();
+    }
 }
