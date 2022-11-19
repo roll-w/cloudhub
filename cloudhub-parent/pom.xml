@@ -21,8 +21,6 @@
         <module>../cloudhub-client</module>
         <module>../cloudhub-common</module>
         <module>../cloudhub-grpc-parent</module>
-        <module>../cloudhub-meta-rpc-api</module>
-        <module>../cloudhub-client-rpc-api</module>
     </modules>
 
     <properties>
