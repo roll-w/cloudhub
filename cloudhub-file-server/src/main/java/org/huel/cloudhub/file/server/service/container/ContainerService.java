@@ -507,6 +507,10 @@ public class ContainerService implements ContainerAllocator, ContainerFinder, Co
                 .addAllMeta(containerMetas)
                 .build();
         MetaReadWriteHelper.writeContainerGroupMeta(containerGroupMeta, file);
+
+        if (file.length() == 0) {
+            file.delete();
+        }
     }
 
     @Async
@@ -586,13 +590,19 @@ public class ContainerService implements ContainerAllocator, ContainerFinder, Co
 
     @Override
     public void deleteContainer(Container container) throws IOException {
+        if (container == null) {
+            return;
+        }
         deleteContainer(container.getIdentity().id(), container.getSerial(), container.getSource());
     }
 
     private void removeContainer(Container container) throws IOException {
         ServerFile file = localFileServer.getServerFileProvider().openFile(containerDir,
                 container.getResourceLocator());
+        ServerFile metaFile = localFileServer.getServerFileProvider().openFile(containerDir,
+                container.getResourceLocator() + ContainerLocation.META_SUFFIX);
         removeContainerGroupMeta(container);
         file.delete();
+        metaFile.delete();
     }
 }

@@ -13,6 +13,7 @@ import org.huel.cloudhub.file.fs.meta.MetaException;
 import org.huel.cloudhub.file.rpc.block.BlockDeleteServiceGrpc;
 import org.huel.cloudhub.file.rpc.block.DeleteBlocksRequest;
 import org.huel.cloudhub.file.rpc.block.DeleteBlocksResponse;
+import org.huel.cloudhub.file.server.service.SourceServerGetter;
 import org.huel.cloudhub.file.server.service.replica.ReplicaService;
 import org.huel.cloudhub.file.server.service.replica.ReplicaSynchroPart;
 import org.huel.cloudhub.server.rpc.heartbeat.SerializedFileServer;
@@ -34,15 +35,17 @@ public class BlockDeleteService extends BlockDeleteServiceGrpc.BlockDeleteServic
     private final ContainerDeleter containerDeleter;
     private final ReplicaService replicaService;
     private final Logger logger = LoggerFactory.getLogger(BlockDeleteService.class);
+    private final SourceServerGetter.ServerInfo serverInfo;
 
     public BlockDeleteService(ContainerAllocator containerAllocator,
                               ContainerFinder containerFinder,
                               ContainerDeleter containerDeleter,
-                              ReplicaService replicaService) {
+                              ReplicaService replicaService, SourceServerGetter sourceServerGetter) {
         this.containerAllocator = containerAllocator;
         this.containerFinder = containerFinder;
         this.containerDeleter = containerDeleter;
         this.replicaService = replicaService;
+        this.serverInfo = sourceServerGetter.getLocalServer();
     }
 
     @Override
@@ -51,6 +54,10 @@ public class BlockDeleteService extends BlockDeleteServiceGrpc.BlockDeleteServic
         final String fileId = request.getFileId();
         List<SerializedFileServer> replicaServers = request.getServersList();
         String source = request.getSource();
+        if (source.isEmpty()) {
+            source = serverInfo.id();
+        }
+
         List<Container> containers =
                 containerFinder.findContainersByFile(fileId, ContainerFinder.LOCAL);
         Context context = Context.current().fork();

@@ -359,6 +359,9 @@ public class FileUploadService {
             }
             ids.add(server.id());
             servers.add(server);
+            if (servers.size() == replicas) {
+                break;
+            }
         }
         return servers;
     }

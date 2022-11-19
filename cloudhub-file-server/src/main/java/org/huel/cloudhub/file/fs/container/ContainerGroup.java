@@ -87,9 +87,9 @@ public class ContainerGroup {
 
     @Nullable
     public Container getContainer(long serial) {
-        ContainerNameMeta meta =
-                new ContainerNameMeta(containerId, serial);
-        return containers.get(meta.getName());
+        String name =
+                ContainerLocation.toContainerName(containerId, sourceId, serial);
+        return containers.get(name);
     }
 
     public Container latestContainer() {

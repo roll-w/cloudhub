@@ -79,7 +79,9 @@ public class ReplicaContainerDelegate implements ReplicaContainerLoader,
     }
 
     @Override
-    public Container findOrCreateContainer(String id, String source, long serial, SerializedContainerBlockMeta serializedContainerBlockMeta) throws IOException {
+    public Container findOrCreateContainer(String id, String source,
+                                           long serial,
+                                           SerializedContainerBlockMeta serializedContainerBlockMeta) {
         final ReplicaGroup replicaGroup = replicaContainerGroups
                 .computeIfAbsent(source, ReplicaGroup::new);
         Container container = replicaGroup.getContainer(id, serial);
@@ -94,7 +96,7 @@ public class ReplicaContainerDelegate implements ReplicaContainerLoader,
     private Container createReplicaContainer(String id,
                                              String source,
                                              long serial,
-                                             SerializedContainerBlockMeta containerBlockMeta) throws IOException {
+                                             SerializedContainerBlockMeta containerBlockMeta) {
         final String containerId = ContainerIdentity.toContainerId(id);
         ReplicaContainerNameMeta containerNameMeta =
                 new ReplicaContainerNameMeta(source, containerId, serial);
@@ -210,6 +212,7 @@ public class ReplicaContainerDelegate implements ReplicaContainerLoader,
     public void deleteReplicaContainer(String id, long serial, String source) throws IOException {
         ContainerGroup group = findContainerGroup(id, source);
         if (group == null) {
+            logger.debug("Find group null");
             return;
         }
         Container container = group.getContainer(serial);
@@ -223,8 +226,11 @@ public class ReplicaContainerDelegate implements ReplicaContainerLoader,
     private void removeContainer(Container container) throws IOException {
         ServerFile file = localFileServer.getServerFileProvider().openFile(containerDir,
                 container.getResourceLocator());
+        ServerFile metaFile = localFileServer.getServerFileProvider().openFile(containerDir,
+                container.getResourceLocator() + ContainerLocation.REPLICA_META_SUFFIX);
         removeContainerGroupMeta(container);
         file.delete();
+        metaFile.delete();
     }
 
     private void removeContainerGroupMeta(Container container) throws IOException {
@@ -238,7 +244,8 @@ public class ReplicaContainerDelegate implements ReplicaContainerLoader,
     void removeContainerMeta(String containerId, long serial) throws IOException {
         String fileName = ContainerIdentity.toCmetaId(containerId);
         ServerFile file = localFileServer.getServerFileProvider()
-                .openFile(containerProperties.getMetaPath(), fileName + ContainerMetaKeys.CONTAINER_META_SUFFIX);
+                .openFile(containerProperties.getMetaPath(),
+                        fileName + ContainerMetaKeys.REPLICA_CONTAINER_META_SUFFIX);
         if (!file.exists()) {
             return;
         }
@@ -251,5 +258,9 @@ public class ReplicaContainerDelegate implements ReplicaContainerLoader,
                 .addAllMeta(containerMetas)
                 .build();
         MetaReadWriteHelper.writeReplicaContainerGroupMeta(containerGroupMeta, file);
+
+        if (file.length() == 0) {
+            file.delete();
+        }
     }
 }

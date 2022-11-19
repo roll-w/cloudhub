@@ -55,8 +55,12 @@ public class ReplicaReceiveService extends ReplicaServiceGrpc.ReplicaServiceImpl
 
     @Override
     public void deleteReplica(ReplicaDeleteRequest request, StreamObserver<ReplicaDeleteResponse> responseObserver) {
+        logger.debug("Receive delete request, id={};serial={};source={}",
+                request.getId(), request.getSerial(), request.getSource());
         try {
-            replicaContainerDeleter.deleteReplicaContainer(request.getId(), request.getSerial(),
+            replicaContainerDeleter.deleteReplicaContainer(
+                    request.getId(),
+                    request.getSerial(),
                     request.getSource());
         } catch (IOException e) {
             logger.debug("Delete replica error.", e);

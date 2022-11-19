@@ -10,6 +10,8 @@ import org.huel.cloudhub.meta.server.data.entity.FileStorageLocation;
 import org.huel.cloudhub.meta.server.service.node.*;
 import org.huel.cloudhub.rpc.GrpcServiceStubPool;
 import org.huel.cloudhub.server.rpc.heartbeat.SerializedFileServer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -26,6 +28,7 @@ public class FileDeleteService {
     private final NodeChannelPool nodeChannelPool;
     private final GrpcServiceStubPool<BlockDeleteServiceGrpc.BlockDeleteServiceStub>
             blockDeleteServiceStubPool;
+    private final Logger logger = LoggerFactory.getLogger(FileDeleteService.class);
 
     public FileDeleteService(HeartbeatService heartbeatService,
                              FileStorageLocationRepository repository,
@@ -40,6 +43,7 @@ public class FileDeleteService {
     public void deleteFileCompletely(String fileId) {
         FileStorageLocation location = repository.getByFileId(fileId);
         if (location == null) {
+            logger.debug("File not exist, fileId={}", fileId);
             return;
         }
         String master = location.getMasterServerId();
@@ -47,6 +51,7 @@ public class FileDeleteService {
         String[] aliases = location.getAliasIds();
         List<SerializedFileServer> replicaServers = buildReplicaServers(replicas);
         if (serverChecker.isActive(master)) {
+            logger.debug("Master active, delete...");
             NodeServer server = nodeAllocator.findNodeServer(master);
             BlockDeleteServiceGrpc.BlockDeleteServiceStub stub =
                     requireStub(server);
@@ -56,6 +61,7 @@ public class FileDeleteService {
                     .build();
             stub.deleteBlocks(request, DeleteResponseStreamObserver.getInstance());
         }
+        logger.debug("Master with replicas delete complete.");
         if (aliases == null) {
             return;
         }

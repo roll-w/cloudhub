@@ -335,6 +335,7 @@ public class Container {
     public String toString() {
         return "Container{" +
                 "usedBlock=" + usedBlock +
+                ", source=" + source +
                 ", location=" + location +
                 ", version=" + version +
                 ", identity=" + identity +

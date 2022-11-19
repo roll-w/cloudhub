@@ -22,8 +22,8 @@ public class GetCommand extends AbstractShellComponent {
         this.fileDownloadService = fileDownloadService;
     }
 
-    @ShellMethod(value = "download file to file server.", key = {"get"})
-    public void nodeAction(
+    @ShellMethod(value = "download file from file server.", key = {"get"})
+    public void getAction(
             @ShellOption(help = "download to path",
                     value = {"--path", "-p"}) String path,
             @ShellOption(help = "file id",

@@ -81,6 +81,7 @@ public class ReplicaService {
                                      SerializedFileServer server) {
         ReplicaServiceGrpc.ReplicaServiceStub stub =
                 requireReplicaServiceStub(server);
+        logger.debug("Start request replica delete for {}", server.getId());
         ReplicaDeleteRequest request = ReplicaDeleteRequest.newBuilder()
                 .setSerial(container.getSerial())
                 .setSource(source)
@@ -90,6 +91,7 @@ public class ReplicaService {
     }
 
     private static class ReplicaDeleteStreamObserver implements StreamObserver<ReplicaDeleteResponse> {
+        private final Logger logger = LoggerFactory.getLogger(ReplicaDeleteStreamObserver.class);
 
         @Override
         public void onNext(ReplicaDeleteResponse value) {
@@ -97,6 +99,7 @@ public class ReplicaService {
 
         @Override
         public void onError(Throwable t) {
+            logger.error("Delete error.", t);
         }
 
         @Override
