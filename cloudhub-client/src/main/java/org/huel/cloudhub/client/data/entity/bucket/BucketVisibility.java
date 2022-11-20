@@ -6,17 +6,23 @@ package org.huel.cloudhub.client.data.entity.bucket;
  * @author RollW
  */
 public enum BucketVisibility {
-    PUBLIC_READ(false),
-    PUBLIC_READ_WRITE(false),
-    PRIVATE(true);
+    PUBLIC_READ(false, true),
+    PUBLIC_READ_WRITE(false, false),
+    PRIVATE(true, true);
 
-    private final boolean needAuth;
+    private final boolean needReadAuth;
+    private final boolean needWriteAuth;
 
-    BucketVisibility(boolean needAuth) {
-        this.needAuth = needAuth;
+    BucketVisibility(boolean needReadAuth, boolean needWriteAuth) {
+        this.needReadAuth = needReadAuth;
+        this.needWriteAuth = needWriteAuth;
     }
 
-    public boolean isNeedAuth() {
-        return needAuth;
+    public boolean isNeedReadAuth() {
+        return needReadAuth;
+    }
+
+    public boolean isNeedWriteAuth() {
+        return needWriteAuth;
     }
 }

@@ -2,7 +2,7 @@ syntax = "proto3";
 
 option java_multiple_files = true;
 option java_package = "org.huel.cloudhub.file.rpc.status";
-option java_outer_classname = "FileExistProtos";
+option java_outer_classname = "FileBlocksProtos";
 
 message FileExistRequest {
   string file_id = 1;
@@ -11,9 +11,9 @@ message FileExistRequest {
 
 message FileExistResponse {
   bool exist_local = 1;
-  repeated string exist_replicas =  2;
+  repeated string exist_replicas = 2;
 }
 
-service FileStatusService {
-  rpc checkFileExist(FileExistRequest)returns (FileExistResponse);
+service FileBlocksService {
+  rpc checkFileExist(FileExistRequest) returns (FileExistResponse);
 }

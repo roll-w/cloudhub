@@ -16,7 +16,7 @@ import org.huel.cloudhub.file.rpc.block.DeleteBlocksResponse;
 import org.huel.cloudhub.file.server.service.SourceServerGetter;
 import org.huel.cloudhub.file.server.service.replica.ReplicaService;
 import org.huel.cloudhub.file.server.service.replica.ReplicaSynchroPart;
-import org.huel.cloudhub.server.rpc.heartbeat.SerializedFileServer;
+import org.huel.cloudhub.server.rpc.server.SerializedFileServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;

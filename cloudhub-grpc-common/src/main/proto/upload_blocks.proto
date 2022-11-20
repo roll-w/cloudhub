@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-import "heartbeat.proto";
+import "server.proto";
 
 option java_multiple_files = true;
 option java_package = "org.huel.cloudhub.file.rpc.block";

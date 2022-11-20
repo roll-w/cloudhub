@@ -2,8 +2,6 @@ package org.huel.cloudhub.client.configuration;
 
 import org.huel.cloudhub.client.configuration.properties.WebUrlsProperties;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -13,7 +11,6 @@ import org.springframework.web.filter.CorsFilter;
 /**
  * @author RollW
  */
-@Configuration
 public class WebCorsConfiguration {
     final WebUrlsProperties webUrlsProperties;
 
@@ -21,7 +18,6 @@ public class WebCorsConfiguration {
         this.webUrlsProperties = webUrlsProperties;
     }
 
-    @Bean
     public CorsConfiguration corsConfiguration() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(webUrlsProperties.getAllowedOrigins());
@@ -34,7 +30,6 @@ public class WebCorsConfiguration {
         return config;
     }
 
-    @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         UrlBasedCorsConfigurationSource configSource =
                 new UrlBasedCorsConfigurationSource();
@@ -42,7 +37,6 @@ public class WebCorsConfiguration {
         return configSource;
     }
 
-    @Bean
     public FilterRegistrationBean<CorsFilter> corsFilter() {
         UrlBasedCorsConfigurationSource configSource =
                 new UrlBasedCorsConfigurationSource();

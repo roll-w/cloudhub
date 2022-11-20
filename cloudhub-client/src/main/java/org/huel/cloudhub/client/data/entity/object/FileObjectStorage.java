@@ -1,7 +1,9 @@
 package org.huel.cloudhub.client.data.entity.object;
 
-import org.checkerframework.checker.nullness.qual.Nullable;
-import space.lingu.light.*;
+import space.lingu.light.DataColumn;
+import space.lingu.light.DataTable;
+import space.lingu.light.LightConfiguration;
+import space.lingu.light.PrimaryKey;
 
 /**
  * @author RollW
@@ -17,11 +19,6 @@ public class FileObjectStorage {
     @DataColumn(name = "bucket_id")
     @PrimaryKey
     private String bucketId;
-
-    //@DataColumn(name = "object_version")
-    //@PrimaryKey
-    // TODO: Version 在VersionedObject表中，此表只包含最新版本的Object
-    private Long version = INVALID_VERSION;
 
     /**
      * 对象名：可以是一个完整的路径，作为Object的Key。
@@ -81,21 +78,5 @@ public class FileObjectStorage {
     public FileObjectStorage setObjectSize(long objectSize) {
         this.objectSize = objectSize;
         return this;
-    }
-
-    @Nullable
-    public Long getVersion() {
-        if (version == null) {
-            return INVALID_VERSION;
-        }
-        return version;
-    }
-
-    public void setVersion(@Nullable Long version) {
-        if (version == null) {
-            this.version = INVALID_VERSION;
-            return;
-        }
-        this.version = version;
     }
 }

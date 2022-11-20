@@ -42,14 +42,16 @@ public class FileDownloadService {
         this.blockDownloadServiceStubPool = new GrpcServiceStubPool<>();
     }
 
-    public void downloadFile(OutputStream outputStream, String fileId) {
+    public void downloadFile(OutputStream outputStream, String fileId, FileDownloadCallback callback) throws FileDownloadingException {
         FileStorageLocation location = repository.getByFileId(fileId);
         if (location == null) {
-            throw new FileDownloadingException("Failed downloading file: file not exists. file_id=" + fileId);
+            throw new FileDownloadingException(FileDownloadingException.Type.NOT_EXIST,
+                    "Failed downloading file: file not exists. file_id=" + fileId);
         }
         List<RequestServer> activeServers = tryGetAllActiveServers(location);
         if (activeServers.isEmpty()) {
-            throw new FileDownloadingException("Failed downloading file: no active server. file_id=" + fileId);
+            throw new FileDownloadingException(FileDownloadingException.Type.SERVER_DOWN,
+                    "Failed downloading file: no active server. file_id=" + fileId);
         }
         RequestServer first = activeServers.get(0);
         // TODO: load balance. fragment request to the other servers.
@@ -58,9 +60,9 @@ public class FileDownloadService {
         BlockDownloadServiceGrpc.BlockDownloadServiceStub stub =
                 requireStub(first.server());
 
-        logger.debug("Start downloading file id={}", fileId);
-        // TODO: async here, needs callback
-        stub.downloadBlocks(request, new DownloadBlockStreamObserver(outputStream));
+        logger.debug("Start downloading file, id={}.", fileId);
+
+        stub.downloadBlocks(request, new DownloadBlockStreamObserver(outputStream, callback));
     }
 
     private DownloadBlockRequest buildFirstRequest(RequestServer server, FileStorageLocation location, String fileId) {
@@ -111,10 +113,12 @@ public class FileDownloadService {
         private long fileLength;
         private long validBytes;
         private final OutputStream outputStream;
+        private final FileDownloadCallback callback;
         private final AtomicInteger receiveCount = new AtomicInteger(1);
 
-        private DownloadBlockStreamObserver(OutputStream outputStream) {
+        private DownloadBlockStreamObserver(OutputStream outputStream, FileDownloadCallback callback) {
             this.outputStream = outputStream;
+            this.callback = callback;
         }
 
         private void saveCheckMessage(DownloadBlockResponse.CheckMessage checkMessage) {
@@ -129,7 +133,7 @@ public class FileDownloadService {
         public void onNext(DownloadBlockResponse value) {
             if (value.getDownloadMessageCase() ==
                     DownloadBlockResponse.DownloadMessageCase.DOWNLOADMESSAGE_NOT_SET) {
-                logger.error("--- not a valid response.");
+                logger.error("--- Not a valid response.");
                 throw new IllegalArgumentException("Not valid response.");
             }
             if (value.getDownloadMessageCase() == DownloadBlockResponse.DownloadMessageCase.FILE_EXISTS) {
@@ -144,11 +148,14 @@ public class FileDownloadService {
                 return;
             }
             if (receiveCount.get() > responseCount) {
-                throw new IllegalStateException("Illegal receive count.");
+                FileDownloadingException e = new FileDownloadingException(FileDownloadingException.Type.DATA_LOSS,
+                        "Illegal receive count.");
+                callback.onDownloadError(e);
+                throw e;
             }
             DownloadBlocksInfo downloadBlocksInfo = value.getDownloadBlocks();
             List<DownloadBlockData> dataList = downloadBlocksInfo.getDataList();
-            logger.debug("receive download response:index={}, count={}, dataBlock size={}",
+            logger.debug("Receive download response:index={}, count={}, dataBlock size={}",
                     downloadBlocksInfo.getIndex(), receiveCount.get(), dataList.size());
             writeTo(dataList, outputStream, calcValidBytes(receiveCount.get()));
 
@@ -176,6 +183,7 @@ public class FileDownloadService {
         public void onCompleted() {
             // TODO: check file.
             logger.debug("download file complete. all request count: {}", receiveCount.get() - 1);
+            callback.onDownloadComplete();
             try {
                 outputStream.close();
             } catch (IOException e) {
@@ -184,8 +192,10 @@ public class FileDownloadService {
         }
 
         private void onFileNotExists() {
+
             // TODO: file not exists, choose other server
         }
+
     }
 
     private void writeTo(List<DownloadBlockData> downloadBlockData, OutputStream stream, long validBytes) {

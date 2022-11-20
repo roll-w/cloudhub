@@ -2,20 +2,18 @@ package org.huel.cloudhub.file.server.service.replica;
 
 import com.google.protobuf.ByteString;
 import io.grpc.ManagedChannel;
-import io.grpc.ManagedChannelBuilder;
 import io.grpc.stub.StreamObserver;
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.huel.cloudhub.file.fs.LockException;
 import org.huel.cloudhub.file.fs.block.ContainerBlock;
 import org.huel.cloudhub.file.fs.container.*;
 import org.huel.cloudhub.file.fs.meta.SerializedContainerBlockMeta;
 import org.huel.cloudhub.file.rpc.replica.*;
+import org.huel.cloudhub.file.server.service.ClientFileServerChannelPool;
 import org.huel.cloudhub.file.server.service.SourceServerGetter;
-import org.huel.cloudhub.rpc.GrpcChannelPool;
 import org.huel.cloudhub.rpc.GrpcProperties;
 import org.huel.cloudhub.rpc.GrpcServiceStubPool;
 import org.huel.cloudhub.rpc.StreamObserverWrapper;
-import org.huel.cloudhub.server.rpc.heartbeat.SerializedFileServer;
+import org.huel.cloudhub.server.rpc.server.SerializedFileServer;
 import org.huel.cloudhub.util.math.Maths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,7 +23,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author RollW
@@ -34,7 +31,7 @@ import java.util.concurrent.TimeUnit;
 public class ReplicaService {
     private final GrpcProperties grpcProperties;
     private final SerializedFileServer server;
-    private final FileServerChannelPool fileServerChannelPool;
+    private final ClientFileServerChannelPool clientFileServerChannelPool;
     private final GrpcServiceStubPool<ReplicaServiceGrpc.ReplicaServiceStub>
             replicaServiceStubPool;
     private final ContainerReadOpener containerReadOpener;
@@ -42,12 +39,13 @@ public class ReplicaService {
     private final Logger logger = LoggerFactory.getLogger(ReplicaService.class);
 
     public ReplicaService(GrpcProperties grpcProperties,
+                          ClientFileServerChannelPool clientFileServerChannelPool,
                           SourceServerGetter sourceServerGetter,
                           ContainerReadOpener containerReadOpener,
                           ContainerChecker containerChecker) {
         this.grpcProperties = grpcProperties;
-        this.fileServerChannelPool = new FileServerChannelPool(grpcProperties);
         this.server = toSerializedServer(sourceServerGetter.getLocalServer());
+        this.clientFileServerChannelPool = clientFileServerChannelPool;
         this.containerChecker = containerChecker;
         this.replicaServiceStubPool = new GrpcServiceStubPool<>();
         this.containerReadOpener = containerReadOpener;
@@ -75,22 +73,6 @@ public class ReplicaService {
                 stub.sendReplica(observer);
         observer.setRequestObserver(replicaRequestStreamObserver);
         observer.onNext(null);
-    }
-
-    public void requestReplicaFullSync(Container container,
-                                       SerializedFileServer dest) {
-        if (container == null) {
-            return;
-        }
-
-        ReplicaServiceGrpc.ReplicaServiceStub stub =
-                requireReplicaServiceStub(dest);
-        FullSyncStreamObserver syncStreamObserver =
-                new FullSyncStreamObserver(container);
-        StreamObserver<ReplicaRequest> replicaRequestStreamObserver =
-                stub.sendReplica(syncStreamObserver);
-        syncStreamObserver.setRequestObserver(replicaRequestStreamObserver);
-        syncStreamObserver.onNext(null);
     }
 
     public void requestReplicaDelete(Container container, String source,
@@ -249,40 +231,6 @@ public class ReplicaService {
         }
     }
 
-    private class FullSyncStreamObserver implements StreamObserver<ReplicaResponse> {
-        private final Container container;
-        private StreamObserverWrapper<ReplicaRequest> requestObserver;
-
-        private FullSyncStreamObserver(Container container) {
-            this.container = container;
-        }
-
-        @Override
-        public void onNext(ReplicaResponse value) {
-            if (value == null) {
-                sendFirst();
-                return;
-            }
-        }
-
-        private void sendFirst() {
-
-        }
-
-        @Override
-        public void onError(Throwable t) {
-
-        }
-
-        @Override
-        public void onCompleted() {
-
-        }
-
-        public void setRequestObserver(StreamObserver<ReplicaRequest> requestObserver) {
-            this.requestObserver = new StreamObserverWrapper<>(requestObserver);
-        }
-    }
 
     private ReplicaRequest buildLastRequest() {
         return ReplicaRequest.newBuilder()
@@ -318,27 +266,8 @@ public class ReplicaService {
                 .build();
     }
 
-    private static class FileServerChannelPool extends GrpcChannelPool<SerializedFileServer> {
-        private final GrpcProperties grpcProperties;
-
-        private FileServerChannelPool(GrpcProperties grpcProperties) {
-            this.grpcProperties = grpcProperties;
-        }
-
-        @Override
-        @NonNull
-        protected ManagedChannel buildChannel(SerializedFileServer key) {
-            return ManagedChannelBuilder.forAddress(key.getHost(), key.getPort())
-                    .usePlaintext()
-                    .keepAliveTime(5, TimeUnit.MINUTES)
-                    .keepAliveTimeout(2, TimeUnit.MINUTES)
-                    .maxInboundMessageSize((int) grpcProperties.getMaxRequestSizeBytes() * 2)
-                    .build();
-        }
-    }
-
     private ReplicaServiceGrpc.ReplicaServiceStub requireReplicaServiceStub(SerializedFileServer server) {
-        ManagedChannel managedChannel = fileServerChannelPool.getChannel(server);
+        ManagedChannel managedChannel = clientFileServerChannelPool.getChannel(server);
         ReplicaServiceGrpc.ReplicaServiceStub stub =
                 replicaServiceStubPool.getStub(server.getId());
         if (stub != null) {

@@ -134,4 +134,7 @@ public class BlockGroupsInfo {
         return res;
     }
 
+    public static BlockGroupsInfo build(int start, int end) {
+        return new BlockGroupsInfo(List.of(new BlockGroup(start, end)));
+    }
 }

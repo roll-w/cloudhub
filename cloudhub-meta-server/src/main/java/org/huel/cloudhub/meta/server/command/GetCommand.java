@@ -1,6 +1,8 @@
 package org.huel.cloudhub.meta.server.command;
 
+import org.huel.cloudhub.meta.server.service.file.FileDownloadCallback;
 import org.huel.cloudhub.meta.server.service.file.FileDownloadService;
+import org.huel.cloudhub.meta.server.service.file.FileDownloadingException;
 import org.springframework.shell.standard.AbstractShellComponent;
 import org.springframework.shell.standard.ShellComponent;
 import org.springframework.shell.standard.ShellMethod;
@@ -43,6 +45,16 @@ public class GetCommand extends AbstractShellComponent {
         getTerminal().writer().println("download file to %s, from file %s."
                 .formatted(path, fileId));
         getTerminal().writer().flush();
-        fileDownloadService.downloadFile(outputStream, fileId);
+        fileDownloadService.downloadFile(outputStream, fileId, new FileDownloadCallback() {
+            @Override
+            public void onDownloadComplete() {
+                getTerminal().writer().println("download complete");
+            }
+
+            @Override
+            public void onDownloadError(FileDownloadingException e) {
+
+            }
+        });
     }
 }

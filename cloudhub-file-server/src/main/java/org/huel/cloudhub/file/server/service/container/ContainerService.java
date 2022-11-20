@@ -537,10 +537,11 @@ public class ContainerService implements ContainerAllocator, ContainerFinder, Co
     }
 
     private ContainerGroup findGroup(String containerId, String source) {
+        String id = ContainerIdentity.toContainerId(containerId);
         if (ContainerFinder.isLocal(source)) {
-            return containerCache.getIfPresent(containerId);
+            return containerCache.getIfPresent(id);
         }
-        return replicaContainerFinder.findContainerGroup(containerId, source);
+        return replicaContainerFinder.findContainerGroup(id, source);
     }
 
     @Override
@@ -551,6 +552,12 @@ public class ContainerService implements ContainerAllocator, ContainerFinder, Co
             return null;
         }
         return group.getContainer(serial);
+    }
+
+    @Override
+    @Nullable
+    public ContainerGroup findContainerGroup(String containerId, String source) {
+        return findGroup(containerId, source);
     }
 
     @Override

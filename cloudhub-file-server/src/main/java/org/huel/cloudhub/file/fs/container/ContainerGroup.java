@@ -73,6 +73,12 @@ public class ContainerGroup {
         return Collections.unmodifiableCollection(containers.values());
     }
 
+    public boolean hasSerial(long serial) {
+        String name = ContainerLocation.toContainerName(containerId, sourceId, serial);
+        return containers.containsKey(name);
+    }
+
+
     public boolean hasFile(String fileId) {
         return fileIds.contains(fileId);
     }

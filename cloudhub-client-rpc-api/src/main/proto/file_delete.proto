@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "org.huel.cloudhub.client.rpc.file";
+option java_outer_classname = "FileDeleteProtos";
+
+message ClientFileDeleteRequest {
+  string file_id = 1;
+}
+
+message ClientFileDeleteResponse {
+
+}
+
+service ClientFileDeleteService {
+  rpc deleteFile(ClientFileDeleteRequest) returns (ClientFileDeleteResponse);
+}

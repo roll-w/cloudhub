@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "org.huel.cloudhub.file.rpc.replica";
+option java_outer_classname = "CheckProtos";
+
+message CheckRequest {
+  string container_id = 1;
+  repeated int64 serials = 2;
+  optional string source = 3;
+}
+
+message SerializedContainerStatus {
+  int64 serial = 1;
+  string check_value = 2;
+  bool meta_damaged = 3;
+}
+
+message CheckResponse {
+  repeated SerializedContainerStatus status = 1;
+}
+
+service CheckService {
+  rpc checkContainers(CheckRequest) returns (CheckResponse);
+}

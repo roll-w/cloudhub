@@ -1,0 +1,66 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "org.huel.cloudhub.server.rpc.server";
+option java_outer_classname = "ServerProtos";
+
+message SerializedFileServer {
+  string host = 1;
+  int32 port = 2;
+  string id = 3;
+}
+
+message SerializedCpuUsageInfo {
+  int64 cpu_cores = 1;
+  double sysUsed = 2;
+  double userUsed = 3;
+  double wait = 4;
+  double free = 5;
+}
+
+message SerializedDiskUsageInfo{
+  int64 total = 1;
+  int64 free = 2;
+  int64 read = 3;
+  int64 write = 4;
+}
+
+message SerializedJvmUsageInfo {
+  int64 total = 1;
+  int64 max = 2;
+  int64 free = 3;
+}
+
+message SerializedMemoryUsageInfo {
+  int64 total = 1;
+  int64 used = 2;
+  int64 free = 3;
+}
+
+message SerializedNetworkUsageInfo {
+  int64 recv = 1;
+  int64 sent = 2;
+  int64 speed = 3;
+}
+
+message SerializedRuntimeEnvironment {
+  string hostName = 1;
+  string hostAddress = 2;
+  string runUser = 3;
+  string userHome = 4;
+  string workDir = 5;
+  string javaVersion = 6;
+  string javaHome = 7;
+  string osName = 8;
+  string osVersion = 9;
+  string osArch = 10;
+}
+
+message SerializedServerStatus {
+  SerializedCpuUsageInfo cpu_info = 1;
+  SerializedDiskUsageInfo disk_info = 2;
+  SerializedJvmUsageInfo jvm_info = 3;
+  SerializedMemoryUsageInfo mem_info = 4;
+  SerializedNetworkUsageInfo net_info = 5;
+  optional SerializedRuntimeEnvironment env_info = 6;
+}

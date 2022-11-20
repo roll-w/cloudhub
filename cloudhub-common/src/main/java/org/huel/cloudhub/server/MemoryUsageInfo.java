@@ -7,9 +7,7 @@ import oshi.hardware.GlobalMemory;
  */
 public class MemoryUsageInfo {
     private long total;
-
     private long used;
-
     private long free;
 
     public MemoryUsageInfo(long total, long used, long free) {

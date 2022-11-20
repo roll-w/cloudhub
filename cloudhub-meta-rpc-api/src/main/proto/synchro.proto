@@ -1,24 +1,33 @@
 syntax = "proto3";
 
-import "heartbeat.proto";
+import "server.proto";
 
 option java_multiple_files = true;
 option java_package = "org.huel.cloudhub.file.rpc.synchro";
 option java_outer_classname = "SynchroProtos";
 
-// TODO:
-
 // container request
 message SynchroRequest {
-  string source = 1;
-  string id = 2;
-  repeated SerializedFileServer server = 3;
+  optional string source = 1;
+  repeated string file_ids = 2;
+  repeated SerializedFileServer servers = 3;
 }
 
 message SynchroResponse {
   optional string message = 1;
 }
 
+message DeleteContainerRequest {
+  string container_id = 1;
+  repeated SerializedFileServer servers = 2;
+}
+
+message DeleteContainerResponse {
+
+}
+
 service SynchroService {
   rpc sendSynchro(SynchroRequest) returns (SynchroResponse);
+
+  rpc deleteContainers(DeleteContainerRequest) returns (DeleteContainerResponse);
 }

@@ -1,17 +1,23 @@
 package org.huel.cloudhub.client.data.entity.object;
 
 import space.lingu.light.DataColumn;
+import space.lingu.light.DataTable;
 import space.lingu.light.PrimaryKey;
 
 /**
  * @author RollW
  */
+@DataTable(tableName = "object_versioned_table")
 public class VersionedObject {
     // TODO: Versioned Object
     public static final long INVALID_VERSION = -1L;
 
+    @DataColumn(name = "bucket_id")
+    @PrimaryKey
     private String bucketId;
 
+    @DataColumn(name = "file_id")
+    @PrimaryKey
     private String fileId;
 
     @DataColumn(name = "object_version")

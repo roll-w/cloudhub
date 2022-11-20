@@ -6,12 +6,6 @@ option java_multiple_files = true;
 option java_package = "org.huel.cloudhub.server.rpc.heartbeat";
 option java_outer_classname = "HeartbeatProtos";
 
-message SerializedFileServer {
-  string host = 1;
-  int32 port = 2;
-  string id = 3;
-}
-
 message BlockProperties {
   int32 block_size = 1;
   int32 block_limit = 2;

@@ -16,6 +16,9 @@ public interface ContainerFinder {
     @Nullable
     Container findContainer(String containerId, long serial, String source);
 
+    @Nullable
+    ContainerGroup findContainerGroup(String containerId, String source);
+
     @NonNull
     List<Container> findContainersByFile(String fileId, String source);
 

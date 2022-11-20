@@ -6,6 +6,8 @@ import org.huel.cloudhub.meta.server.data.entity.FileStorageLocation;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 /**
  * @author RollW
  */
@@ -28,5 +30,18 @@ public class FileStorageLocationRepository {
     @Async
     public void delete(String fileId) {
         dao.deleteById(fileId);
+    }
+
+    @Async
+    public void delete(FileStorageLocation... location) {
+        dao.delete(location);
+    }
+
+    public List<FileStorageLocation> getLocationsByFileIdDesc(String fileId) {
+        return dao.getLocationsByFileIdDesc(fileId);
+    }
+
+    public List<FileStorageLocation> getLocationsByFileId(String fileId) {
+        return dao.getLocationsByFileId(fileId);
     }
 }

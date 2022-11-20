@@ -4,19 +4,24 @@ package org.huel.cloudhub.meta.server.service.file;
  * @author RollW
  */
 public class FileDownloadingException extends RuntimeException {
-    public FileDownloadingException() {
-        super();
+    private final Type type;
+
+    public FileDownloadingException(Type type) {
+        this.type = type;
     }
 
-    public FileDownloadingException(String message) {
+    public FileDownloadingException(Type type, String message) {
         super(message);
+        this.type = type;
     }
 
-    public FileDownloadingException(String message, Throwable cause) {
-        super(message, cause);
+    public Type getType() {
+        return type;
     }
 
-    public FileDownloadingException(Throwable cause) {
-        super(cause);
+    public enum Type {
+        SERVER_DOWN,
+        NOT_EXIST,
+        DATA_LOSS
     }
 }

@@ -25,35 +25,26 @@ public class FileStorageLocation {
     @DataColumn(name = "replica_server_id")
     private String[] replicaIds;
 
-    /**
-     * If this piece of data exists, it means that both the master
-     * and the replicas have been down, and the same file has been
-     * uploaded to these file servers.
-     * <p>
-     * There is no need to carry the origin when making requests to
-     * these file servers. When requesting to the replica,
-     * it still carries the master id.
-     */
-    @DataColumn(name = "master_alias_server_id")
-    private String[] aliasIds;
+    @DataColumn(name = "file_backup")
+    @PrimaryKey
+    private int backup = 0;
 
     public FileStorageLocation() {
     }
 
     public FileStorageLocation(String fileId, String masterServerId,
-                               String[] replicaIds, String[] aliasIds) {
+                               String[] replicaIds) {
         this.fileId = fileId;
         this.masterServerId = masterServerId;
         this.replicaIds = replicaIds;
-        this.aliasIds = aliasIds;
     }
 
-    public String[] getAliasIds() {
-        return aliasIds;
-    }
-
-    public void setAliasIds(String[] aliasIds) {
-        this.aliasIds = aliasIds;
+    public FileStorageLocation(String fileId, String masterServerId,
+                               String[] replicaIds, int backup) {
+        this.fileId = fileId;
+        this.masterServerId = masterServerId;
+        this.replicaIds = replicaIds;
+        this.backup = backup;
     }
 
     public String getFileId() {
@@ -80,14 +71,19 @@ public class FileStorageLocation {
         this.replicaIds = replicaIds;
     }
 
+    public int getBackup() {
+        return backup;
+    }
+
+    public void setBackup(int backup) {
+        this.backup = backup;
+    }
+
     public List<String> getServerList() {
         List<String> servers = new ArrayList<>();
         servers.add(masterServerId);
         if (replicaIds != null) {
             servers.addAll(Arrays.asList(replicaIds));
-        }
-        if (aliasIds != null) {
-            servers.addAll(Arrays.asList(aliasIds));
         }
         return servers;
     }
@@ -99,17 +95,11 @@ public class FileStorageLocation {
                 consumer.accept(replicaId, ServerType.REPLICA);
             }
         }
-        if (aliasIds != null) {
-            for (String aliasId : aliasIds) {
-                consumer.accept(aliasId, ServerType.ALIAS);
-            }
-        }
     }
 
     public enum ServerType {
         MASTER,
         REPLICA,
-        ALIAS;
     }
 
     @Override
@@ -118,7 +108,6 @@ public class FileStorageLocation {
                 "fileId='" + fileId + '\'' +
                 ", masterServerId='" + masterServerId + '\'' +
                 ", replicaIds=" + Arrays.toString(replicaIds) +
-                ", aliasIds=" + Arrays.toString(aliasIds) +
                 '}';
     }
 
@@ -127,14 +116,13 @@ public class FileStorageLocation {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         FileStorageLocation location = (FileStorageLocation) o;
-        return Objects.equals(fileId, location.fileId) && Objects.equals(masterServerId, location.masterServerId) && Arrays.equals(replicaIds, location.replicaIds) && Arrays.equals(aliasIds, location.aliasIds);
+        return Objects.equals(fileId, location.fileId) && Objects.equals(masterServerId, location.masterServerId) && Arrays.equals(replicaIds, location.replicaIds);
     }
 
     @Override
     public int hashCode() {
         int result = Objects.hash(fileId, masterServerId);
         result = 31 * result + Arrays.hashCode(replicaIds);
-        result = 31 * result + Arrays.hashCode(aliasIds);
         return result;
     }
 }

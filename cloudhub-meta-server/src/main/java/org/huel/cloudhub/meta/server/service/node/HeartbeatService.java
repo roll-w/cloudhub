@@ -14,7 +14,8 @@ import java.util.Collection;
  * @author RollW
  */
 @Service
-public class HeartbeatService extends HeartbeatServiceGrpc.HeartbeatServiceImplBase implements NodeWeightProvider {
+public class HeartbeatService extends HeartbeatServiceGrpc.HeartbeatServiceImplBase
+        implements NodeWeightProvider, ServerEventRegistry {
     private final Logger logger = LoggerFactory.getLogger(HeartbeatService.class);
 
     private final HeartbeatServerProperties heartbeatServerProperties;
@@ -82,5 +83,10 @@ public class HeartbeatService extends HeartbeatServiceGrpc.HeartbeatServiceImplB
 
     public ServerChecker getServerChecker() {
         return heartbeatWatcherPool;
+    }
+
+    @Override
+    public void registerCallback(ServerEventCallback serverEventCallback) {
+        heartbeatWatcherPool.registerCallback(serverEventCallback);
     }
 }

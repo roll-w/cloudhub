@@ -32,9 +32,15 @@ public abstract class FileStorageLocationDao {
     @Delete("DELETE FROM file_storage_location_table WHERE file_id = {fileId}")
     public abstract void deleteById(String fileId);
 
-    @Query("SELECT * FROM file_storage_location_table WHERE file_id = {fileId}")
+    @Delete("DELETE FROM file_storage_location_table WHERE file_id = {fileId} AND file_backup = {backup}")
+    public abstract void deleteById(String fileId, int backup);
+
+    @Query("SELECT * FROM file_storage_location_table WHERE file_id = {fileId} ORDER BY file_backup DESC LIMIT 1")
     public abstract FileStorageLocation getByFileId(String fileId);
 
-    @Query("SELECT file_id FROM file_storage_location_table WHERE file_id = {fileId}")
-    public abstract String checkByFileId(String fileId);
+    @Query("SELECT * FROM file_storage_location_table WHERE file_id = {fileId} ORDER BY file_backup DESC")
+    public abstract List<FileStorageLocation> getLocationsByFileIdDesc(String fileId);
+
+    @Query("SELECT * FROM file_storage_location_table WHERE file_id = {fileId} ORDER BY file_backup DESC")
+    public abstract List<FileStorageLocation> getLocationsByFileId(String fileId);
 }

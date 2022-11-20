@@ -2,7 +2,7 @@ package org.huel.cloudhub.meta.server.service.file;
 
 import org.huel.cloudhub.meta.server.data.entity.FileStorageLocation;
 import org.huel.cloudhub.meta.server.service.node.NodeServer;
-import org.huel.cloudhub.server.rpc.heartbeat.SerializedFileServer;
+import org.huel.cloudhub.server.rpc.server.SerializedFileServer;
 
 import java.util.ArrayList;
 import java.util.List;

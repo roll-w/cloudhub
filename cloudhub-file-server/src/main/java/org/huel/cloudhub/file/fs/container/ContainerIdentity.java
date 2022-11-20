@@ -17,8 +17,8 @@ public class ContainerIdentity {
     private final long blockSizeInBytes;
     private final long limitBytes;
 
-    public static final int ID_SUBNUM = 32;
-    public static final int IDMETA_SUBNUM = 12;
+    public static final int ID_SUBNUM = 16;
+    public static final int IDMETA_SUBNUM = 8;
 
     public static final String INVALID_CRC = "INVALID";
 

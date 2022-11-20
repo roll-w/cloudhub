@@ -9,12 +9,14 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.huel.cloudhub.file.rpc.block.*;
 import org.huel.cloudhub.meta.server.configuration.FileProperties;
 import org.huel.cloudhub.meta.server.data.database.repository.FileStorageLocationRepository;
+import org.huel.cloudhub.meta.server.data.database.repository.MasterReplicaLocationRepository;
 import org.huel.cloudhub.meta.server.data.entity.FileStorageLocation;
+import org.huel.cloudhub.meta.server.data.entity.MasterReplicaLocation;
 import org.huel.cloudhub.meta.server.service.node.*;
 import org.huel.cloudhub.rpc.GrpcProperties;
 import org.huel.cloudhub.rpc.GrpcServiceStubPool;
 import org.huel.cloudhub.rpc.StreamObserverWrapper;
-import org.huel.cloudhub.server.rpc.heartbeat.SerializedFileServer;
+import org.huel.cloudhub.server.rpc.server.SerializedFileServer;
 import org.huel.cloudhub.util.math.Maths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,6 +37,7 @@ public class FileUploadService {
     private final FileProperties fileProperties;
     private final GrpcProperties grpcProperties;
     private final FileStorageLocationRepository storageLocationRepository;
+    private final MasterReplicaLocationRepository masterReplicaLocationRepository;
     private final NodeChannelPool nodeChannelPool;
     private final GrpcServiceStubPool<BlockUploadServiceGrpc.BlockUploadServiceStub>
             blockUploadServiceStubPool;
@@ -43,10 +46,12 @@ public class FileUploadService {
     public FileUploadService(HeartbeatService heartbeatService,
                              FileProperties fileProperties,
                              FileStorageLocationRepository storageLocationRepository,
+                             MasterReplicaLocationRepository masterReplicaLocationRepository,
                              GrpcProperties grpcProperties) {
         this.nodeAllocator = heartbeatService.getNodeAllocator();
         this.fileProperties = fileProperties;
         this.storageLocationRepository = storageLocationRepository;
+        this.masterReplicaLocationRepository = masterReplicaLocationRepository;
         this.nodeChannelPool = new NodeChannelPool(grpcProperties);
         this.grpcProperties = grpcProperties;
         this.serverChecker = heartbeatService.getServerChecker();
@@ -57,11 +62,20 @@ public class FileUploadService {
     private final Logger logger = LoggerFactory.getLogger(FileUploadService.class);
 
     private boolean checkFileLocal(String hash) {
-        FileStorageLocation location = storageLocationRepository.getByFileId(hash);
-        if (location == null) {
+        List<FileStorageLocation> locations =
+                storageLocationRepository.getLocationsByFileId(hash);
+        if (locations.isEmpty()) {
             return false;
         }
-        return checkServers(location.getServerList());
+        for (FileStorageLocation location : locations) {
+            boolean res = checkServers(location.getServerList());
+            if (res) {
+                return true;
+            }
+        }
+        // all servers goes down, means file not exists anymore, for now.
+        // allowed to re-upload.
+        return false;
     }
 
     private boolean checkServers(List<String> serverIds) {
@@ -74,8 +88,6 @@ public class FileUploadService {
                 return true;
             }
         }
-        // all servers goes down, means file not exists anymore, for now.
-        // allowed to re-upload.
         return false;
     }
 
@@ -159,24 +171,43 @@ public class FileUploadService {
     }
 
     private void updatesFileObjectLocation(String hash,
-                                           String masterOrAlias,
+                                           String master,
                                            List<String> replicas) {
+        saveReplicaLocation(hash, master, replicas);
         FileStorageLocation location = storageLocationRepository.getByFileId(hash);
         if (location == null) {
-            location = new FileStorageLocation(hash, masterOrAlias,
-                    replicas.toArray(new String[0]), null);
+            location = new FileStorageLocation(hash, master,
+                    replicas.toArray(new String[0]));
             storageLocationRepository.insertOrUpdate(location);
             return;
         }
-        String[] alias = appendOrCreate(location.getAliasIds(), masterOrAlias);
-        String[] newReplicas = appendOrCreate(location.getReplicaIds(),
-                replicas.toArray(new String[0]));
-        location.setReplicaIds(newReplicas);
-        location.setAliasIds(alias);
-        storageLocationRepository.insertOrUpdate(location);
+        FileStorageLocation newLocation = new FileStorageLocation(
+                location.getFileId(), master,
+                replicas.toArray(new String[0]), location.getBackup() + 1);
+        storageLocationRepository.insertOrUpdate(newLocation);
     }
 
-    private String[] appendOrCreate(String[] original, String... appends) {
+    private void saveReplicaLocation(String hash,
+                                     String master,
+                                     List<String> replicas) {
+        String containerId = MasterReplicaLocation.toContainerId(hash);
+        MasterReplicaLocation replicaLocation = masterReplicaLocationRepository
+                .getByContainerId(containerId);
+        if (replicaLocation != null) {
+            MasterReplicaLocation newLocation = new MasterReplicaLocation(containerId,
+                    master, replicas.toArray(new String[0]),
+                    replicaLocation.getBackup() + 1);
+            masterReplicaLocationRepository.insertOrUpdate(newLocation);
+            return;
+        }
+        MasterReplicaLocation newLocation = new MasterReplicaLocation(containerId,
+                master,
+                replicas.toArray(new String[0]));
+        masterReplicaLocationRepository.insertOrUpdate(newLocation);
+    }
+
+
+    private static String[] appendOrCreate(String[] original, String... appends) {
         if (original == null) {
             return appends;
         }
