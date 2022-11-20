@@ -41,6 +41,7 @@ public class BlockReceiveService extends BlockUploadServiceGrpc.BlockUploadServi
     private final ContainerFinder containerFinder;
     private final ContainerProperties containerProperties;
     private final ContainerWriterOpener containerWriterOpener;
+    private final ContainerChecker containerChecker;
     private final ReplicaService replicaService;
     private final LocalFileServer localFileServer;
     private final ServerFile stagingDir;
@@ -50,12 +51,14 @@ public class BlockReceiveService extends BlockUploadServiceGrpc.BlockUploadServi
                                ContainerFinder containerFinder,
                                ContainerProperties containerProperties,
                                ContainerWriterOpener containerWriterOpener,
+                               ContainerChecker containerChecker,
                                ReplicaService replicaService,
                                LocalFileServer localFileServer) throws IOException {
         this.containerAllocator = containerAllocator;
         this.containerFinder = containerFinder;
         this.containerProperties = containerProperties;
         this.containerWriterOpener = containerWriterOpener;
+        this.containerChecker = containerChecker;
         this.replicaService = replicaService;
         this.localFileServer = localFileServer;
         this.stagingDir = localFileServer.getServerFileProvider()
@@ -261,7 +264,7 @@ public class BlockReceiveService extends BlockUploadServiceGrpc.BlockUploadServi
             }
 
             try (ContainerFileWriter containerFileWriter = new ContainerFileWriter(fileId,
-                    savedLength, ContainerFinder.LOCAL, containerAllocator, containerWriterOpener, FileWriteStrategy.SEQUENCE)) {
+                    savedLength, ContainerFinder.LOCAL, containerAllocator, containerWriterOpener, containerChecker, FileWriteStrategy.SEQUENCE)) {
                 writeUntilEnd(containerFileWriter, stagingFile.openInput(), BUFFERED_BLOCK_SIZE, validBytes);
             } catch (IOException | MetaException e) {
                 logger.error("Occurred error here while saving to container.", e);

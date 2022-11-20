@@ -2,7 +2,7 @@ syntax = "proto3";
 
 option java_multiple_files = true;
 option java_package = "org.huel.cloudhub.server.rpc.status";
-option java_outer_classname = "StatProtos";
+option java_outer_classname = "StatusProtos";
 
 enum SerializedServerStatusCode {
   HEALTHY = 0;
@@ -31,6 +31,3 @@ message SerializedServerStatus {
   map<string, string> status = 2;
   repeated SerializedDamagedContainerReport report = 3;
 }
-
-
-

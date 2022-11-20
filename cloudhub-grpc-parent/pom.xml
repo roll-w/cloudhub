@@ -13,6 +13,8 @@
     <packaging>pom</packaging>
     <modules>
         <module>../cloudhub-grpc-common</module>
+        <module>../cloudhub-meta-rpc-api</module>
+        <module>../cloudhub-client-rpc-api</module>
     </modules>
 
     <properties>

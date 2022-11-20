@@ -21,6 +21,10 @@ public enum FileObjectUploadStatus {
     /**
      * 文件和副本现在都可用。
      */
-    AVAILABLE;
+    AVAILABLE,
+    /**
+     * 文件和副本都丢失。
+     */
+    LOST;
 
 }

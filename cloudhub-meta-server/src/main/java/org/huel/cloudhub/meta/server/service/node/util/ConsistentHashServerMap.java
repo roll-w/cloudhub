@@ -14,6 +14,8 @@ import java.util.*;
 public class ConsistentHashServerMap<S extends ConsistentHashServerMap.Server> {
     public static final int DISABLE_WEIGHT = -1;
 
+    private static final int WEIGHT_VIRTUAL_NODES = 60;
+
     private final Map<String, S> serverPool = new HashMap<>();
     private final TreeMap<Long, String> hashServersPool = new TreeMap<>();
     private final List<ServerWeight<S>> serverWeights = new ArrayList<>();
@@ -139,7 +141,7 @@ public class ConsistentHashServerMap<S extends ConsistentHashServerMap.Server> {
     }
 
     private int mappingToVirtualNodes(int weight, int totalWeight, int len) {
-        return Maths.ceilDivide(40 * len * weight, totalWeight);
+        return Maths.ceilDivide(WEIGHT_VIRTUAL_NODES * len * weight, totalWeight);
     }
 
     public interface Server {

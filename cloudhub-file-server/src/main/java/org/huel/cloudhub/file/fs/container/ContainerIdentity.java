@@ -46,6 +46,10 @@ public class ContainerIdentity {
         this.crc = crc;
     }
 
+    public boolean isInvalidChecksum() {
+        return INVALID_CRC.equals(crc);
+    }
+
     public long serial() {
         return serial;
     }

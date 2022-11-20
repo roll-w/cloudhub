@@ -28,6 +28,7 @@ public class ContainerFileWriter implements Closeable {
     private final String source;
     private final ContainerAllocator containerAllocator;
     private final ContainerWriterOpener containerWriterOpener;
+    private final ContainerChecker containerChecker;
     private final FileWriteStrategy fileWriteStrategy;
     private final AtomicInteger writeBlocksSum = new AtomicInteger(0);
     private int expectBlocks = -1;
@@ -38,12 +39,14 @@ public class ContainerFileWriter implements Closeable {
     public ContainerFileWriter(String fileId, long fileSize, String source,
                                ContainerAllocator containerAllocator,
                                ContainerWriterOpener containerWriterOpener,
+                               ContainerChecker containerChecker,
                                FileWriteStrategy fileWriteStrategy) {
         this.fileId = fileId;
         this.source = source;
         this.fileSize = fileSize;
         this.containerAllocator = containerAllocator;
         this.containerWriterOpener = containerWriterOpener;
+        this.containerChecker = containerChecker;
         this.fileWriteStrategy = fileWriteStrategy;
         preAllocateContainers();
     }
@@ -194,8 +197,11 @@ public class ContainerFileWriter implements Closeable {
         return open(next);
     }
 
-    private Container updatesContainerMeta(WriteResult result) throws IOException, MetaException {
+    private Container updatesContainerMeta(WriteResult result) throws IOException, MetaException, LockException {
         Container container = result.container;
+        String newCrc = containerChecker.calculateChecksum(container);
+        container.getIdentity().updatesChecksum(newCrc);
+
         Container next = findNextAllowContainer();
         final long nextSerial = next == null
                 ? BlockMetaInfo.NOT_CROSS_CONTAINER
@@ -287,7 +293,7 @@ public class ContainerFileWriter implements Closeable {
         handleClose(lastResult);
         try {
             updatesContainerMeta(lastResult);
-        } catch (MetaException e) {
+        } catch (MetaException | LockException e) {
             throw new IOException(e);
         }
         lastResult = null;

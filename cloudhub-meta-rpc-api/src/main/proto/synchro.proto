@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+import "heartbeat.proto";
+
 option java_multiple_files = true;
 option java_package = "org.huel.cloudhub.file.rpc.synchro";
 option java_outer_classname = "SynchroProtos";
@@ -8,11 +10,13 @@ option java_outer_classname = "SynchroProtos";
 
 // container request
 message SynchroRequest {
-
+  string source = 1;
+  string id = 2;
+  repeated SerializedFileServer server = 3;
 }
 
 message SynchroResponse {
-
+  optional string message = 1;
 }
 
 service SynchroService {

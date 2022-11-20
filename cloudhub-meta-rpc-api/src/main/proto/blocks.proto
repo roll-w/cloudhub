@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "org.huel.cloudhub.file.rpc.status";
+option java_outer_classname = "FileExistProtos";
+
+message FileExistRequest {
+  string file_id = 1;
+  bool include_replica = 2;
+}
+
+message FileExistResponse {
+  bool exist_local = 1;
+  repeated string exist_replicas =  2;
+}
+
+service FileStatusService {
+  rpc checkFileExist(FileExistRequest)returns (FileExistResponse);
+}
