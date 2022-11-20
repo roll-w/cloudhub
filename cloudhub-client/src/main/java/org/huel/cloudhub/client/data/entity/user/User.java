@@ -131,7 +131,7 @@ public class User implements UserDetails {
     }
 
     public UserInfo toInfo() {
-        return new UserInfo(id, username, email, role);
+        return new UserInfo(id, username, password,email, role);
     }
 
     public long getRegisterTime() {

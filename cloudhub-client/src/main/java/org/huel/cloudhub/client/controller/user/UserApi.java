@@ -12,4 +12,5 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @RequestMapping("/api/user/")
 public @interface UserApi {
+    //定义注解里面是空的有啥作用
 }

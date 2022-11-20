@@ -82,4 +82,7 @@ public class BucketController {
         return HttpResponseEntity.success(
                 bucketService.getUserBuckets(userInfo.id()));
     }
+
+
+
 }
