@@ -15,30 +15,29 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 提供给用户的Bucket接口
- *
  * @author Cheng
  */
+
 @RestController
-@BucketApi
-public class BucketController {
+public class BucketManagerController {
     private final BucketService bucketService;
     private final UserGetter userGetter;
 
-    public BucketController(BucketService bucketService,
-                            UserGetter userGetter) {
+    public BucketManagerController(BucketService bucketService, UserGetter userGetter) {
         this.bucketService = bucketService;
         this.userGetter = userGetter;
     }
 
+
     @PutMapping("/create")
     public HttpResponseEntity<BucketInfo> create(HttpServletRequest request,
                                                  @RequestBody BucketCreateRequest bucketCreateRequest) {
-        UserInfo userInfo = userGetter.getCurrentUser(request);
-        if (userInfo == null) {
-            return HttpResponseEntity.failure("User not login.",
-                    ErrorCode.ERROR_USER_NOT_LOGIN);
+        var httpResponse = validate(request);
+        if (httpResponse != null) {
+            return (HttpResponseEntity<BucketInfo>) httpResponse;
         }
+//        有警告应该问题不大不太懂
+        UserInfo userInfo = userGetter.getCurrentUser(request);
         var res = bucketService.createBucket(
                 userInfo.id(),
                 bucketCreateRequest.bucketName(),
@@ -50,19 +49,27 @@ public class BucketController {
     @PostMapping("/delete")
     //@DeleteMapping("/delete")
     public HttpResponseEntity<Void> delete(HttpServletRequest request, @RequestParam Map<String, String> map) {
-        String bucketName = map.get("bucketName");
+        var httpResponse = validate(request);
+        if (httpResponse != null) {
+            return (HttpResponseEntity<Void>) httpResponse;
+        }
         UserInfo userInfo = userGetter.getCurrentUser(request);
         if (userInfo == null) {
             return HttpResponseEntity.failure("User not login.",
                     ErrorCode.ERROR_USER_NOT_LOGIN);
         }
+        String bucketName = map.get("bucketName");
         var res =
                 bucketService.deleteBucket(userInfo.id(), bucketName);
         return HttpResponseEntity.create(res.toResponseBody());
     }
 
     @GetMapping("/get")
-    public HttpResponseEntity<BucketInfo> getBucket(@RequestParam String bucketName) {
+    public HttpResponseEntity<BucketInfo> getBucket(HttpServletRequest request,@RequestParam String bucketName) {
+        var httpResponse = validate(request);
+        if (httpResponse != null) {
+            return (HttpResponseEntity<BucketInfo>) httpResponse;
+        }
         Bucket bucket = bucketService.getBucketByName(bucketName);
         if (bucket == null) {
             return HttpResponseEntity.failure("Bucket not exist.",
@@ -74,6 +81,11 @@ public class BucketController {
 
     @GetMapping("/get/all")
     public HttpResponseEntity<List<BucketInfo>> getBuckets(HttpServletRequest request) {
+
+        var httpResponse = validate(request);
+        if (httpResponse != null) {
+            return (HttpResponseEntity<List<BucketInfo>>) httpResponse;
+        }
         UserInfo userInfo = userGetter.getCurrentUser(request);
         if (userInfo == null) {
             return HttpResponseEntity.failure("User not login.",
@@ -83,6 +95,17 @@ public class BucketController {
                 bucketService.getUserBuckets(userInfo.id()));
     }
 
-
+    private HttpResponseEntity<?> validate(HttpServletRequest request) {
+        UserInfo userInfo = userGetter.getCurrentUser(request);
+        if (userInfo == null) {
+            return HttpResponseEntity.failure("User not login.",
+                    ErrorCode.ERROR_USER_NOT_LOGIN);
+        }
+        if (!userInfo.role().hasPrivilege()) {
+            return HttpResponseEntity.failure("User has no permissions.",
+                    ErrorCode.ERROR_PERMISSION_NOT_ALLOWED);
+        }
+        return null;
+    }
 
 }
