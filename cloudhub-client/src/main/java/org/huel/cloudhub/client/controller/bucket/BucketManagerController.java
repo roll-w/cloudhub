@@ -1,8 +1,9 @@
 package org.huel.cloudhub.client.controller.bucket;
 
-import org.huel.cloudhub.client.data.dto.bucket.BucketCreateRequest;
+import org.huel.cloudhub.client.controller.ValidateHelper;
+import org.huel.cloudhub.client.data.dto.bucket.BucketAdminCreateRequest;
+import org.huel.cloudhub.client.data.dto.bucket.BucketAdminDeleteRequest;
 import org.huel.cloudhub.client.data.dto.bucket.BucketInfo;
-import org.huel.cloudhub.client.data.dto.user.UserInfo;
 import org.huel.cloudhub.client.data.entity.bucket.Bucket;
 import org.huel.cloudhub.client.service.bucket.BucketService;
 import org.huel.cloudhub.client.service.user.UserGetter;
@@ -12,13 +13,13 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author Cheng
  */
 
 @RestController
+@BucketAdminApi
 public class BucketManagerController {
     private final BucketService bucketService;
     private final UserGetter userGetter;
@@ -31,15 +32,18 @@ public class BucketManagerController {
 
     @PutMapping("/create")
     public HttpResponseEntity<BucketInfo> create(HttpServletRequest request,
-                                                 @RequestBody BucketCreateRequest bucketCreateRequest) {
+                                                 @RequestBody BucketAdminCreateRequest bucketCreateRequest) {
         var httpResponse = validate(request);
         if (httpResponse != null) {
             return (HttpResponseEntity<BucketInfo>) httpResponse;
         }
-//        有警告应该问题不大不太懂
-        UserInfo userInfo = userGetter.getCurrentUser(request);
+        // 有警告应该问题不大不太懂
+        if (bucketCreateRequest.userId() == null) {
+            return HttpResponseEntity.failure("No given user id.",
+                    ErrorCode.ERROR_PARAM_MISSING);
+        }
         var res = bucketService.createBucket(
-                userInfo.id(),
+                bucketCreateRequest.userId(),
                 bucketCreateRequest.bucketName(),
                 bucketCreateRequest.visibility());
         return HttpResponseEntity.create(res.toResponseBody());
@@ -48,24 +52,29 @@ public class BucketManagerController {
 
     @PostMapping("/delete")
     //@DeleteMapping("/delete")
-    public HttpResponseEntity<Void> delete(HttpServletRequest request, @RequestParam Map<String, String> map) {
+    public HttpResponseEntity<Void> delete(HttpServletRequest request,
+                                           @RequestBody BucketAdminDeleteRequest bucketAdminDeleteRequest) {
         var httpResponse = validate(request);
         if (httpResponse != null) {
             return (HttpResponseEntity<Void>) httpResponse;
         }
-        UserInfo userInfo = userGetter.getCurrentUser(request);
-        if (userInfo == null) {
-            return HttpResponseEntity.failure("User not login.",
-                    ErrorCode.ERROR_USER_NOT_LOGIN);
+        if (bucketAdminDeleteRequest.userId() == null) {
+            return HttpResponseEntity.failure("No given user id.",
+                    ErrorCode.ERROR_PARAM_MISSING);
         }
-        String bucketName = map.get("bucketName");
-        var res =
-                bucketService.deleteBucket(userInfo.id(), bucketName);
+        if (bucketAdminDeleteRequest.bucketName() == null) {
+            return HttpResponseEntity.failure("Bucket name missing",
+                    ErrorCode.ERROR_PARAM_MISSING);
+        }
+        var res = bucketService.deleteBucket(
+                bucketAdminDeleteRequest.userId(),
+                bucketAdminDeleteRequest.bucketName());
         return HttpResponseEntity.create(res.toResponseBody());
     }
 
     @GetMapping("/get")
-    public HttpResponseEntity<BucketInfo> getBucket(HttpServletRequest request,@RequestParam String bucketName) {
+    public HttpResponseEntity<BucketInfo> getBucket(HttpServletRequest request,
+                                                    @RequestParam String bucketName) {
         var httpResponse = validate(request);
         if (httpResponse != null) {
             return (HttpResponseEntity<BucketInfo>) httpResponse;
@@ -80,32 +89,24 @@ public class BucketManagerController {
 
 
     @GetMapping("/get/all")
-    public HttpResponseEntity<List<BucketInfo>> getBuckets(HttpServletRequest request) {
+    public HttpResponseEntity<List<BucketInfo>> getBuckets(HttpServletRequest request,
+                                                           @RequestParam(required = false) Long userId) {
 
         var httpResponse = validate(request);
         if (httpResponse != null) {
             return (HttpResponseEntity<List<BucketInfo>>) httpResponse;
         }
-        UserInfo userInfo = userGetter.getCurrentUser(request);
-        if (userInfo == null) {
-            return HttpResponseEntity.failure("User not login.",
-                    ErrorCode.ERROR_USER_NOT_LOGIN);
+        if (userId == null) {
+            return HttpResponseEntity.success(bucketService.getAllUsersBuckets());
         }
-        return HttpResponseEntity.success(
-                bucketService.getUserBuckets(userInfo.id()));
+        return HttpResponseEntity.success(bucketService.getUserBuckets(userId));
     }
 
+
     private HttpResponseEntity<?> validate(HttpServletRequest request) {
-        UserInfo userInfo = userGetter.getCurrentUser(request);
-        if (userInfo == null) {
-            return HttpResponseEntity.failure("User not login.",
-                    ErrorCode.ERROR_USER_NOT_LOGIN);
-        }
-        if (!userInfo.role().hasPrivilege()) {
-            return HttpResponseEntity.failure("User has no permissions.",
-                    ErrorCode.ERROR_PERMISSION_NOT_ALLOWED);
-        }
-        return null;
+        return ValidateHelper.getHttpResponseEntity(request, userGetter);
     }
+
+
 
 }

@@ -1,6 +1,7 @@
 package org.huel.cloudhub.client.controller.user;
 
 import org.apache.commons.lang3.Validate;
+import org.huel.cloudhub.client.controller.ValidateHelper;
 import org.huel.cloudhub.client.data.dto.user.UserCreateRequest;
 import org.huel.cloudhub.client.data.dto.user.UserInfo;
 import org.huel.cloudhub.client.data.entity.user.User;
@@ -93,15 +94,6 @@ public class UserManageController {
     }
 
     private HttpResponseEntity<?> validate(HttpServletRequest request) {
-        UserInfo userInfo = userGetter.getCurrentUser(request);
-        if (userInfo == null) {
-            return HttpResponseEntity.failure("User not login.",
-                    ErrorCode.ERROR_USER_NOT_LOGIN);
-        }
-        if (!userInfo.role().hasPrivilege()) {
-            return HttpResponseEntity.failure("User has no permissions.",
-                    ErrorCode.ERROR_PERMISSION_NOT_ALLOWED);
-        }
-        return null;
+        return ValidateHelper.getHttpResponseEntity(request, userGetter);
     }
 }

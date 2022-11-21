@@ -70,6 +70,10 @@ public class BucketRepository {
         return bucketDao.getBucketInfosByUserId(id);
     }
 
+    public List<BucketInfo> getAllBucketInfos() {
+        return bucketDao.getBucketInfos();
+    }
+
     public String getBucketNameByName(String name) {
         return bucketDao.getBucketNameByName(name);
     }

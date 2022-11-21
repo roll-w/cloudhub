@@ -54,6 +54,9 @@ public abstract class BucketDao {
     @Query("SELECT * FROM user_buckets_table WHERE bucket_user_id = {id}")
     public abstract List<BucketInfo> getBucketInfosByUserId(long id);
 
+    @Query("SELECT * FROM user_buckets_table")
+    public abstract List<BucketInfo> getBucketInfos();
+
     //  根据用户id查询出桶的名称集合
     @Query("SELECT bucket_name FROM user_buckets_table WHERE bucket_user_id = {id}")
     public abstract List<String> getBucketNamesByUserId(long id);

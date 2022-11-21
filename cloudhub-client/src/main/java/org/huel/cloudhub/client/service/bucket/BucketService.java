@@ -20,6 +20,8 @@ public interface BucketService {
 
     List<BucketInfo> getUserBuckets(long userId);
 
+    List<BucketInfo> getAllUsersBuckets();
+
     Bucket getBucketByName(String name);
 
     MessagePackage<BucketInfo> setVisibility(String name, BucketVisibility bucketVisibility);

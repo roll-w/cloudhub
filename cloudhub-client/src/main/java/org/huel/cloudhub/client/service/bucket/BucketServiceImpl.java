@@ -53,6 +53,11 @@ public class BucketServiceImpl implements BucketService {
         return bucketRepository.getBucketInfosByUserId(userId);
     }
 
+    @Override
+    public List<BucketInfo> getAllUsersBuckets() {
+        return bucketRepository.getAllBucketInfos();
+    }
+
     public Bucket getBucketByName(String name) {
         return bucketRepository.getBucketByName(name);
     }
