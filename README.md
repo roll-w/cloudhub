@@ -2,6 +2,16 @@
 
 一个简单的分布式对象存储系统。
 
+## 运行说明
+
+运行步骤：
+
+1. 运行`meta-server`；
+2. 运行`file-server`；
+3. 运行`client`。
+
+**一定要保证`meta-server`最先运行**。
+
 ## 文档指引
 
 - [`file-server`工作流程说明](cloudhub-file-server/README.md)
