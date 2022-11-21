@@ -34,6 +34,12 @@ public class ClientConfigKeys {
      */
     public static final String FILE_TEMP_PATH = "cloudhub.file.staging_dir";
 
+    public static final String DATABASE_URL = "cloudhub.client.db.url";
+
+    public static final String DATABASE_USERNAME = "cloudhub.client.db.username";
+
+    public static final String DATABASE_PASSWORD = "cloudhub.client.db.password";
+
     private ClientConfigKeys() {
     }
 }

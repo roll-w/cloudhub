@@ -15,12 +15,16 @@ public record RequestServer(NodeServer server,
 
     public static List<SerializedFileServer> toSerialized(List<NodeServer> nodeServers) {
         List<SerializedFileServer> servers = new ArrayList<>();
-        nodeServers.forEach(nodeServer -> servers.add(
-                SerializedFileServer.newBuilder()
-                        .setHost(nodeServer.host())
-                        .setId(nodeServer.id())
-                        .setPort(nodeServer.port())
-                        .build()));
+        nodeServers.forEach(nodeServer ->
+                servers.add(toSerialized(nodeServer)));
         return servers;
+    }
+
+    public static SerializedFileServer toSerialized(NodeServer nodeServer) {
+        return SerializedFileServer.newBuilder()
+                .setHost(nodeServer.host())
+                .setId(nodeServer.id())
+                .setPort(nodeServer.port())
+                .build();
     }
 }

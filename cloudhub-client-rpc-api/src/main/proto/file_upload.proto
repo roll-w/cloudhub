@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "org.huel.cloudhub.client.rpc.file";
+option java_outer_classname = "FileUploadProtos";
+
+message ClientFileUploadData {
+  bytes data = 1;
+}
+
+message ClientFileUploadDataSegment {
+  repeated ClientFileUploadData data = 1;
+}
+
+message ClientFileUploadRequest {
+  message CheckMessage{
+    string file_hash = 1;
+    int64 size = 2;
+  }
+
+  oneof upload {
+    CheckMessage check_message = 1;
+    ClientFileUploadDataSegment data_segment = 2;
+  }
+
+}
+
+message ClientFileUploadResponse {
+
+}
+
+service ClientFileUploadService {
+  rpc uploadFile(stream ClientFileUploadRequest) returns (ClientFileUploadResponse);
+}
+

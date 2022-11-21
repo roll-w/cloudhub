@@ -8,7 +8,7 @@ import org.huel.cloudhub.server.rpc.heartbeat.Heartbeat;
 import org.huel.cloudhub.server.rpc.heartbeat.HeartbeatResponse;
 import org.huel.cloudhub.server.rpc.heartbeat.HeartbeatServiceGrpc;
 import org.huel.cloudhub.server.rpc.status.SerializedDamagedContainerReport;
-import org.huel.cloudhub.server.rpc.status.SerializedServerStatus;
+import org.huel.cloudhub.server.rpc.status.SerializedServerStatusReport;
 import org.huel.cloudhub.server.rpc.status.SerializedServerStatusCode;
 
 import java.util.List;
@@ -47,7 +47,7 @@ public class HeartbeatSender {
                     .stream()
                     .map(DiagnosisReportSegment::getData)
                     .toList();
-            SerializedServerStatus status = SerializedServerStatus.newBuilder()
+            SerializedServerStatusReport status = SerializedServerStatusReport.newBuilder()
                     .addAllReport(reports)
                     .build();
             heartbeatBuilder.setStatus(status);

@@ -19,7 +19,7 @@ message Heartbeat {
   // the server should declare the period it now has.
   optional int32 period = 4;
   SerializedServerStatusCode status_code = 5;
-  optional SerializedServerStatus status = 6;
+  optional SerializedServerStatusReport status = 6;
 }
 
 message HeartbeatResponse {

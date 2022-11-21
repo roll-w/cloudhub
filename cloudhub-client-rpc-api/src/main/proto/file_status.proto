@@ -15,6 +15,18 @@ message FileStatusResponse {
   repeated SerializedFileServer servers = 2;
 }
 
+message FileAllocateRequest {
+  string file_id = 1;
+  int64 file_size = 2;
+}
+
+message FileAllocateResponse {
+  SerializedFileServer master = 2;
+  repeated SerializedFileServer replicas = 3;
+}
+
 service FileStatusService {
-  rpc checkFileStatus(FileStatusRequest) returns (FileStatusResponse);
+  rpc checkFileStatus (FileStatusRequest) returns (FileStatusResponse);
+
+  rpc allocateFileServers (FileAllocateRequest) returns (FileAllocateResponse);
 }

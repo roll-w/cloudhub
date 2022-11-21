@@ -42,6 +42,18 @@ public class ClientConfigLoader extends AbstractConfigLoader {
         return get(ClientConfigKeys.META_ADDRESS, null);
     }
 
+    public String getDatabaseUrl() {
+        return get(ClientConfigKeys.DATABASE_URL, null);
+    }
+
+    public String getDatabaseUsername() {
+        return get(ClientConfigKeys.DATABASE_USERNAME, null);
+    }
+
+    public String getDatabasePassword() {
+        return get(ClientConfigKeys.DATABASE_PASSWORD, null);
+    }
+
     public static ClientConfigLoader tryOpenDefault() throws IOException {
         return new ClientConfigLoader(
                 openConfigInput(ClientApplication.class));

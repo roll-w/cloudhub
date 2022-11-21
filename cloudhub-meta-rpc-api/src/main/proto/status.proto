@@ -27,7 +27,7 @@ message SerializedDamagedContainerReport {
   repeated string ava_file_id = 4;
 }
 
-message SerializedServerStatus {
+message SerializedServerStatusReport {
   map<string, string> status = 2;
   repeated SerializedDamagedContainerReport report = 3;
 }

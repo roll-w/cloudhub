@@ -4,6 +4,7 @@ import org.huel.cloudhub.client.conf.ClientConfigLoader;
 import org.huel.cloudhub.rpc.GrpcProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import space.lingu.light.DatasourceConfig;
 
 import java.io.IOException;
 
@@ -23,6 +24,15 @@ public class ClientRuntimeConfiguration {
         return new GrpcProperties(
                 clientConfigLoader.getRpcPort(),
                 clientConfigLoader.getRpcMaxInboundSize());
+    }
+
+    @Bean
+    public DatasourceConfig datasourceConfig() {
+        return new DatasourceConfig(
+                clientConfigLoader.getDatabaseUrl(),
+                "com.mysql.cj.jdbc.Driver",
+                clientConfigLoader.getDatabaseUsername(),
+                clientConfigLoader.getDatabasePassword());
     }
 
     @Bean

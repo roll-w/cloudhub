@@ -37,8 +37,13 @@ public class ClientFileDownloadService {
     public void downloadFile(OutputStream outputStream, String fileId) throws FileDownloadingException {
         FileStatusResponse response =
                 clientFileStatusService.getFileStatus(fileId);
-        SerializedFileServer first = null;
-        DownloadBlockRequest request = buildFirstRequest(first, "", fileId);
+        if (response.getServersList().isEmpty()) {
+            throw new FileDownloadingException(FileDownloadingException.Type.SERVER_DOWN,
+                    "No active servers");
+        }
+
+        SerializedFileServer first = response.getServersList().get(0);
+        DownloadBlockRequest request = buildFirstRequest(first, response.getMasterId(), fileId);
         BlockDownloadServiceGrpc.BlockDownloadServiceStub stub =
                 requireStub(first);
 

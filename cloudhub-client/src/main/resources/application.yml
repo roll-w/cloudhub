@@ -20,6 +20,12 @@ spring:
     port: 465
     username: disable
     password: disable
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+      mail.smtp.starttls.required: true
+      mail.smtp.ssl.enable: true
+
   servlet:
     multipart:
       enabled: true
