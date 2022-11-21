@@ -16,7 +16,8 @@ public class FileObjectStorage {
     /**
      * 存储桶ID
      */
-    @DataColumn(name = "bucket_id")
+    @DataColumn(name = "bucket_id", configuration =
+    @LightConfiguration(key = LightConfiguration.KEY_VARCHAR_LENGTH, value = "200"))
     @PrimaryKey
     private String bucketId;
 
@@ -24,7 +25,8 @@ public class FileObjectStorage {
      * 对象名：可以是一个完整的路径，作为Object的Key。
      */
     @PrimaryKey
-    @DataColumn(name = "object_name")
+    @DataColumn(name = "object_name", configuration =
+    @LightConfiguration(key = LightConfiguration.KEY_VARCHAR_LENGTH, value = "600"))
     private String objectName;
 
     @DataColumn(name = "file_id")

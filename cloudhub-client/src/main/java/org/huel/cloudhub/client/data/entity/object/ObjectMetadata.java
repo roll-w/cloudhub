@@ -17,14 +17,15 @@ public class ObjectMetadata {
     @PrimaryKey
     private Long userId;
 
-    @DataColumn(name = "object_name")
+    @DataColumn(name = "object_name", configuration =
+    @LightConfiguration(key = LightConfiguration.KEY_VARCHAR_LENGTH, value = "600"))
     @PrimaryKey
     private String objectName;
     /**
      * Metadata of the object.
      */
     @DataColumn(name = "object_metadata", configuration =
-    @LightConfiguration(key = LightConfiguration.KEY_VARCHAR_LENGTH, value = "10000"))
+    @LightConfiguration(key = LightConfiguration.KEY_VARCHAR_LENGTH, value = "2000"))
     private Map<String, String> metadata;
 
     public ObjectMetadata() {

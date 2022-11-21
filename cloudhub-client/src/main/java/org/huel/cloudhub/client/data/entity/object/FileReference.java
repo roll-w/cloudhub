@@ -2,16 +2,20 @@ package org.huel.cloudhub.client.data.entity.object;
 
 import space.lingu.light.DataColumn;
 import space.lingu.light.DataTable;
+import space.lingu.light.LightConfiguration;
+import space.lingu.light.PrimaryKey;
 
 /**
  * 文件引用。当引用数为0时，及时删除释放资源。
  *
  * @author RollW
  */
-@DataTable(tableName = "file_reference_table")
+@DataTable(tableName = "file_reference_table", configuration =
+@LightConfiguration(key = LightConfiguration.KEY_VARCHAR_LENGTH, value = "120"))
 public class FileReference {
     // TODO: file reference
     @DataColumn(name = "file_id")
+    @PrimaryKey
     private String fileId;
 
     @DataColumn(name = "reference_num")
