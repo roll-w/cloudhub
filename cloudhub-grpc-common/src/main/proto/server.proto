@@ -11,7 +11,7 @@ message SerializedFileServer {
 }
 
 message SerializedCpuUsageInfo {
-  int64 cpu_cores = 1;
+  int32 cpu_cores = 1;
   double sysUsed = 2;
   double userUsed = 3;
   double wait = 4;
