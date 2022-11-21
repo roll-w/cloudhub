@@ -14,7 +14,7 @@ import space.lingu.light.PrimaryKey;
  */
 // TODO:
 @DataTable(tableName = "user_buckets_table", configuration =
-@LightConfiguration(key = LightConfiguration.KEY_VARCHAR_LENGTH, value = "120"))
+@LightConfiguration(key = LightConfiguration.KEY_VARCHAR_LENGTH, value = "200"))
 public class Bucket {
     /**
      * 桶名称由用户指定。

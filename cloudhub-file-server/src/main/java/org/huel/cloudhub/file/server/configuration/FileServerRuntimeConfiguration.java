@@ -4,6 +4,7 @@ import org.huel.cloudhub.conf.ConfigurationException;
 import org.huel.cloudhub.file.conf.FileConfigKeys;
 import org.huel.cloudhub.file.conf.FileConfigLoader;
 import org.huel.cloudhub.file.fs.container.ContainerProperties;
+import org.huel.cloudhub.file.server.service.ClientFileServerChannelPool;
 import org.huel.cloudhub.file.server.service.heartbeat.HeartbeatHostProperties;
 import org.huel.cloudhub.rpc.GrpcProperties;
 import org.springframework.context.annotation.Bean;
@@ -47,5 +48,10 @@ public class FileServerRuntimeConfiguration {
         }
 
         return new HeartbeatHostProperties(fileConfigLoader.getMetaServerAddress(), 200);
+    }
+
+    @Bean
+    public ClientFileServerChannelPool fileServerChannelPool() {
+        return new ClientFileServerChannelPool(grpcProperties());
     }
 }

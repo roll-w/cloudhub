@@ -1,13 +1,14 @@
-package org.huel.cloudhub.meta.server.service.file;
+package org.huel.cloudhub.file.io;
 
 import java.io.ByteArrayInputStream;
+import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 
 /**
  * @author RollW
  */
-public class BufferedStreamIterator {
+public class BufferedStreamIterator implements Closeable {
     private final InputStream inputStream;
     private final int bufferSize;
 
@@ -28,6 +29,11 @@ public class BufferedStreamIterator {
             return new Buffer(-1, null, false);
         }
         return new Buffer(length, bytesBuffer, length == bufferSize);
+    }
+
+    @Override
+    public void close() throws IOException {
+        inputStream.close();
     }
 
     public static class Buffer {

@@ -32,7 +32,7 @@ public class ClientConfigKeys {
     /**
      * Cloudhub client temporary file directory.
      */
-    public static final String FILE_TEMP_PATH = "cloudhub.file.staging_dir";
+    public static final String FILE_TEMP_PATH = "cloudhub.file.temp_dir";
 
     public static final String DATABASE_URL = "cloudhub.client.db.url";
 

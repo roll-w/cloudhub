@@ -22,6 +22,10 @@ public class NodeChannelPool extends GrpcChannelPool<NodeServer>
     @Override
     @NonNull
     protected ManagedChannel buildChannel(NodeServer server) {
+        if (server == null) {
+            return null;
+        }
+
         return ManagedChannelBuilder.forAddress(server.host(), server.port())
                 .usePlaintext()
                 .keepAliveTime(5, TimeUnit.MINUTES)

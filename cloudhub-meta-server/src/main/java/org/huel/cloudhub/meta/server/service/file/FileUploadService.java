@@ -6,7 +6,10 @@ import com.google.protobuf.ByteString;
 import io.grpc.ManagedChannel;
 import io.grpc.stub.StreamObserver;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.huel.cloudhub.file.io.BufferedStreamIterator;
+import org.huel.cloudhub.file.io.ReopenableInputStream;
 import org.huel.cloudhub.file.rpc.block.*;
+import org.huel.cloudhub.meta.fs.FileObjectUploadStatus;
 import org.huel.cloudhub.meta.server.configuration.FileProperties;
 import org.huel.cloudhub.meta.server.data.database.repository.FileStorageLocationRepository;
 import org.huel.cloudhub.meta.server.data.database.repository.MasterReplicaLocationRepository;
@@ -61,7 +64,7 @@ public class FileUploadService {
 
     private final Logger logger = LoggerFactory.getLogger(FileUploadService.class);
 
-    private boolean checkFileLocal(String hash) {
+    public boolean checkFileExists(String hash) {
         List<FileStorageLocation> locations =
                 storageLocationRepository.getLocationsByFileId(hash);
         if (locations.isEmpty()) {
@@ -91,46 +94,42 @@ public class FileUploadService {
         return false;
     }
 
-    public void uploadFile(InputStream inputStream) throws IOException {
-        // TODO: add hash and file length param.
+    public void uploadFile(InputStream inputStream, FileUploadStatusCallback callback) throws IOException {
         logger.debug("Start calculation on the given input stream.");
-        // 创建本地文件耗费IO时间。客户端上传时直接携带hash值和长度以便于计算
-        Hasher crc32Hasher = Hashing.crc32().newHasher();
         Hasher sha256Hasher = Hashing.sha256().newHasher();
-        ReopenableInputStream reopenableInputStream = convertInputStream(inputStream, crc32Hasher, sha256Hasher);
+        ReopenableInputStream reopenableInputStream = convertInputStream(inputStream, sha256Hasher);
         final String hash = reopenableInputStream.getHash(sha256Hasher).toString();
-        final String crc32 = reopenableInputStream.getHash(crc32Hasher).toString();
-        if (checkFileLocal(hash)) {
-            reopenableInputStream.close();
+        uploadFile(reopenableInputStream, hash, reopenableInputStream.getLength(), callback);
+    }
+
+    public void uploadFile(InputStream inputStream, String hash, long length, FileUploadStatusCallback callback) throws IOException {
+        if (checkFileExists(hash)) {
+            inputStream.close();
             logger.debug("file exists. file_id={}", hash);
             return;
         }
-
-        reopenableInputStream.reopen();
         logger.debug("Start upload fileId={}", hash);
-
         final long maxBlocksValue = grpcProperties.getMaxRequestSizeBytes() >> 1;
         final int blockSizeInBytes = fileProperties.getBlockSizeInBytes();
         // calc how many [UploadBlock]s a request can contain at most
         final int maxUploadBlockCount = (int) (maxBlocksValue / blockSizeInBytes);
         // calc how many requests will be sent.
-        final int requestCount = Maths.ceilDivideReturnsInt(reopenableInputStream.getLength(), maxBlocksValue);
-        final long validBytes = reopenableInputStream.getLength() % blockSizeInBytes;
+        final int requestCount = Maths.ceilDivideReturnsInt(length, maxBlocksValue);
+        final long validBytes = length % blockSizeInBytes;
         logger.debug("Calc: length={};maxBlocksValue={};blockSizeInBytes={};maxUploadBlockCount={};requestCount={};validBytes={}",
-                reopenableInputStream.getLength(), maxBlocksValue, blockSizeInBytes, maxUploadBlockCount, requestCount, validBytes);
+                length, maxBlocksValue, blockSizeInBytes, maxUploadBlockCount, requestCount, validBytes);
 
         NodeServer master = nodeAllocator.allocateNode(hash);
         BlockUploadServiceGrpc.BlockUploadServiceStub stub =
                 requiredBlockUploadServiceStub(master);
         List<SerializedFileServer> servers = allocateSerializedReplicaServers(hash, master.id());
-        UploadBlocksRequest firstRequest = buildFirstRequest(hash, crc32, validBytes,
-                reopenableInputStream.getLength(), requestCount,
+        UploadBlocksRequest firstRequest = buildFirstRequest(hash, "", validBytes,
+                length, requestCount,
                 servers);
 
         UploadBlocksResponseStreamObserver responseStreamObserver =
-                new UploadBlocksResponseStreamObserver(hash, reopenableInputStream,
-                        master,
-                        servers,
+                new UploadBlocksResponseStreamObserver(hash, inputStream,
+                        master, servers, callback,
                         maxUploadBlockCount, blockSizeInBytes, requestCount);
 
         StreamObserver<UploadBlocksRequest> requestStreamObserver = stub.uploadBlocks(
@@ -220,8 +219,8 @@ public class FileUploadService {
     private class UploadBlocksResponseStreamObserver implements StreamObserver<UploadBlocksResponse> {
         private final NodeServer master;
         private final List<String> replicaIds;
-
-        private final ReopenableInputStream stream;
+        private final FileUploadStatusCallback callback;
+        private final InputStream stream;
         private final String fileId;
         private final int maxUploadBlockCount, blockSizeInBytes,
                 requestCount;
@@ -235,9 +234,10 @@ public class FileUploadService {
         }
 
         UploadBlocksResponseStreamObserver(String fileId,
-                                           ReopenableInputStream stream,
+                                           InputStream stream,
                                            NodeServer master,
                                            List<SerializedFileServer> replicas,
+                                           FileUploadStatusCallback callback,
                                            int maxUploadBlockCount,
                                            int blockSizeInBytes,
                                            int requestCount) {
@@ -245,11 +245,15 @@ public class FileUploadService {
             this.fileId = fileId;
             this.master = master;
             this.replicaIds = replicas.stream().map(SerializedFileServer::getId).toList();
+            this.callback = callback;
             this.maxUploadBlockCount = maxUploadBlockCount;
             this.blockSizeInBytes = blockSizeInBytes;
             this.requestCount = requestCount;
             iterator = new BufferedStreamIterator(this.stream,
                     this.blockSizeInBytes);
+            if (callback != null) {
+                callback.onNextStatus(FileObjectUploadStatus.TEMPORARY);
+            }
         }
 
         @Override
@@ -265,6 +269,9 @@ public class FileUploadService {
                     UploadBlocksResponse.BlockResponseCase.FILE_EXISTS) {
                 if (value.getFileExists()) {
                     logger.debug("File exists.");
+                    if (callback != null) {
+                        callback.onNextStatus(FileObjectUploadStatus.AVAILABLE);
+                    }
                     requestStreamObserver.onCompleted();
                     return;
                 }
@@ -272,6 +279,9 @@ public class FileUploadService {
                     sendData();
                 } catch (IOException e) {
                     throw new RuntimeException(e);
+                }
+                if (callback != null) {
+                    callback.onNextStatus(FileObjectUploadStatus.STORING);
                 }
                 return;
             }
@@ -287,6 +297,9 @@ public class FileUploadService {
                 stream.close();
             } catch (IOException ignored) {
             }
+            if (callback != null) {
+                callback.onNextStatus(FileObjectUploadStatus.LOST);
+            }
             logger.error("Error receive upload blocks response", t);
         }
 
@@ -296,6 +309,9 @@ public class FileUploadService {
                 stream.close();
             } catch (IOException ignored) {
             }
+            if (callback != null) {
+                callback.onNextStatus(FileObjectUploadStatus.SYNCING);
+            }
             // success upload.
             updatesFileObjectLocation(fileId, master.id(), replicaIds);
             logger.debug("Upload file complete.");
@@ -303,6 +319,7 @@ public class FileUploadService {
 
         private void sendData() throws IOException {
             List<UploadBlockData> blocks = new ArrayList<>();
+            logger.debug("Send request.");
             for (int i = 0; i < maxUploadBlockCount; i++) {
                 BufferedStreamIterator.Buffer buffer =
                         iterator.nextBuffer();
@@ -350,6 +367,10 @@ public class FileUploadService {
     }
 
     private ReopenableInputStream convertInputStream(InputStream inputStream, Hasher... hashers) throws IOException {
+        if (inputStream instanceof ReopenableInputStream) {
+            return (ReopenableInputStream) inputStream;
+        }
+
         File tempDir = new File(fileProperties.getTempFilePath());
         if (!tempDir.exists()) {
             tempDir.mkdirs();

@@ -39,6 +39,11 @@
             <groupId>com.github.oshi</groupId>
             <artifactId>oshi-core</artifactId>
         </dependency>
+
+        <dependency>
+            <groupId>org.huel.cloudhub</groupId>
+            <artifactId>cloudhub-grpc-common</artifactId>
+        </dependency>
     </dependencies>
 
 </project>

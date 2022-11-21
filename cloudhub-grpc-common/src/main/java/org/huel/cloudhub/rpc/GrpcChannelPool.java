@@ -25,6 +25,10 @@ public abstract class GrpcChannelPool<K> {
     }
 
     public ManagedChannel getChannel(K key) {
+        if (key == null) {
+            return null;
+        }
+
         if (channelMap.containsKey(key)) {
             ManagedChannel channel = channelMap.get(key);
             if (channel.isShutdown()) {

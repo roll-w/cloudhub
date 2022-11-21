@@ -20,7 +20,7 @@ public class VersionedObject {
     private String bucketId;
 
     @DataColumn(name = "object_name", configuration =
-    @LightConfiguration(key = LightConfiguration.KEY_VARCHAR_LENGTH, value = "600"))
+    @LightConfiguration(key = LightConfiguration.KEY_VARCHAR_LENGTH, value = "256"))
     @PrimaryKey
     private String objectName;
 

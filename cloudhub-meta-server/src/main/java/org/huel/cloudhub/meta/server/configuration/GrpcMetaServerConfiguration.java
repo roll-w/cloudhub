@@ -2,6 +2,7 @@ package org.huel.cloudhub.meta.server.configuration;
 
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
+import org.huel.cloudhub.meta.server.service.file.ClientFileUploadDispatchService;
 import org.huel.cloudhub.meta.server.service.file.FileStatusService;
 import org.huel.cloudhub.meta.server.service.node.HeartbeatService;
 import org.huel.cloudhub.meta.server.service.node.NodeChannelPool;
@@ -19,13 +20,16 @@ public class GrpcMetaServerConfiguration {
     private final GrpcProperties grpcProperties;
     private final HeartbeatService heartbeatService;
     private final FileStatusService fileStatusService;
+    private final ClientFileUploadDispatchService clientFileUploadDispatchService;
 
     public GrpcMetaServerConfiguration(GrpcProperties grpcProperties,
                                        HeartbeatService heartbeatService,
-                                       FileStatusService fileStatusService) {
+                                       FileStatusService fileStatusService,
+                                       ClientFileUploadDispatchService clientFileUploadDispatchService) {
         this.grpcProperties = grpcProperties;
         this.heartbeatService = heartbeatService;
         this.fileStatusService = fileStatusService;
+        this.clientFileUploadDispatchService = clientFileUploadDispatchService;
     }
 
     @Bean
@@ -36,6 +40,7 @@ public class GrpcMetaServerConfiguration {
                 .maxConnectionAge(2, TimeUnit.MINUTES)
                 .addService(heartbeatService)
                 .addService(fileStatusService)
+                .addService(clientFileUploadDispatchService)
                 .build();
     }
 

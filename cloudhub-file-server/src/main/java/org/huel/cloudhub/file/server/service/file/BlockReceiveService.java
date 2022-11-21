@@ -314,6 +314,9 @@ public class BlockReceiveService extends BlockUploadServiceGrpc.BlockUploadServi
     }
 
     private void sendReplicaRequest(String fileId, List<SerializedFileServer> servers) {
+        if (servers.isEmpty()) {
+            return;
+        }
         List<ReplicaSynchroPart> parts = buildSynchroParts(fileId);
         servers.forEach(server -> callRequestReplicaSynchro(parts, server));
     }

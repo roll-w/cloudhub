@@ -26,10 +26,13 @@ message ClientFileUploadRequest {
 }
 
 message ClientFileUploadResponse {
-
+  oneof response {
+    bool exist = 1;
+    bool success = 2;
+  }
 }
 
 service ClientFileUploadService {
-  rpc uploadFile(stream ClientFileUploadRequest) returns (ClientFileUploadResponse);
+  rpc uploadFile(stream ClientFileUploadRequest) returns (stream ClientFileUploadResponse);
 }
 

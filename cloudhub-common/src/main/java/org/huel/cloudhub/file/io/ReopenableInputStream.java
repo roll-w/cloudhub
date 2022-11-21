@@ -1,8 +1,7 @@
-package org.huel.cloudhub.meta.server.service.file;
+package org.huel.cloudhub.file.io;
 
 import com.google.common.hash.HashCode;
 import com.google.common.hash.Hasher;
-import org.huel.cloudhub.file.io.HasherOutputStream;
 
 import java.io.*;
 import java.util.HashMap;
@@ -11,24 +10,45 @@ import java.util.Map;
 /**
  * @author RollW
  */
+@SuppressWarnings({"unused", "UnstableApiUsage"})
 public class ReopenableInputStream extends FilterInputStream {
     private final File file;
     private final Map<String, HashCode> hashCodeMap = new HashMap<>();
     private final long length;
+    private final boolean canUserFile;
 
     public ReopenableInputStream(InputStream in, File tempFile, Hasher... hashers) throws IOException {
+        this(in, tempFile, false, hashers);
+    }
+
+    public ReopenableInputStream(InputStream in, File tempFile, boolean canUserFile, Hasher... hashers) throws IOException {
         super(in);
+        this.canUserFile = canUserFile;
         this.file = tempFile;
         this.length = initial(hashers);
     }
 
     private long initial(Hasher... hashers) throws IOException {
+        if (in instanceof FileInputStream && canUserFile) {
+            HasherInputStream inputStream = new HasherInputStream(in);
+            for (Hasher hasher : hashers) {
+                inputStream.addHasher(hasher.getClass().getCanonicalName(), hasher);
+            }
+            long bytes = readFull(in);
+            in.close();
+            for (Hasher hasher : hashers) {
+                String key = hasher.getClass().getCanonicalName();
+                hashCodeMap.put(key, inputStream.getHash(key));
+            }
+            in = new FileInputStream(file);
+            return bytes;
+        }
         file.createNewFile();
         HasherOutputStream outputStream = new HasherOutputStream(new FileOutputStream(file, false));
         for (Hasher hasher : hashers) {
             outputStream.addHasher(hasher.getClass().getCanonicalName(), hasher);
         }
-        long bytes = copy(in, outputStream);
+        long bytes = in.transferTo(outputStream);
         in.close();
         for (Hasher hasher : hashers) {
             String key = hasher.getClass().getCanonicalName();
@@ -81,6 +101,31 @@ public class ReopenableInputStream extends FilterInputStream {
         file.delete();
     }
 
+    @Override
+    public byte[] readAllBytes() throws IOException {
+        return in.readAllBytes();
+    }
+
+    @Override
+    public byte[] readNBytes(int len) throws IOException {
+        return in.readNBytes(len);
+    }
+
+    @Override
+    public int readNBytes(byte[] b, int off, int len) throws IOException {
+        return in.readNBytes(b, off, len);
+    }
+
+    @Override
+    public void skipNBytes(long n) throws IOException {
+        in.skipNBytes(n);
+    }
+
+    @Override
+    public long transferTo(OutputStream out) throws IOException {
+        return in.transferTo(out);
+    }
+
     private static final int DEFAULT_BUFFER_SIZE = 1024 * 4;
     private static final int EOF = -1;
 
@@ -92,6 +137,18 @@ public class ReopenableInputStream extends FilterInputStream {
         int n;
         while (EOF != (n = input.read(buffer))) {
             output.write(buffer, 0, n);
+            count += n;
+        }
+        return count;
+    }
+
+    private static long readFull(final InputStream input)
+            throws IOException {
+
+        byte[] buffer = new byte[DEFAULT_BUFFER_SIZE];
+        long count = 0;
+        int n;
+        while (EOF != (n = input.read(buffer))) {
             count += n;
         }
         return count;

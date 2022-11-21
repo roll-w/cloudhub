@@ -48,7 +48,6 @@ public class ClientFileDownloadService {
                 requireStub(first);
 
         logger.debug("Start downloading file, id={}.", fileId);
-
         stub.downloadBlocks(request, new DownloadBlockStreamObserver(outputStream));
     }
 

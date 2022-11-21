@@ -48,6 +48,6 @@ public class SendCommand extends AbstractShellComponent {
         getTerminal().writer().printf("send file in absolute path '%s'.\n",
                 file.getAbsolutePath());
         getTerminal().writer().flush();
-        fileUploadService.uploadFile(new FileInputStream(file));
+        fileUploadService.uploadFile(new FileInputStream(file), null);
     }
 }

@@ -74,8 +74,4 @@ public class GrpcFileServerConfiguration {
                 .build();
     }
 
-    @Bean
-    public ClientFileServerChannelPool fileServerChannelPool() {
-        return new ClientFileServerChannelPool(grpcProperties);
-    }
 }

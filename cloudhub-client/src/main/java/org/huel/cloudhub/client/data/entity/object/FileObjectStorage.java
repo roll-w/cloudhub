@@ -26,7 +26,7 @@ public class FileObjectStorage {
      */
     @PrimaryKey
     @DataColumn(name = "object_name", configuration =
-    @LightConfiguration(key = LightConfiguration.KEY_VARCHAR_LENGTH, value = "600"))
+    @LightConfiguration(key = LightConfiguration.KEY_VARCHAR_LENGTH, value = "256"))
     private String objectName;
 
     @DataColumn(name = "file_id")

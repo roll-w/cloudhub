@@ -8,9 +8,7 @@ logging:
   charset:
     console: UTF-8
   level:
-    space.lingu.imagehosting: debug
-    web: debug
-    org.springframework.security: debug
+    org.huel.cloudhub: debug
 
 spring:
   application:
