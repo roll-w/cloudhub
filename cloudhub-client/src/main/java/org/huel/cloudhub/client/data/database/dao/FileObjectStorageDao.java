@@ -1,5 +1,6 @@
 package org.huel.cloudhub.client.data.database.dao;
 
+import org.huel.cloudhub.client.data.dto.object.ObjectInfo;
 import org.huel.cloudhub.client.data.entity.object.FileObjectStorage;
 import space.lingu.light.*;
 
@@ -29,12 +30,22 @@ public abstract class FileObjectStorageDao {
     public abstract void delete(List<FileObjectStorage> storages);
 
     @Transaction
-    @Delete("DELETE file_object_storage_table WHERE file_id = {id}")
-    public abstract void deleteByImageId(String id);
+    @Delete("DELETE FROM file_object_storage_table WHERE object_name = {objectName} AND bucket_name = {bucketName}")
+    public abstract void deleteByObjectName(String bucketName, String objectName);
 
-    @Query("SELECT * FROM file_object_storage_table WHERE object_name = {objectName} AND bucket_id = {bucketId}")
+    @Delete("DELETE FROM file_object_storage_table WHERE bucket_name = {bucketName}")
+    public abstract void deleteByBucketName(String bucketName);
+
+    @Delete("DELETE FROM file_object_storage_table WHERE bucket_name = {bucketName} AND object_name in {objectNames}")
+    public abstract void deleteByBucketNameWith(String bucketName, List<String> objectNames);
+
+    @Query("SELECT * FROM file_object_storage_table WHERE object_name = {objectName} AND bucket_name = {bucketId}")
     public abstract FileObjectStorage getObject(String bucketId, String objectName);
 
-    @Query("SELECT * FROM file_object_storage_table WHERE bucket_id = {bucketId}")
-    public abstract List<FileObjectStorage> getObjectsByBucketId(String bucketId);
+    @Query("SELECT * FROM file_object_storage_table WHERE bucket_name = {bucketId}")
+    public abstract List<FileObjectStorage> getObjectsByBucketName(String bucketId);
+
+    @Query("SELECT bucket_name, object_name FROM file_object_storage_table WHERE bucket_name = {bucketId}")
+    public abstract List<ObjectInfo> getObjectInfosByBucketName(String bucketId);
+
 }

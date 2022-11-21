@@ -36,4 +36,6 @@ public abstract class CloudhubDatabase extends LightDatabase {
     public abstract SettingDao getSettingDao();
 
     public abstract BucketDao getBucketDao();
+
+    public abstract ObjectMetadataDao getObjectMetadataDao();
 }

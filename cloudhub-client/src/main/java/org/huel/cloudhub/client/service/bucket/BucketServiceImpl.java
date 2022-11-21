@@ -4,6 +4,7 @@ import org.apache.commons.lang3.Validate;
 import org.huel.cloudhub.client.data.database.repository.BucketRepository;
 import org.huel.cloudhub.client.data.database.repository.UserRepository;
 import org.huel.cloudhub.client.data.dto.bucket.BucketInfo;
+import org.huel.cloudhub.client.data.dto.user.UserInfo;
 import org.huel.cloudhub.client.data.entity.bucket.Bucket;
 import org.huel.cloudhub.client.data.entity.bucket.BucketVisibility;
 import org.huel.cloudhub.common.ErrorCode;
@@ -103,4 +104,28 @@ public class BucketServiceImpl implements BucketService {
         bucketRepository.save(bucket);
         return new MessagePackage<>(ErrorCode.SUCCESS, bucket.toInfo());
     }
+
+    @Override
+    public boolean allowWrite(UserInfo userInfo, String bucketName) {
+        Bucket bucket = getBucketByName(bucketName);
+
+        return !bucket.getBucketVisibility().isNeedWriteAuth() ||
+                authUserId(userInfo.id(), bucket.getUserId());
+    }
+
+    @Override
+    public boolean allowRead(UserInfo userInfo, String bucketName) {
+        Bucket bucket = getBucketByName(bucketName);
+
+        return !bucket.getBucketVisibility().isNeedWriteAuth() ||
+                authUserId(userInfo.id(), bucket.getUserId());
+    }
+
+    private boolean authUserId(Long userId, long expect) {
+        if (userId == null) {
+            return false;
+        }
+        return userId == expect;
+    }
+
 }

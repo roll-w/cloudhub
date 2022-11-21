@@ -16,7 +16,7 @@ public class FileObjectStorage {
     /**
      * 存储桶ID
      */
-    @DataColumn(name = "bucket_id", configuration =
+    @DataColumn(name = "bucket_name", configuration =
     @LightConfiguration(key = LightConfiguration.KEY_VARCHAR_LENGTH, value = "200"))
     @PrimaryKey
     private String bucketId;
