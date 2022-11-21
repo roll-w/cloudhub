@@ -16,9 +16,6 @@ public record UserInfo(
         @DataColumn(name = "user_name")
         String username,
 
-        @DataColumn(name = "user_password")
-        String password,
-
         @DataColumn(name = "user_email")
         String email,
 
