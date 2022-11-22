@@ -47,13 +47,13 @@ public class ServerHostInfo {
     @JsonProperty("env")
     private final RuntimeEnvironment runtimeEnvironment = RUNTIME_ENV;
 
-    private ServerHostInfo(HWDiskStore hwDiskStore,
-                           NetworkIF networkIF,
-                           CpuUsageInfo cpuUsageInfo,
-                           JvmUsageInfo jvmUsageInfo,
-                           MemoryUsageInfo memoryUsageInfo,
-                           DiskUsageInfo diskUsageInfo,
-                           NetworkUsageInfo networkUsageInfo) {
+    ServerHostInfo(HWDiskStore hwDiskStore,
+                   NetworkIF networkIF,
+                   CpuUsageInfo cpuUsageInfo,
+                   JvmUsageInfo jvmUsageInfo,
+                   MemoryUsageInfo memoryUsageInfo,
+                   DiskUsageInfo diskUsageInfo,
+                   NetworkUsageInfo networkUsageInfo) {
         this.hwDiskStore = hwDiskStore;
         this.networkIF = networkIF;
 
@@ -89,6 +89,10 @@ public class ServerHostInfo {
     }
 
     public ServerHostInfo reload() {
+        if (networkIF == null || hwDiskStore == null) {
+            return this;
+        }
+
         SystemInfo systemInfo = new SystemInfo();
         jvmUsageInfo.reload();
         memoryUsageInfo.reload(systemInfo.getHardware().getMemory());

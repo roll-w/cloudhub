@@ -11,12 +11,15 @@ import org.huel.cloudhub.common.MessagePackage;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.regex.Pattern;
 
 /**
  * @author Cheng
  */
 @Service
 public class BucketServiceImpl implements BucketService {
+    private static final Pattern sBucketNamePattern =
+            Pattern.compile("^[A-Za-z0-9-]*$");
 
     private final BucketRepository bucketRepository;
 
@@ -29,7 +32,10 @@ public class BucketServiceImpl implements BucketService {
                                                    BucketVisibility visibility) {
         Validate.notEmpty(bucketName, "bucketName cannot be null or empty");
         Validate.notNull(visibility, "bucketVisibility cannot be null");
-
+        if (!sBucketNamePattern.matcher(bucketName).matches()) {
+            throw new BucketRuntimeException(
+                    ErrorCode.ERROR_ILLEGAL_PARAM, "Illegal bucket name.");
+        }
         if (bucketRepository.isExistByName(bucketName)) {
             return new MessagePackage<>(ErrorCode.ERROR_DATA_EXISTED,
                     "Bucket exited.", null);
@@ -66,18 +72,26 @@ public class BucketServiceImpl implements BucketService {
             return new MessagePackage<>(ErrorCode.ERROR_PERMISSION_NOT_ALLOWED,
                     "You are not permitted.", null);
         }
-        bucketRepository.delete(bucket);
+        if (!bucketRepository.isBucketEmpty(bucketName)) {
+            return new MessagePackage<>(ErrorCode.ERROR_DATA_NOT_EMPTY,
+                    "Bucket not empty, cannot delete", null);
+        }
+        bucketRepository.deleteByName(bucketName);
         return new MessagePackage<>(ErrorCode.SUCCESS, null);
     }
 
     @Override
     public MessagePackage<Void> deleteBucket(String bucketName) {
-        if (bucketRepository.isExistByName(bucketName)) {
-            bucketRepository.deleteByName(bucketName);
-            return new MessagePackage<>(ErrorCode.SUCCESS, null);
+        if (!bucketRepository.isExistByName(bucketName)) {
+            return new MessagePackage<>(ErrorCode.ERROR_DATA_NOT_EXIST,
+                    "Bucket not exist.", null);
         }
-        return new MessagePackage<>(ErrorCode.ERROR_DATA_NOT_EXIST,
-                "Bucket not exist.", null);
+        if (!bucketRepository.isBucketEmpty(bucketName)) {
+            return new MessagePackage<>(ErrorCode.ERROR_DATA_NOT_EMPTY,
+                    "Bucket not empty, cannot delete", null);
+        }
+        bucketRepository.deleteByName(bucketName);
+        return new MessagePackage<>(ErrorCode.SUCCESS, null);
     }
 
     @Override

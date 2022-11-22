@@ -147,6 +147,10 @@ public enum ErrorCode implements ErrorEnum {
      */
     ERROR_PARAM_MISSING("B0003"),
     /**
+     * 非法参数
+     */
+    ERROR_ILLEGAL_PARAM("B0004"),
+    /**
      * 数据库错误
      */
     ERROR_DATABASE("C0300"),
@@ -178,6 +182,10 @@ public enum ErrorCode implements ErrorEnum {
      * 数据不存在
      */
     ERROR_DATA_NOT_EXIST("C0317", 404),
+    /**
+     * 数据非空
+     */
+    ERROR_DATA_NOT_EMPTY("D0005", 403),
 
     // 对应Exception
     ERROR_ARRAY_OUT_BOUND("D0001", 500),

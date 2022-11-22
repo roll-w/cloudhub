@@ -4,7 +4,6 @@ import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
-import org.huel.cloudhub.file.server.service.ClientFileServerChannelPool;
 import org.huel.cloudhub.file.server.service.file.BlockDeleteService;
 import org.huel.cloudhub.file.server.service.file.BlockDownloadService;
 import org.huel.cloudhub.file.server.service.file.BlockReceiveService;
@@ -12,6 +11,7 @@ import org.huel.cloudhub.file.server.service.heartbeat.HeartbeatHostProperties;
 import org.huel.cloudhub.file.server.service.replica.CheckReceiveService;
 import org.huel.cloudhub.file.server.service.replica.ReplicaReceiveService;
 import org.huel.cloudhub.file.server.service.replica.SynchroService;
+import org.huel.cloudhub.file.server.service.server.FileServerStatusService;
 import org.huel.cloudhub.rpc.GrpcProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -32,6 +32,7 @@ public class GrpcFileServerConfiguration {
     private final ReplicaReceiveService replicaReceiveService;
     private final SynchroService synchroService;
     private final CheckReceiveService checkReceiveService;
+    private final FileServerStatusService fileServerStatusService;
 
     public GrpcFileServerConfiguration(HeartbeatHostProperties heartbeatHostProperties,
                                        BlockReceiveService blockReceiveService,
@@ -40,7 +41,8 @@ public class GrpcFileServerConfiguration {
                                        ReplicaReceiveService replicaReceiveService,
                                        SynchroService synchroService,
                                        CheckReceiveService checkReceiveService,
-                                       GrpcProperties grpcProperties) {
+                                       GrpcProperties grpcProperties,
+                                       FileServerStatusService fileServerStatusService) {
         this.heartbeatHostProperties = heartbeatHostProperties;
         this.blockReceiveService = blockReceiveService;
         this.blockDownloadService = blockDownloadService;
@@ -49,6 +51,7 @@ public class GrpcFileServerConfiguration {
         this.synchroService = synchroService;
         this.checkReceiveService = checkReceiveService;
         this.grpcProperties = grpcProperties;
+        this.fileServerStatusService = fileServerStatusService;
     }
 
     @Bean
@@ -71,6 +74,7 @@ public class GrpcFileServerConfiguration {
                 .addService(blockDeleteService)
                 .addService(checkReceiveService)
                 .addService(synchroService)
+                .addService(fileServerStatusService)
                 .build();
     }
 

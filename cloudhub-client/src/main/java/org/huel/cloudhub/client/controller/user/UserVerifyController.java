@@ -1,31 +1,28 @@
 package org.huel.cloudhub.client.controller.user;
 
-import org.huel.cloudhub.common.HttpResponseEntity;
-import org.huel.cloudhub.common.MessagePackage;
 import org.huel.cloudhub.client.data.dto.user.UserInfo;
 import org.huel.cloudhub.client.service.user.UserService;
+import org.huel.cloudhub.common.HttpResponseEntity;
+import org.huel.cloudhub.common.MessagePackage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
  * @author RollW
  */
-@Controller
+@RestController
 @UserApi
 public class UserVerifyController {
     private final UserService userService;
-    private final ApplicationEventPublisher eventPublisher;
 
     private final Logger logger =
             LoggerFactory.getLogger(UserVerifyController.class);
 
-    public UserVerifyController(UserService userService, ApplicationEventPublisher eventPublisher) {
+    public UserVerifyController(UserService userService) {
         this.userService = userService;
-        this.eventPublisher = eventPublisher;
     }
 
     /**

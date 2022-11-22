@@ -5,6 +5,7 @@ import org.huel.cloudhub.meta.server.service.node.NodeServer;
 import org.huel.cloudhub.server.rpc.server.SerializedFileServer;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -13,7 +14,7 @@ import java.util.List;
 public record RequestServer(NodeServer server,
                             FileStorageLocation.ServerType serverType) {
 
-    public static List<SerializedFileServer> toSerialized(List<NodeServer> nodeServers) {
+    public static List<SerializedFileServer> toSerialized(Collection<NodeServer> nodeServers) {
         List<SerializedFileServer> servers = new ArrayList<>();
         nodeServers.forEach(nodeServer ->
                 servers.add(toSerialized(nodeServer)));

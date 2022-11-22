@@ -125,6 +125,13 @@ public class ObjectServiceImpl implements ObjectService, ObjectRemoveHandler {
         return repository.getObjectInfoDtosByBucketName(bucketName);
     }
 
+    @Override
+    public MessagePackage<ObjectInfoDto> renameObject(ObjectInfo oldInfo, String newName) {
+
+
+        return null;
+    }
+
 
     private void validateObjectInfo(ObjectInfo objectInfo) {
         Validate.notNull(objectInfo, "ObjectInfo cannot be null");

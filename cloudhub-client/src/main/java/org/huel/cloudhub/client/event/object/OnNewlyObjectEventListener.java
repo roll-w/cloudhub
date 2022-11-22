@@ -1,0 +1,26 @@
+package org.huel.cloudhub.client.event.object;
+
+import org.huel.cloudhub.client.service.object.ObjectChangeActionHandler;
+import org.springframework.context.ApplicationListener;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Component;
+
+import java.util.List;
+
+/**
+ * @author RollW
+ */
+@Component
+public class OnNewlyObjectEventListener implements ApplicationListener<OnNewlyObjectEvent> {
+    private final List<ObjectChangeActionHandler> handlers;
+
+    public OnNewlyObjectEventListener(List<ObjectChangeActionHandler> handlers) {
+        this.handlers = handlers;
+    }
+
+    @Override
+    @Async
+    public void onApplicationEvent(OnNewlyObjectEvent event) {
+
+    }
+}

@@ -1,15 +1,18 @@
 package org.huel.cloudhub.rpc;
 
+import io.grpc.ConnectivityState;
 import io.grpc.ManagedChannel;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
  * @author RollW
  */
-public abstract class GrpcChannelPool<K> {
+public abstract class GrpcChannelPool<K> implements Closeable {
     private final Map<K, ManagedChannel> channelMap = new HashMap<>();
 
     public GrpcChannelPool() {
@@ -31,6 +34,11 @@ public abstract class GrpcChannelPool<K> {
 
         if (channelMap.containsKey(key)) {
             ManagedChannel channel = channelMap.get(key);
+            ConnectivityState state = channel.getState(true);
+            if (state == ConnectivityState.TRANSIENT_FAILURE) {
+                channel.shutdown();
+                return establish(key);
+            }
             if (channel.isShutdown()) {
                 return establish(key);
             }
@@ -44,5 +52,12 @@ public abstract class GrpcChannelPool<K> {
             return;
         }
         channelMap.get(key).shutdown();
+    }
+
+    @Override
+    public void close() throws IOException {
+        for (ManagedChannel value : channelMap.values()) {
+            value.shutdown();
+        }
     }
 }

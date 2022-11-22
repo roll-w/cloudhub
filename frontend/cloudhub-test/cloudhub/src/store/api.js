@@ -1,5 +1,3 @@
-const demo = "WangYiKai";
 
-export default {
-    demo,
-}
+export const url = "http://localhost:7010/";
+

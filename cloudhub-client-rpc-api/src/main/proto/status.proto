@@ -1,5 +1,20 @@
 syntax = "proto3";
 
+import "server.proto";
+
 option java_multiple_files = true;
 option java_package = "org.huel.cloudhub.client.rpc.server";
 option java_outer_classname = "StatusProtos";
+
+message FileServerStatusRequest {
+}
+
+message FileServerStatusResponse {
+  repeated SerializedFileServer active_servers = 1;
+  repeated SerializedFileServer dead_servers = 2;
+}
+
+service FileServerStatusService {
+  rpc requestServers (FileServerStatusRequest) returns (FileServerStatusResponse);
+}
+

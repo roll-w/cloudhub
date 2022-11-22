@@ -48,4 +48,7 @@ public abstract class FileObjectStorageDao {
     @Query("SELECT * FROM file_object_storage_table WHERE bucket_name = {bucketId}")
     public abstract List<ObjectInfoDto> getObjectInfoDtosByBucketName(String bucketId);
 
+    @Query("SELECT 1 FROM file_object_storage_table WHERE bucket_name = {bucketName}")
+    public abstract Integer getBucketHasObjects(String bucketName);
+
 }

@@ -1,6 +1,7 @@
 package org.huel.cloudhub.client.service.object;
 
 import org.huel.cloudhub.client.data.database.repository.ObjectMetadataRepository;
+import org.huel.cloudhub.client.data.dto.object.ObjectInfo;
 import org.huel.cloudhub.client.data.dto.object.ObjectInfoDto;
 import org.huel.cloudhub.client.data.entity.object.ObjectMetadata;
 import org.huel.cloudhub.common.ErrorCode;
@@ -15,7 +16,8 @@ import java.util.Map;
  * @author RollW
  */
 @Service
-public class ObjectMetadataServiceImpl implements ObjectMetadataService, ObjectRemoveHandler {
+public class ObjectMetadataServiceImpl implements ObjectMetadataService,
+        ObjectRemoveHandler, ObjectChangeActionHandler {
     private final ObjectMetadataRepository objectMetadataRepository;
 
     public ObjectMetadataServiceImpl(ObjectMetadataRepository objectMetadataRepository) {
@@ -60,5 +62,15 @@ public class ObjectMetadataServiceImpl implements ObjectMetadataService, ObjectR
     @Override
     public void handleBucketDelete(String bucketName) {
         objectMetadataRepository.deleteByBucketName(bucketName);
+    }
+
+    @Override
+    public void onAddNewObject(ObjectInfoDto objectInfoDto) {
+
+    }
+
+    @Override
+    public void onObjectRename(ObjectInfo oldInfo, String newName) {
+        // TODO: object rename
     }
 }

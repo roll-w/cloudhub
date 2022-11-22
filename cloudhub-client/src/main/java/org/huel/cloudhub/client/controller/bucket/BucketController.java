@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * 提供给用户的Bucket接口
@@ -47,9 +48,9 @@ public class BucketController {
     }
 
 
-    @PostMapping("/delete")
-    //@DeleteMapping("/delete")
-    public HttpResponseEntity<Void> delete(HttpServletRequest request, @RequestParam Map<String, String> map) {
+    @DeleteMapping("/delete")
+    public HttpResponseEntity<Void> delete(HttpServletRequest request,
+                                           @RequestBody Map<String, String> map) {
         String bucketName = map.get("bucketName");
         UserInfo userInfo = userGetter.getCurrentUser(request);
         if (userInfo == null) {
@@ -83,6 +84,27 @@ public class BucketController {
                 bucketService.getUserBuckets(userInfo.id()));
     }
 
-
-
+    @PostMapping("/setting/visibility")
+    public HttpResponseEntity<BucketInfo> changeVisibility(
+            HttpServletRequest request,
+            @RequestBody BucketCreateRequest bucketCreateRequest) {
+        UserInfo userInfo = userGetter.getCurrentUser(request);
+        if (userInfo == null) {
+            return HttpResponseEntity.failure("User not login.",
+                    ErrorCode.ERROR_USER_NOT_LOGIN);
+        }
+        Bucket bucket = bucketService.getBucketByName(bucketCreateRequest.bucketName());
+        if (bucket == null) {
+            return HttpResponseEntity.failure("Bucket not exist",
+                    ErrorCode.ERROR_DATA_NOT_EXIST);
+        }
+        if (!Objects.equals(bucket.getUserId(), userInfo.id())) {
+            return HttpResponseEntity.failure("Not permitted",
+                    ErrorCode.ERROR_PERMISSION_NOT_ALLOWED);
+        }
+        var res = bucketService.setVisibility(
+                bucketCreateRequest.bucketName(),
+                bucketCreateRequest.visibility());
+        return HttpResponseEntity.create(res.toResponseBody());
+    }
 }

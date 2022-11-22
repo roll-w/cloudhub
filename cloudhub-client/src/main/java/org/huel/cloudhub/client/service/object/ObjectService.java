@@ -22,4 +22,6 @@ public interface ObjectService {
     MessagePackage<Void> clearBucketObjects(String bucketName);
 
     List<ObjectInfoDto> getObjectsInBucket(String bucketName);
+
+    MessagePackage<ObjectInfoDto> renameObject(ObjectInfo oldInfo, String newName);
 }

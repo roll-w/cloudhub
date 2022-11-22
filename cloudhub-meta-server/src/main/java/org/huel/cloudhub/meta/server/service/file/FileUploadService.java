@@ -125,6 +125,15 @@ public class FileUploadService {
         NodeServer master = nodeAllocator.allocateNode(hash);
         BlockUploadServiceGrpc.BlockUploadServiceStub stub =
                 requiredBlockUploadServiceStub(master);
+        if (stub == null) {
+            // TODO: retry upload
+            logger.debug("Server goes down, please re-upload.");
+            if (callback != null) {
+                callback.onNextStatus(FileObjectUploadStatus.LOST);
+            }
+            return;
+        }
+
         List<SerializedFileServer> servers = allocateSerializedReplicaServers(hash, master.id());
         UploadBlocksRequest firstRequest = buildFirstRequest(hash, "", validBytes,
                 length, requestCount,
@@ -144,6 +153,10 @@ public class FileUploadService {
 
     private BlockUploadServiceGrpc.BlockUploadServiceStub requiredBlockUploadServiceStub(NodeServer nodeServer) {
         ManagedChannel channel = nodeChannelPool.getChannel(nodeServer);
+        if (channel == null) {
+            return null;
+        }
+
         BlockUploadServiceGrpc.BlockUploadServiceStub stub =
                 blockUploadServiceStubPool.getStub(nodeServer.id());
         if (stub != null) {

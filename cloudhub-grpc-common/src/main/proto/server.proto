@@ -64,3 +64,4 @@ message SerializedServerStatus {
   SerializedNetworkUsageInfo net_info = 5;
   optional SerializedRuntimeEnvironment env_info = 6;
 }
+

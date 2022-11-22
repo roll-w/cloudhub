@@ -2,6 +2,7 @@ package org.huel.cloudhub.client.data.database.repository;
 
 import org.huel.cloudhub.client.data.database.CloudhubDatabase;
 import org.huel.cloudhub.client.data.database.dao.BucketDao;
+import org.huel.cloudhub.client.data.database.dao.FileObjectStorageDao;
 import org.huel.cloudhub.client.data.dto.bucket.BucketInfo;
 import org.huel.cloudhub.client.data.entity.bucket.Bucket;
 import org.springframework.scheduling.annotation.Async;
@@ -14,11 +15,12 @@ import java.util.List;
  */
 @Repository
 public class BucketRepository {
-
     private final BucketDao bucketDao;
+    private final FileObjectStorageDao fileObjectStorageDao;
 
     public BucketRepository(CloudhubDatabase database) {
         this.bucketDao = database.getBucketDao();
+        this.fileObjectStorageDao = database.getFileObjectStorageDao();
     }
 
     public boolean isExistByName(String name) {
@@ -76,5 +78,9 @@ public class BucketRepository {
 
     public String getBucketNameByName(String name) {
         return bucketDao.getBucketNameByName(name);
+    }
+
+    public boolean isBucketEmpty(String bucketName) {
+        return fileObjectStorageDao.getBucketHasObjects(bucketName) == null;
     }
 }
