@@ -8,7 +8,7 @@ import java.util.Map;
  * @author RollW
  */
 public interface ObjectMetadataService {
-    MessagePackage<Void> setObjectMetadata(String bucketName, String objectName,
+    MessagePackage<Void> addObjectMetadata(String bucketName, String objectName,
                                            Map<String, String> metadata);
 
     Map<String, String> getObjectMetadata(String bucketName, String objectName);

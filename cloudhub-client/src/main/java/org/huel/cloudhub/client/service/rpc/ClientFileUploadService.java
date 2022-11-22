@@ -26,6 +26,7 @@ import java.util.List;
  * @author RollW
  */
 @Service
+@SuppressWarnings({"UnstableApiUsage"})
 public class ClientFileUploadService {
     private final GrpcProperties grpcProperties;
     private final ClientConfigLoader clientConfigLoader;
@@ -40,17 +41,17 @@ public class ClientFileUploadService {
         this.clientConfigLoader = clientConfigLoader;
     }
 
-    public void uploadFile(InputStream inputStream, long length) throws IOException {
+    public void uploadFile(InputStream inputStream, ClientFileUploadCallback callback) throws IOException {
         logger.debug("Start calculation on the given input stream.");
         // TODO:
         Hasher sha256 = Hashing.sha256().newHasher();
-        ReopenableInputStream reopenableInputStream =
-                convertInputStream(inputStream, sha256);
+        ReopenableInputStream reopenableInputStream = convertInputStream(inputStream, sha256);
         final String hash = reopenableInputStream.getHash(sha256).toString();
         int bufferSize = (int) (grpcProperties.getMaxRequestSizeBytes() >> 1) / 10;
 
-        ClientFileUploadResponseObserver observer =
-                new ClientFileUploadResponseObserver(reopenableInputStream, bufferSize, 10);
+        ClientFileUploadResponseObserver observer = new ClientFileUploadResponseObserver(
+                callback, hash, reopenableInputStream.getLength(),
+                reopenableInputStream, bufferSize, 10);
         StreamObserver<ClientFileUploadRequest> requestStreamObserver
                 = stub.uploadFile(observer);
         observer.setRequestStreamObserver(requestStreamObserver);
@@ -58,7 +59,7 @@ public class ClientFileUploadService {
                 ClientFileUploadRequest.CheckMessage
                         .newBuilder()
                         .setFileHash(hash)
-                        .setSize(length)
+                        .setSize(reopenableInputStream.getLength())
                         .build();
         requestStreamObserver.onNext(ClientFileUploadRequest
                 .newBuilder()
@@ -69,10 +70,18 @@ public class ClientFileUploadService {
 
     private class ClientFileUploadResponseObserver implements StreamObserver<ClientFileUploadResponse> {
         private StreamObserverWrapper<ClientFileUploadRequest> requestStreamObserver;
+        private final ClientFileUploadCallback callback;
+        private final String fileId;
+        private final long fileSize;
+        private boolean called = false;
         private final BufferedStreamIterator iterator;
         private final int maxUploadBlockCount;
 
-        private ClientFileUploadResponseObserver(InputStream stream, int bufferSize, int maxUploadBlockCount) {
+        private ClientFileUploadResponseObserver(ClientFileUploadCallback callback, String fileId, long fileSize, InputStream stream,
+                                                 int bufferSize, int maxUploadBlockCount) {
+            this.callback = callback;
+            this.fileId = fileId;
+            this.fileSize = fileSize;
             this.iterator = new BufferedStreamIterator(stream, bufferSize);
             this.maxUploadBlockCount = maxUploadBlockCount;
         }
@@ -89,9 +98,13 @@ public class ClientFileUploadService {
             }
             if (value.getResponseCase() == ClientFileUploadResponse.ResponseCase.SUCCESS) {
                 logger.debug("Upload file success.");
+                if (value.getSuccess()) {
+                    callSuccess();
+                }
                 return;
             }
             if (value.getExist()) {
+                callSuccess();
                 logger.debug("File exists.");
             }
 
@@ -148,12 +161,24 @@ public class ClientFileUploadService {
 
         @Override
         public void onError(Throwable t) {
+            if (callback != null && !called) {
+                called = true;
+                callback.onComplete(false, null, -1);
+            }
             logger.error("On error: ", t);
         }
 
         @Override
         public void onCompleted() {
+            callSuccess();
             logger.debug("Upload complete.");
+        }
+
+        private void callSuccess() {
+            if (callback != null && !called) {
+                called = true;
+                callback.onComplete(true, fileId, fileSize);
+            }
         }
     }
 

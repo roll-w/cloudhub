@@ -14,10 +14,10 @@ public class VersionedObject {
     // TODO: Versioned Object
     public static final long INVALID_VERSION = -1L;
 
-    @DataColumn(name = "bucket_id", configuration =
+    @DataColumn(name = "bucket_name", configuration =
     @LightConfiguration(key = LightConfiguration.KEY_VARCHAR_LENGTH, value = "200"))
     @PrimaryKey
-    private String bucketId;
+    private String bucketName;
 
     @DataColumn(name = "object_name", configuration =
     @LightConfiguration(key = LightConfiguration.KEY_VARCHAR_LENGTH, value = "256"))
@@ -31,8 +31,8 @@ public class VersionedObject {
     @PrimaryKey
     private long version = INVALID_VERSION;
 
-    public VersionedObject(String bucketId, String objectName, String fileId, long version) {
-        this.bucketId = bucketId;
+    public VersionedObject(String bucketName, String objectName, String fileId, long version) {
+        this.bucketName = bucketName;
         this.objectName = objectName;
         this.fileId = fileId;
         this.version = version;
@@ -41,12 +41,12 @@ public class VersionedObject {
     public VersionedObject() {
     }
 
-    public String getBucketId() {
-        return bucketId;
+    public String getBucketName() {
+        return bucketName;
     }
 
-    public void setBucketId(String bucketId) {
-        this.bucketId = bucketId;
+    public void setBucketName(String bucketName) {
+        this.bucketName = bucketName;
     }
 
     public String getFileId() {

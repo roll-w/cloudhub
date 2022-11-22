@@ -1,6 +1,7 @@
 package org.huel.cloudhub.client.service.bucket;
 
 import org.huel.cloudhub.client.data.dto.bucket.BucketInfo;
+import org.huel.cloudhub.client.data.dto.user.UserInfo;
 import org.huel.cloudhub.client.data.entity.bucket.Bucket;
 import org.huel.cloudhub.client.data.entity.bucket.BucketVisibility;
 import org.huel.cloudhub.common.MessagePackage;
@@ -26,4 +27,23 @@ public interface BucketService {
 
     MessagePackage<BucketInfo> setVisibility(String name, BucketVisibility bucketVisibility);
 
+    BucketControlCode allowWrite(UserInfo userInfo, String bucketName);
+
+    BucketControlCode allowRead(UserInfo userInfo, String bucketName);
+
+    enum BucketControlCode {
+        ALLOW(true),
+        BUCKET_NOT_EXIST(false),
+        DENIED(false);
+
+        private final boolean success;
+
+        BucketControlCode(boolean success) {
+            this.success = success;
+        }
+
+        public boolean isSuccess() {
+            return success;
+        }
+    }
 }

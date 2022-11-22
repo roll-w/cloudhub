@@ -2,6 +2,7 @@ package org.huel.cloudhub.file.io;
 
 import com.google.common.hash.HashCode;
 import com.google.common.hash.Hasher;
+import com.google.common.io.ByteStreams;
 
 import java.io.*;
 import java.util.HashMap;
@@ -10,53 +11,55 @@ import java.util.Map;
 /**
  * @author RollW
  */
-@SuppressWarnings({"unused", "UnstableApiUsage"})
+@SuppressWarnings({"unused", "UnstableApiUsage", "SpellCheckingInspection"})
 public class ReopenableInputStream extends FilterInputStream {
     private final File file;
-    private final Map<String, HashCode> hashCodeMap = new HashMap<>();
+    private final Map<String, Hasher> hashCodeMap = new HashMap<>();
     private final long length;
-    private final boolean canUserFile;
+    private final boolean isTheFile;
 
     public ReopenableInputStream(InputStream in, File tempFile, Hasher... hashers) throws IOException {
         this(in, tempFile, false, hashers);
     }
 
-    public ReopenableInputStream(InputStream in, File tempFile, boolean canUserFile, Hasher... hashers) throws IOException {
+    public ReopenableInputStream(InputStream in, File tempFile, boolean isTheFile, Hasher... hashers) throws IOException {
         super(in);
-        this.canUserFile = canUserFile;
+        this.isTheFile = isTheFile;
         this.file = tempFile;
         this.length = initial(hashers);
     }
 
     private long initial(Hasher... hashers) throws IOException {
-        if (in instanceof FileInputStream && canUserFile) {
-            HasherInputStream inputStream = new HasherInputStream(in);
-            for (Hasher hasher : hashers) {
-                inputStream.addHasher(hasher.getClass().getCanonicalName(), hasher);
-            }
-            long bytes = readFull(in);
+        registerHashers(hashers);
+        if (in instanceof FileInputStream && isTheFile) {
             in.close();
-            for (Hasher hasher : hashers) {
-                String key = hasher.getClass().getCanonicalName();
-                hashCodeMap.put(key, inputStream.getHash(key));
-            }
             in = new FileInputStream(file);
-            return bytes;
+            HasherOutputStream stream = new HasherOutputStream(new NullOutputStream());
+            addHashers(stream, hashers);
+            long len = ByteStreams.copy(in, stream);
+            in.close();
+            in = new FileInputStream(file);
+            return len;
         }
         file.createNewFile();
         HasherOutputStream outputStream = new HasherOutputStream(new FileOutputStream(file, false));
-        for (Hasher hasher : hashers) {
-            outputStream.addHasher(hasher.getClass().getCanonicalName(), hasher);
-        }
-        long bytes = in.transferTo(outputStream);
-        in.close();
-        for (Hasher hasher : hashers) {
-            String key = hasher.getClass().getCanonicalName();
-            hashCodeMap.put(key, outputStream.getHash(key));
-        }
+        addHashers(outputStream, hashers);
+        long len = copy(in, outputStream);
         outputStream.close();
         in = new FileInputStream(file);
-        return bytes;
+        return len;
+    }
+
+    private void addHashers(HasherStream stream, Hasher... hashers) {
+        for (Hasher hasher : hashers) {
+            stream.addHasher(hasher.getClass().getCanonicalName(), hasher);
+        }
+    }
+
+    private void registerHashers(Hasher... hashers) {
+        for (Hasher hasher : hashers) {
+            hashCodeMap.put(hasher.getClass().getCanonicalName(), hasher);
+        }
     }
 
     public long getLength() {
@@ -74,7 +77,7 @@ public class ReopenableInputStream extends FilterInputStream {
     }
 
     public HashCode getHash(Hasher hasher) {
-        return hashCodeMap.get(hasher.getClass().getCanonicalName());
+        return hashCodeMap.get(hasher.getClass().getCanonicalName()).hash();
     }
 
     @Override
@@ -99,31 +102,7 @@ public class ReopenableInputStream extends FilterInputStream {
     public void close() throws IOException {
         super.close();
         file.delete();
-    }
-
-    @Override
-    public byte[] readAllBytes() throws IOException {
-        return in.readAllBytes();
-    }
-
-    @Override
-    public byte[] readNBytes(int len) throws IOException {
-        return in.readNBytes(len);
-    }
-
-    @Override
-    public int readNBytes(byte[] b, int off, int len) throws IOException {
-        return in.readNBytes(b, off, len);
-    }
-
-    @Override
-    public void skipNBytes(long n) throws IOException {
-        in.skipNBytes(n);
-    }
-
-    @Override
-    public long transferTo(OutputStream out) throws IOException {
-        return in.transferTo(out);
+        hashCodeMap.clear();
     }
 
     private static final int DEFAULT_BUFFER_SIZE = 1024 * 4;
@@ -137,6 +116,7 @@ public class ReopenableInputStream extends FilterInputStream {
         int n;
         while (EOF != (n = input.read(buffer))) {
             output.write(buffer, 0, n);
+            output.flush();
             count += n;
         }
         return count;
@@ -152,5 +132,27 @@ public class ReopenableInputStream extends FilterInputStream {
             count += n;
         }
         return count;
+    }
+
+    private static class NullOutputStream extends OutputStream {
+        @Override
+        public void write(int b) throws IOException {
+        }
+
+        @Override
+        public void write(byte[] b) throws IOException {
+        }
+
+        @Override
+        public void write(byte[] b, int off, int len) throws IOException {
+        }
+
+        @Override
+        public void flush() throws IOException {
+        }
+
+        @Override
+        public void close() throws IOException {
+        }
     }
 }

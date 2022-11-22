@@ -34,7 +34,7 @@ public class ClientFileDownloadService {
     }
 
 
-    public void downloadFile(OutputStream outputStream, String fileId) throws FileDownloadingException {
+    public void downloadFile(OutputStream outputStream, String fileId, ClientFileDownloadCallback callback) throws FileDownloadingException {
         FileStatusResponse response =
                 clientFileStatusService.getFileStatus(fileId);
         if (response.getServersList().isEmpty()) {
@@ -48,7 +48,7 @@ public class ClientFileDownloadService {
                 requireStub(first);
 
         logger.debug("Start downloading file, id={}.", fileId);
-        stub.downloadBlocks(request, new DownloadBlockStreamObserver(outputStream));
+        stub.downloadBlocks(request, new DownloadBlockStreamObserver(callback, outputStream));
     }
 
     private DownloadBlockRequest buildFirstRequest(SerializedFileServer server, String masterId, String fileId) {
@@ -76,13 +76,16 @@ public class ClientFileDownloadService {
     }
 
     private class DownloadBlockStreamObserver implements StreamObserver<DownloadBlockResponse> {
+        private final ClientFileDownloadCallback callback;
+
         private int responseCount;
         private long fileLength;
         private long validBytes;
         private final OutputStream outputStream;
         private final AtomicInteger receiveCount = new AtomicInteger(1);
 
-        private DownloadBlockStreamObserver(OutputStream outputStream) {
+        private DownloadBlockStreamObserver(ClientFileDownloadCallback callback, OutputStream outputStream) {
+            this.callback = callback;
             this.outputStream = outputStream;
         }
 
@@ -135,6 +138,9 @@ public class ClientFileDownloadService {
         @Override
         public void onError(Throwable t) {
             logger.error("download file error.", t);
+            if (callback != null) {
+                callback.onComplete(false);
+            }
             try {
                 outputStream.close();
             } catch (IOException e) {
@@ -145,6 +151,9 @@ public class ClientFileDownloadService {
         @Override
         public void onCompleted() {
             logger.debug("Download file complete. all request count: {}", receiveCount.get() - 1);
+            if (callback != null) {
+                callback.onComplete(true);
+            }
             try {
                 outputStream.close();
             } catch (IOException e) {

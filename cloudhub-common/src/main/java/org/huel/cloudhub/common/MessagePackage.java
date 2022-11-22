@@ -1,5 +1,7 @@
 package org.huel.cloudhub.common;
 
+import java.util.function.Function;
+
 /**
  * @author RollW
  */
@@ -17,5 +19,12 @@ public record MessagePackage<D>(
             return HttpResponseBody.success(message(), data());
         }
         return HttpResponseBody.failure(message(), errorCode(), data());
+    }
+
+    public <T> HttpResponseBody<T> toResponseBody(Function<D, T> typeTrans) {
+        if (errorCode.getState()) {
+            return HttpResponseBody.success(message(), typeTrans.apply(data()));
+        }
+        return HttpResponseBody.failure(message(), errorCode(), typeTrans.apply(data()));
     }
 }
