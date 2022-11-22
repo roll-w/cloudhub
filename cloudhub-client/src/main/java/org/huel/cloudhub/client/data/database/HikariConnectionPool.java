@@ -32,6 +32,7 @@ public class HikariConnectionPool implements ConnectionPool {
         hikariConfig.setUsername(config.getUsername());
         hikariConfig.setJdbcUrl(config.getUrl());
         hikariConfig.setPassword(config.getPassword());
+        hikariConfig.addDataSourceProperty("maximumPoolSize", "100");
         hikariConfig.addDataSourceProperty("cachePrepStmts", "true");
         hikariConfig.addDataSourceProperty("prepStmtCacheSize", "250");
         hikariConfig.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");

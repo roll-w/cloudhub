@@ -1,12 +1,13 @@
 package org.huel.cloudhub.client.service.object;
 
 import org.huel.cloudhub.client.data.database.repository.ObjectMetadataRepository;
-import org.huel.cloudhub.client.data.dto.object.ObjectInfo;
+import org.huel.cloudhub.client.data.dto.object.ObjectInfoDto;
 import org.huel.cloudhub.client.data.entity.object.ObjectMetadata;
 import org.huel.cloudhub.common.ErrorCode;
 import org.huel.cloudhub.common.MessagePackage;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -22,7 +23,7 @@ public class ObjectMetadataServiceImpl implements ObjectMetadataService, ObjectR
     }
 
     @Override
-    public MessagePackage<Void> setObjectMetadata(String bucketName, String objectName,
+    public MessagePackage<Void> addObjectMetadata(String bucketName, String objectName,
                                                   Map<String, String> metadata) {
         ObjectMetadata objectMetadata = objectMetadataRepository.getByObjectName(bucketName, objectName);
         if (objectMetadata == null) {
@@ -40,24 +41,24 @@ public class ObjectMetadataServiceImpl implements ObjectMetadataService, ObjectR
         ObjectMetadata objectMetadata = objectMetadataRepository
                 .getByObjectName(bucketName, objectName);
         if (objectMetadata == null) {
-            return null;
+            return Collections.emptyMap();
         }
         return objectMetadata.getMetadata();
     }
 
     @Override
-    public void handle(ObjectInfo objectInfo) {
+    public void handleObjectRemove(ObjectInfoDto objectInfoDto) {
         objectMetadataRepository.deleteByObjectName(
-                objectInfo.bucketName(), objectInfo.objectName());
+                objectInfoDto.bucketName(), objectInfoDto.objectName());
     }
 
     @Override
-    public void handle(List<ObjectInfo> objectInfos) {
+    public void handleObjectRemove(List<ObjectInfoDto> objectInfoDtos) {
         // TODO:
     }
 
     @Override
     public void handleBucketDelete(String bucketName) {
-
+        objectMetadataRepository.deleteByBucketName(bucketName);
     }
 }

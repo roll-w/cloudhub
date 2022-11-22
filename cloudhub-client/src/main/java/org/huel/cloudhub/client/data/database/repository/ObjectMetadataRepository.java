@@ -46,6 +46,10 @@ public class ObjectMetadataRepository {
         dao.deleteByObjectName(bucketName, objectName);
     }
 
+    public void deleteByBucketName(String bucketName) {
+        dao.deleteByBucketName(bucketName);
+    }
+
     public ObjectMetadata getByObjectName(String bucketName, String objectName) {
         return dao.getByObjectName(bucketName, objectName);
     }

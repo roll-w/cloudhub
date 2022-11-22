@@ -26,6 +26,7 @@ import java.util.List;
  * @author RollW
  */
 @Service
+@SuppressWarnings({"UnstableApiUsage"})
 public class ClientFileUploadService {
     private final GrpcProperties grpcProperties;
     private final ClientConfigLoader clientConfigLoader;

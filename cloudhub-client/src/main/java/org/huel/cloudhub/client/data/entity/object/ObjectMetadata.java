@@ -15,7 +15,7 @@ import java.util.Map;
  */
 @DataTable(tableName = "object_metadata_table")
 public class ObjectMetadata {
-    @DataColumn(name = "user_id", configuration =
+    @DataColumn(name = "bucket_name", configuration =
     @LightConfiguration(key = LightConfiguration.KEY_VARCHAR_LENGTH, value = "200"))
     @PrimaryKey
     private String bucketName;

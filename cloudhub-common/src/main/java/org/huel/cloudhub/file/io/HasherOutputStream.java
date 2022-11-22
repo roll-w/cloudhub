@@ -12,13 +12,14 @@ import java.util.Map;
 /**
  * @author RollW
  */
-public class HasherOutputStream extends FilterOutputStream {
+public class HasherOutputStream extends FilterOutputStream implements HasherStream {
     private final Map<String, Hasher> hashers = new HashMap<>();
 
     public HasherOutputStream(OutputStream out) {
         super(out);
     }
 
+    @Override
     public void addHasher(String key, Hasher hasher) {
         if (key == null || hasher == null) {
             return;
@@ -47,6 +48,7 @@ public class HasherOutputStream extends FilterOutputStream {
                 hasher.putBytes(b, off, len));
     }
 
+    @Override
     public HashCode getHash(String key) {
         if (!hashers.containsKey(key)) {
             return null;

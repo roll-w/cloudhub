@@ -106,6 +106,9 @@ public class FileUploadService {
         if (checkFileExists(hash)) {
             inputStream.close();
             logger.debug("file exists. file_id={}", hash);
+            if (callback != null) {
+                callback.onNextStatus(FileObjectUploadStatus.AVAILABLE);
+            }
             return;
         }
         logger.debug("Start upload fileId={}", hash);

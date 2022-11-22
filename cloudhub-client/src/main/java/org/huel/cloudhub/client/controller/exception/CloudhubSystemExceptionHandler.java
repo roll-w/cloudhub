@@ -31,7 +31,7 @@ public class CloudhubSystemExceptionHandler {
         return HttpResponseEntity.create(HttpResponseBody.failure(
                 e.getMessage(),
                 ErrorCode.getErrorFromThrowable(e),
-                e.toString())
+                null)
         );
     }
 
@@ -42,7 +42,7 @@ public class CloudhubSystemExceptionHandler {
         return HttpResponseEntity.create(HttpResponseBody.failure(
                 e.getMessage(),
                 e.getErrorCode(),
-                e.toString())
+                null)
         );
     }
 
@@ -53,7 +53,7 @@ public class CloudhubSystemExceptionHandler {
         return HttpResponseEntity.create(HttpResponseBody.failure(
                 e.getMessage(),
                 ErrorCode.ERROR_NULL,
-                e.toString())
+                null)
         );
     }
 
@@ -76,7 +76,7 @@ public class CloudhubSystemExceptionHandler {
                 HttpStatus.SERVICE_UNAVAILABLE,
                 e.getMessage(),
                 ErrorCode.getErrorFromThrowable(e),
-                e.getMessage())
+                null)
         );
     }
 
@@ -88,7 +88,7 @@ public class CloudhubSystemExceptionHandler {
                 HttpStatus.SERVICE_UNAVAILABLE,
                 e.getMessage(),
                 ErrorCode.getErrorFromThrowable(e),
-                e.toString())
+                null)
         );
     }
 }

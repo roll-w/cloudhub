@@ -11,15 +11,13 @@ import space.lingu.light.PrimaryKey;
 @DataTable(tableName = "file_object_storage_table", configuration =
 @LightConfiguration(key = LightConfiguration.KEY_VARCHAR_LENGTH, value = "120"))
 public class FileObjectStorage {
-    public static final long INVALID_VERSION = -1L;
-
     /**
      * 存储桶ID
      */
     @DataColumn(name = "bucket_name", configuration =
     @LightConfiguration(key = LightConfiguration.KEY_VARCHAR_LENGTH, value = "200"))
     @PrimaryKey
-    private String bucketId;
+    private String bucketName;
 
     /**
      * 对象名：可以是一个完整的路径，作为Object的Key。
@@ -35,50 +33,58 @@ public class FileObjectStorage {
     @DataColumn(name = "object_size")
     private long objectSize;
 
+    @DataColumn(name = "object_create_time")
+    private long createTime;
+
     public FileObjectStorage() {
     }
 
-    public FileObjectStorage(String bucketId,
-                             String fileId,
-                             String objectName, long objectSize) {
-        this.bucketId = bucketId;
-        this.fileId = fileId;
+    public FileObjectStorage(String bucketName, String objectName, String fileId,
+                             long objectSize, long createTime) {
+        this.bucketName = bucketName;
         this.objectName = objectName;
+        this.fileId = fileId;
         this.objectSize = objectSize;
+        this.createTime = createTime;
     }
 
-    public String getBucketId() {
-        return bucketId;
+    public String getBucketName() {
+        return bucketName;
     }
 
-    public void setBucketId(String bucketId) {
-        this.bucketId = bucketId;
+    public void setBucketName(String bucketName) {
+        this.bucketName = bucketName;
     }
 
     public String getFileId() {
         return fileId;
     }
 
-    public FileObjectStorage setFileId(String fileId) {
+    public void setFileId(String fileId) {
         this.fileId = fileId;
-        return this;
     }
 
     public String getObjectName() {
         return objectName;
     }
 
-    public FileObjectStorage setObjectName(String objectName) {
+    public void setObjectName(String objectName) {
         this.objectName = objectName;
-        return this;
     }
 
     public long getObjectSize() {
         return objectSize;
     }
 
-    public FileObjectStorage setObjectSize(long objectSize) {
+    public void setObjectSize(long objectSize) {
         this.objectSize = objectSize;
-        return this;
+    }
+
+    public long getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(long createTime) {
+        this.createTime = createTime;
     }
 }

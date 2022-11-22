@@ -31,6 +31,9 @@ public abstract class ObjectMetadataDao {
     @Delete("DELETE object_metadata_table WHERE object_name = {objectName} AND bucket_name = {bucketName}")
     public abstract void deleteByObjectName(String bucketName, String objectName);
 
+    @Delete("DELETE object_metadata_table WHERE bucket_name = {bucketName}")
+    public abstract void deleteByBucketName(String bucketName);
+
     @Query("SELECT * FROM object_metadata_table WHERE object_name = {objectName} AND bucket_name = {bucketName}")
     public abstract ObjectMetadata getByObjectName(String bucketName, String objectName);
 

@@ -1,6 +1,6 @@
 package org.huel.cloudhub.client.service.object;
 
-import org.huel.cloudhub.client.data.dto.object.ObjectInfo;
+import org.huel.cloudhub.client.data.dto.object.ObjectInfoDto;
 
 import java.util.List;
 
@@ -8,9 +8,9 @@ import java.util.List;
  * @author RollW
  */
 public interface ObjectRemoveHandler {
-    void handle(ObjectInfo objectInfo);
+    void handleObjectRemove(ObjectInfoDto objectInfoDto);
 
-    void handle(List<ObjectInfo> objectInfos);
+    void handleObjectRemove(List<ObjectInfoDto> objectInfoDtos);
 
     void handleBucketDelete(String bucketName);
 }

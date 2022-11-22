@@ -11,9 +11,11 @@ public record ObjectInfo(
         String objectName,
 
         @DataColumn(name = "bucket_id")
-        String bucketName) {
-
+        String bucketName
+) {
     public static ObjectInfo from(FileObjectStorage storage) {
-        return new ObjectInfo(storage.getObjectName(), storage.getBucketId());
+        return new ObjectInfo(
+                storage.getObjectName(),
+                storage.getBucketName());
     }
 }

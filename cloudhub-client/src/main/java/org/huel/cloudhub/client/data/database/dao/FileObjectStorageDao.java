@@ -1,6 +1,6 @@
 package org.huel.cloudhub.client.data.database.dao;
 
-import org.huel.cloudhub.client.data.dto.object.ObjectInfo;
+import org.huel.cloudhub.client.data.dto.object.ObjectInfoDto;
 import org.huel.cloudhub.client.data.entity.object.FileObjectStorage;
 import space.lingu.light.*;
 
@@ -45,7 +45,7 @@ public abstract class FileObjectStorageDao {
     @Query("SELECT * FROM file_object_storage_table WHERE bucket_name = {bucketId}")
     public abstract List<FileObjectStorage> getObjectsByBucketName(String bucketId);
 
-    @Query("SELECT bucket_name, object_name FROM file_object_storage_table WHERE bucket_name = {bucketId}")
-    public abstract List<ObjectInfo> getObjectInfosByBucketName(String bucketId);
+    @Query("SELECT * FROM file_object_storage_table WHERE bucket_name = {bucketId}")
+    public abstract List<ObjectInfoDto> getObjectInfoDtosByBucketName(String bucketId);
 
 }

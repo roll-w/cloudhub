@@ -2,7 +2,6 @@ package org.huel.cloudhub.client.service.bucket;
 
 import org.apache.commons.lang3.Validate;
 import org.huel.cloudhub.client.data.database.repository.BucketRepository;
-import org.huel.cloudhub.client.data.database.repository.UserRepository;
 import org.huel.cloudhub.client.data.dto.bucket.BucketInfo;
 import org.huel.cloudhub.client.data.dto.user.UserInfo;
 import org.huel.cloudhub.client.data.entity.bucket.Bucket;
@@ -20,12 +19,9 @@ import java.util.List;
 public class BucketServiceImpl implements BucketService {
 
     private final BucketRepository bucketRepository;
-    private final UserRepository userRepository;
 
-    public BucketServiceImpl(BucketRepository bucketRepository,
-                             UserRepository userRepository) {
+    public BucketServiceImpl(BucketRepository bucketRepository) {
         this.bucketRepository = bucketRepository;
-        this.userRepository = userRepository;
     }
 
     @Override
@@ -36,11 +32,7 @@ public class BucketServiceImpl implements BucketService {
 
         if (bucketRepository.isExistByName(bucketName)) {
             return new MessagePackage<>(ErrorCode.ERROR_DATA_EXISTED,
-                    "bucket exited", null);
-        }
-        if (userRepository.isExistById(userId)) {
-            return new MessagePackage<>(ErrorCode.ERROR_USER_NOT_EXIST,
-                    "User not exist.", null);
+                    "Bucket exited.", null);
         }
         Bucket bucket = new Bucket(bucketName, userId,
                 System.currentTimeMillis(), visibility);
@@ -65,10 +57,6 @@ public class BucketServiceImpl implements BucketService {
 
     @Override
     public MessagePackage<Void> deleteBucket(long userId, String bucketName) {
-        if (!userRepository.isExistById(userId)) {
-            return new MessagePackage<>(ErrorCode.ERROR_USER_NOT_EXIST,
-                    "User not exist.", null);
-        }
         Bucket bucket = bucketRepository.getBucketByName(bucketName);
         if (bucket == null) {
             return new MessagePackage<>(ErrorCode.ERROR_DATA_NOT_EXIST,
@@ -106,19 +94,41 @@ public class BucketServiceImpl implements BucketService {
     }
 
     @Override
-    public boolean allowWrite(UserInfo userInfo, String bucketName) {
+    public BucketControlCode allowWrite(UserInfo userInfo, String bucketName) {
         Bucket bucket = getBucketByName(bucketName);
-
-        return !bucket.getBucketVisibility().isNeedWriteAuth() ||
-                authUserId(userInfo.id(), bucket.getUserId());
+        if (bucket == null) {
+            return BucketControlCode.BUCKET_NOT_EXIST;
+        }
+        if (!bucket.getBucketVisibility().isNeedWriteAuth()) {
+            return BucketControlCode.ALLOW;
+        }
+        if (userInfo == null) {
+            return BucketControlCode.DENIED;
+        }
+        boolean s = authUserId(userInfo.id(), bucket.getUserId());
+        if (s) {
+            return BucketControlCode.ALLOW;
+        }
+        return BucketControlCode.DENIED;
     }
 
     @Override
-    public boolean allowRead(UserInfo userInfo, String bucketName) {
+    public BucketControlCode allowRead(UserInfo userInfo, String bucketName) {
         Bucket bucket = getBucketByName(bucketName);
-
-        return !bucket.getBucketVisibility().isNeedWriteAuth() ||
-                authUserId(userInfo.id(), bucket.getUserId());
+        if (bucket == null) {
+            return BucketControlCode.BUCKET_NOT_EXIST;
+        }
+        if (!bucket.getBucketVisibility().isNeedReadAuth()) {
+            return BucketControlCode.ALLOW;
+        }
+        if (userInfo == null) {
+            return BucketControlCode.DENIED;
+        }
+        boolean s = authUserId(userInfo.id(), bucket.getUserId());
+        if (s) {
+            return BucketControlCode.ALLOW;
+        }
+        return BucketControlCode.DENIED;
     }
 
     private boolean authUserId(Long userId, long expect) {

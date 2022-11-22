@@ -44,6 +44,7 @@ public class ClientFileUploadDispatchService extends ClientFileUploadServiceGrpc
         private final File tempFile;
         private final BufferedOutputStream fileOutputStream;
         private final Context context;
+        private String hash;
 
         private ClientFileUploadRequestObserver(StreamObserver<ClientFileUploadResponse> responseObserver) {
             this.responseObserver = new StreamObserverWrapper<>(responseObserver);
@@ -64,6 +65,7 @@ public class ClientFileUploadDispatchService extends ClientFileUploadServiceGrpc
             }
             if (value.getUploadCase() == ClientFileUploadRequest.UploadCase.CHECK_MESSAGE) {
                 ClientFileUploadRequest.CheckMessage checkMessage = value.getCheckMessage();
+                hash = checkMessage.getFileHash();
                 if (fileUploadService.checkFileExists(checkMessage.getFileHash())) {
                     responseObserver.onNext(ClientFileUploadResponse.newBuilder()
                             .setExist(true)
@@ -103,7 +105,7 @@ public class ClientFileUploadDispatchService extends ClientFileUploadServiceGrpc
                 Hasher sha256 = Hashing.sha256().newHasher();
                 ReopenableInputStream inputStream = new ReopenableInputStream(
                         new FileInputStream(tempFile), tempFile, true, sha256);
-                String hash = inputStream.getHash(sha256).toString();
+                String hash = sha256.hash().toString();
                 long len = inputStream.getLength();
                 fileUploadService.uploadFile(inputStream, hash, len,
                         new Callback(responseObserver));

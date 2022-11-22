@@ -10,13 +10,14 @@ import java.util.Map;
 /**
  * @author RollW
  */
-public class HasherInputStream extends FilterInputStream {
+public class HasherInputStream extends FilterInputStream implements HasherStream {
     private final Map<String, Hasher> hashers = new HashMap<>();
 
     public HasherInputStream(InputStream in) {
         super(in);
     }
 
+    @Override
     public void addHasher(String key, Hasher hasher) {
         if (key == null || hasher == null) {
             return;
@@ -31,7 +32,7 @@ public class HasherInputStream extends FilterInputStream {
             return r;
         }
         hashers.values().forEach(hasher ->
-                hasher.putInt(r));
+                hasher.putByte((byte) r));
         return r;
     }
 
@@ -58,7 +59,7 @@ public class HasherInputStream extends FilterInputStream {
         return r;
     }
 
-
+    @Override
     public HashCode getHash(String key) {
         if (!hashers.containsKey(key)) {
             return null;
