@@ -11,6 +11,7 @@ import org.huel.cloudhub.file.server.service.heartbeat.HeartbeatHostProperties;
 import org.huel.cloudhub.file.server.service.replica.CheckReceiveService;
 import org.huel.cloudhub.file.server.service.replica.ReplicaReceiveService;
 import org.huel.cloudhub.file.server.service.replica.SynchroService;
+import org.huel.cloudhub.file.server.service.server.ContainerStatusService;
 import org.huel.cloudhub.file.server.service.server.FileServerStatusService;
 import org.huel.cloudhub.rpc.GrpcProperties;
 import org.springframework.context.annotation.Bean;
@@ -33,6 +34,7 @@ public class GrpcFileServerConfiguration {
     private final SynchroService synchroService;
     private final CheckReceiveService checkReceiveService;
     private final FileServerStatusService fileServerStatusService;
+    private final ContainerStatusService containerStatusService;
 
     public GrpcFileServerConfiguration(HeartbeatHostProperties heartbeatHostProperties,
                                        BlockReceiveService blockReceiveService,
@@ -42,7 +44,8 @@ public class GrpcFileServerConfiguration {
                                        SynchroService synchroService,
                                        CheckReceiveService checkReceiveService,
                                        GrpcProperties grpcProperties,
-                                       FileServerStatusService fileServerStatusService) {
+                                       FileServerStatusService fileServerStatusService,
+                                       ContainerStatusService containerStatusService) {
         this.heartbeatHostProperties = heartbeatHostProperties;
         this.blockReceiveService = blockReceiveService;
         this.blockDownloadService = blockDownloadService;
@@ -52,6 +55,7 @@ public class GrpcFileServerConfiguration {
         this.checkReceiveService = checkReceiveService;
         this.grpcProperties = grpcProperties;
         this.fileServerStatusService = fileServerStatusService;
+        this.containerStatusService = containerStatusService;
     }
 
     @Bean
@@ -75,6 +79,7 @@ public class GrpcFileServerConfiguration {
                 .addService(checkReceiveService)
                 .addService(synchroService)
                 .addService(fileServerStatusService)
+                .addService(containerStatusService)
                 .build();
     }
 

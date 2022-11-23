@@ -34,14 +34,17 @@ public class NetworkUsageInfo {
     }
 
     protected NetworkUsageInfo reload(NetworkIF networkIF, long ms) {
-        long lastRecv = networkIF.getBytesRecv();
-        long lastSent = networkIF.getBytesSent();
+        long prevRecv = networkIF.getBytesRecv();
+        long prevSent = networkIF.getBytesSent();
+        long prevTms = networkIF.getTimeStamp();
         Util.sleep(ms);
         networkIF.updateAttributes();
         long nextRecv = networkIF.getBytesRecv();
         long nextSent = networkIF.getBytesSent();
-        this.recv = ServerHostInfo.calcRate(lastRecv, nextRecv, ms);
-        this.sent = ServerHostInfo.calcRate(lastSent, nextSent, ms);
+        long nextTms = networkIF.getTimeStamp();
+        long diffTms = nextTms - prevTms;
+        this.recv = ServerHostInfo.calcRate(prevRecv, nextRecv, diffTms);
+        this.sent = ServerHostInfo.calcRate(prevSent, nextSent, diffTms);
         return this;
     }
 

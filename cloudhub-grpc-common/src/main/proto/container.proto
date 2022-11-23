@@ -4,7 +4,7 @@ option java_multiple_files = true;
 option java_package = "org.huel.cloudhub.file.rpc.container";
 option java_outer_classname = "ContainerProtos";
 
-message ContainerInfo {
+message SerializedContainerInfo {
  string locator = 1;
  string container_id = 2;
  string source = 3;
@@ -17,11 +17,10 @@ message ContainerInfo {
 }
 
 message ContainerStatusRequest {
-  string file_server = 1;
 }
 
 message ContainerStatusResponse {
-  repeated ContainerInfo infos = 1;
+  repeated SerializedContainerInfo infos = 1;
 }
 
 service ContainerStatusService {

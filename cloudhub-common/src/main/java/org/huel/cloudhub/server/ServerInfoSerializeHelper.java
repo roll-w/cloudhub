@@ -147,7 +147,8 @@ public class ServerInfoSerializeHelper {
                 deserializeFrom(serializedServerStatus.getJvmInfo()),
                 deserializeFrom(serializedServerStatus.getMemInfo()),
                 deserializeFrom(serializedServerStatus.getDiskInfo()),
-                deserializeFrom(serializedServerStatus.getNetInfo()));
+                deserializeFrom(serializedServerStatus.getNetInfo()),
+                deserializeFrom(serializedServerStatus.getEnvInfo()));
     }
 
 }

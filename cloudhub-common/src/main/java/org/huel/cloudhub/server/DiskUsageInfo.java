@@ -1,6 +1,7 @@
 package org.huel.cloudhub.server;
 
 import oshi.hardware.HWDiskStore;
+import oshi.util.Util;
 
 import java.io.File;
 
@@ -44,20 +45,31 @@ public class DiskUsageInfo {
     }
 
     protected DiskUsageInfo reload(HWDiskStore store, long ms) {
+        if (store == null || file == null) {
+            return this;
+        }
         final long prevReads = store.getReadBytes();
         final long prevWrites = store.getWriteBytes();
+        long prevTms = store.getTimeStamp();
+        Util.sleep(ms);
         store.updateAttributes();
         final long nextReads = store.getReadBytes();
         final long nextWrites = store.getWriteBytes();
-        this.read = ServerHostInfo.calcRate(prevReads, nextReads, ms);
-        this.write = ServerHostInfo.calcRate(prevWrites, nextWrites, ms);
+        long nextTms = store.getTimeStamp();
+        long diffTms = nextTms - prevTms;
+        this.read = ServerHostInfo.calcRate(prevReads, nextReads, diffTms);
+        this.write = ServerHostInfo.calcRate(prevWrites, nextWrites, diffTms);
         this.free = file.getUsableSpace();
         return this;
     }
 
     public static DiskUsageInfo load(String path) {
-        File file =  new File(path);
-        return new DiskUsageInfo(file.getTotalSpace(), 0, 0, 0,file);
+        if (path == null) {
+            return new DiskUsageInfo(0, 0, 0, 0, null);
+        }
+
+        File file = new File(path);
+        return new DiskUsageInfo(file.getTotalSpace(), 0, 0, 0, file);
     }
 
 }

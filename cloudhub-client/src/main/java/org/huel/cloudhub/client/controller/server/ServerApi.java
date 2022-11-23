@@ -10,6 +10,6 @@ import java.lang.annotation.*;
 @Documented
 @Target({ElementType.TYPE,ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
-@RequestMapping("/api/admin/server")
+@RequestMapping("/api/admin/status/")
 public @interface ServerApi {
 }

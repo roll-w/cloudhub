@@ -1,6 +1,5 @@
 package org.huel.cloudhub.rpc;
 
-import io.grpc.ConnectivityState;
 import io.grpc.ManagedChannel;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
@@ -34,11 +33,6 @@ public abstract class GrpcChannelPool<K> implements Closeable {
 
         if (channelMap.containsKey(key)) {
             ManagedChannel channel = channelMap.get(key);
-            ConnectivityState state = channel.getState(true);
-            if (state == ConnectivityState.TRANSIENT_FAILURE) {
-                channel.shutdown();
-                return establish(key);
-            }
             if (channel.isShutdown()) {
                 return establish(key);
             }

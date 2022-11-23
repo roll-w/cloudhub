@@ -12,6 +12,7 @@ public class ContainerIdentity {
     private String crc;
     private final long serial;
     private final int blockLimit;
+    // block size in kb
     private final int blockSize;
 
     private final long blockSizeInBytes;

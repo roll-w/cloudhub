@@ -51,6 +51,10 @@ public class ServerStatusMonitor {
                 TimeUnit.MILLISECONDS);
     }
 
+    public ServerHostInfo getLatest() {
+        return mServerHostInfoDeque.peek();
+    }
+
     public void shutdown() {
         threadPool.shutdown();
     }

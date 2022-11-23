@@ -45,7 +45,7 @@ public class ServerHostInfo {
     private final NetworkUsageInfo networkUsageInfo;
 
     @JsonProperty("env")
-    private final RuntimeEnvironment runtimeEnvironment = RUNTIME_ENV;
+    private final RuntimeEnvironment runtimeEnvironment;
 
     ServerHostInfo(HWDiskStore hwDiskStore,
                    NetworkIF networkIF,
@@ -53,7 +53,8 @@ public class ServerHostInfo {
                    JvmUsageInfo jvmUsageInfo,
                    MemoryUsageInfo memoryUsageInfo,
                    DiskUsageInfo diskUsageInfo,
-                   NetworkUsageInfo networkUsageInfo) {
+                   NetworkUsageInfo networkUsageInfo,
+                   RuntimeEnvironment runtimeEnvironment) {
         this.hwDiskStore = hwDiskStore;
         this.networkIF = networkIF;
 
@@ -62,6 +63,7 @@ public class ServerHostInfo {
         this.memoryUsageInfo = memoryUsageInfo;
         this.diskUsageInfo = diskUsageInfo;
         this.networkUsageInfo = networkUsageInfo;
+        this.runtimeEnvironment = runtimeEnvironment;
     }
 
     public CpuUsageInfo getCpuUsageInfo() {
@@ -88,6 +90,7 @@ public class ServerHostInfo {
         return runtimeEnvironment;
     }
 
+    @JsonIgnore
     public ServerHostInfo reload() {
         if (networkIF == null || hwDiskStore == null) {
             return this;
@@ -135,7 +138,7 @@ public class ServerHostInfo {
         DiskUsageInfo diskUsageInfo = DiskUsageInfo.load(fullPath);
 
         return new ServerHostInfo(hwDiskStore, networkIF, cpuUsageInfo,
-                jvmUsageInfo, memoryUsageInfo, diskUsageInfo, networkUsageInfo);
+                jvmUsageInfo, memoryUsageInfo, diskUsageInfo, networkUsageInfo, RUNTIME_ENV);
     }
 
     private static NetworkIF findNetworkIF(HardwareAbstractionLayer layer) {
@@ -185,31 +188,37 @@ public class ServerHostInfo {
         return hwDiskStores.get(0);
     }
 
+    @JsonIgnore
     public ServerHostInfo fork() {
         return new ServerHostInfo(hwDiskStore, networkIF,
                 getPersistedCpuUsageInfo(),
                 getPersistedJvmUsageInfo(),
                 getPersistedMemoryUsageInfo(),
                 getPersistedDiskUsageInfo(),
-                getPersistedNetworkInfo());
+                getPersistedNetworkInfo(), runtimeEnvironment);
     }
 
+    @JsonIgnore
     public NetworkUsageInfo getPersistedNetworkInfo() {
         return networkUsageInfo.fork();
     }
 
+    @JsonIgnore
     public CpuUsageInfo getPersistedCpuUsageInfo() {
         return cpuUsageInfo.fork();
     }
 
+    @JsonIgnore
     public DiskUsageInfo getPersistedDiskUsageInfo() {
         return diskUsageInfo.fork();
     }
 
+    @JsonIgnore
     public JvmUsageInfo getPersistedJvmUsageInfo() {
         return jvmUsageInfo.fork();
     }
 
+    @JsonIgnore
     public MemoryUsageInfo getPersistedMemoryUsageInfo() {
         return memoryUsageInfo.fork();
     }

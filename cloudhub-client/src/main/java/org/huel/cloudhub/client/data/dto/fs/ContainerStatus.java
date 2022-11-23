@@ -1,5 +1,7 @@
 package org.huel.cloudhub.client.data.dto.fs;
 
+import org.huel.cloudhub.file.rpc.container.SerializedContainerInfo;
+
 /**
  * Container Status with infos.
  *
@@ -92,5 +94,16 @@ public class ContainerStatus {
 
     public void setLimitBlocks(int limitBlocks) {
         this.limitBlocks = limitBlocks;
+    }
+
+    public static ContainerStatus deserialize(SerializedContainerInfo containerInfo) {
+        return new ContainerStatus(containerInfo.getLocator(),
+                containerInfo.getContainerId(),
+                containerInfo.getSource(),
+                containerInfo.getSerial(),
+                containerInfo.getUsedBlocks(),
+                containerInfo.getBlockSize(),
+                containerInfo.getLimitMbs(),
+                containerInfo.getLimitBlocks());
     }
 }
