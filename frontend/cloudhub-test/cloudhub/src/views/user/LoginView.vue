@@ -1,7 +1,7 @@
 <template>
   <div class="container">
     <div class="form-con">
-      <img src="https://image.freepik.com/free-vector/secure-data-concept-illustration_114360-483.jpg">
+      <img :src="Img" alt="">
       <p class="p-dark">Login</p>
       <br/>
       <form>
@@ -17,15 +17,23 @@
         </div>
 
         <button type="button" @click="login"><p>Login</p></button>
+
+        <div>
+          Don't have account?
+          <router-link :to="{name:'register_index'}"  class="link-primary" style="text-decoration: none">Sign up</router-link>
+        </div>
       </form>
 
+
     </div>
+
   </div>
 </template>
 
 <script>
 
 import {useRouter} from 'vue-router'
+import Img from "@/assets/images/login.jpg"
 
 export default {
   name: "LoginView",
@@ -46,6 +54,7 @@ export default {
     }
 
     return {
+      Img,
       user,
       login
     }
@@ -70,7 +79,7 @@ export default {
 /*内容div*/
 .form-con {
   width: 400px;
-  height: 500px;
+  height: 550px;
   margin: 50px auto;
   background-color: #ffffff;
   border-radius: 25px;
