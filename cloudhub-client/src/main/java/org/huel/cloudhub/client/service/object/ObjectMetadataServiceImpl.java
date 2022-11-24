@@ -8,7 +8,6 @@ import org.huel.cloudhub.common.ErrorCode;
 import org.huel.cloudhub.common.MessagePackage;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -18,15 +17,22 @@ import java.util.Map;
 @Service
 public class ObjectMetadataServiceImpl implements ObjectMetadataService,
         ObjectRemoveHandler, ObjectChangeActionHandler {
+    private final ObjectService objectService;
     private final ObjectMetadataRepository objectMetadataRepository;
 
-    public ObjectMetadataServiceImpl(ObjectMetadataRepository objectMetadataRepository) {
+    public ObjectMetadataServiceImpl(ObjectService objectService,
+                                     ObjectMetadataRepository objectMetadataRepository) {
+        this.objectService = objectService;
         this.objectMetadataRepository = objectMetadataRepository;
     }
 
     @Override
     public MessagePackage<Void> addObjectMetadata(String bucketName, String objectName,
                                                   Map<String, String> metadata) {
+        if (!objectService.isObjectExist(new ObjectInfo(objectName, bucketName))) {
+            return new MessagePackage<>(ErrorCode.ERROR_DATA_NOT_EXIST, null);
+        }
+
         ObjectMetadata objectMetadata = objectMetadataRepository.getByObjectName(bucketName, objectName);
         if (objectMetadata == null) {
             ObjectMetadata newMetadata = new ObjectMetadata(bucketName, objectName, metadata);
@@ -43,9 +49,20 @@ public class ObjectMetadataServiceImpl implements ObjectMetadataService,
         ObjectMetadata objectMetadata = objectMetadataRepository
                 .getByObjectName(bucketName, objectName);
         if (objectMetadata == null) {
-            return Collections.emptyMap();
+            return null;
         }
         return objectMetadata.getMetadata();
+    }
+
+    @Override
+    public MessagePackage<Void> removeObjectMetadata(String bucketName, String objectName, List<String> metadataKeys) {
+        ObjectMetadata objectMetadata = objectMetadataRepository.getByObjectName(bucketName, objectName);
+        if (objectMetadata == null) {
+            return new MessagePackage<>(ErrorCode.SUCCESS, null);
+        }
+        metadataKeys.forEach(objectMetadata::removeKey);
+        objectMetadataRepository.update(objectMetadata);
+        return new MessagePackage<>(ErrorCode.SUCCESS, null);
     }
 
     @Override

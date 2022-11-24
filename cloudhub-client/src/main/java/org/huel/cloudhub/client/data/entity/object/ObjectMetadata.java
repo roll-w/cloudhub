@@ -1,5 +1,6 @@
 package org.huel.cloudhub.client.data.entity.object;
 
+import org.huel.cloudhub.client.service.object.ObjectMetadataHeaders;
 import space.lingu.NonNull;
 import space.lingu.light.DataColumn;
 import space.lingu.light.DataTable;
@@ -62,10 +63,30 @@ public class ObjectMetadata {
             return;
         }
         if (this.metadata == null) {
-            this.metadata = new HashMap<>(metadata);
+            this.metadata = new HashMap<>();
+        }
+        metadata.forEach(this::putData);
+    }
+
+    private void putData(String k, String v) {
+        if (metadata.get(k) == null) {
+            metadata.put(k, v);
             return;
         }
-        this.metadata.putAll(metadata);
+        if (ObjectMetadataHeaders.getUnmodifiableHeaders().contains(k)) {
+            return;
+        }
+        metadata.put(k, v);
+    }
+
+    public void removeKey(String key) {
+        if (ObjectMetadataHeaders.getUnmodifiableHeaders().contains(key)) {
+            return;
+        }
+        if (metadata == null) {
+            return;
+        }
+        metadata.remove(key);
     }
 
     @NonNull

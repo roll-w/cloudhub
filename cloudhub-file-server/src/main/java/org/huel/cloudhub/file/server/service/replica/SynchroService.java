@@ -7,6 +7,8 @@ import org.huel.cloudhub.file.fs.container.Container;
 import org.huel.cloudhub.file.fs.container.ContainerFinder;
 import org.huel.cloudhub.file.fs.container.ContainerGroup;
 import org.huel.cloudhub.file.rpc.replica.SerializedContainerStatus;
+import org.huel.cloudhub.file.rpc.synchro.DeleteContainerRequest;
+import org.huel.cloudhub.file.rpc.synchro.DeleteContainerResponse;
 import org.huel.cloudhub.file.rpc.synchro.SynchroRequest;
 import org.huel.cloudhub.file.rpc.synchro.SynchroResponse;
 import org.huel.cloudhub.file.rpc.synchro.SynchroServiceGrpc;
@@ -48,7 +50,11 @@ public class SynchroService extends SynchroServiceGrpc.SynchroServiceImplBase {
             servers.parallelStream().forEach(server ->
                     checkServerAndBuildReplica(group, fileId, server));
         }
+    }
 
+    @Override
+    public void deleteContainers(DeleteContainerRequest request, StreamObserver<DeleteContainerResponse> responseObserver) {
+        super.deleteContainers(request, responseObserver);
     }
 
     private void checkServerAndBuildReplica(ContainerGroup group, String fileId, SerializedFileServer dest) {
@@ -96,5 +102,6 @@ public class SynchroService extends SynchroServiceGrpc.SynchroServiceImplBase {
         // if there's no source, then the server must be the master.
         return ContainerFinder.LOCAL;
     }
+
 
 }

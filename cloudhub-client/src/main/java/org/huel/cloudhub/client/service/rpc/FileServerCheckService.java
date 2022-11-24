@@ -49,10 +49,7 @@ public class FileServerCheckService {
         if (id == null) {
             return null;
         }
-
-        if (lastResp == null) {
-            getConnectedServers();
-        }
+        getConnectedServers();
         List<ContainerStatus> res = trySendContainerRequest(lastResp.getActiveServersList(), id);
         if (res != null) {
             return res;

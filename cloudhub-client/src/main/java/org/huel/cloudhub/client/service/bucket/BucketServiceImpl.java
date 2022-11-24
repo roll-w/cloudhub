@@ -17,7 +17,7 @@ import java.util.regex.Pattern;
  * @author Cheng
  */
 @Service
-public class BucketServiceImpl implements BucketService {
+public class BucketServiceImpl implements BucketService, BucketAuthService {
     private static final Pattern sBucketNamePattern =
             Pattern.compile("^[A-Za-z0-9-]*$");
 
@@ -139,10 +139,19 @@ public class BucketServiceImpl implements BucketService {
             return BucketControlCode.DENIED;
         }
         boolean s = authUserId(userInfo.id(), bucket.getUserId());
-        if (s) {
-            return BucketControlCode.ALLOW;
+        return s ? BucketControlCode.ALLOW : BucketControlCode.DENIED;
+    }
+
+    @Override
+    public boolean isOwnerOf(UserInfo userInfo, String bucketName) {
+        Bucket bucket = getBucketByName(bucketName);
+        if (bucket == null) {
+            return false;
         }
-        return BucketControlCode.DENIED;
+        if (userInfo == null) {
+            return false;
+        }
+        return authUserId(userInfo.id(), bucket.getUserId());
     }
 
     private boolean authUserId(Long userId, long expect) {

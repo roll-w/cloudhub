@@ -24,4 +24,6 @@ public interface ObjectService {
     List<ObjectInfoDto> getObjectsInBucket(String bucketName);
 
     MessagePackage<ObjectInfoDto> renameObject(ObjectInfo oldInfo, String newName);
+
+    boolean isObjectExist(ObjectInfo objectInfo);
 }

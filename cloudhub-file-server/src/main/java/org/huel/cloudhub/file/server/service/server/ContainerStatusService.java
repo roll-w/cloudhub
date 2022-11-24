@@ -49,8 +49,10 @@ public class ContainerStatusService extends ContainerStatusServiceGrpc.Container
                                 .setLocator(container.getResourceLocator())
                                 .setSource(container.getSource())
                                 .setLimitBlocks(container.getIdentity().blockLimit())
-                                .setLimitMbs(container.getIdentity().blockSize() / 1024)
+                                .setLimitMbs((container.getIdentity().blockLimit() *
+                                        container.getIdentity().blockSize()) / 1024)
                                 .setUsedBlocks(container.getUsedBlocksCount())
+                                .setBlockSize(container.getIdentity().blockSize())
                                 .build())
                 .collect(Collectors.toList());
     }

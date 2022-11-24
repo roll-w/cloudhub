@@ -5,6 +5,7 @@ import org.huel.cloudhub.client.data.dto.fs.ConnectedServers;
 import org.huel.cloudhub.client.data.dto.fs.ContainerStatus;
 import org.huel.cloudhub.client.service.rpc.FileServerCheckService;
 import org.huel.cloudhub.client.service.rpc.ServerInfoCheckService;
+import org.huel.cloudhub.client.service.server.ServerStatusService;
 import org.huel.cloudhub.client.service.user.UserGetter;
 import org.huel.cloudhub.common.ErrorCode;
 import org.huel.cloudhub.common.HttpResponseEntity;
@@ -25,14 +26,28 @@ import java.util.List;
 @ServerApi
 public class ServerStatusController {
     private final UserGetter userGetter;
+    private final ServerStatusService serverStatusService;
     private final FileServerCheckService fileServerCheckService;
     private final ServerInfoCheckService serverInfoCheckService;
 
     public ServerStatusController(UserGetter userGetter,
+                                  ServerStatusService serverStatusService,
                                   FileServerCheckService fileServerCheckService, ServerInfoCheckService serverInfoCheckService) {
         this.userGetter = userGetter;
+        this.serverStatusService = serverStatusService;
         this.fileServerCheckService = fileServerCheckService;
         this.serverInfoCheckService = serverInfoCheckService;
+    }
+
+    @GetMapping("/time")
+    public HttpResponseEntity<Long> getRunTimeFromStart(HttpServletRequest httpServletRequest) {
+        var validateMessage =
+                ValidateHelper.validateUserAdmin(httpServletRequest, userGetter);
+        if (validateMessage != null) {
+            return HttpResponseEntity.create(
+                    validateMessage.toResponseBody(d -> null));
+        }
+        return HttpResponseEntity.success(serverStatusService.getRunTimeLength());
     }
 
     @GetMapping("/connected")
@@ -81,8 +96,8 @@ public class ServerStatusController {
                     validateMessage.toResponseBody(d -> null));
         }
         if (serverId == null || serverId.isEmpty()) {
-            return HttpResponseEntity.failure("Not found server",
-                    ErrorCode.ERROR_DATA_NOT_EXIST);
+            return HttpResponseEntity.success(
+                    serverStatusService.getCurrentInfo());
         }
         if (serverId.equalsIgnoreCase(META_SERVER_ID)) {
             return HttpResponseEntity.success(
@@ -103,8 +118,8 @@ public class ServerStatusController {
                     validateMessage.toResponseBody(d -> null));
         }
         if (serverId == null || serverId.isEmpty()) {
-            return HttpResponseEntity.failure("Not found server",
-                    ErrorCode.ERROR_DATA_NOT_EXIST);
+            return HttpResponseEntity.success(
+                    serverStatusService.getNetInfos());
         }
         if (serverId.equalsIgnoreCase(META_SERVER_ID)) {
             return HttpResponseEntity.success(

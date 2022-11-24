@@ -58,4 +58,8 @@ public class FileObjectStorageRepository {
     public List<ObjectInfoDto> getObjectInfoDtosByBucketName(String bucketId) {
         return dao.getObjectInfoDtosByBucketName(bucketId);
     }
+
+    public boolean isObjectExist(String bucketName, String objectName) {
+        return dao.getBucketHasObject(bucketName, objectName) != null;
+    }
 }

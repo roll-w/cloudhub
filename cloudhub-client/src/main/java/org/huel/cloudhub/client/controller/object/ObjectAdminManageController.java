@@ -25,17 +25,17 @@ import java.util.Map;
  */
 @RestController
 @ObjectAdminApi
-public class ObjectManageController {
-    private final Logger logger = LoggerFactory.getLogger(ObjectManageController.class);
+public class ObjectAdminManageController {
+    private final Logger logger = LoggerFactory.getLogger(ObjectAdminManageController.class);
 
     private final ObjectService objectService;
     private final ObjectMetadataService objectMetadataService;
     private final UserGetter userGetter;
 
 
-    public ObjectManageController(ObjectService objectService,
-                                  ObjectMetadataService objectMetadataService,
-                                  UserGetter userGetter) {
+    public ObjectAdminManageController(ObjectService objectService,
+                                       ObjectMetadataService objectMetadataService,
+                                       UserGetter userGetter) {
         this.objectService = objectService;
         this.objectMetadataService = objectMetadataService;
         this.userGetter = userGetter;
