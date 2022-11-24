@@ -77,7 +77,7 @@
 
 <script>
 import ContentBase from "@/components/ContentBase";
-import Img from "@/assets/images/img.png"
+import Img from "@/assets/images/home.png"
 
 export default {
   name: 'HomeView',

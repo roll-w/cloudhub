@@ -4,7 +4,7 @@
       <img :src="Img" alt="">
       <p class="p-dark">Login</p>
       <br/>
-      <form>
+      <form @submit.prevent="login">
 
         <div class="input-con">
           <i class="fas fa-user icon"></i>
@@ -16,10 +16,10 @@
           <input v-model="user.password" type="password" placeholder="Password">
         </div>
 
-        <button type="button" @click="login"><p>Login</p></button>
+        <button type="submit" class="btn btn-primary">Login</button>
 
-        <div>
-          Don't have account?
+        <div class="input-con">
+           Do not have an account ?
           <router-link :to="{name:'register_index'}"  class="link-primary" style="text-decoration: none">Sign up</router-link>
         </div>
       </form>
@@ -34,13 +34,19 @@
 
 import {useRouter} from 'vue-router'
 import Img from "@/assets/images/login.jpg"
+import {useStore} from 'vuex';
+import {ref} from "vue";
 
 export default {
   name: "LoginView",
 
   setup() {
 
-    const router = useRouter()
+    const router = useRouter();
+    const store = useStore();
+
+    let username = ref("");
+    let password = ref("");
 
     const user = {
       username: "admin",
@@ -48,9 +54,31 @@ export default {
     }
 
     const login = () =>{
+      //暂时方便跳转不删除
       if(user.username === "admin" && user.password === "admin"){
         router.push('hub')
       }
+
+      store.dispatch("login",{
+        username:username.value,
+        password:password.value,
+
+        success() {
+          // 成功之后，获取用户信息
+          store.dispatch("getUserInfo",{
+            success(){
+              router.push({name:"home"});
+            },
+            error(){
+              console.log("获取信息失败");
+            }
+          });
+        },
+        error(){
+          console.log("登录失败")
+        },
+      })
+
     }
 
     return {

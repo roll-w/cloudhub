@@ -2,7 +2,7 @@
   <ContentBase>
     <div>
       <button type="button" class="btn btn-outline-secondary" @click="back">返回桶列表</button>
-      <button type="button" class="btn btn-outline-primary">+上传文件</button>
+      <button type="button" class="btn btn-outline-primary" @click="getFile">+上传文件</button>
       <button type="button" class="btn btn-outline-success" style="float: right">下载选中</button>
       <button type="button" class="btn btn-outline-danger " style="float: right">删除选中</button>
     </div>
@@ -53,6 +53,7 @@ import ContentBase from "@/components/ContentBase";
 import ModalFileInfo from "@/components/modal/ModalFileInfo";
 import {useRouter} from "vue-router";
 import {ref} from "vue";
+import $ from 'jquery'
 
 export default {
   name: "FileView",
@@ -62,6 +63,7 @@ export default {
   },
   setup() {
     // 模拟windows资源管理器
+    let file = ([]);
     let files = ref([
       {
         fileName: "word",
@@ -96,8 +98,27 @@ export default {
       route.push('bucket')
     }
 
+    const getFile = () => {
+      $.ajax({
+        url: "http://127.0.0.1:port/",
+        type: "get",
+        headers: {
+        //
+        },
+        success(resp) {
+         file.value = resp;
+          console.log("The file was uploaded successfully")
+        },
+        error(resp){
+          console.log(resp)
+        }
+      })
+    }
+
+
     return {
       files,
+      getFile,
       back
     }
   }

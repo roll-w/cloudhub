@@ -4,7 +4,7 @@
       <img :src="Img" alt="">
       <p class="p-dark">Register</p>
       <br/>
-      <form>
+      <form @submit.prevent="register">
 
         <div class="input-con">
           <i class="fas fa-user icon"></i>
@@ -16,9 +16,9 @@
           <input v-model="user.password" type="password" placeholder="Password">
         </div>
 
-        <button type="button" @click="register"><p>Register</p></button>
+        <button type="submit" class="btn btn-primary">Register</button>
 
-        <div>
+        <div class="input-con">
           Have an account?
           <router-link :to="{name:'login_index'}" class="link-primary" style="text-decoration: none">Log in
           </router-link>
@@ -34,12 +34,18 @@
 <script>
 
 import Img from "@/assets/images/register.jpg"
-
+import url from '@/store/api'
+import router from "@/router";
+import {ref} from "vue";
+import $ from 'jquery'
 export default {
   name: "RegisterView",
 
   setup() {
 
+    let username = ref("");
+    let password = ref("");
+    let confirmedPassword = ref("");
 
     const user = {
       username: "admin",
@@ -47,6 +53,23 @@ export default {
     }
 
     const register = () => {
+      $.ajax({
+        url:url.url_register,
+        type:"post",
+        data:{
+          username:username.value,
+          password:password.value,
+          confirmedPassword:confirmedPassword.value,
+        },
+        success(resp){
+          if (resp.message === "REGISTER_SUCCESS"){
+            router.push({name:"login_index"});
+          }
+        },
+        error(resp){
+          console.log(resp)
+        }
+      });
     }
 
     return {
