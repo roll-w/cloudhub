@@ -13,6 +13,28 @@ message ServerStatusResponse {
   SerializedServerStatus status = 1;
 }
 
+message ServerStatusRecordRequest {
+  int32 record_num = 1;
+}
+
+message ServerStatusRecordResponse {
+  repeated SerializedServerStatus statues = 1;
+}
+
+message ServerNetworkRecordResponse {
+  repeated SerializedNetworkUsageInfo nets = 1;
+}
+
+message ServerDiskRecordResponse {
+  repeated SerializedDiskUsageInfo disks = 1;
+}
+
 service ServerStatusService {
   rpc requestServerStatus (ServerStatusRequest) returns (ServerStatusResponse);
+
+  rpc requestServerRecordStatuses (ServerStatusRecordRequest) returns (ServerStatusRecordResponse);
+
+  rpc requestServerNetworkRecord (ServerStatusRecordRequest) returns (ServerNetworkRecordResponse);
+
+  rpc requestServerDiskRecord (ServerStatusRecordRequest) returns (ServerDiskRecordResponse);
 }

@@ -19,7 +19,7 @@ const routes = [
             {
                 path: '/hub',
                 name: 'cloudhub_index',
-                component: () => import('@/views/user/CloudView')
+                component: () => import('@/views/user/CloudViewManager')
             },
             {
                 path: '/file',

@@ -8,6 +8,8 @@ import org.huel.cloudhub.client.service.rpc.ServerInfoCheckService;
 import org.huel.cloudhub.client.service.user.UserGetter;
 import org.huel.cloudhub.common.ErrorCode;
 import org.huel.cloudhub.common.HttpResponseEntity;
+import org.huel.cloudhub.server.DiskUsageInfo;
+import org.huel.cloudhub.server.NetworkUsageInfo;
 import org.huel.cloudhub.server.ServerHostInfo;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -86,12 +88,12 @@ public class ServerStatusController {
             return HttpResponseEntity.success(
                     serverInfoCheckService.getMetaServerInfo());
         }
-        return  HttpResponseEntity.success(
+        return HttpResponseEntity.success(
                 serverInfoCheckService.getFileServerInfo(serverId));
     }
 
-    @GetMapping("/server/get/record")
-    public HttpResponseEntity<List<ServerHostInfo>> getServerStatuses(
+    @GetMapping("/server/get/net")
+    public HttpResponseEntity<List<NetworkUsageInfo>> getServerNetInfos(
             HttpServletRequest request,
             @RequestParam(required = false) String serverId) {
         var validateMessage =
@@ -100,6 +102,37 @@ public class ServerStatusController {
             return HttpResponseEntity.create(
                     validateMessage.toResponseBody(d -> null));
         }
-        return null;
+        if (serverId == null || serverId.isEmpty()) {
+            return HttpResponseEntity.failure("Not found server",
+                    ErrorCode.ERROR_DATA_NOT_EXIST);
+        }
+        if (serverId.equalsIgnoreCase(META_SERVER_ID)) {
+            return HttpResponseEntity.success(
+                    serverInfoCheckService.getMetaServerNetRecords());
+        }
+        return HttpResponseEntity.success(
+                serverInfoCheckService.getFileNetRecords(serverId));
+    }
+
+    @GetMapping("/server/get/disk")
+    public HttpResponseEntity<List<DiskUsageInfo>> getServerDiskInfos(
+            HttpServletRequest request,
+            @RequestParam(required = false) String serverId) {
+        var validateMessage =
+                ValidateHelper.validateUserAdmin(request, userGetter);
+        if (validateMessage != null) {
+            return HttpResponseEntity.create(
+                    validateMessage.toResponseBody(d -> null));
+        }
+        if (serverId == null || serverId.isEmpty()) {
+            return HttpResponseEntity.failure("Not found server",
+                    ErrorCode.ERROR_DATA_NOT_EXIST);
+        }
+        if (serverId.equalsIgnoreCase(META_SERVER_ID)) {
+            return HttpResponseEntity.success(
+                    serverInfoCheckService.getMetaServerDiskRecords());
+        }
+        return HttpResponseEntity.success(
+                serverInfoCheckService.getFileServerDiskRecords(serverId));
     }
 }

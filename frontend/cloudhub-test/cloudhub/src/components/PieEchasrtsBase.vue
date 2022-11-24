@@ -1,6 +1,8 @@
 <template>
   <div ref="myRef" style="width: 200px; height: 200px" data-bs-toggle="tooltip" data-bs-placement="top"
-       title=""></div>
+       title="">
+
+  </div>
 </template>
 
 <script>
