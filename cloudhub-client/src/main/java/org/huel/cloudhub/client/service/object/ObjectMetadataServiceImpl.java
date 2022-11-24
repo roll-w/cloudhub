@@ -83,7 +83,6 @@ public class ObjectMetadataServiceImpl implements ObjectMetadataService,
 
     @Override
     public void onAddNewObject(ObjectInfoDto objectInfoDto) {
-
     }
 
     @Override

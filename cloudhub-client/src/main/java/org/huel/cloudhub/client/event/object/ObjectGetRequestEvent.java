@@ -6,10 +6,10 @@ import org.springframework.context.ApplicationEvent;
 /**
  * @author RollW
  */
-public class ObjectGetEvent extends ApplicationEvent implements ObjectRequestEvent {
+public class ObjectGetRequestEvent extends ApplicationEvent implements ObjectRequestEvent {
     private final ObjectInfo objectInfo;
 
-    public ObjectGetEvent(ObjectInfo objectInfo) {
+    public ObjectGetRequestEvent(ObjectInfo objectInfo) {
         super(objectInfo);
         this.objectInfo = objectInfo;
     }

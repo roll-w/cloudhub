@@ -4,9 +4,9 @@ import org.huel.cloudhub.client.data.dto.object.ObjectInfo;
 import org.huel.cloudhub.client.data.dto.object.ObjectInfoVo;
 import org.huel.cloudhub.client.data.dto.object.ObjectRenameRequest;
 import org.huel.cloudhub.client.data.dto.user.UserInfo;
-import org.huel.cloudhub.client.event.object.ObjectDeleteEvent;
-import org.huel.cloudhub.client.event.object.ObjectGetEvent;
-import org.huel.cloudhub.client.event.object.ObjectPutEvent;
+import org.huel.cloudhub.client.event.object.ObjectDeleteRequestEvent;
+import org.huel.cloudhub.client.event.object.ObjectGetRequestEvent;
+import org.huel.cloudhub.client.event.object.ObjectPutRequestEvent;
 import org.huel.cloudhub.client.service.bucket.BucketAuthService;
 import org.huel.cloudhub.client.service.object.ObjectMetadataService;
 import org.huel.cloudhub.client.service.object.ObjectService;
@@ -81,7 +81,7 @@ public class ObjectController {
         objectService.getObjectData(objectInfo, response.getOutputStream());
 
         applicationEventPublisher.publishEvent(
-                new ObjectGetEvent(objectInfo));
+                new ObjectGetRequestEvent(objectInfo));
         return null;
     }
 
@@ -107,7 +107,7 @@ public class ObjectController {
                     bucketName, objectName, metadata);
         }
         applicationEventPublisher.publishEvent(
-                new ObjectPutEvent(objectInfo));
+                new ObjectPutRequestEvent(objectInfo));
         return HttpResponseEntity.create(
                 res.toResponseBody(ObjectInfoVo::from));
     }
@@ -128,7 +128,7 @@ public class ObjectController {
         }
         ObjectInfo objectInfo = new ObjectInfo(objectName, bucketName);
         applicationEventPublisher.publishEvent(
-                new ObjectDeleteEvent(objectInfo));
+                new ObjectDeleteRequestEvent(objectInfo));
         var res =
                 objectService.deleteObject(objectInfo);
         return HttpResponseEntity.create(res.toResponseBody());

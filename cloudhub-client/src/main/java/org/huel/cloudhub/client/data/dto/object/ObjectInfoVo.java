@@ -10,7 +10,7 @@ public record ObjectInfoVo(
         @DataColumn(name = "object_name")
         String objectName,
 
-        @DataColumn(name = "bucket_id")
+        @DataColumn(name = "bucket_name")
         String bucketName,
 
         @DataColumn(name = "object_create_time")
@@ -20,7 +20,6 @@ public record ObjectInfoVo(
         if (storage == null) {
             return null;
         }
-
         return new ObjectInfoVo(
                 storage.getObjectName(),
                 storage.getBucketName(),
@@ -31,7 +30,6 @@ public record ObjectInfoVo(
         if (objectInfoDto == null) {
             return null;
         }
-
         return new ObjectInfoVo(
                 objectInfoDto.objectName(),
                 objectInfoDto.bucketName(),

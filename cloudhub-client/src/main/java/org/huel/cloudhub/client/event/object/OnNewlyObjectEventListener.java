@@ -21,6 +21,7 @@ public class OnNewlyObjectEventListener implements ApplicationListener<OnNewlyOb
     @Override
     @Async
     public void onApplicationEvent(OnNewlyObjectEvent event) {
-
+        handlers.forEach(handler ->
+                handler.onAddNewObject(event.getObjectInfoDto()));
     }
 }

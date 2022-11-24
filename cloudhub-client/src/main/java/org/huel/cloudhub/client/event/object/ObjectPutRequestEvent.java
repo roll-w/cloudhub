@@ -6,10 +6,10 @@ import org.springframework.context.ApplicationEvent;
 /**
  * @author RollW
  */
-public class ObjectDeleteEvent extends ApplicationEvent implements ObjectRequestEvent {
+public class ObjectPutRequestEvent extends ApplicationEvent implements ObjectRequestEvent {
     private final ObjectInfo objectInfo;
 
-    public ObjectDeleteEvent(ObjectInfo objectInfo) {
+    public ObjectPutRequestEvent(ObjectInfo objectInfo) {
         super(objectInfo);
         this.objectInfo = objectInfo;
     }

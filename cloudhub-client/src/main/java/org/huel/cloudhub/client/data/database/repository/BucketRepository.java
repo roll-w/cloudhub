@@ -83,4 +83,8 @@ public class BucketRepository {
     public boolean isBucketEmpty(String bucketName) {
         return fileObjectStorageDao.getBucketHasObjects(bucketName) == null;
     }
+
+    public int getBucketsCount() {
+        return bucketDao.getBucketCount();
+    }
 }

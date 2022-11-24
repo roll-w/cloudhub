@@ -28,6 +28,11 @@ public class FileObjectStorageRepository {
     }
 
     @Async
+    public void update(FileObjectStorage storage) {
+        dao.update(storage);
+    }
+
+    @Async
     public void delete(FileObjectStorage... storages) {
         dao.delete(storages);
     }
@@ -61,5 +66,9 @@ public class FileObjectStorageRepository {
 
     public boolean isObjectExist(String bucketName, String objectName) {
         return dao.getBucketHasObject(bucketName, objectName) != null;
+    }
+
+    public int getAllObjectsCount() {
+        return dao.getObjectCount();
     }
 }

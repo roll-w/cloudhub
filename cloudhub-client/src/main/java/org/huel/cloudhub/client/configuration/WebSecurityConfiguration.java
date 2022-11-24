@@ -29,7 +29,7 @@ import org.springframework.security.web.access.intercept.FilterSecurityIntercept
 @Configuration
 @EnableWebSecurity
 @EnableGlobalAuthentication
- @EnableGlobalMethodSecurity(prePostEnabled=true)
+@EnableGlobalMethodSecurity(prePostEnabled = true)
 public class WebSecurityConfiguration {
     private final UserDetailsServiceImpl userDetailsService;
 
@@ -46,13 +46,14 @@ public class WebSecurityConfiguration {
         this.customSecurityMetaSource = customSecurityMetaSource;
     }
 
-    protected void configure(AuthenticationManagerBuilder authenticationManagerBuilder) throws Exception{
-            authenticationManagerBuilder.userDetailsService(userDetailsService);
+    protected void configure(AuthenticationManagerBuilder authenticationManagerBuilder) throws Exception {
+        authenticationManagerBuilder.userDetailsService(userDetailsService);
     }
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity security) throws Exception {
         security.csrf().disable()
-                .authorizeRequests().antMatchers("/").permitAll();
+                .authorizeRequests().antMatchers("/**").permitAll();
         // 暂时禁用Spring Security
         ApplicationContext applicationContext = security.getSharedObject(ApplicationContext.class);
 

@@ -10,7 +10,7 @@ public record ObjectInfo(
         @DataColumn(name = "object_name")
         String objectName,
 
-        @DataColumn(name = "bucket_id")
+        @DataColumn(name = "bucket_name")
         String bucketName
 ) {
     public static ObjectInfo from(FileObjectStorage storage) {

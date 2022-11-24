@@ -1,6 +1,7 @@
 package org.huel.cloudhub.client.event.object;
 
 import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import java.util.concurrent.atomic.AtomicLong;
@@ -15,17 +16,20 @@ public class ObjectRequestListener implements ObjectRequestCounter {
     private final AtomicLong deleteCount = new AtomicLong(0);
 
     @EventListener
-    public void onPut(ObjectPutEvent objectPutEvent) {
+    @Async
+    public void onPut(ObjectPutRequestEvent objectPutRequestEvent) {
         putCount.incrementAndGet();
     }
 
     @EventListener
-    public void onGet(ObjectGetEvent objectGetEvent) {
+    @Async
+    public void onGet(ObjectGetRequestEvent objectGetRequestEvent) {
         getCount.incrementAndGet();
     }
 
     @EventListener
-    public void onGet(ObjectDeleteEvent objectDeleteEvent) {
+    @Async
+    public void onGet(ObjectDeleteRequestEvent objectDeleteRequestEvent) {
         deleteCount.incrementAndGet();
     }
 

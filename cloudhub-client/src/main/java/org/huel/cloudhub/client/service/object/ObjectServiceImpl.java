@@ -7,10 +7,12 @@ import org.huel.cloudhub.client.data.database.repository.FileObjectStorageReposi
 import org.huel.cloudhub.client.data.dto.object.ObjectInfo;
 import org.huel.cloudhub.client.data.dto.object.ObjectInfoDto;
 import org.huel.cloudhub.client.data.entity.object.FileObjectStorage;
+import org.huel.cloudhub.client.event.object.OnObjectDeleteEvent;
 import org.huel.cloudhub.client.service.rpc.ClientFileDownloadService;
 import org.huel.cloudhub.client.service.rpc.ClientFileUploadService;
 import org.huel.cloudhub.common.ErrorCode;
 import org.huel.cloudhub.common.MessagePackage;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -27,13 +29,16 @@ public class ObjectServiceImpl implements ObjectService, ObjectRemoveHandler {
     private final FileObjectStorageRepository repository;
     private final ClientFileDownloadService clientFileDownloadService;
     private final ClientFileUploadService clientFileUploadService;
+    private final ApplicationEventPublisher eventPublisher;
 
     public ObjectServiceImpl(FileObjectStorageRepository repository,
                              ClientFileDownloadService clientFileDownloadService,
-                             ClientFileUploadService clientFileUploadService) {
+                             ClientFileUploadService clientFileUploadService,
+                             ApplicationEventPublisher eventPublisher) {
         this.repository = repository;
         this.clientFileDownloadService = clientFileDownloadService;
         this.clientFileUploadService = clientFileUploadService;
+        this.eventPublisher = eventPublisher;
     }
 
     @Override
@@ -127,9 +132,15 @@ public class ObjectServiceImpl implements ObjectService, ObjectRemoveHandler {
 
     @Override
     public MessagePackage<ObjectInfoDto> renameObject(ObjectInfo oldInfo, String newName) {
-
-
-        return null;
+        Validate.notEmpty(newName, "objectName cannot be null or empty.");
+        FileObjectStorage storage =
+                repository.getById(oldInfo.bucketName(), oldInfo.objectName());
+        storage.setObjectName(newName);
+        repository.update(storage);
+        ObjectInfoDto dto = ObjectInfoDto.from(storage);
+        OnObjectDeleteEvent event = new OnObjectDeleteEvent(dto);
+        eventPublisher.publishEvent(event);
+        return new MessagePackage<>(ErrorCode.SUCCESS, dto);
     }
 
     @Override
@@ -147,8 +158,6 @@ public class ObjectServiceImpl implements ObjectService, ObjectRemoveHandler {
 
     @Override
     public void handleObjectRemove(ObjectInfoDto objectInfoDto) {
-        repository.deleteByBucketNameAnd(objectInfoDto.bucketName(),
-                objectInfoDto.objectName());
     }
 
     @Override

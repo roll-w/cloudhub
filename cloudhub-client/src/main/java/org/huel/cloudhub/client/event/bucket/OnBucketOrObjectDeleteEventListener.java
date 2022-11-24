@@ -1,21 +1,22 @@
 package org.huel.cloudhub.client.event.bucket;
 
+import org.huel.cloudhub.client.event.object.OnObjectDeleteEvent;
 import org.huel.cloudhub.client.service.object.ObjectRemoveHandler;
 import org.springframework.context.ApplicationListener;
+import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
-import java.lang.ref.Cleaner;
 import java.util.List;
 
 /**
  * @author RollW
  */
 @Component
-public class OnBucketDeleteEventListener implements ApplicationListener<OnBucketDeleteEvent> {
+public class OnBucketOrObjectDeleteEventListener implements ApplicationListener<OnBucketDeleteEvent> {
     private final List<ObjectRemoveHandler> objectRemoveHandlers;
 
-    public OnBucketDeleteEventListener(List<ObjectRemoveHandler> objectRemoveHandlers) {
+    public OnBucketOrObjectDeleteEventListener(List<ObjectRemoveHandler> objectRemoveHandlers) {
         this.objectRemoveHandlers = objectRemoveHandlers;
     }
 
@@ -23,8 +24,14 @@ public class OnBucketDeleteEventListener implements ApplicationListener<OnBucket
     @Async
     public void onApplicationEvent(OnBucketDeleteEvent event) {
         String bucketName = event.getBucketInfo().name();
-        Cleaner cleaner = Cleaner.create();
         objectRemoveHandlers.forEach(handler ->
                 handler.handleBucketDelete(bucketName));
+    }
+
+    @EventListener
+    @Async
+    public void onObjectDelete(OnObjectDeleteEvent objectDeleteEvent) {
+        objectRemoveHandlers.forEach(handler ->
+                handler.handleObjectRemove(objectDeleteEvent.getObjectInfoDto()));
     }
 }
