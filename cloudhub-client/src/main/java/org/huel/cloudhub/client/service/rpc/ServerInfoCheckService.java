@@ -2,19 +2,22 @@ package org.huel.cloudhub.client.service.rpc;
 
 import io.grpc.ManagedChannel;
 import org.huel.cloudhub.rpc.GrpcServiceStubPool;
+import org.huel.cloudhub.server.DiskUsageInfo;
+import org.huel.cloudhub.server.NetworkUsageInfo;
 import org.huel.cloudhub.server.ServerHostInfo;
 import org.huel.cloudhub.server.ServerInfoSerializeHelper;
-import org.huel.cloudhub.server.rpc.server.SerializedFileServer;
-import org.huel.cloudhub.server.rpc.server.ServerStatusRequest;
-import org.huel.cloudhub.server.rpc.server.ServerStatusResponse;
-import org.huel.cloudhub.server.rpc.server.ServerStatusServiceGrpc;
+import org.huel.cloudhub.server.rpc.server.*;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 /**
  * @author RollW
  */
 @Service
 public class ServerInfoCheckService {
+    private static final int RECORDS = 50;
+
     private final ServerStatusServiceGrpc.ServerStatusServiceBlockingStub stub;
     private final FileServerChannelPool fileServerChannelPool;
     private final FileServerCheckService fileServerCheckService;
@@ -37,6 +40,30 @@ public class ServerInfoCheckService {
         return ServerInfoSerializeHelper.deserializeFrom(response.getStatus());
     }
 
+    public List<NetworkUsageInfo> getMetaServerNetRecords() {
+        ServerNetworkRecordResponse response = stub.requestServerNetworkRecord(
+                ServerStatusRecordRequest.newBuilder()
+                        .setRecordNum(RECORDS)
+                        .build()
+        );
+        return response.getNetsList()
+                .stream()
+                .map(ServerInfoSerializeHelper::deserializeFrom)
+                .toList();
+    }
+
+    public List<DiskUsageInfo> getMetaServerDiskRecords() {
+        ServerDiskRecordResponse response = stub.requestServerDiskRecord(
+                ServerStatusRecordRequest.newBuilder()
+                        .setRecordNum(RECORDS)
+                        .build()
+        );
+        return response.getDisksList()
+                .stream()
+                .map(ServerInfoSerializeHelper::deserializeFrom)
+                .toList();
+    }
+
     public ServerHostInfo getFileServerInfo(String serverId) {
         SerializedFileServer server = getServer(serverId);
         if (server == null) {
@@ -51,6 +78,48 @@ public class ServerInfoCheckService {
                 ServerStatusRequest.newBuilder().build()
         );
         return ServerInfoSerializeHelper.deserializeFrom(response.getStatus());
+    }
+
+    public List<DiskUsageInfo> getFileServerDiskRecords(String serverId) {
+        SerializedFileServer server = getServer(serverId);
+        if (server == null) {
+            return null;
+        }
+        ServerStatusServiceGrpc.ServerStatusServiceBlockingStub stub =
+                requireContainerStatusStub(server);
+        if (stub == null) {
+            return null;
+        }
+        ServerDiskRecordResponse response = stub.requestServerDiskRecord(
+                ServerStatusRecordRequest.newBuilder()
+                        .setRecordNum(RECORDS)
+                        .build()
+        );
+        return response.getDisksList()
+                .stream()
+                .map(ServerInfoSerializeHelper::deserializeFrom)
+                .toList();
+    }
+
+    public List<NetworkUsageInfo> getFileNetRecords(String serverId) {
+        SerializedFileServer server = getServer(serverId);
+        if (server == null) {
+            return null;
+        }
+        ServerStatusServiceGrpc.ServerStatusServiceBlockingStub stub =
+                requireContainerStatusStub(server);
+        if (stub == null) {
+            return null;
+        }
+        ServerNetworkRecordResponse response = stub.requestServerNetworkRecord(
+                ServerStatusRecordRequest.newBuilder()
+                        .setRecordNum(RECORDS)
+                        .build()
+        );
+        return response.getNetsList()
+                .stream()
+                .map(ServerInfoSerializeHelper::deserializeFrom)
+                .toList();
     }
 
     private SerializedFileServer getServer(String serverId) {

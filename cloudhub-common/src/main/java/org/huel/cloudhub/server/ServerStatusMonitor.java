@@ -59,10 +59,6 @@ public class ServerStatusMonitor {
         threadPool.shutdown();
     }
 
-    public ServerHostInfo getServerHostInfo() {
-        return mServerHostInfoDeque.peek();
-    }
-
     public Collection<ServerHostInfo> getRecent(int count) {
         int size = mServerHostInfoDeque.size();
         if (count >= size) {
