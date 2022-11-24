@@ -9,7 +9,7 @@
 import {ref, onMounted, getCurrentInstance} from 'vue'
 
 export default {
-  name: "EchartsBase",
+  name: "PieEchartsBase",
   components: {},
   setup() {
     const {proxy} = getCurrentInstance() // 获取全局配置项

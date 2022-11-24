@@ -75,7 +75,7 @@
 <script>
 
 import ContentBase from "@/components/ContentBase";
-import EchartsBase from "@/components/PieEchasrtsBase"
+import EchartsBase from "@/components/Echarts/PieEchasrtsBase"
 import {ref} from "vue";
 
 export default {
