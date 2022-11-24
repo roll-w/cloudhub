@@ -12,6 +12,16 @@
 
 **一定要保证`meta-server`最先运行**。
 
+
+### 配置修改
+
+修改位于`resource/`文件夹下的`cloudhub.conf`文件中的配置。
+
+### 部署说明
+
+打包后解压相应的`starter.tar.gz`压缩文件，运行位于`sbin`文件夹下的对应启动脚本，
+运行前注意修改配置以及脚本中的环境变量。
+
 ## 文档指引
 
 - [`file-server`工作流程说明](cloudhub-file-server/README.md)
