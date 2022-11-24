@@ -9,7 +9,7 @@
         </div>
         <div class="modal-body">
 
-          <form>
+          <form @submit.prevent="addBucket">
             <div class="mb-3">
               <label for="name" class="form-label">桶名称:</label>
 
@@ -69,6 +69,8 @@
 
 import {ElRadioButton, ElRadioGroup} from 'element-plus'
 import {ref} from 'vue'
+import $ from 'jquery'
+import url from '@/store/api'
 
 export default {
 
@@ -93,6 +95,19 @@ export default {
       } else {
         console.log("表单正常");
       }
+
+      $.ajax({
+        url:url.url_addBucket,
+        type:'post',
+        data:{
+        //  待定
+        },
+        success(){
+        //  Modal自动关闭
+        //  调用父组件方法刷新列表，建议放在一个组件
+        },
+        error(){}
+      })
 
     }
 

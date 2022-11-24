@@ -37,7 +37,7 @@
             </button>
           </div>
           <div class="btn-group" role="group" aria-label="Basic outlined example">
-            <button type="button" class="btn btn-danger">删除</button>
+            <button type="button" class="btn btn-danger" @click="deleteBucket(bucket)">删除</button>
           </div>
         </td>
       </tr>
@@ -56,7 +56,9 @@ import ContentBase from "@/components/ContentBase";
 import ModalAddBucket from "@/components/modal/ModalAddBucket";
 import ModalBucketAuthority from "@/components/modal/ModalBucketAuthority";
 import {useRouter} from 'vue-router'
-
+import {ref} from 'vue';
+import $ from 'jquery'
+import url from '@/store/api'
 export default {
   name: "BucketView",
   components: {
@@ -66,6 +68,7 @@ export default {
   },
   setup() {
     // 桶列表
+    let bucket = ref([]);
     let buckets = [
       {
         name: "bucket1",
@@ -87,9 +90,42 @@ export default {
       router.push('file')
     }
 
+    //具体对接修改相应属性
+    const getBucket =()=> {
+      $.ajax({
+        url: url.url_getBucket,
+        type: "get",
+
+        success(resp) {
+          bucket.value = resp;
+        },
+        error(resp){
+          console.log(resp)
+        }
+      })
+    }
+
+    getBucket();
+
+    const deleteBucket = (bucket)=>{
+      $.ajax({
+        url: url.url_deleteBucket,
+        type: "post",
+        data: {
+          bucket_id: bucket.id,
+        },
+        success(resp) {
+          if (resp.message === "removeSuccess"){
+            getBucket();
+          }
+        }
+      })
+    }
     return {
+      bucket,
       buckets,
-      checkFile
+      checkFile,
+      deleteBucket
     }
   }
 
