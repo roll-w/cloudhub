@@ -47,11 +47,6 @@ public class UserLoginController {
         return HttpResponseEntity.create(infoMessagePackage.toResponseBody());
     }
 
-    @PostMapping("/test")
-    public HttpResponseEntity<UserInfo> test(@RequestBody UserLoginRequest request) {
-        return HttpResponseEntity.success(request.toString());
-    }
-
     @GetMapping("/current")
     public HttpResponseEntity<UserInfo> current(HttpServletRequest request) {
         UserInfo userInfo = userService.getCurrentUser(request);
