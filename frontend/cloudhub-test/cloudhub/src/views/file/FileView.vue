@@ -1,10 +1,10 @@
 <template>
   <ContentBase>
     <div>
-      <button type="button" class="btn btn-outline-secondary" @click="back">返回桶列表</button>
-      <button type="button" class="btn btn-outline-primary" @click="getFile">+上传文件</button>
-      <button type="button" class="btn btn-outline-success" style="float: right">下载选中</button>
-      <button type="button" class="btn btn-outline-danger " style="float: right">删除选中</button>
+      <button type="button" class="btn btn-outline-secondary" @click="back" style="margin-right: 8px">返回桶列表</button>
+      <button type="button" class="btn btn-dark" @click="getFile" >上传文件</button>
+      <button type="button" class="btn btn-primary" style="margin-left: 870px">下载选中</button>
+      <button type="button" class="btn btn-danger " style="float: right">删除选中</button>
     </div>
     <hr>
     <table class="table table-hover" style="text-align: center ">
@@ -32,7 +32,7 @@
         <th scope="row">{{ file.fileSize }}</th>
         <th scope="row">
           <div class="d-grid gap-2 d-md-flex justify-content-center" role="group" aria-label="Basic outlined example">
-            <button type="button" class="btn btn-success">下载</button>
+            <button type="button" class="btn btn-primary">下载</button>
             <button type="button" class="btn btn-danger">删除</button>
           </div>
         </th>
@@ -100,11 +100,8 @@ export default {
 
     const getFile = () => {
       $.ajax({
-        url: "http://127.0.0.1:port/",
+        url: "",
         type: "get",
-        headers: {
-        //
-        },
         success(resp) {
          file.value = resp;
           console.log("The file was uploaded successfully")
@@ -115,10 +112,11 @@ export default {
       })
     }
 
+    getFile()
+
 
     return {
       files,
-      getFile,
       back
     }
   }

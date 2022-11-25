@@ -14,11 +14,11 @@
                          :to="{name:'cloudhub_index'}">用户主页
             </router-link>
           </li>
-<!--          <li class="nav-item">-->
-<!--            <router-link :class="route_name === 'file_index' ? 'nav-link active' :'nav-link' "-->
-<!--                         :to="{name:'file_index'}">文件管理-->
-<!--            </router-link>-->
-<!--          </li>-->
+          <li class="nav-item">
+            <router-link :class="route_name === 'file_index' ? 'nav-link active' :'nav-link' "
+                         :to="{name:'file_index'}">文件管理
+            </router-link>
+          </li>
           <li class="nav-item">
             <router-link :class="route_name === 'bucket_index' ? 'nav-link active' :'nav-link' "
                          :to="{name:'bucket_index'}">桶管理

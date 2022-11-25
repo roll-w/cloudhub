@@ -1,29 +1,56 @@
 <template>
   <ContentBase>
-    <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#addBucket">
-      +创建桶
+    <button type="button" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#addBucket">
+      创建桶
     </button>
-    <ModalAddBucket></ModalAddBucket>
+<!--// TODO: 创建modal  -->
+    <div class="modal fade" id="addBucket" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalLabel">创建</h5>
+          </div>
+          <div class="modal-body">
+
+            <form @submit.prevent="addBucket">
+              <div class="mb-3">
+                <label for="name" class="form-label">名称:</label>
+
+                <!-- 桶名称 -->
+                <input  type="text" class="form-control" id="name" placeholder="Name" >
+              </div>
+              <div class="mb-3">
+                <label for="name" class="form-label">策略:</label>
+                <input  type="text" class="form-control" id="name" placeholder="Visibility" >
+              </div>
+              <figure class="text-center">
+                PRIVATE or PUBLIC_READ or PUBLIC_READ_WRITE
+              </figure>
+              <div class="modal-footer">
+                <button style="margin-right: 5px" type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="submit" class="btn btn-primary" >添加</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <hr>
     <table class="table table-hover" style="text-align: center">
       <thead class="table-light">
       <tr>
-        <th scope="col">桶名称</th>
-        <th scope="col">存储用量</th>
-        <th scope="col">桶策略</th>
-        <th scope="col">对象数量</th>
-        <th scope="col">详情信息</th>
-        <th scope="col">编辑</th>
+        <th scope="col">名称</th>
+        <th scope="col">策略</th>
+        <th scope="col">详情</th>
+        <th scope="col">操作</th>
       </tr>
       </thead>
 
       <tbody>
       <tr v-for="bucket in buckets" :key="bucket.name">
         <td>{{ bucket.name }}</td>
-        <td>{{ bucket.storageUsed }}</td>
         <td>{{ bucket.tactic }}</td>
-        <td>{{ bucket.objectNum }}</td>
 
         <td>
           <div class="btn-group" role="group" aria-label="Basic outlined example">
@@ -32,7 +59,7 @@
         </td>
         <td>
           <div class="btn-group" role="group" aria-label="Basic outlined example">
-            <button type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#bucketAuthority">
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#bucketAuthority">
               权限
             </button>
           </div>
@@ -45,16 +72,36 @@
       </tbody>
     </table>
 
-    <!-- 修改桶的权限（把组件放在table标签之外是为了免除table的CSS样式对该组件的内容产生影响） -->
-    <ModalBucketAuthority></ModalBucketAuthority>
+    <div class="modal fade" id="bucketAuthority" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalLabel">修改桶权限</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+
+            <form @submit.prevent="addBucket">
+
+              <div class="mb-3">
+                <label for="name" class="form-label">策略:</label>
+                <input  type="text" class="form-control" id="name" placeholder="PRIVATE or PUBLIC_READ or PUBLIC_READ_WRITE" >
+              </div>
+              <div class="modal-footer">
+                <button style="margin-right: 5px" type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="submit" class="btn btn-primary" >添加</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
 
   </ContentBase>
 </template>
 
 <script>
 import ContentBase from "@/components/common/ContentBase";
-import ModalAddBucket from "@/components/modal/ModalAddBucket";
-import ModalBucketAuthority from "@/components/modal/ModalBucketAuthority";
 import {useRouter} from 'vue-router'
 import {ref} from 'vue';
 import $ from 'jquery'
@@ -63,12 +110,13 @@ export default {
   name: "BucketView",
   components: {
     ContentBase,
-    ModalAddBucket,
-    ModalBucketAuthority
   },
   setup() {
-    // 桶列表
+    //接口
     let bucket = ref([]);
+    let bucketName = ref([]);
+    let bucketVisibility= ref([]);
+
     let buckets = [
       {
         name: "bucket1",
@@ -88,6 +136,17 @@ export default {
 
     const checkFile = () => {
       router.push('file')
+      //获取指定桶的文件信息
+      $.ajax({
+        url: '',
+        type: "get",
+        success() {
+        //  file = resp
+        },
+        error(resp){
+          console.log(resp)
+        }
+      });
     }
 
     //具体对接修改相应属性
@@ -102,7 +161,7 @@ export default {
         error(resp){
           console.log(resp)
         }
-      })
+      });
     }
 
     getBucket();
@@ -120,15 +179,43 @@ export default {
           }
         }
       })
+    };
+
+
+    //获取Value，创建桶
+    const addBucket =() => {
+
+      $.ajax({
+        url: url.url_addBucket,
+        type: "post",
+        contentType: "application/json;charset=UTF-8",
+        data:JSON.stringify({
+          bucketName:bucketName.value,
+          bucketVisibility:bucketVisibility,
+        }),
+        success(resp) {
+          if (resp.message === "SUCCESS") {
+              console.log("刷新桶列表")
+              //modal自动关闭待修复
+              // getBucket()
+          }
+        },
+        error(resp){
+          console.log(resp)
+        }
+      });
     }
+
+
+
     return {
       bucket,
       buckets,
       checkFile,
-      deleteBucket
+      deleteBucket,
+      addBucket,
     }
   }
-
 }
 </script>
 
