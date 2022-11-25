@@ -49,7 +49,7 @@
 </template>
 
 <script>
-import ContentBase from "@/components/ContentBase";
+import ContentBase from "@/components/common/ContentBase";
 import ModalFileInfo from "@/components/modal/ModalFileInfo";
 import {useRouter} from "vue-router";
 import {ref} from "vue";

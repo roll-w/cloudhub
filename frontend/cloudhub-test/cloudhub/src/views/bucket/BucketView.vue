@@ -52,7 +52,7 @@
 </template>
 
 <script>
-import ContentBase from "@/components/ContentBase";
+import ContentBase from "@/components/common/ContentBase";
 import ModalAddBucket from "@/components/modal/ModalAddBucket";
 import ModalBucketAuthority from "@/components/modal/ModalBucketAuthority";
 import {useRouter} from 'vue-router'

@@ -169,7 +169,7 @@
 </template>
 
 <script>
-import ContentBase from "@/components/ContentBase";
+import ContentBase from "@/components/common/ContentBase";
 import Img from "@/assets/images/home.png"
 
 export default {

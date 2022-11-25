@@ -249,7 +249,7 @@
 
 <script>
 
-import ContentBase from "@/components/ContentBase";
+import ContentBase from "@/components/common/ContentBase";
 import PieEchartsBase from "@/components/echarts/PieEchasrtsBase"
 import {ref} from "vue";
 

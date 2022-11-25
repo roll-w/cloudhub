@@ -275,7 +275,7 @@
 </template>
 
 <script>
-import ContentBase from "@/components/ContentBase";
+import ContentBase from "@/components/common/ContentBase";
 import {ref} from "vue";
 
 export default {

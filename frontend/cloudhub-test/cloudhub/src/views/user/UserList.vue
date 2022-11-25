@@ -41,7 +41,7 @@
 </template>
 
 <script>
-import ContentBase from "@/components/ContentBase";
+import ContentBase from "@/components/common/ContentBase";
 import ModalAddUser from "@/components/modal/ModalAddUser";
 
 export default {
