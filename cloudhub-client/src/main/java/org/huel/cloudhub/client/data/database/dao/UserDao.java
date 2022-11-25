@@ -43,7 +43,7 @@ public abstract class UserDao {
     @Delete
     public abstract void delete(List<User> users);
 
-    @Query("SELECT user_id, user_name, user_email FROM user_table")
+    @Query("SELECT user_id, user_name, user_email, user_role FROM user_table")
     public abstract List<UserInfo> userInfos();
 
     @Query("SELECT * FROM user_table WHERE user_id = {id}")

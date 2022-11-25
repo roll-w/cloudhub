@@ -59,7 +59,7 @@ public class UserLoginController {
         return HttpResponseEntity.success(userInfo);
     }
 
-    @GetMapping("/logout")
+    @PostMapping("/logout")
     public HttpResponseEntity<String> logout(HttpServletRequest request) {
         userService.logout(request);
         return HttpResponseEntity.success();
