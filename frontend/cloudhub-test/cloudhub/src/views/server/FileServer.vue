@@ -217,7 +217,7 @@
                 </div>
 
                 <button type="button" class="btn btn-primary" data-bs-toggle="modal" :data-bs-target="'#ModalNode' + server.serverId">
-                  节点信息
+                  容器信息
                 </button>
 
                 <div class="modal fade" :id="'ModalNode' + server.serverId" tabindex="-1" >
