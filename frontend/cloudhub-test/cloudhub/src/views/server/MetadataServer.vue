@@ -1,172 +1,319 @@
 <template>
-  <ContentBase>
-    <ul class="list-group list-group-flush">
-      <li class="list-group-item font">
-        Runtime
-      </li>
+  <div class="col">
+    <div class="row">
+      <div class="col">
+        <ContentBase style="width: 480px; margin-left: 242px">
+          <div>Runtime</div>
+          <hr>
+          <!-- 展示运行环境信息 -->
+          <div class="col">
+            <div class="row">
+              <div class="col">
+                host name
+              </div>
+              <div class="col">
+                {{ data.env.hostName }}
+              </div>
+            </div>
+            <div class="row">
+              <div class="col">
+                host address
+              </div>
+              <div class="col">
+                {{ data.env.hostAddress }}
+              </div>
+            </div>
+            <div class="row">
+              <div class="col">
+                run user
+              </div>
+              <div class="col">
+                {{ data.env.runUser }}
+              </div>
+            </div>
+<!--            <div class="row">-->
+<!--              <div class="col">-->
+<!--                user home-->
+<!--              </div>-->
+<!--              <div class="col">-->
+<!--                {{ data.env.userHome }}-->
+<!--              </div>-->
+<!--            </div>-->
+<!--            <div class="row">-->
+<!--              <div class="col">-->
+<!--                work directory-->
+<!--              </div>-->
+<!--              <div class="col">-->
+<!--                {{ data.env.workDir }}-->
+<!--              </div>-->
+<!--            </div>-->
+<!--            <div class="row">-->
+<!--              <div class="col">-->
+<!--                java version-->
+<!--              </div>-->
+<!--              <div class="col">-->
+<!--                {{ data.env.javaVersion }}-->
+<!--              </div>-->
+<!--            </div>-->
+<!--            <div class="row">-->
+<!--              <div class="col">-->
+<!--                java home-->
+<!--              </div>-->
+<!--              <div class="col">-->
+<!--                {{ data.env.javaHome }}-->
+<!--              </div>-->
+<!--            </div>-->
+<!--            <div class="row">-->
+<!--              <div class="col">-->
+<!--                OS name-->
+<!--              </div>-->
+<!--              <div class="col">-->
+<!--                {{ data.env.osName }}-->
+<!--              </div>-->
+<!--            </div>-->
+<!--            <div class="row">-->
+<!--              <div class="col">-->
+<!--                OS version-->
+<!--              </div>-->
+<!--              <div class="col">-->
+<!--                {{ data.env.osVersion }}-->
+<!--              </div>-->
+<!--            </div>-->
 
-      <!-- 展示服务器负载状态、CPU使用率、内存使用率与磁盘使用率 -->
-      <li class="list-group-item">
-
+            <div class="row">
+              <div class="col">
+                OS architecture
+              </div>
+              <div class="col">
+                {{ data.env.osArch }}
+              </div>
+            </div>
+          </div>
+        </ContentBase>
+      </div>
+      <div class="col">
+        <ContentBase style="width: 480px; margin-right: 242px">
+          <div>JVM</div>
+          <hr>
+          <div class="col">
+            <div class="row">
+              <div class="col">
+                total (byte)
+              </div>
+              <div class="col">
+                {{ data.jvm.total }}
+              </div>
+            </div>
+            <div class="row">
+              <div class="col">
+                max (byte)
+              </div>
+              <div class="col">
+                {{ data.jvm.max }}
+              </div>
+            </div>
+            <div class="row">
+              <div class="col">
+                free (byte)
+              </div>
+              <div class="col">
+                {{ data.jvm.free }}
+              </div>
+            </div>
+            <div class="row">
+              <div class="col">
+                used (byte)
+              </div>
+              <div class="col">
+                {{ data.jvm.used }}
+              </div>
+            </div>
+          </div>
+        </ContentBase>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col">
+        <ContentBase style="width: 480px; margin-left: 242px">
+          <div>System Memory</div>
+          <hr>
+          <div class="col">
+            <div class="row">
+              <div class="col">
+                total (byte)
+              </div>
+              <div class="col">
+                {{ data.mem.total }}
+              </div>
+            </div>
+            <div class="row">
+              <div class="col">
+                used (byte)
+              </div>
+              <div class="col">
+                {{ data.mem.used }}
+              </div>
+            </div>
+            <div class="row">
+              <div class="col">
+                free (byte)
+              </div>
+              <div class="col">
+                {{ data.mem.free }}
+              </div>
+            </div>
+            <div class="row">
+              <div class="col">
+                write (byte/s)
+              </div>
+              <div class="col">
+                {{ data.mem.write }}
+              </div>
+            </div>
+          </div>
+        </ContentBase>
+      </div>
+      <div class="col">
+        <ContentBase style="width: 480px; margin-right: 242px">
+          <div>System Disk</div>
+          <hr>
+          <div class="col">
+            <div class="row">
+              <div class="col">
+                total (byte)
+              </div>
+              <div class="col">
+                {{ data.disk.total }}
+              </div>
+            </div>
+            <div class="row">
+              <div class="col">
+                free (byte)
+              </div>
+              <div class="col">
+                {{ data.disk.free }}
+              </div>
+            </div>
+            <div class="row">
+              <div class="col">
+                read (byte/s)
+              </div>
+              <div class="col">
+                {{ data.disk.read }}
+              </div>
+            </div>
+            <div class="row">
+              <div class="col">
+                write (byte/s)
+              </div>
+              <div class="col">
+                {{ data.disk.write }}
+              </div>
+            </div>
+          </div>
+        </ContentBase>
+      </div>
+    </div>
+    <!-- CPU运行信息 -->
+    <div class="row">
+      <ContentBase style="width: 1000px">
+        <div>CPU 16 核</div>
+        <hr>
         <div class="row">
           <div class="col">
-            <EchartsBase><!-- 负载状态 --></EchartsBase>
+            <PieEchartsBase :info="info" style="width: 200px; height: 200px;"></PieEchartsBase>
           </div>
           <div class="col">
-            <EchartsBase><!-- CPU --></EchartsBase>
+            <PieEchartsBase style="width: 200px; height: 200px;"></PieEchartsBase>
           </div>
           <div class="col">
-            <EchartsBase><!-- RAM --></EchartsBase>
+            <PieEchartsBase style="width: 200px; height: 200px;"></PieEchartsBase>
           </div>
           <div class="col">
-            <EchartsBase><!-- DISK --></EchartsBase>
+            <PieEchartsBase style="width: 200px; height: 200px;"></PieEchartsBase>
           </div>
         </div>
+      </ContentBase>
+    </div>
+    <!-- 网络信息 -->
+    <div class="row">
+      <ContentBase style="width: 1000px">
+        <div>Network</div>
+        <hr>
 
-      </li>
-    </ul>
-  </ContentBase>
-  >
-
-
-  <ContentBase class="clsOne">
-
-    <ul class="list-group list-group-flush">
-      <li class="list-group-item font">
-        Dockers
-      </li>
-      <!-- 展示服务器负载状态、CPU使用率、内存使用率与磁盘使用率 -->
-      <li class="list-group-item">
-        <table class="table table-hover">
-          <thead style="color: #909399">
-          <tr>
-            <!-- 参考博客:https://blog.csdn.net/weixin_40482816/article/details/117980908 -->
-            <th scope="col">Container ID</th>
-            <th scope="col">Name</th>
-            <th scope="col">CPU</th>
-            <th scope="col">MEM USAGE / LIMIT</th>
-            <th scope="col">MEM</th>
-            <th scope="col">NET I/O</th>
-            <th scope="col">BLOCK I/O</th>
-            <th scope="col">PIDS</th>
-          </tr>
-          </thead>
-          <tbody>
-          <tr v-for="docker in server.dockerList" :key="docker.id">
-            <td>{{ docker.id }}</td>
-            <td>{{ docker.name }}</td>
-            <td>{{ (docker.cpuRatio * 100).toFixed(2) + '%' }}</td>
-            <td>{{ docker.memMessage.memUsage + 'MiB / ' + docker.memMessage.memLimit + 'MiB' }}</td>
-            <td>{{ (docker.memRatio * 100).toFixed(2) + '%' }}</td>
-            <td>{{ docker.netIO.netIn + 'B / ' + docker.netIO.netOut + 'B' }}</td>
-            <td>{{ docker.blockIO.blockIn + 'B / ' + docker.blockIO.blockOut }}</td>
-            <td>{{ docker.pids }}</td>
-          </tr>
-          </tbody>
-        </table>
-      </li>
-    </ul>
-
-  </ContentBase>
-
+      </ContentBase>
+    </div>
+  </div>
 
 </template>
 
 <script>
 
 import ContentBase from "@/components/ContentBase";
-import EchartsBase from "@/components/Echarts/PieEchasrtsBase"
+import PieEchartsBase from "@/components/Echarts/PieEchasrtsBase"
 import {ref} from "vue";
 
 export default {
   name: "FileView",
   components: {
+    PieEchartsBase,
     ContentBase,
-    EchartsBase,
   },
   setup() {
-    const dataOne = {title: '负载状态', used: 10, total: 20}
+    // const info = reactive({title:'使用率',total:1234,used:123})
+
+
 
     // 元数据服务器信息
-    const server = ref(
-        /*
-     * 元数据服务器
-     */
-        {
-          // 服务器最基本的信息
-          serverId: "1", // 服务器ID
-          serverIp: "192.168.10.101", // 服务器IP地址
+    const data = ref({
+      // CPU 返回使用率的百分比
+      "cpu": {
+        "cpuCores": 16,// CPU核数
+        "sysUsed": 3.16,// 系统使用率
+        "userUsed": 14.81,// 用户使用率
+        "wait": 0.0,// IO等待率
+        "free": 80.97// 空闲率
+      },
+      "jvm": {// JVM信息 均为字节数
+        "total": 71303168,// JVM总内存
+        "max": 4240441344,
+        "free": 35657160,
+        "used": 35646008
+      },
+      "mem": {// 系统内存 均为字节数
+        "total": 16953597952,
+        "used": 14245462016,
+        "free": 2708135936,
+        "write": 1122// 写速率
+      },
+      "disk": {// 磁盘信息
+        "total": 330966233088,// 当前分区总空间
+        "free": 86880907264,// 剩余空间
+        "read": 16384,// 读速率 均为bytes/s
+        "write": 1234// 写速率
+      },
+      "net": {// 网络信息 均为bytes/s
+        "recv": 18178.0,// 接收
+        "sent": 450020.0,// 发送
+        "speed": 1000000000// 理论最大速度
+      },
+      "env": {// 运行环境信息
+        "hostName": "Dawn",// 主机名
+        "hostAddress": "10.100.159.31",
+        "runUser": "user",
+        "userHome": "C:\\Users\\user",
+        "workDir": "D:\\Code\\Java\\cloudhub",
+        "javaVersion": "17.0.1",
+        "javaHome": "D:\\tools\\jdk17",
+        "osName": "Windows 10",
+        "osVersion": "10.0",
+        "osArch": "amd64"
+      },
+    })
 
-          // 服务器运行信息
-          serverInfo: {
-            coreNum: 3, // 服务器核数
-            ram: 4, // 服务器总内存（GB）
-            systemDisk: 100, // 系统盘容量（GB）（与下述"totalMB"相对应）
-            cloudDesk: "ESSD", // 阿里云云盘: ESSD或SSD
-            address: "河南", // 服务器所在地
-          },
-
-          // 服务器磁盘使用信息
-          diskInfo: {
-            // 磁盘信息
-            totalMB: 100 * 1024, // 总容量（MB）（与上述“systemDisk”相对应）
-            usedMB: 12345,  // 已使用容量（MB）
-          },
-
-          // 服务器每个CPU的使用率(列表长度与serverInfo.coreNum的值相对性)
-          coreList: [
-            {
-              coreId: 1,
-              coreUsage: 0.4567
-            },
-            {
-              coreId: 2,
-              coreUsage: 0.1234
-            },
-            {
-              coreId: 3,
-              coreUsage: 0.6666
-            },
-          ],
-
-          // 一个服务器中可以有多个容器: 下述为某个服务器的容器列表
-          dockerList: [
-            {
-              id: "9253881a6eef", // CONTAINER ID：容器ID
-              name: "stress", // NAME：容器名称
-              cpuRatio: 1.9799, // CPU %：容器使用的主机 CPU百分比
-              memMessage: {memUsage: 197.7, memLimit: 256},// MEM USAGE / LIMIT：容器使用的总内存、以及允许使用的内存总量
-              memRatio: 0.7724, // MEM %：容器所使用的内存百分比
-              netIO: {netIn: 656, netOut: 0}, // NET I/O：容器通过网络接口接收和发送的数据量（单位: 字节B）
-              blockIO: {blockIn: 0, blockOut: 0},// BLOCK I/O：容器从主机上的块设备写入和的读取数据量（单位: 字节B）
-              pids: 5 // PIDS：容器创建的进程或线程数
-            },
-            {
-              id: "4156881a6e2a", // CONTAINER ID：容器ID
-              name: "stress", // NAME：容器名称
-              cpuRatio: 0.888, // CPU %：容器使用的主机 CPU百分比
-              memMessage: {memUsage: 197.7, memLimit: 256},// MEM USAGE / LIMIT：容器使用的总内存、以及允许使用的内存总量
-              memRatio: 0.7724, // MEM %：容器所使用的内存百分比
-              netIO: {netIn: 456, netOut: 0}, // NET I/O：容器通过网络接口接收和发送的数据量
-              blockIO: {blockIn: 1, blockOut: 0},// BLOCK I/O：容器从主机上的块设备写入和的读取数据量
-              pids: 6 // PIDS：容器创建的进程或线程数
-            },
-            {
-              id: "9253881a1155", // CONTAINER ID：容器ID
-              name: "stress", // NAME：容器名称
-              cpuRatio: 1.234, // CPU %：容器使用的主机 CPU百分比
-              memMessage: {memUsage: 197.7, memLimit: 256},// MEM USAGE / LIMIT：容器使用的总内存、以及允许使用的内存总量
-              memRatio: 0.7724, // MEM %：容器所使用的内存百分比
-              netIO: {netIn: 656, netOut: 0}, // NET I/O：容器通过网络接口接收和发送的数据量
-              blockIO: {blockIn: 0, blockOut: 2},// BLOCK I/O：容器从主机上的块设备写入和的读取数据量
-              pids: 8 // PIDS：容器创建的进程或线程数
-            },
-          ],
-        },
-    )
     return {
-      dataOne,
-      server
+      data,
+      // info
     }
   }
 }
@@ -174,15 +321,7 @@ export default {
 </script>
 
 <style scoped>
-div.clsOne {
-  margin-top: 1px;
-}
-
-div.clsTwo {
-  margin-top: 25px;
-}
-
 .font {
-  font-size: 20px;
+  font-size: x-large;
 }
 </style>

@@ -137,7 +137,7 @@
                     宕机服务器
                     <br>
                     <br>
-                    <span>{{ downServer }}</span>
+                    <span class="font">{{ downServer }}</span>
                   </div>
                 </div>
               </div>
@@ -163,18 +163,19 @@
       </div>
     </div>
   </ContentBase>
+  <br>
+  <br>
+  <br>
 </template>
 
 <script>
 import ContentBase from "@/components/ContentBase";
-import CategoryEchartsBase from "@/components/Echarts/CategoryEchartsBase";
 import Img from "@/assets/images/home.png"
 
 export default {
   name: 'HomeView',
   components: {
     ContentBase,
-    CategoryEchartsBase
   },
 
   setup() {

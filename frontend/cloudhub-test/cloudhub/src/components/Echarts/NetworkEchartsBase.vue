@@ -2,7 +2,7 @@
   <!-- 图表的大小(width与height)在调用该组件时定义 -->
   <div ref="myRef" data-bs-toggle="tooltip" data-bs-placement="top"
        title="">
-<!--    {{ data.title }}-->
+
   </div>
 </template>
 
@@ -10,8 +10,7 @@
 import {ref, onMounted, getCurrentInstance} from 'vue'
 
 export default {
-  name: "PieEchartsBase",
-  props:['info'],
+  name: "NetworkEchartsBase",
   setup() {
     const {proxy} = getCurrentInstance() // 获取全局配置项
     const myRef = ref(null) // 获取dom实例
@@ -24,6 +23,7 @@ export default {
       // 基于准备好的dom，初始化echarts实例
       const myChart = proxy.$echarts.init(myRef.value)
 
+      // 变量
       let total = 100 // 总量
       let used = 30
 
@@ -38,7 +38,7 @@ export default {
             color: '#3a99ef',
             fontSize: '20'
           },
-          subtext: '负载状态',  // 饼状图名称
+          subtext: '负载状态',  //
           subtextStyle: {
             fontWeight: 'normal',
             color: '#000',
@@ -103,7 +103,7 @@ export default {
     }
 
     return {
-      myRef,
+      myRef
     }
   }
 }

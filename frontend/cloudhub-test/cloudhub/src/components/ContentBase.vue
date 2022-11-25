@@ -1,5 +1,6 @@
 <template>
-  <div class="container content-field" style="width: 1000px">
+  <!--  style="width: 1000px" -->
+  <div class="container content-field">
     <div class="card">
       <div class="card-body">
         <slot>
