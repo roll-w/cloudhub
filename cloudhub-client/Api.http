@@ -90,6 +90,7 @@ Content-Disposition: form-data; name="object"; filename="test.jpg"
 < ../test.jpg
 --CloudhubClient--
 
+
 ### 获取对象
 
 GET {{url}}/api/object/v1/test/testdir/test.jpg
@@ -127,6 +128,10 @@ Content-Type: application/json
     "x-cos-test-header"
   ]
 }
+
+### 查看对象版本信息
+
+GET {{url}}/api/object/version/get?bucketName=test&objectName=/testdir/test.jpg
 
 ### 管理员获取所有桶信息
 

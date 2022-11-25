@@ -3,6 +3,8 @@ server:
     session:
       cookie:
         name: cloudhub_session
+  tomcat:
+    connection-timeout: 30000
 
 logging:
   charset:
@@ -23,7 +25,6 @@ spring:
       mail.smtp.starttls.enable: true
       mail.smtp.starttls.required: true
       mail.smtp.ssl.enable: true
-
   servlet:
     multipart:
       enabled: true
@@ -34,6 +35,7 @@ spring:
       matching-strategy: ant_path_matcher
   cache:
     type: caffeine
+
 
 web-url:
   backend-url: http://localhost:${server.port}
