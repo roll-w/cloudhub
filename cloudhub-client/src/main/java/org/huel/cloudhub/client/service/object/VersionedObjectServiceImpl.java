@@ -73,6 +73,15 @@ public class VersionedObjectServiceImpl implements VersionedObjectService,
     }
 
     @Override
+    public @Nullable VersionedObject getObjectVersionOf(String bucketName, String objectName, long version) {
+        Validate.notEmpty(objectName, "objectName cannot be null");
+        Validate.notEmpty(bucketName, "bucketName cannot be null");
+        return versionedObjectRepository.getVersionedObject(
+                bucketName,
+                objectName, version);
+    }
+
+    @Override
     public List<VersionedObject> getObjectVersions(String bucketName, String objectName) {
         Validate.notNull(bucketName, "bucketName cannot be null");
         Validate.notNull(objectName, "objectName cannot be null");

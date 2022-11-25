@@ -7,7 +7,9 @@ import org.huel.cloudhub.client.data.database.repository.FileObjectStorageReposi
 import org.huel.cloudhub.client.data.dto.object.ObjectInfo;
 import org.huel.cloudhub.client.data.dto.object.ObjectInfoDto;
 import org.huel.cloudhub.client.data.entity.object.FileObjectStorage;
+import org.huel.cloudhub.client.event.object.OnNewlyObjectEvent;
 import org.huel.cloudhub.client.event.object.OnObjectDeleteEvent;
+import org.huel.cloudhub.client.event.object.OnObjectRenameEvent;
 import org.huel.cloudhub.client.service.rpc.ClientFileDownloadService;
 import org.huel.cloudhub.client.service.rpc.ClientFileUploadService;
 import org.huel.cloudhub.common.ErrorCode;
@@ -79,10 +81,17 @@ public class ObjectServiceImpl implements ObjectService, ObjectRemoveHandler {
                                            String objectName,
                                            long fileSize,
                                            String fileId) {
+        FileObjectStorage old = repository.getById(bucketName, objectName);
+        if (old != null && old.getFileId().equals(fileId)) {
+            return old;
+        }
         FileObjectStorage storage = new FileObjectStorage(
                 bucketName, objectName, fileId,
                 fileSize, System.currentTimeMillis());
         repository.save(storage);
+        OnNewlyObjectEvent event =
+                new OnNewlyObjectEvent(ObjectInfoDto.from(storage));
+        eventPublisher.publishEvent(event);
         return storage;
     }
 
@@ -108,6 +117,24 @@ public class ObjectServiceImpl implements ObjectService, ObjectRemoveHandler {
     }
 
     @Override
+    public void getObjectData(ObjectInfo objectInfo, OutputStream stream, long startBytes, long endBytes) {
+        validateObjectInfo(objectInfo);
+        FileObjectStorage storage = repository.getById(objectInfo.bucketName(), objectInfo.objectName());
+        if (storage == null) {
+            throw new ObjectRuntimeException(ErrorCode.ERROR_DATA_NOT_EXIST,
+                    "Object not exist");
+        }
+        CountDownLatch latch = new CountDownLatch(1);
+        clientFileDownloadService.downloadFile(stream, storage.getFileId(),
+                startBytes, endBytes, success -> latch.countDown());
+        try {
+            latch.await();
+        } catch (InterruptedException e) {
+            throw new ObjectRuntimeException(e);
+        }
+    }
+
+    @Override
     public MessagePackage<Void> deleteObject(ObjectInfo objectInfo) {
         validateObjectInfo(objectInfo);
         FileObjectStorage storage = repository.getById(objectInfo.bucketName(), objectInfo.objectName());
@@ -115,6 +142,8 @@ public class ObjectServiceImpl implements ObjectService, ObjectRemoveHandler {
             return new MessagePackage<>(ErrorCode.ERROR_DATA_NOT_EXIST,
                     "Object not exist", null);
         }
+        OnObjectDeleteEvent event = new OnObjectDeleteEvent(ObjectInfoDto.from(storage));
+        eventPublisher.publishEvent(event);
         repository.delete(storage);
         return new MessagePackage<>(ErrorCode.SUCCESS, null);
     }
@@ -128,6 +157,11 @@ public class ObjectServiceImpl implements ObjectService, ObjectRemoveHandler {
     @Override
     public List<ObjectInfoDto> getObjectsInBucket(String bucketName) {
         return repository.getObjectInfoDtosByBucketName(bucketName);
+    }
+
+    @Override
+    public ObjectInfoDto getObjectInBucket(String bucketName, String objectName) {
+        return ObjectInfoDto.from(repository.getById(bucketName, objectName));
     }
 
     @Override
@@ -150,7 +184,7 @@ public class ObjectServiceImpl implements ObjectService, ObjectRemoveHandler {
         storage.setObjectName(newName);
         repository.update(storage);
         ObjectInfoDto dto = ObjectInfoDto.from(storage);
-        OnObjectDeleteEvent event = new OnObjectDeleteEvent(dto);
+        OnObjectRenameEvent event = new OnObjectRenameEvent(oldInfo, newName);
         eventPublisher.publishEvent(event);
         return new MessagePackage<>(ErrorCode.SUCCESS, dto);
     }

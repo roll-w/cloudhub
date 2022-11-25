@@ -51,6 +51,50 @@ public class ClientFileDownloadService {
         stub.downloadBlocks(request, new DownloadBlockStreamObserver(callback, outputStream));
     }
 
+
+    public void downloadFile(OutputStream outputStream, String fileId,
+                             long startBytes, long endBytes,
+                             ClientFileDownloadCallback callback) throws FileDownloadingException {
+        FileStatusResponse response =
+                clientFileStatusService.getFileStatus(fileId);
+        if (response.getServersList().isEmpty()) {
+            throw new FileDownloadingException(FileDownloadingException.Type.SERVER_DOWN,
+                    "No active servers");
+        }
+        SerializedFileServer first = response.getServersList().get(0);
+        DownloadBlockRequest request = buildFirstRequest(first, response.getMasterId(),
+                fileId, startBytes, endBytes);
+        BlockDownloadServiceGrpc.BlockDownloadServiceStub stub =
+                requireStub(first);
+        logger.debug("Start downloading file, id={}.", fileId);
+        stub.downloadBlocks(request, new DownloadBlockStreamObserver(callback, outputStream));
+    }
+
+    private DownloadBlockRequest buildFirstRequest(SerializedFileServer server, String masterId, String fileId,
+                                                   long startBytes, long endBytes) {
+        DownloadBytesSegment bytesSegment = DownloadBytesSegment.newBuilder()
+                .setStartBytes(startBytes)
+                .setEndBytes(endBytes)
+                .build();
+        if (!server.getId().equals(masterId)) {
+            return DownloadBlockRequest.newBuilder()
+                    .setFileId(fileId)
+                    .setSegmentInfo(DownloadBlocksSegmentInfo
+                            .newBuilder()
+                            .setBytes(bytesSegment)
+                            .build())
+                    .setSourceId(masterId)
+                    .build();
+        }
+        return DownloadBlockRequest.newBuilder()
+                .setFileId(fileId)
+                .setSegmentInfo(DownloadBlocksSegmentInfo
+                        .newBuilder()
+                        .setBytes(bytesSegment)
+                        .build())
+                .build();
+    }
+
     private DownloadBlockRequest buildFirstRequest(SerializedFileServer server, String masterId, String fileId) {
         if (!server.getId().equals(masterId)) {
             return DownloadBlockRequest.newBuilder()
@@ -123,7 +167,12 @@ public class ClientFileDownloadService {
             List<DownloadBlockData> dataList = downloadBlocksInfo.getDataList();
             logger.debug("Receive download response:index={}, count={}, dataBlock size={}",
                     downloadBlocksInfo.getIndex(), receiveCount.get(), dataList.size());
-            writeTo(dataList, outputStream, calcValidBytes(receiveCount.get()));
+            try {
+                writeTo(dataList, outputStream, calcValidBytes(receiveCount.get()));
+            } catch (IOException e) {
+                logger.debug("Download error.", e);
+                return;
+            }
 
             receiveCount.incrementAndGet();
         }
@@ -168,37 +217,29 @@ public class ClientFileDownloadService {
 
     }
 
-    private void writeTo(List<DownloadBlockData> downloadBlockData, OutputStream stream, long validBytes) {
+    private void writeTo(List<DownloadBlockData> downloadBlockData, OutputStream stream, long validBytes) throws IOException {
         if (validBytes < 0) {
             writeFully(downloadBlockData, stream);
             return;
         }
 
-        try {
-            final int size = downloadBlockData.size() - 1;
-            int index = 0;
-            for (DownloadBlockData downloadBlockDatum : downloadBlockData) {
-                byte[] data = downloadBlockDatum.getData().toByteArray();
-                long len = index == size ? validBytes : -1;
-                writeOffset(stream, data, len);
-                index++;
-            }
-            stream.flush();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        final int size = downloadBlockData.size() - 1;
+        int index = 0;
+        for (DownloadBlockData downloadBlockDatum : downloadBlockData) {
+            byte[] data = downloadBlockDatum.getData().toByteArray();
+            long len = index == size ? validBytes : -1;
+            writeOffset(stream, data, len);
+            index++;
         }
+        stream.flush();
     }
 
-    private void writeFully(List<DownloadBlockData> downloadBlockData, OutputStream stream) {
-        try {
-            for (DownloadBlockData downloadBlockDatum : downloadBlockData) {
-                byte[] data = downloadBlockDatum.getData().toByteArray();
-                writeOffset(stream, data, -1);
-            }
-            stream.flush();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+    private void writeFully(List<DownloadBlockData> downloadBlockData, OutputStream stream) throws IOException {
+        for (DownloadBlockData downloadBlockDatum : downloadBlockData) {
+            byte[] data = downloadBlockDatum.getData().toByteArray();
+            writeOffset(stream, data, -1);
         }
+        stream.flush();
     }
 
     private void writeOffset(OutputStream stream, byte[] data, long len) throws IOException {

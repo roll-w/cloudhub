@@ -17,11 +17,15 @@ public interface ObjectService {
 
     void getObjectData(ObjectInfo objectInfo, OutputStream stream);
 
+    void getObjectData(ObjectInfo objectInfo, OutputStream stream, long startBytes, long endBytes);
+
     MessagePackage<Void> deleteObject(ObjectInfo objectInfo);
 
     MessagePackage<Void> clearBucketObjects(String bucketName);
 
     List<ObjectInfoDto> getObjectsInBucket(String bucketName);
+
+    ObjectInfoDto getObjectInBucket(String bucketName, String objectName);
 
     MessagePackage<Void> setObjectFileId(String bucketName, String objectName, String fileId);
 

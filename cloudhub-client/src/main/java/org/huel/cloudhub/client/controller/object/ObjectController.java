@@ -1,6 +1,7 @@
 package org.huel.cloudhub.client.controller.object;
 
 import org.huel.cloudhub.client.data.dto.object.ObjectInfo;
+import org.huel.cloudhub.client.data.dto.object.ObjectInfoDto;
 import org.huel.cloudhub.client.data.dto.object.ObjectInfoVo;
 import org.huel.cloudhub.client.data.dto.object.ObjectRenameRequest;
 import org.huel.cloudhub.client.data.dto.user.UserInfo;
@@ -80,10 +81,22 @@ public class ObjectController {
         if (metadata != null) {
             metadata.forEach(response::setHeader);
         }
-        objectService.getObjectData(objectInfo, response.getOutputStream());
-
+        BytesRange range = tryGetsRange(request);
+        response.setHeader("Accept-Ranges", "bytes");
         applicationEventPublisher.publishEvent(
                 new ObjectGetRequestEvent(objectInfo));
+        if (range != null) {
+            ObjectInfoDto objectInfoDto = objectService.getObjectInBucket(bucketName, objectName);
+            response.setStatus(HttpServletResponse.SC_PARTIAL_CONTENT);
+            response.setHeader("Content-Disposition", "inline;filename=" + objectName);
+            response.setHeader("Content-Range",
+                    "bytes " + range.start() + "-" + (range.end() < 0 ? objectInfoDto.objectSize() - 1 : range.end()) + "/" +
+                    objectInfoDto.objectSize());
+            objectService.getObjectData(objectInfo, response.getOutputStream(),
+                    range.start(), range.end());
+            return null;
+        }
+        objectService.getObjectData(objectInfo, response.getOutputStream());
         return null;
     }
 
@@ -107,9 +120,10 @@ public class ObjectController {
         if (res.errorCode().getState()) {
             objectMetadataService.addObjectMetadata(
                     bucketName, objectName, metadata);
+            applicationEventPublisher.publishEvent(
+                    new ObjectPutRequestEvent(objectInfo));
         }
-        applicationEventPublisher.publishEvent(
-                new ObjectPutRequestEvent(objectInfo));
+
         return HttpResponseEntity.create(
                 res.toResponseBody(ObjectInfoVo::from));
     }
@@ -158,5 +172,38 @@ public class ObjectController {
                 objectInfo, objectRenameRequest.newName());
         return HttpResponseEntity.create(
                 res.toResponseBody(ObjectInfoVo::from));
+    }
+
+    private record BytesRange(long start, long end) {
+    }
+
+    private static BytesRange tryGetsRange(HttpServletRequest request) {
+        String range = request.getHeader("Range");
+        if (range == null) {
+            return null;
+        }
+        if (!(range.contains("bytes=") && range.contains("-"))) {
+            return null;
+        }
+        range = range.substring(range.lastIndexOf("=") + 1).trim();
+        String[] ranges = range.split("-");
+        long startByte = -1, endByte = -1;
+        try {
+            if (ranges.length == 1) {
+                if (range.startsWith("-")) {
+                    endByte = Long.parseLong(ranges[0]);
+                }
+                else if (range.endsWith("-")) {
+                    startByte = Long.parseLong(ranges[0]);
+                }
+            }
+            else if (ranges.length == 2) {
+                startByte = Long.parseLong(ranges[0]);
+                endByte = Long.parseLong(ranges[1]);
+            }
+            return new BytesRange(startByte, endByte);
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 }

@@ -62,7 +62,7 @@ public class ObjectMetadata {
         if (metadata == null) {
             return;
         }
-        if (this.metadata == null) {
+        if (this.metadata == null || this.metadata.isEmpty()) {
             this.metadata = new HashMap<>();
         }
         metadata.forEach(this::putData);
