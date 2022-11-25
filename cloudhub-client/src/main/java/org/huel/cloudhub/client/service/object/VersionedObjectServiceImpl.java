@@ -38,7 +38,8 @@ public class VersionedObjectServiceImpl implements VersionedObjectService,
                 objectInfoDto.bucketName(),
                 objectInfoDto.objectName(),
                 objectInfoDto.fileId(),
-                version, objectInfoDto.createTime());
+                version,
+                objectInfoDto.createTime());
         versionedObjectRepository.insert(versionedObject);
         return new MessagePackage<>(ErrorCode.SUCCESS, versionedObject);
     }
@@ -69,6 +70,18 @@ public class VersionedObjectServiceImpl implements VersionedObjectService,
         return versionedObjectRepository.getVersionedObject(
                 info.bucketName(),
                 info.objectName(), version);
+    }
+
+    @Override
+    public List<VersionedObject> getObjectVersions(String bucketName, String objectName) {
+        Validate.notNull(bucketName, "bucketName cannot be null");
+        Validate.notNull(objectName, "objectName cannot be null");
+        List<VersionedObject> objects = versionedObjectRepository.getVersionedObjects(
+                bucketName, objectName);
+        if (objects == null) {
+            return List.of();
+        }
+        return objects;
     }
 
     @Override

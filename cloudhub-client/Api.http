@@ -87,7 +87,7 @@ Content-Type: multipart/form-data; boundary=CloudhubClient
 --CloudhubClient
 Content-Disposition: form-data; name="object"; filename="test.jpg"
 
-< test.jpg
+< ../test.jpg
 --CloudhubClient--
 
 ### 获取对象

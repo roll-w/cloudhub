@@ -6,6 +6,8 @@ import org.huel.cloudhub.client.data.dto.object.ObjectInfoDto;
 import org.huel.cloudhub.client.data.entity.object.VersionedObject;
 import org.huel.cloudhub.common.MessagePackage;
 
+import java.util.List;
+
 /**
  * @author RollW
  */
@@ -17,5 +19,6 @@ public interface VersionedObjectService {
     @Nullable
     VersionedObject getObjectVersionOf(ObjectInfo info, long version);
 
+    List<VersionedObject> getObjectVersions(String bucketName, String objectName);
 
 }
