@@ -78,6 +78,8 @@
 
   <!-- 客户端基本概述 -->
   <ContentBase>
+    <br>
+    <br>
     <div class="row">
       <div class="col">
         <div class="row">
@@ -116,7 +118,8 @@
             </div>
           </div>
         </div>
-
+        <br>
+        <br>
         <br>
         <div class="row">
           <div class="container">
@@ -200,7 +203,7 @@ export default {
 </script>
 
 <style scoped>
-.font{
+.font {
   font-size: x-large;
 }
 </style>

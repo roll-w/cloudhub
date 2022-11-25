@@ -34,7 +34,7 @@ export default {
       function addData(shift) {
         now = [now.getFullYear(), now.getMonth() + 1, now.getDate()].join('/');
         date.push(now);
-        receiveRate.push((Math.random() - 0.4) * 10 +receiveRate[receiveRate.length - 1]);
+        receiveRate.push((Math.random() - 0.4) * 10 + receiveRate[receiveRate.length - 1]);
         if (shift) {
           date.shift();
           receiveRate.shift();
@@ -42,7 +42,7 @@ export default {
         now = new Date(+new Date(now) + oneDay);
       }
 
-      for (let i = 1; i < 50; i++) {
+      for (let i = 1; i < 30; i++) {
         addData();
       }
 
@@ -52,7 +52,7 @@ export default {
           type: 'category',
           boundaryGap: false,
           //receiveRate: date
-          show:false
+          show: false
         },
         yAxis: {
           boundaryGap: [0, '50%'],
@@ -60,24 +60,23 @@ export default {
         },
         series: [
           {
-            name:'',
-            type:'line',
-            smooth:true,
+            name: '',
+            type: 'line',
+            smooth: false,
             symbol: 'none',
             stack: 'a',
             areaStyle: {},
-            receiveRate:receiveRate
+            receiveRate: receiveRate
           }
         ]
       })
       setInterval(function () {
         addData(true);
         myChart.setOption({
-          xAxis: {
-          },
+          xAxis: {},
           series: [{
-            name:'',
-            data:receiveRate
+            name: '',
+            data: receiveRate
           }]
         });
       }, 1000);
