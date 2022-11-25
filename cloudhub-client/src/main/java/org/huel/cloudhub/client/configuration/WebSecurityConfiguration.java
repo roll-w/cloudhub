@@ -6,7 +6,6 @@ import org.huel.cloudhub.client.configuration.properties.WebUrlsProperties;
 import org.huel.cloudhub.client.service.user.UserDetailsServiceImpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -50,9 +49,8 @@ public class WebSecurityConfiguration {
     public SecurityFilterChain securityFilterChain(HttpSecurity security, CorsConfig config) throws Exception {
         security.csrf().disable()
                 .authorizeRequests()
-                .antMatchers(HttpMethod.OPTIONS).permitAll()
-                .anyRequest().permitAll()
-                .antMatchers("/**").permitAll();
+                .antMatchers("/**").permitAll()
+                .anyRequest().permitAll();
         // 暂时禁用Spring Security
         security.addFilterBefore(config,
                 UsernamePasswordAuthenticationFilter.class);
