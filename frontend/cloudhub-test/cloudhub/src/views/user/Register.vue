@@ -2,25 +2,29 @@
   <div class="container">
     <div class="form-con">
       <img :src="Img" alt="">
-      <p class="p-dark">Register</p>
-      <br/>
+      <p class="p-dark" style="margin-bottom: 4px">Register</p>
       <form @submit.prevent="register">
 
         <div class="input-con">
           <i class="fas fa-user icon"></i>
-          <input v-model="user.username" type="text" placeholder="Username">
+          <input v-model="username" type="text" placeholder="Username" name="username">
         </div>
 
         <div class="input-con">
           <i class="fas fa-lock icon"></i>
-          <input v-model="user.password" type="password" placeholder="Password">
+          <input v-model="password" type="password" placeholder="Password" name="password" >
         </div>
 
-        <button type="submit" class="btn btn-primary">Register</button>
-
         <div class="input-con">
-          Have an account?
-          <router-link :to="{name:'login_index'}" class="link-primary" style="text-decoration: none">Log in
+          <i class="fas fa-lock icon"></i>
+          <input v-model="email" type="email" placeholder="email" name="email">
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="margin-bottom: 0">Register</button>
+        <div class="input-con" >
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+          <span style="text-align: center">Have an account?</span>
+          <router-link :to="{name:'login_index'}" class="link-primary" style="text-decoration: none"> Login
           </router-link>
         </div>
       </form>
@@ -45,24 +49,20 @@ export default {
 
     let username = ref("");
     let password = ref("");
-    let confirmedPassword = ref("");
-
-    const user = {
-      username: "admin",
-      password: "admin"
-    }
+    let email = ref("");
 
     const register = () => {
       $.ajax({
         url:url.url_register,
+        contentType: "application/json;charset=UTF-8",
         type:"post",
-        data:{
-          username:username.value,
-          password:password.value,
-          confirmedPassword:confirmedPassword.value,
-        },
+        data:JSON.stringify({
+          username: username.value,
+          password: password.value,
+          email:email.value,
+        }),
         success(resp){
-          if (resp.message === "REGISTER_SUCCESS"){
+          if (resp.message === "SUCCESS"){
             router.push({name:"login_index"});
           }
         },
@@ -74,7 +74,9 @@ export default {
 
     return {
       Img,
-      user,
+      username,
+      password,
+      email,
       register
     }
   }

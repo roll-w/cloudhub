@@ -31,10 +31,11 @@ export default {
             $.ajax({
                 url:url.url_login,
                 type:"post",
-                data:{
+                contentType: "application/json;charset=UTF-8",
+                data:JSON.stringify({
                     username: data.username,
                     password: data.password,
-                },
+                }),
                 //具体返回响应根据后端
                 success(resp) {
                     if (resp.message === "SUCCESS") {

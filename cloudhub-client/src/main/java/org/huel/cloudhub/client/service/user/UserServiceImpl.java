@@ -91,7 +91,7 @@ public class UserServiceImpl implements UserService, UserGetter {
         newUser.setPassword(encodePassword)
                 .setRegisterTime(time)
                 .setLocked(false)
-                .setEnabled(false)
+                .setEnabled(true)
                 .setAccountExpired(false);
 
         long id = userRepository.insert(newUser);

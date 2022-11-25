@@ -1,19 +1,19 @@
 <template>
   <div class="container">
     <div class="form-con">
-      <img :src="Img" alt="">
+      <img :src="Img" alt="login">
       <p class="p-dark">Login</p>
       <br/>
       <form @submit.prevent="login">
 
         <div class="input-con">
           <i class="fas fa-user icon"></i>
-          <input v-model="user.username" type="text" placeholder="Username">
+          <input v-model="username" type="text" placeholder="Username" name="username">
         </div>
 
         <div class="input-con">
           <i class="fas fa-lock icon"></i>
-          <input v-model="user.password" type="password" placeholder="Password">
+          <input v-model="password" type="password" placeholder="Password" name="password">
         </div>
 
         <button type="submit" class="btn btn-primary">Login</button>
@@ -39,7 +39,9 @@ import {ref} from "vue";
 
 export default {
   name: "LoginView",
+  components:{
 
+  },
   setup() {
 
     const router = useRouter();
@@ -48,33 +50,26 @@ export default {
     let username = ref("");
     let password = ref("");
 
-    const user = {
-      username: "admin",
-      password: "admin"
-    }
-
     const login = () =>{
-      //暂时方便跳转不删除
-      if(user.username === "admin" && user.password === "admin"){
-        router.push('hub')
-      }
-
       store.dispatch("login",{
         username:username.value,
         password:password.value,
 
         success() {
+          router.push({name:"home"});
+          console.log("登录成功");
           // 成功之后，获取用户信息
-          store.dispatch("getUserInfo",{
-            success(){
-              router.push({name:"home"});
-            },
-            error(){
-              console.log("获取信息失败");
-            }
-          });
+          // store.dispatch("getUserInfo",{
+          //   success(){
+          //     router.push({name:"home"});
+          //   },
+          //   error(){
+          //     console.log("获取信息失败");
+          //   }
+          // });
         },
-        error(){
+        error(resp){
+          console.log(resp)
           console.log("登录失败")
         },
       })
@@ -83,7 +78,8 @@ export default {
 
     return {
       Img,
-      user,
+      username,
+      password,
       login
     }
   }
