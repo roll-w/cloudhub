@@ -88,7 +88,8 @@
                   <div class="card-body">
                     桶数量
                     <br>
-                    3
+                    <br>
+                    <span class="font">{{ bucketNum }}</span>
                   </div>
                 </div>
               </div>
@@ -97,7 +98,8 @@
                   <div class="card-body">
                     对象数量
                     <br>
-                    20
+                    <br>
+                    <span class="font">{{ objectNum }}</span>
                   </div>
                 </div>
               </div>
@@ -106,7 +108,8 @@
                   <div class="card-body">
                     对象请求数
                     <br>
-                    50
+                    <br>
+                    <span class="font">{{ objectRequest }}</span>
                   </div>
                 </div>
               </div>
@@ -123,7 +126,8 @@
                   <div class="card-body">
                     运行服务器
                     <br>
-                    3
+                    <br>
+                    <span class="font">{{ runningServer }}</span>
                   </div>
                 </div>
               </div>
@@ -132,7 +136,8 @@
                   <div class="card-body">
                     宕机服务器
                     <br>
-                    0
+                    <br>
+                    <span>{{ downServer }}</span>
                   </div>
                 </div>
               </div>
@@ -141,7 +146,8 @@
                   <div class="card-body">
                     系统启动时间
                     <br>
-                    22s
+                    <br>
+                    <span class="font">{{ runTime + 's' }}</span>
                   </div>
                 </div>
               </div>
@@ -172,9 +178,28 @@ export default {
   },
 
   setup() {
+    let bucketNum = 3;
+    let objectNum = 6;
+    let objectRequest = 10;
+    let downServer = 0;
+    let runningServer = 3;
+    let runTime = 22;
+
     return {
-      Img
+      Img,
+      bucketNum,
+      objectNum,
+      objectRequest,
+      downServer,
+      runningServer,
+      runTime
     }
   }
 }
 </script>
+
+<style scoped>
+.font{
+  font-size: x-large;
+}
+</style>
