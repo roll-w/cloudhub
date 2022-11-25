@@ -136,6 +136,10 @@ GET {{url}}/api/admin/bucket/get/all
 
 GET {{url}}/api/admin/bucket/get?bucketName=test
 
+### 获取特定桶信息
+
+GET {{url}}/api/bucket/get?bucketName=test
+
 ### 获取请求信息
 
 GET {{url}}/api/admin/stat/request/get

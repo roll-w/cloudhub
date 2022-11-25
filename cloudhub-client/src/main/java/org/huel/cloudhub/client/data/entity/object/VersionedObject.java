@@ -31,11 +31,16 @@ public class VersionedObject {
     @PrimaryKey
     private long version = INVALID_VERSION;
 
-    public VersionedObject(String bucketName, String objectName, String fileId, long version) {
+    @DataColumn(name = "last_modified")
+    private long lastModified;
+
+    public VersionedObject(String bucketName, String objectName,
+                           String fileId, long version, long lastModified) {
         this.bucketName = bucketName;
         this.objectName = objectName;
         this.fileId = fileId;
         this.version = version;
+        this.lastModified = lastModified;
     }
 
     public VersionedObject() {
@@ -71,5 +76,13 @@ public class VersionedObject {
 
     public void setObjectName(String objectName) {
         this.objectName = objectName;
+    }
+
+    public long getLastModified() {
+        return lastModified;
+    }
+
+    public void setLastModified(long lastModified) {
+        this.lastModified = lastModified;
     }
 }
