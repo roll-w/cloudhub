@@ -31,54 +31,54 @@
                 {{ data.env.runUser }}
               </div>
             </div>
-<!--            <div class="row">-->
-<!--              <div class="col">-->
-<!--                user home-->
-<!--              </div>-->
-<!--              <div class="col">-->
-<!--                {{ data.env.userHome }}-->
-<!--              </div>-->
-<!--            </div>-->
-<!--            <div class="row">-->
-<!--              <div class="col">-->
-<!--                work directory-->
-<!--              </div>-->
-<!--              <div class="col">-->
-<!--                {{ data.env.workDir }}-->
-<!--              </div>-->
-<!--            </div>-->
-<!--            <div class="row">-->
-<!--              <div class="col">-->
-<!--                java version-->
-<!--              </div>-->
-<!--              <div class="col">-->
-<!--                {{ data.env.javaVersion }}-->
-<!--              </div>-->
-<!--            </div>-->
-<!--            <div class="row">-->
-<!--              <div class="col">-->
-<!--                java home-->
-<!--              </div>-->
-<!--              <div class="col">-->
-<!--                {{ data.env.javaHome }}-->
-<!--              </div>-->
-<!--            </div>-->
-<!--            <div class="row">-->
-<!--              <div class="col">-->
-<!--                OS name-->
-<!--              </div>-->
-<!--              <div class="col">-->
-<!--                {{ data.env.osName }}-->
-<!--              </div>-->
-<!--            </div>-->
-<!--            <div class="row">-->
-<!--              <div class="col">-->
-<!--                OS version-->
-<!--              </div>-->
-<!--              <div class="col">-->
-<!--                {{ data.env.osVersion }}-->
-<!--              </div>-->
-<!--            </div>-->
+            <!--            <div class="row">-->
+            <!--              <div class="col">-->
+            <!--                user home-->
+            <!--              </div>-->
+            <!--              <div class="col">-->
+            <!--                {{ data.env.userHome }}-->
+            <!--              </div>-->
+            <!--            </div>-->
+            <!--            <div class="row">-->
+            <!--              <div class="col">-->
+            <!--                work directory-->
+            <!--              </div>-->
+            <!--              <div class="col">-->
+            <!--                {{ data.env.workDir }}-->
+            <!--              </div>-->
+            <!--            </div>-->
+            <!--            <div class="row">-->
+            <!--              <div class="col">-->
+            <!--                java version-->
+            <!--              </div>-->
+            <!--              <div class="col">-->
+            <!--                {{ data.env.javaVersion }}-->
+            <!--              </div>-->
+            <!--            </div>-->
+            <!--            <div class="row">-->
+            <!--              <div class="col">-->
+            <!--                java home-->
+            <!--              </div>-->
+            <!--              <div class="col">-->
+            <!--                {{ data.env.javaHome }}-->
+            <!--              </div>-->
+            <!--            </div>-->
+            <!--            <div class="row">-->
+            <!--              <div class="col">-->
+            <!--                OS name-->
+            <!--              </div>-->
+            <!--              <div class="col">-->
+            <!--                {{ data.env.osName }}-->
+            <!--              </div>-->
+            <!--            </div>-->
+            <!--            <div class="row">-->
+            <!--              <div class="col">-->
+            <!--                OS version-->
+            <!--              </div>-->
+            <!--              <div class="col">-->
+            <!--                {{ data.env.osVersion }}-->
+            <!--              </div>-->
+            <!--            </div>-->
 
             <div class="row">
               <div class="col">
@@ -221,16 +221,20 @@
         <hr>
         <div class="row">
           <div class="col">
-            <PieEchartsBase :info="info" style="width: 200px; height: 200px;"></PieEchartsBase>
+            <!-- 系统使用率 -->
+            <SysUsed></SysUsed>
           </div>
           <div class="col">
-            <PieEchartsBase style="width: 200px; height: 200px;"></PieEchartsBase>
+            <!-- 用户使用率 -->
+            <UserUsed></UserUsed>
           </div>
           <div class="col">
-            <PieEchartsBase style="width: 200px; height: 200px;"></PieEchartsBase>
+            <!-- IO 等待率 -->
+            <Wait></Wait>
           </div>
           <div class="col">
-            <PieEchartsBase style="width: 200px; height: 200px;"></PieEchartsBase>
+            <!-- 空闲率 -->
+            <Free></Free>
           </div>
         </div>
       </ContentBase>
@@ -240,7 +244,16 @@
       <ContentBase style="width: 1000px">
         <div>Network</div>
         <hr>
-
+        <div class="row">
+          <div class="col">
+            <span class="font-two">网络接收速率</span>
+            <Receive class="net"></Receive>
+          </div>
+          <div class="col">
+            <span class="font-two">网络发送速率</span>
+            <Send class="net"></Send>
+          </div>
+        </div>
       </ContentBase>
     </div>
   </div>
@@ -250,18 +263,28 @@
 <script>
 
 import ContentBase from "@/components/common/ContentBase";
-import PieEchartsBase from "@/components/echarts/PieEchasrtsBase"
+import SysUsed from "@/components/cpu/SysUsed";
+import UserUsed from "@/components/cpu/UserUsed";
+import Free from "@/components/cpu/Free";
+import Wait from "@/components/cpu/Wait";
+import Send from "@/components/network/Send";
+import Receive from "@/components/network/Receive"
+
 import {ref} from "vue";
 
 export default {
   name: "FileView",
   components: {
-    PieEchartsBase,
+    SysUsed,
+    UserUsed,
+    Free,
+    Wait,
     ContentBase,
+    Send,
+    Receive
   },
   setup() {
     // const info = reactive({title:'使用率',total:1234,used:123})
-
 
 
     // 元数据服务器信息
@@ -323,5 +346,13 @@ export default {
 <style scoped>
 .font {
   font-size: x-large;
+}
+.font-two{
+  font-weight: bold;
+}
+
+.net {
+  width: 450px;
+  height: 300px;
 }
 </style>
