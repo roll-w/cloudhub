@@ -77,7 +77,9 @@ public class ObjectController {
                 "application/octet-stream");
         Map<String, String> metadata = objectMetadataService
                 .getObjectMetadata(bucketName, objectName);
-        metadata.forEach(response::setHeader);
+        if (metadata != null) {
+            metadata.forEach(response::setHeader);
+        }
         objectService.getObjectData(objectInfo, response.getOutputStream());
 
         applicationEventPublisher.publishEvent(
