@@ -15,9 +15,136 @@ POST {{url}}/api/user/login
 Content-Type: application/json
 
 {
-    "username": "user",
-    "password": "123456"
+  "username": "user",
+  "password": "123456"
 }
+
+### 用户退出登录
+
+POST {{url}}/api/user/logout
+
+### 管理员获取用户信息
+
+GET {{url}}/api/admin/user/get?username=user
+
+### 管理员获取所有用户信息
+
+GET {{url}}/api/admin/user/get/all
+
+### 管理员删除用户
+
+POST {{url}}/api/admin/user/delete
+Content-Type: application/x-www-form-urlencoded
+
+userId=2
+
+### 创建桶
+
+PUT {{url}}/api/bucket/create
+Content-Type: application/json
+
+{
+  "bucketName": "test",
+  "visibility": "PUBLIC_READ"
+}
+
+### 修改桶策略
+
+POST {{url}}/api/bucket/setting/visibility
+Content-Type: application/json
+
+{
+  "bucketName": "test",
+  "visibility": "PUBLIC_READ"
+}
+
+### 删除桶
+
+DELETE {{url}}/api/bucket/delete
+Content-Type: application/json
+
+{
+  "bucketName": "test"
+}
+
+### 获取当前用户的所有桶信息
+
+GET {{url}}/api/bucket/get/all
+
+### 获取特定桶信息
+
+GET {{url}}/api/bucket/get?bucketName=test
+
+### 获取特定桶中所有对象信息
+
+GET {{url}}/api/object/get?bucketName=test
+
+### 上传对象
+
+PUT {{url}}/api/object/v1/test/testdir/test.jpg
+Content-Type: multipart/form-data; boundary=CloudhubClient
+
+--CloudhubClient
+Content-Disposition: form-data; name="object"; filename="test.jpg"
+
+< test.jpg
+--CloudhubClient--
+
+### 获取对象
+
+GET {{url}}/api/object/v1/test/testdir/test.jpg
+
+### 删除对象
+
+DELETE {{url}}/api/object/v1/test/testdir/test.jpg
+
+### 获取对象元数据
+
+GET {{url}}/api/object/metadata/get?bucketName=test&objectName=/testdir/test.jpg
+
+### 添加对象元数据
+
+POST {{url}}/api/object/metadata/set
+Content-Type: application/json
+
+{
+  "bucketName": "test",
+  "objectName": "/testdir/test.jpg",
+  "metadata": {
+    "x-cos-test-header": "Hello, World!"
+  }
+}
+
+### 移除对象元数据
+
+POST {{url}}/api/object/metadata/remove
+Content-Type: application/json
+
+{
+  "bucketName": "test",
+  "objectName": "/testdir/test.jpg",
+  "removeKeys": [
+    "x-cos-test-header"
+  ]
+}
+
+### 管理员获取所有桶信息
+
+GET {{url}}/api/admin/bucket/get/all
+
+### 管理员获取特定桶信息
+
+GET {{url}}/api/admin/bucket/get?bucketName=test
+
+### 获取请求信息
+
+GET {{url}}/api/admin/stat/request/get
+
+### 服务器运行时间信息
+
+GET {{url}}/api/admin/status/time
+
+# 获取到的data为启动以来的秒数，有误差。
 
 ### 获取所有服务器
 
@@ -33,5 +160,20 @@ GET {{url}}/api/admin/status/server/get?serverId=meta
 
 ### 获取文件服务器信息
 # serverId后填写相应文件服务器ID
+
 GET {{url}}/api/admin/status/server/get?serverId=02e19159-a402-4b44-bcf6-f5f0330b1a3d
+
+### 获取文件服务器容器信息
+
+GET {{url}}/api/admin/status/container/get?serverId=8dffe348-b1b0-4b15-8d88-30dd7f10e277
+
+# --- 均为最近50条信息
+### 获取磁盘信息
+
+GET {{url}}/api/admin/status/server/get/disk?serverId=02e19159-a402-4b44-bcf6-f5f0330b1a3d
+
+### 获取网络信息
+
+GET {{url}}/api/admin/status/server/get/net?serverId=02e19159-a402-4b44-bcf6-f5f0330b1a3d
+
 
