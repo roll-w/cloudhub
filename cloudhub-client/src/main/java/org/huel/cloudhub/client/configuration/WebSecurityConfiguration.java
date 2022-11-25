@@ -1,13 +1,13 @@
 package org.huel.cloudhub.client.configuration;
 
+import org.huel.cloudhub.client.configuration.filter.CorsConfig;
 import org.huel.cloudhub.client.configuration.filter.SessionRequestFilter;
 import org.huel.cloudhub.client.configuration.properties.WebUrlsProperties;
 import org.huel.cloudhub.client.service.user.UserDetailsServiceImpl;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.authentication.configuration.EnableGlobalAuthentication;
@@ -15,11 +15,10 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
-import org.springframework.security.config.annotation.web.configurers.UrlAuthorizationConfigurer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.access.intercept.FilterSecurityInterceptor;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 /**
  * Spring Security配置
@@ -35,15 +34,12 @@ public class WebSecurityConfiguration {
 
     private final WebUrlsProperties urlsProperties;
 
-    private final CustomSecurityMetaSource customSecurityMetaSource;
 
 
     public WebSecurityConfiguration(UserDetailsServiceImpl userDetailsService,
-                                    WebUrlsProperties urlsProperties,
-                                    CustomSecurityMetaSource customSecurityMetaSource) {
+                                    WebUrlsProperties urlsProperties) {
         this.userDetailsService = userDetailsService;
         this.urlsProperties = urlsProperties;
-        this.customSecurityMetaSource = customSecurityMetaSource;
     }
 
     protected void configure(AuthenticationManagerBuilder authenticationManagerBuilder) throws Exception {
@@ -51,28 +47,18 @@ public class WebSecurityConfiguration {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity security) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity security, CorsConfig config) throws Exception {
         security.csrf().disable()
-                .authorizeRequests().antMatchers("/**").permitAll();
+                .authorizeRequests()
+                .antMatchers(HttpMethod.OPTIONS).permitAll()
+                .anyRequest().permitAll()
+                .antMatchers("/**").permitAll();
         // 暂时禁用Spring Security
-        ApplicationContext applicationContext = security.getSharedObject(ApplicationContext.class);
-
-        security.apply(new UrlAuthorizationConfigurer<>(applicationContext))
-                .withObjectPostProcessor(new ObjectPostProcessor<FilterSecurityInterceptor>() {
-
-                    @Override
-                    public <O extends FilterSecurityInterceptor> O postProcess(O object) {
-                        object.setSecurityMetadataSource(customSecurityMetaSource);
-                        object.setRejectPublicInvocations(true);
-                        return object;
-                    }
-                });
-
-
+        security.addFilterBefore(config,
+                UsernamePasswordAuthenticationFilter.class);
         return security.build();
 
-//        security.addFilterBefore(sessionRequestFilter(),
-//                UsernamePasswordAuthenticationFilter.class);
+
 //
 //        security.formLogin()
 //                .permitAll()
