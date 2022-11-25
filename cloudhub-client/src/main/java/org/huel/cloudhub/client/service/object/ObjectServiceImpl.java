@@ -131,6 +131,18 @@ public class ObjectServiceImpl implements ObjectService, ObjectRemoveHandler {
     }
 
     @Override
+    public MessagePackage<Void> setObjectFileId(String bucketName, String objectName, String fileId) {
+        FileObjectStorage objectStorage = repository.getById(bucketName, objectName);
+        if (objectStorage == null) {
+            return new MessagePackage<>(ErrorCode.ERROR_DATA_NOT_EXIST,
+                    "Not exist.", null);
+        }
+        objectStorage.setFileId(fileId);
+        repository.update(objectStorage);
+        return new MessagePackage<>(ErrorCode.SUCCESS, null);
+    }
+
+    @Override
     public MessagePackage<ObjectInfoDto> renameObject(ObjectInfo oldInfo, String newName) {
         Validate.notEmpty(newName, "objectName cannot be null or empty.");
         FileObjectStorage storage =

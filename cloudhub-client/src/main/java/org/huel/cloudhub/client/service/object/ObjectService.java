@@ -23,6 +23,8 @@ public interface ObjectService {
 
     List<ObjectInfoDto> getObjectsInBucket(String bucketName);
 
+    MessagePackage<Void> setObjectFileId(String bucketName, String objectName, String fileId);
+
     MessagePackage<ObjectInfoDto> renameObject(ObjectInfo oldInfo, String newName);
 
     boolean isObjectExist(ObjectInfo objectInfo);

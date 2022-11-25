@@ -1,18 +1,15 @@
 package org.huel.cloudhub.client.service.user;
 
-import org.huel.cloudhub.common.ErrorCode;
-import org.huel.cloudhub.common.MessagePackage;
 import org.huel.cloudhub.client.configuration.properties.WebUrlsProperties;
 import org.huel.cloudhub.client.controller.SessionConstants;
 import org.huel.cloudhub.client.data.database.repository.UserRepository;
 import org.huel.cloudhub.client.data.database.repository.VerificationTokenRepository;
 import org.huel.cloudhub.client.data.dto.user.UserInfo;
 import org.huel.cloudhub.client.data.dto.user.UserPasswordDto;
-import org.huel.cloudhub.client.data.entity.token.RegisterVerificationToken;
 import org.huel.cloudhub.client.data.entity.user.Role;
 import org.huel.cloudhub.client.data.entity.user.User;
-import org.huel.cloudhub.client.event.user.OnLoginNewLocationEvent;
-import org.huel.cloudhub.client.event.user.OnRegistrationCompleteEvent;
+import org.huel.cloudhub.common.ErrorCode;
+import org.huel.cloudhub.common.MessagePackage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,8 +23,6 @@ import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
-import java.util.Calendar;
-import java.util.Locale;
 
 /**
  * @author RollW
@@ -98,16 +93,8 @@ public class UserServiceImpl implements UserService, UserGetter {
         newUser.setId(id);
         if (id == 1) {
             logger.info("creating user with ID 1, defaults role to ADMIN.");
-            newUser.setRole(Role.ADMIN)
-                    .setEnabled(true);
+            newUser.setRole(Role.ADMIN);
             userRepository.update(newUser);
-        }
-        if (!newUser.isEnabled()) {
-            OnRegistrationCompleteEvent event = new OnRegistrationCompleteEvent(
-                    newUser.toInfo(),
-                    Locale.getDefault(),
-                    webUrls.getBackendUrl());
-            eventPublisher.publishEvent(event);
         }
         logger.debug("create user with " + newUser);
         return new MessagePackage<>(ErrorCode.SUCCESS, newUser.toInfo());
@@ -142,11 +129,6 @@ public class UserServiceImpl implements UserService, UserGetter {
 
             // TODO: 不使用Session，改为Jwt令牌认证
             session.setAttribute(SessionConstants.USER_INFO_SESSION_ID, userInfo);
-
-            OnLoginNewLocationEvent event =
-                    new OnLoginNewLocationEvent(userInfo);
-            eventPublisher.publishEvent(event);
-
             return new MessagePackage<>(ErrorCode.SUCCESS, userInfo);
         }
         return new MessagePackage<>(ErrorCode.ERROR_PASSWORD_NOT_CORRECT,
@@ -175,94 +157,6 @@ public class UserServiceImpl implements UserService, UserGetter {
         HttpSession session = request.getSession();
         session.invalidate();
         SecurityContextHolder.getContext().setAuthentication(null);
-    }
-
-    @Override
-    public void createVerificationToken(UserInfo info, String token) {
-        long expiryTime = RegisterVerificationToken.calculateExpiryDate();
-        RegisterVerificationToken verificationToken =
-                new RegisterVerificationToken(token, info.id(), expiryTime, false);
-
-        verificationTokenRepository.insert(verificationToken);
-    }
-
-    @Override
-    public MessagePackage<UserInfo> verifyToken(String token) {
-        RegisterVerificationToken verificationToken =
-                verificationTokenRepository.findByToken(token);
-        if (verificationToken == null) {
-            return new MessagePackage<>(ErrorCode.ERROR_TOKEN_NOT_EXIST,
-                    "Verification token not exist.",
-                    null);
-        }
-        if (verificationToken.used()) {
-            return new MessagePackage<>(
-                    ErrorCode.ERROR_TOKEN_USED,
-                    "Verification Token has been used.",
-                    null);
-        }
-        if (isVerificationTokenExpired(verificationToken)) {
-            return new MessagePackage<>(
-                    ErrorCode.ERROR_TOKEN_EXPIRED,
-                    "Verification Token expired.",
-                    null);
-        }
-        User user = userRepository
-                .getUserById(verificationToken.userId());
-        if (user == null) {
-            return new MessagePackage<>(
-                    ErrorCode.ERROR_USER_NOT_EXIST,
-                    "User not exists",
-                    null);
-        }
-
-        if (user.isEnabled()) {
-            return new MessagePackage<>(
-                    ErrorCode.ERROR_USER_ALREADY_ACTIVATED,
-                    "User already activated, there is no need to repeat the operation.",
-                    null);
-        }
-
-        makeTokenExpired(token);
-
-        logger.info("verify user token: {}, userId: {}",
-                token, user.getId());
-        user.setEnabled(true);
-        userRepository.save(user);
-        return new MessagePackage<>(ErrorCode.SUCCESS, user.toInfo());
-    }
-
-    @Override
-    public MessagePackage<Void> resendToken(long userId) {
-        User user = userRepository.getUserById(userId);
-        if (user == null) {
-            return new MessagePackage<>(ErrorCode.ERROR_USER_NOT_EXIST,
-                    "User not exists", null);
-        }
-        if (user.isEnabled()) {
-            return new MessagePackage<>(ErrorCode.ERROR_USER_ALREADY_ACTIVATED,
-                    "User already activated, there is no need to repeat the operation.",
-                    null);
-        }
-        RegisterVerificationToken verificationToken =
-                verificationTokenRepository.findByUser(user);
-        if (verificationToken != null && !isVerificationTokenExpired(verificationToken)) {
-            makeTokenExpired(verificationToken.token());
-        }
-
-        OnRegistrationCompleteEvent event = new OnRegistrationCompleteEvent(
-                user.toInfo(), Locale.getDefault(), webUrls.getBackendUrl());
-        eventPublisher.publishEvent(event);
-        return new MessagePackage<>(ErrorCode.SUCCESS, null);
-    }
-
-    private void makeTokenExpired(String token) {
-        verificationTokenRepository.update(token, true);
-    }
-
-    private boolean isVerificationTokenExpired(RegisterVerificationToken token) {
-        Calendar cal = Calendar.getInstance();
-        return cal.getTime().getTime() > token.expiryDate();
     }
 
     ApplicationEventPublisher eventPublisher;
