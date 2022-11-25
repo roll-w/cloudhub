@@ -25,7 +25,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class ContainerFileWriter implements Closeable {
     private final String fileId;
     private final long fileSize;
-    private final String source;
     private final ContainerAllocator containerAllocator;
     private final ContainerWriterOpener containerWriterOpener;
     private final ContainerChecker containerChecker;
@@ -36,13 +35,12 @@ public class ContainerFileWriter implements Closeable {
     private List<Container> allowWriteContainers;
     private Iterator<Container> containerIterator;
 
-    public ContainerFileWriter(String fileId, long fileSize, String source,
+    public ContainerFileWriter(String fileId, long fileSize,
                                ContainerAllocator containerAllocator,
                                ContainerWriterOpener containerWriterOpener,
                                ContainerChecker containerChecker,
                                FileWriteStrategy fileWriteStrategy) {
         this.fileId = fileId;
-        this.source = source;
         this.fileSize = fileSize;
         this.containerAllocator = containerAllocator;
         this.containerWriterOpener = containerWriterOpener;

@@ -33,9 +33,9 @@ public class ServerInfoSerializeHelper {
     public static DiskUsageInfo deserializeFrom(
             SerializedDiskUsageInfo serializedDiskUsageInfo) {
         return new DiskUsageInfo(
+                serializedDiskUsageInfo.getTotal(),
                 serializedDiskUsageInfo.getFree(),
                 serializedDiskUsageInfo.getRead(),
-                serializedDiskUsageInfo.getTotal(),
                 serializedDiskUsageInfo.getWrite(),
                 null
         );
@@ -137,6 +137,7 @@ public class ServerInfoSerializeHelper {
                 .setMemInfo(serializeFrom(serverHostInfo.getMemoryUsageInfo()))
                 .setDiskInfo(serializeFrom(serverHostInfo.getDiskUsageInfo()))
                 .setNetInfo(serializeFrom(serverHostInfo.getNetworkUsageInfo()))
+                .setEnvInfo(serializeFrom(serverHostInfo.getRuntimeEnvironment()))
                 .build();
     }
 

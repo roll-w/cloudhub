@@ -264,7 +264,7 @@ public class BlockReceiveService extends BlockUploadServiceGrpc.BlockUploadServi
             }
 
             try (ContainerFileWriter containerFileWriter = new ContainerFileWriter(fileId,
-                    savedLength, ContainerFinder.LOCAL, containerAllocator, containerWriterOpener, containerChecker, FileWriteStrategy.SEQUENCE)) {
+                    savedLength, containerAllocator, containerWriterOpener, containerChecker, FileWriteStrategy.SEQUENCE)) {
                 writeUntilEnd(containerFileWriter, stagingFile.openInput(), BUFFERED_BLOCK_SIZE, validBytes);
             } catch (IOException | MetaException e) {
                 logger.error("Occurred error here while saving to container.", e);

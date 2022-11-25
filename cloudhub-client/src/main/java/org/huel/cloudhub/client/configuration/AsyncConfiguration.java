@@ -14,7 +14,7 @@ import java.util.concurrent.ThreadPoolExecutor;
  * @author RollW
  */
 @Configuration
-@EnableAsync
+@EnableAsync(proxyTargetClass = true)
 public class AsyncConfiguration {
 
     @Bean("IH-Main-Executor")

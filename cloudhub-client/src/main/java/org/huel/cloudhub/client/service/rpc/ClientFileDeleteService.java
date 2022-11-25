@@ -1,5 +1,9 @@
 package org.huel.cloudhub.client.service.rpc;
 
+import io.grpc.ManagedChannel;
+import org.huel.cloudhub.client.rpc.file.ClientFileDeleteRequest;
+import org.huel.cloudhub.client.rpc.file.ClientFileDeleteResponse;
+import org.huel.cloudhub.client.rpc.file.ClientFileDeleteServiceGrpc;
 import org.springframework.stereotype.Service;
 
 /**
@@ -7,12 +11,17 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class ClientFileDeleteService {
+    private final ClientFileDeleteServiceGrpc.ClientFileDeleteServiceBlockingStub stub;
 
-    public ClientFileDeleteService() {
+    public ClientFileDeleteService(ManagedChannel channel) {
+        this.stub = ClientFileDeleteServiceGrpc.newBlockingStub(channel);
     }
 
-
-    public void sendDeleteRequest(String fileId) {
-
+    public void permanentlyDeleteFile(String fileId) {
+        ClientFileDeleteResponse response = stub.deleteFile(
+                ClientFileDeleteRequest.newBuilder()
+                        .setFileId(fileId)
+                        .build()
+        );
     }
 }

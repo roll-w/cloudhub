@@ -88,7 +88,7 @@ public class ServerStatusController {
     @GetMapping("/server/get")
     public HttpResponseEntity<ServerHostInfo> getServerStatus(
             HttpServletRequest request,
-            @RequestParam String serverId) {
+            @RequestParam(required = false, defaultValue = "") String serverId) {
         var validateMessage =
                 ValidateHelper.validateUserAdmin(request, userGetter);
         if (validateMessage != null) {
@@ -110,7 +110,7 @@ public class ServerStatusController {
     @GetMapping("/server/get/net")
     public HttpResponseEntity<List<NetworkUsageInfo>> getServerNetInfos(
             HttpServletRequest request,
-            @RequestParam(required = false) String serverId) {
+            @RequestParam(required = false, defaultValue = "") String serverId) {
         var validateMessage =
                 ValidateHelper.validateUserAdmin(request, userGetter);
         if (validateMessage != null) {
@@ -132,7 +132,7 @@ public class ServerStatusController {
     @GetMapping("/server/get/disk")
     public HttpResponseEntity<List<DiskUsageInfo>> getServerDiskInfos(
             HttpServletRequest request,
-            @RequestParam(required = false) String serverId) {
+            @RequestParam(required = false, defaultValue = "") String serverId) {
         var validateMessage =
                 ValidateHelper.validateUserAdmin(request, userGetter);
         if (validateMessage != null) {
