@@ -1,0 +1,37 @@
+### 用户注册
+
+POST {{url}}/api/user/register
+Content-Type: application/json
+
+{
+  "username": "user",
+  "password": "123456",
+  "email": "your@email.com"
+}
+
+### 用户登录
+
+POST {{url}}/api/user/login
+Content-Type: application/json
+
+{
+    "username": "user",
+    "password": "123456"
+}
+
+### 获取所有服务器
+
+GET {{url}}/api/admin/status/connected
+
+### 获取本机服务器信息
+
+GET {{url}}/api/admin/status/server/get
+
+### 获取元数据服务器信息
+
+GET {{url}}/api/admin/status/server/get?serverId=meta
+
+### 获取文件服务器信息
+# serverId后填写相应文件服务器ID
+GET {{url}}/api/admin/status/server/get?serverId=02e19159-a402-4b44-bcf6-f5f0330b1a3d
+
