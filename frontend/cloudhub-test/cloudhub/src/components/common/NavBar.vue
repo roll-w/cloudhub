@@ -1,79 +1,49 @@
 <template>
-  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-    <div class="container">
-      <router-link class="navbar-brand" :to="{name:'cloudhub_index'}">CloudHub</router-link>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarText"
-              aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-      </button>
+  <nav class="d-flex flex-column flex-shrink-0 p-4 bg-light border-end border-1" data-bs-scroll="true"
+       data-bs-backdrop="false" tabindex="-1">
 
-      <div class="collapse navbar-collapse" id="navbarText">
-        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-          <li class="nav-item">
-            <router-link :class="route_name === 'cloudhub_index' ? 'navbar-active' :'nav-link' "
-                         :to="{name:'cloudhub_index'}">用户主页
-            </router-link>
-          </li>
-          <li class="nav-item">
-            <router-link :class="route_name === 'file_index' ? 'nav-link active' :'nav-link' "
-                         :to="{name:'file_index'}">文件管理
-            </router-link>
-          </li>
-          <li class="nav-item">
-            <router-link :class="route_name === 'bucket_index' ? 'nav-link active' :'nav-link' "
-                         :to="{name:'bucket_index'}">桶管理
-            </router-link>
-          </li>
-          <li class="nav-item">
-            <router-link :class="route_name === 'userList_index' ? 'nav-link active' :'nav-link' "
-                         :to="{name:'userList_index'}">用户管理
-            </router-link>
-          </li>
+    <h2>
+      <router-link class="d-flex align-items-center mb-3 mb-md-0 me-md-auto link-dark text-decoration-none"
+                   :to="{name:'cloudhub_index'}">CloudHub
+      </router-link>
+    </h2>
+    <hr>
+    <ul class="nav nav-pills flex-column mb-auto">
+      <li>
+        <router-link :class="route_name === 'cloudhub_index' ? 'navbar-active' :'nav-link link-dark' "
+                     :to="{name:'cloudhub_index'}">总览
+        </router-link>
+      </li>
+      <li>
+        <router-link :class="route_name === 'bucket_index' ? 'nav-link active' :'nav-link link-dark' "
+                     :to="{name:'bucket_index'}">桶管理
+        </router-link>
+      </li>
+      <li>
+        <router-link :class="route_name === 'userList_index' ? 'nav-link active' :'nav-link link-dark' "
+                     :to="{name:'userList_index'}">用户管理
+        </router-link>
+      </li>
 
-<!--          <li class="nav-item">-->
-<!--            <router-link :class="route_name === 'server_index' ? 'nav-link active' :'nav-link' "-->
-<!--                         :to="{name:'server_index'}">服务器信息-->
-<!--            </router-link>-->
-<!--          </li>-->
-
-          <li class="nav-item">
-            <router-link :class="route_name === 'metadataserver_index' ? 'nav-link active' :'nav-link' "
-                         :to="{name:'metadataserver_index'}">文件集群信息
-            </router-link>
-          </li>
-
-<!--          <li class="nav-item">-->
-<!--            <router-link :class="route_name === 'fileserver_index' ? 'nav-link active' :'nav-link' "-->
-<!--                         :to="{name:'fileserver_index'}">文件服务器-->
-<!--            </router-link>-->
-<!--          </li>-->
-
-        </ul>
-<!--        <ul class="navbar-nav">-->
-<!--          <li class="nav-item">-->
-<!--            <router-link :class="route_name === 'login_index' ? 'nav-link active' :'nav-link' " :to="{name:''}">Logout-->
-<!--            </router-link>-->
-<!--          </li>-->
-<!--        </ul>-->
-
-        <ul class="navbar-nav" v-if="$store.state.user.is_login">
-          <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle"  id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-              {{$store.state.user.username}}
-            </a>
-            <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-              <li><a class="dropdown-item" href="#" @click="logout">Exit</a></li>
-            </ul>
-          </li>
-        </ul>
-
-        <ul class="navbar-nav" v-else>
-          <li class="nav-item">
-            <router-link :class="route_name === 'login_index' ? 'nav-link active' :'nav-link' " :to="{name:'login_index'}">Login</router-link>
-          </li>
-        </ul>
-
-      </div>
+      <li>
+        <router-link :class="route_name === 'metadataserver_index' ? 'nav-link active' :'nav-link link-dark' "
+                     :to="{name:'metadataserver_index'}">文件集群信息
+        </router-link>
+      </li>
+    </ul>
+    <hr>
+    <div class="dropdown">
+      <a href="#" class="d-flex align-items-center link-dark text-decoration-none dropdown-toggle"
+         id="dropdownUser2" data-bs-toggle="dropdown" aria-expanded="false">
+        <strong>Hello </strong>
+      </a>
+      <ul class="dropdown-menu text-small shadow" aria-labelledby="dropdownUser2">
+        <li><a class="dropdown-item">Settings</a></li>
+        <li>
+          <hr class="dropdown-divider">
+        </li>
+        <li><a class="dropdown-item">Logout</a></li>
+      </ul>
     </div>
   </nav>
 
@@ -83,6 +53,7 @@
 import {useRoute} from 'vue-router'
 import {computed} from "vue";
 import {useStore} from "vuex";
+
 export default {
   name: "NavBar",
   setup() {
@@ -93,7 +64,7 @@ export default {
       route.name
     });
 
-    const logout = () =>{
+    const logout = () => {
       store.dispatch("logout")
     }
     return {
