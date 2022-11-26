@@ -57,20 +57,9 @@ export default {
 
         success() {
           router.push({name:"home"});
-          console.log("登录成功");
-          // 成功之后，获取用户信息
-          // store.dispatch("getUserInfo",{
-          //   success(){
-          //     router.push({name:"home"});
-          //   },
-          //   error(){
-          //     console.log("获取信息失败");
-          //   }
-          // });
         },
         error(resp){
           console.log(resp)
-          console.log("登录失败")
         },
       })
 

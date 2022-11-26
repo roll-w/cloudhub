@@ -19,7 +19,7 @@
               </div>
               <div class="mb-3">
                 <label for="name" class="form-label">策略:</label>
-                <input  type="text" v-model="bucketVisibility" class="form-control" id="name" placeholder="Visibility">
+                <input  type="text" v-model="visibility" class="form-control" id="name" placeholder="Visibility">
               </div>
               <figure class="text-center">
 <!--                后期修改样式-->
@@ -62,7 +62,7 @@
             </button>
           </div>
           <div class="btn-group" role="group" aria-label="Basic outlined example">
-            <button type="button" class="btn btn-danger" @click="deleteBucket(bucket.name)">删除</button>
+            <button type="button" class="btn btn-danger" @click="deleteBucket(bucket)">删除</button>
           </div>
         </td>
       </tr>
@@ -79,15 +79,18 @@
           </div>
           <div class="modal-body">
 
-            <form @submit.prevent="addBucket">
-
+            <form @submit.prevent="settingVisibility">
+              <div class="mb-3">
+                <label for="name" class="form-label">名称:</label>
+                <input  type="text" v-model="bucketName" class="form-control" id="name" placeholder="Name">
+              </div>
               <div class="mb-3">
                 <label for="name" class="form-label">策略:</label>
-                <input  type="text" class="form-control" id="name" placeholder="PRIVATE or PUBLIC_READ or PUBLIC_READ_WRITE" >
+                <input  type="text" v-model="visibility" class="form-control" id="name" placeholder="PRIVATE or PUBLIC_READ or PUBLIC_READ_WRITE" >
               </div>
               <div class="modal-footer">
                 <button style="margin-right: 5px" type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
-                <button type="submit" class="btn btn-primary" >添加</button>
+                <button type="submit" class="btn btn-primary">添加</button>
               </div>
             </form>
           </div>
@@ -100,6 +103,7 @@
 
 <script>
 import ContentBase from "@/components/common/ContentBase";
+import { Modal } from 'bootstrap/dist/js/bootstrap'
 import {useRouter} from 'vue-router'
 import {ref} from 'vue';
 import $ from 'jquery'
@@ -109,13 +113,12 @@ export default {
   components: {
     ContentBase,
   },
+
   setup() {
     //接口
     let buckets = ref([]);
     let bucketName = ref([]);
-    let bucketVisibility= ref([]);
-
-
+    let visibility= ref([]);
     const router = useRouter()
 
     const checkFile = () => {
@@ -123,7 +126,7 @@ export default {
       //获取指定桶的文件信息
       $.ajax({
         url: '',
-        type: "get",
+        type: "",
         success() {
         //  file = resp
         },
@@ -131,79 +134,114 @@ export default {
           console.log(resp)
         }
       });
-    }
-    //具体对接修改相应属性
+    };
+
+    //TODO:获得桶列表
     const getBucket =()=> {
       $.ajax({
         url: url.url_getBucket,
-        type: "get",
+        type: "GET",
         xhrFields: {
           withCredentials: true // 携带跨域cookie  //单个设置
         },
         crossDomain:true,
         success(resp) {
-          console.log(resp)
           buckets.value = resp.data;
-          console.log("获取成功")
+          console.log("Successfully obtained the bucket list！")
         },
-        error(resp){
-          console.log(resp)
-          console.log("获取失败")
+        error(){
+          console.log("Bucket list acquisition failed！！！")
         }
       });
-    }
+    };
 
     getBucket();
 
+    //TODO：删除某个桶
     const deleteBucket = (bucket)=>{
       $.ajax({
         url: url.url_deleteBucket,
-        type: "post",
-        data: {
-          bucketName: bucket.name,
+        xhrFields: {
+          withCredentials: true // 携带跨域cookie  //单个设置
         },
+        crossDomain:true,
+        type: "DELETE",
+        contentType: "application/json;charset=UTF-8",
+        data: JSON.stringify({
+          bucketName: bucket.name,
+        }),
         success(resp) {
-          if (resp.message === "removeSuccess"){
+          if (resp.errorCode === "00000"){
             getBucket();
           }
+        },
+        error(resp){
+          console.log(resp);
         }
       })
     };
 
-
-    //获取Value，创建桶
+    //TODO：创建桶
     const addBucket =() => {
-
       $.ajax({
         url: url.url_addBucket,
-        type: "Put",
+        type: "PUT",
+        xhrFields: {
+          withCredentials: true // 携带跨域cookie  //单个设置
+        },
+        crossDomain:true,
         contentType: "application/json;charset=UTF-8",
         data:JSON.stringify({
           bucketName:bucketName.value,
-          visibility:bucketVisibility.value,
+          visibility:visibility.value,
         }),
         success(resp) {
           if (resp.errorCode === "00000") {
-              console.log("刷新桶列表")
-              //modal自动关闭待修复
-              // getBucket()
+            Modal.getInstance("#addBucket").hide();
+              getBucket()
           }
         },
         error(resp){
           console.log(resp)
         }
       });
-    }
+    };
+
+    const settingVisibility = ()=>{
+      $.ajax({
+        url: url.url_settingVisibility,
+        type: "POST",
+        xhrFields: {
+          withCredentials: true // 携带跨域cookie  //单个设置
+        },
+        crossDomain:true,
+        contentType: "application/json;charset=UTF-8",
+        data:JSON.stringify({
+          bucketName:bucketName.value,
+          visibility:visibility.value,
+        }),
+        success(resp) {
+          if (resp.errorCode === "00000") {
+            Modal.getInstance("#bucketAuthority").hide();
+              getBucket()
+          }
+        },
+        error(resp){
+            console.log(resp);
+        }
+      });
+    };
 
 
 
     return {
       buckets,
       bucketName,
-      bucketVisibility,
+      visibility,
       checkFile,
       deleteBucket,
       addBucket,
+      settingVisibility,
     }
   }
 }
