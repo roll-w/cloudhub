@@ -37,7 +37,7 @@ export default {
                 crossDomain: true,
                 success(resp) {
                     if (resp.errorCode === "00000") {
-                        // console.log(resp)
+                        console.log(resp.data)
                         context.commit("updateUser", {
                             ...resp.data,
                             is_login: true,
@@ -53,7 +53,6 @@ export default {
             });
         },
         logout() {
-
             $.ajax({
                 url:url.url_logout,
                 type:"post",

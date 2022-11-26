@@ -23,7 +23,7 @@
                        :to="{name:'bucket_index'}">桶管理
           </router-link>
         </li>
-        <li>
+        <li v-if="is_ADMIN()">
           <router-link :class="route_name === 'userList_index' ? 'nav-link active' :'nav-link link-dark' "
                        :to="{name:'userList_index'}">用户管理
           </router-link>
@@ -71,9 +71,15 @@ export default {
     const logout = () => {
       store.dispatch("logout")
     }
+
+    const is_ADMIN = () => {
+      return store.state.user.role === "ADMIN";
+    };
+
     return {
       route_name,
       logout,
+      is_ADMIN
     }
 
   }
