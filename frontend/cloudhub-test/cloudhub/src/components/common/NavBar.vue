@@ -46,7 +46,7 @@
           <li>
             <hr class="dropdown-divider">
           </li>
-          <li><a class="dropdown-item">Logout</a></li>
+          <li><a class="dropdown-item" @click="logout">Logout</a></li>
         </ul>
       </div>
     </nav>
