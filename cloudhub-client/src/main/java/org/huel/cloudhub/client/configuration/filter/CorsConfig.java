@@ -33,11 +33,13 @@ public class CorsConfig implements Filter {
             response.setHeader("Access-Control-Allow-Headers", headers);
             response.setHeader("Access-Control-Expose-Headers", headers);
         }
-
         response.setHeader("Access-Control-Allow-Methods", "*");
         response.setHeader("Access-Control-Max-Age", "3600");
         response.setHeader("Access-Control-Allow-Credentials", "true");
-
+        if (request.getMethod().equals("OPTIONS")) {
+            response.getWriter().println("ok");
+            return;
+        }
         chain.doFilter(request, response);
     }
 
