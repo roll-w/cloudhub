@@ -49,12 +49,30 @@
 <!--          </li>-->
 
         </ul>
-        <ul class="navbar-nav">
-          <li class="nav-item">
-            <router-link :class="route_name === 'login_index' ? 'nav-link active' :'nav-link' " :to="{name:''}">Logout
-            </router-link>
+<!--        <ul class="navbar-nav">-->
+<!--          <li class="nav-item">-->
+<!--            <router-link :class="route_name === 'login_index' ? 'nav-link active' :'nav-link' " :to="{name:''}">Logout-->
+<!--            </router-link>-->
+<!--          </li>-->
+<!--        </ul>-->
+
+        <ul class="navbar-nav" v-if="$store.state.user.is_login">
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle"  id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              {{$store.state.user.username}}
+            </a>
+            <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+              <li><a class="dropdown-item" href="#" @click="logout">Exit</a></li>
+            </ul>
           </li>
         </ul>
+
+        <ul class="navbar-nav" v-else>
+          <li class="nav-item">
+            <router-link :class="route_name === 'login_index' ? 'nav-link active' :'nav-link' " :to="{name:'login_index'}">Login</router-link>
+          </li>
+        </ul>
+
       </div>
     </div>
   </nav>
@@ -64,17 +82,23 @@
 <script>
 import {useRoute} from 'vue-router'
 import {computed} from "vue";
-
+import {useStore} from "vuex";
 export default {
   name: "NavBar",
   setup() {
     const route = useRoute();
-    // eslint-disable-next-line vue/return-in-computed-property
+    const store = useStore();
+    // eslint-disable-next-line
     let route_name = computed(() => {
       route.name
-    })
+    });
+
+    const logout = () =>{
+      store.dispatch("logout")
+    }
     return {
-      route_name
+      route_name,
+      logout,
     }
 
   }

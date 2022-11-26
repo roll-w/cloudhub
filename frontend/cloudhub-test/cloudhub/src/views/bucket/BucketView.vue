@@ -17,11 +17,11 @@
                 <label for="name" class="form-label">名称:</label>
 
                 <!-- 桶名称 -->
-                <input  type="text" class="form-control" id="name" placeholder="Name" >
+                <input  type="text" class="form-control" id="name" placeholder="Name" name="bucketName">
               </div>
               <div class="mb-3">
                 <label for="name" class="form-label">策略:</label>
-                <input  type="text" class="form-control" id="name" placeholder="Visibility" >
+                <input  type="text" class="form-control" id="name" placeholder="Visibility" name="visibility">
               </div>
               <figure class="text-center">
                 PRIVATE or PUBLIC_READ or PUBLIC_READ_WRITE
@@ -50,8 +50,7 @@
       <tbody>
       <tr v-for="bucket in buckets" :key="bucket.name">
         <td>{{ bucket.name }}</td>
-        <td>{{ bucket.tactic }}</td>
-
+        <td>{{ bucket.visibility }}</td>
         <td>
           <div class="btn-group" role="group" aria-label="Basic outlined example">
             <button type="button" class="btn btn-primary" @click="checkFile">查看</button>
@@ -64,7 +63,7 @@
             </button>
           </div>
           <div class="btn-group" role="group" aria-label="Basic outlined example">
-            <button type="button" class="btn btn-danger" @click="deleteBucket(bucket)">删除</button>
+            <button type="button" class="btn btn-danger" @click="deleteBucket(bucket.name)">删除</button>
           </div>
         </td>
       </tr>
@@ -113,24 +112,24 @@ export default {
   },
   setup() {
     //接口
-    let bucket = ref([]);
+    let buckets = ref([]);
     let bucketName = ref([]);
     let bucketVisibility= ref([]);
 
-    let buckets = [
-      {
-        name: "bucket1",
-        storageUsed: 1234,  // 存储用量(byte)
-        tactic: "私有桶", // 桶策略: 私有、公共读、公共读写
-        objectNum: 0, // 对象数量: 对象数量是桶内文件夹、当前版本对象和历史版本对象的总和
-      },
-      {
-        name: "bucket2",
-        storageUsed: 0,  // 存储用量(byte)
-        tactic: "公共读写", // 桶策略: 私有、公共读、公共读写
-        objectNum: 0, // 对象数量: 对象数量是桶内文件夹、当前版本对象和历史版本对象的总和
-      }
-    ]
+    // let buckets = [
+    //   {
+    //     name: "bucket1",
+    //     storageUsed: 1234,  // 存储用量(byte)
+    //     tactic: "私有桶", // 桶策略: 私有、公共读、公共读写
+    //     objectNum: 0, // 对象数量: 对象数量是桶内文件夹、当前版本对象和历史版本对象的总和
+    //   },
+    //   {
+    //     name: "bucket2",
+    //     storageUsed: 0,  // 存储用量(byte)
+    //     tactic: "公共读写", // 桶策略: 私有、公共读、公共读写
+    //     objectNum: 0, // 对象数量: 对象数量是桶内文件夹、当前版本对象和历史版本对象的总和
+    //   }
+    // ]
 
     const router = useRouter()
 
@@ -154,12 +153,13 @@ export default {
       $.ajax({
         url: url.url_getBucket,
         type: "get",
-
         success(resp) {
-          bucket.value = resp;
+          buckets.value = resp;
+          console.log("获取成功")
         },
         error(resp){
           console.log(resp)
+          console.log("获取失败")
         }
       });
     }
@@ -191,7 +191,7 @@ export default {
         contentType: "application/json;charset=UTF-8",
         data:JSON.stringify({
           bucketName:bucketName.value,
-          bucketVisibility:bucketVisibility,
+          visibility:bucketVisibility,
         }),
         success(resp) {
           if (resp.message === "SUCCESS") {
@@ -209,7 +209,6 @@ export default {
 
 
     return {
-      bucket,
       buckets,
       checkFile,
       deleteBucket,
