@@ -42,7 +42,7 @@ export default {
                 },
                 crossDomain: true,
                 success(resp) {
-                    if (resp.message === "SUCCESS") {
+                    if (resp.errorCode === "00000") {
                         // console.log(resp)
                         context.commit("updateUser", {
                             ...resp.data,
