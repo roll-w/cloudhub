@@ -10,6 +10,7 @@ import org.huel.cloudhub.client.event.object.ObjectGetRequestEvent;
 import org.huel.cloudhub.client.event.object.ObjectPutRequestEvent;
 import org.huel.cloudhub.client.service.bucket.BucketAuthService;
 import org.huel.cloudhub.client.service.object.ObjectMetadataService;
+import org.huel.cloudhub.client.service.object.ObjectRuntimeException;
 import org.huel.cloudhub.client.service.object.ObjectService;
 import org.huel.cloudhub.client.service.user.UserGetter;
 import org.huel.cloudhub.common.ErrorCode;
@@ -17,6 +18,7 @@ import org.huel.cloudhub.common.HttpResponseEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.http.HttpRange;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -31,6 +33,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -81,19 +84,25 @@ public class ObjectController {
         if (metadata != null) {
             metadata.forEach(response::setHeader);
         }
-        BytesRange range = tryGetsRange(request);
+        List<HttpRange> ranges = tryGetsRange(request);
         response.setHeader("Accept-Ranges", "bytes");
         applicationEventPublisher.publishEvent(
                 new ObjectGetRequestEvent(objectInfo));
-        if (range != null) {
+        if (ranges != null && !ranges.isEmpty()) {
+            HttpRange range = ranges.get(0);
             ObjectInfoDto objectInfoDto = objectService.getObjectInBucket(bucketName, objectName);
+            if (objectInfoDto == null) {
+                throw new ObjectRuntimeException(ErrorCode.ERROR_DATA_NOT_EXIST,
+                        "Object not exist");
+            }
+            long len = objectInfoDto.objectSize();
             response.setStatus(HttpServletResponse.SC_PARTIAL_CONTENT);
             response.setHeader("Content-Disposition", "inline;filename=" + objectName);
             response.setHeader("Content-Range",
-                    "bytes " + range.start() + "-" + (range.end() < 0 ? objectInfoDto.objectSize() - 1 : range.end()) + "/" +
+                    "bytes " + range.getRangeStart(len) + "-" + range.getRangeEnd(len) + "/" +
                     objectInfoDto.objectSize());
             objectService.getObjectData(objectInfo, response.getOutputStream(),
-                    range.start(), range.end());
+                    range.getRangeStart(len), range.getRangeEnd(len));
             return null;
         }
         objectService.getObjectData(objectInfo, response.getOutputStream());
@@ -174,36 +183,12 @@ public class ObjectController {
                 res.toResponseBody(ObjectInfoVo::from));
     }
 
-    private record BytesRange(long start, long end) {
-    }
 
-    private static BytesRange tryGetsRange(HttpServletRequest request) {
+    private static List<HttpRange> tryGetsRange(HttpServletRequest request) {
         String range = request.getHeader("Range");
         if (range == null) {
             return null;
         }
-        if (!(range.contains("bytes=") && range.contains("-"))) {
-            return null;
-        }
-        range = range.substring(range.lastIndexOf("=") + 1).trim();
-        String[] ranges = range.split("-");
-        long startByte = -1, endByte = -1;
-        try {
-            if (ranges.length == 1) {
-                if (range.startsWith("-")) {
-                    endByte = Long.parseLong(ranges[0]);
-                }
-                else if (range.endsWith("-")) {
-                    startByte = Long.parseLong(ranges[0]);
-                }
-            }
-            else if (ranges.length == 2) {
-                startByte = Long.parseLong(ranges[0]);
-                endByte = Long.parseLong(ranges[1]);
-            }
-            return new BytesRange(startByte, endByte);
-        } catch (NumberFormatException e) {
-            return null;
-        }
+        return HttpRange.parseRanges(range);
     }
 }

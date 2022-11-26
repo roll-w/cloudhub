@@ -28,10 +28,10 @@ public abstract class ObjectMetadataDao {
     @Delete
     public abstract void delete(List<ObjectMetadata> metadata);
 
-    @Delete("DELETE object_metadata_table WHERE object_name = {objectName} AND bucket_name = {bucketName}")
+    @Delete("DELETE FROM object_metadata_table WHERE bucket_name = {bucketName} AND object_name = {objectName}")
     public abstract void deleteByObjectName(String bucketName, String objectName);
 
-    @Delete("DELETE object_metadata_table WHERE bucket_name = {bucketName}")
+    @Delete("DELETE FROM object_metadata_table WHERE bucket_name = {bucketName}")
     public abstract void deleteByBucketName(String bucketName);
 
     @Query("SELECT * FROM object_metadata_table WHERE object_name = {objectName} AND bucket_name = {bucketName}")

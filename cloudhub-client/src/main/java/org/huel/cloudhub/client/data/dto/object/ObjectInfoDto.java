@@ -23,6 +23,9 @@ public record ObjectInfoDto(
         long objectSize) {
 
     public static ObjectInfoDto from(FileObjectStorage storage) {
+        if (storage == null) {
+            return null;
+        }
         return new ObjectInfoDto(
                 storage.getObjectName(),
                 storage.getBucketName(),

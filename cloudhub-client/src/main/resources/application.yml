@@ -4,7 +4,7 @@ server:
       cookie:
         name: cloudhub_session
   tomcat:
-    connection-timeout: 30000
+    connection-timeout: -1
 
 logging:
   charset:

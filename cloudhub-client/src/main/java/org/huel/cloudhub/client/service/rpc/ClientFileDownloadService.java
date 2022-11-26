@@ -76,23 +76,18 @@ public class ClientFileDownloadService {
                 .setStartBytes(startBytes)
                 .setEndBytes(endBytes)
                 .build();
-        if (!server.getId().equals(masterId)) {
-            return DownloadBlockRequest.newBuilder()
-                    .setFileId(fileId)
-                    .setSegmentInfo(DownloadBlocksSegmentInfo
-                            .newBuilder()
-                            .setBytes(bytesSegment)
-                            .build())
-                    .setSourceId(masterId)
-                    .build();
-        }
-        return DownloadBlockRequest.newBuilder()
+        DownloadBlockRequest.Builder builder = DownloadBlockRequest.newBuilder()
                 .setFileId(fileId)
                 .setSegmentInfo(DownloadBlocksSegmentInfo
                         .newBuilder()
                         .setBytes(bytesSegment)
-                        .build())
-                .build();
+                        .build()
+                );
+        if (!server.getId().equals(masterId)) {
+            return builder.setSourceId(masterId)
+                    .build();
+        }
+        return builder.build();
     }
 
     private DownloadBlockRequest buildFirstRequest(SerializedFileServer server, String masterId, String fileId) {
@@ -167,14 +162,12 @@ public class ClientFileDownloadService {
             List<DownloadBlockData> dataList = downloadBlocksInfo.getDataList();
             logger.debug("Receive download response:index={}, count={}, dataBlock size={}",
                     downloadBlocksInfo.getIndex(), receiveCount.get(), dataList.size());
-            try {
-                writeTo(dataList, outputStream, calcValidBytes(receiveCount.get()));
-            } catch (IOException e) {
-                logger.debug("Download error.", e);
-                return;
-            }
-
             receiveCount.incrementAndGet();
+            try {
+                writeTo(dataList, outputStream, -1);
+            } catch (IOException e) {
+                logger.debug("Download error, may the writing problem.", e);
+            }
         }
 
         private long calcValidBytes(int index) {

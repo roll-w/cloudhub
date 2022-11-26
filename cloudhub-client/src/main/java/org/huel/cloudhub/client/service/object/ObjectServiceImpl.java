@@ -191,8 +191,7 @@ public class ObjectServiceImpl implements ObjectService, ObjectRemoveHandler {
 
     @Override
     public boolean isObjectExist(ObjectInfo objectInfo) {
-        return repository.isObjectExist(objectInfo.bucketName(),
-                objectInfo.objectName());
+        return repository.isObjectExist(objectInfo.bucketName(), objectInfo.objectName());
     }
 
 
