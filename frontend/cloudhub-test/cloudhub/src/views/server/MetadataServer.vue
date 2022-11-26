@@ -259,6 +259,7 @@
         </div>
       </ContentBase>
     </div>
+
     <!-- 已连接文件服务器信息 -->
     <div class="row">
       <ContentBase style="width: 1000px">
@@ -515,7 +516,7 @@ export default {
     Wait,
     ContentBase,
     Send,
-    Receive
+    Receive,
   },
   setup() {
 
