@@ -10,15 +10,10 @@
                 <div class="col">
                   <div class="row">
                     <h5>
-                      上午好，管理员，请开始一天的工作吧!
+                      欢迎，User！
                     </h5>
                   </div>
                   <br>
-                  <div class="row">
-                    <h6 style="color: #909399">
-                      今日晴，0℃ - 10℃，天气寒冷，注意添加衣物。
-                    </h6>
-                  </div>
                   <br>
 
                   <!--                  <div class="row">-->

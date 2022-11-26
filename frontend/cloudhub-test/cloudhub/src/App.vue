@@ -7,7 +7,6 @@
 //根目录引用bootstrap
 import 'bootstrap/dist/css/bootstrap.css';
 import 'bootstrap/dist/js/bootstrap';
-import 'element-plus/dist/index.css'
 
 export default {
   name: 'App',
@@ -17,8 +16,7 @@ export default {
 
 <style>
 body {
-  background-image: url("@/assets/background/Img3.png");
-  background-size: cover;
+  background-color: #f3f4f7;
 }
 th,td{
   text-align: center;

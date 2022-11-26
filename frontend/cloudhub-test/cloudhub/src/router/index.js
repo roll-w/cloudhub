@@ -8,13 +8,19 @@ const routes = [
     {
         path: '/',
         name: "login_index",
-        component: LoginView  // 登录界面
+        component: LoginView,  // 登录界面
+        meta: {
+            title : "登录 | Cloudhub 对象存储系统"
+        }
     },
     {
         path: '/home',
         name: 'home',
         redirect: 'hub',
         component: HomeView,
+        meta: {
+            title : "主页 | Cloudhub 对象存储系统"
+        },
         children: [
             {
                 path: '/hub',
@@ -51,13 +57,19 @@ const routes = [
     {
         path: '/register',
         name: "register_index",
-        component: Register // 注册界面
+        component: Register, // 注册界面
+        meta: {
+            title : "注册 | Cloudhub 对象存储系统"
+        }
     },
 
     {
         path: '/404',
         name: '404',
-        component: NotFound // 404
+        component: NotFound,// 404,
+        meta: {
+            title : "404未找到资源 | Cloudhub 对象存储系统"
+        }
     },
     {
         path: '/:catchAll(.*)',
@@ -69,5 +81,10 @@ const router = createRouter({
     history: createWebHistory(),
     routes
 })
+const defaultTitle = "Cloudhub 对象储存系统"
 
+router.beforeEach((to, from, next) => {
+    document.title = to.meta.title ? to.meta.title : defaultTitle
+    next()
+})
 export default router
