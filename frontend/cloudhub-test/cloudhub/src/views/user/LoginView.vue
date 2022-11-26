@@ -36,7 +36,8 @@ import {useRouter} from 'vue-router'
 import Img from "@/assets/images/login.jpg"
 import {useStore} from 'vuex';
 import {ref} from "vue";
-
+// import url from '@/store/api'
+// import $ from 'jquery'
 export default {
   name: "LoginView",
   components:{
@@ -62,8 +63,28 @@ export default {
           console.log(resp)
         },
       })
-
-    }
+    };
+//  TODO:session没存貌似没用
+    // const getCurrent = ()=>{
+    //       $.ajax({
+    //         url:url.url_getCurrent,
+    //         type:"GET",
+    //         xhrFields: {
+    //           withCredentials: true
+    //         },
+    //         crossDomain: true,
+    //         success(resp){
+    //           if (resp.errorCode === "00000"){
+    //             router.push({name:"home"});
+    //           }
+    //         },
+    //         error(resp){
+    //           console.log(resp)
+    //         }
+    //       });
+    // };
+    //
+    // getCurrent();
 
     return {
       Img,

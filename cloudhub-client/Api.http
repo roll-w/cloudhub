@@ -4,9 +4,9 @@ POST {{url}}/api/user/register
 Content-Type: application/json
 
 {
-  "username": "user",
+  "username": "user5",
   "password": "123456",
-  "email": "your@email.com"
+  "email": "user5@email.com"
 }
 
 ### 用户登录

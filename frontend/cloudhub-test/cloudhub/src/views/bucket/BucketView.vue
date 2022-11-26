@@ -1,6 +1,6 @@
 <template>
   <ContentBase>
-    <button type="button" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#addBucket">
+    <button type="button"  class="btn btn-link" data-bs-toggle="modal" data-bs-target="#addBucket">
       创建桶
     </button>
 <!--// TODO: 创建modal  -->
@@ -42,27 +42,27 @@
         <th scope="col">名称</th>
         <th scope="col">策略</th>
         <th scope="col">详情</th>
-        <th scope="col">操作</th>
+        <th scope="col">编辑</th>
       </tr>
       </thead>
 
       <tbody>
       <tr v-for="bucket in buckets" :key="bucket.name">
         <td>{{ bucket.name }}</td>
-        <td>{{ bucket.visibility }}</td>
+        <td>{{ bucket.bucketVisibility }}</td>
         <td>
           <div class="btn-group" role="group" aria-label="Basic outlined example">
-            <button type="button" class="btn btn-primary" @click="checkFile">查看</button>
+            <button type="button" class="btn btn-link" @click="checkFile">查看</button>
           </div>
         </td>
         <td>
           <div class="btn-group" role="group" aria-label="Basic outlined example">
-            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#bucketAuthority">
+            <button type="button" class="btn btn-link" data-bs-toggle="modal" data-bs-target="#bucketAuthority">
               权限
             </button>
           </div>
           <div class="btn-group" role="group" aria-label="Basic outlined example">
-            <button type="button" class="btn btn-danger" @click="deleteBucket(bucket)">删除</button>
+            <button type="button" class="btn btn-link" @click="deleteBucket(bucket)">删除</button>
           </div>
         </td>
       </tr>
@@ -146,6 +146,7 @@ export default {
         },
         crossDomain:true,
         success(resp) {
+          console.log(resp.data)
           buckets.value = resp.data;
           console.log("Successfully obtained the bucket list！")
         },
@@ -248,5 +249,10 @@ export default {
 </script>
 
 <style scoped>
-
+button {
+  /*style="font-size: large; font-weight: bolder"*/
+  font-size: large;
+  font-weight: normal;
+  text-decoration: none;
+}
 </style>
