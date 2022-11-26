@@ -24,6 +24,7 @@
                 <input  type="text" class="form-control" id="name" placeholder="Visibility" name="visibility">
               </div>
               <figure class="text-center">
+<!--                后期修改样式-->
                 PRIVATE or PUBLIC_READ or PUBLIC_READ_WRITE
               </figure>
               <div class="modal-footer">
@@ -147,12 +148,15 @@ export default {
         }
       });
     }
-
     //具体对接修改相应属性
     const getBucket =()=> {
       $.ajax({
         url: url.url_getBucket,
         type: "get",
+        xhrFields: {
+          withCredentials: true // 携带跨域cookie  //单个设置
+        },
+        crossDomain:true,
         success(resp) {
           buckets.value = resp;
           console.log("获取成功")
@@ -171,7 +175,7 @@ export default {
         url: url.url_deleteBucket,
         type: "post",
         data: {
-          bucket_id: bucket.id,
+          bucketName: bucket.name,
         },
         success(resp) {
           if (resp.message === "removeSuccess"){

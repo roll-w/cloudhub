@@ -38,9 +38,9 @@ export default {
                     username: data.username,
                     password: data.password,
                 }),
-                //具体返回响应根据后端
                 success(resp) {
                     if (resp.message === "SUCCESS") {
+                        // console.log(resp)
                         context.commit("updateUser",{
                             ...resp.data,
                             is_login: true,
