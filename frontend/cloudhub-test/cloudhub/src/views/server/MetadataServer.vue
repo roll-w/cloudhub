@@ -455,6 +455,8 @@ export default {
   },
   setup() {
 
+    const info = {"title":"空闲率","total":1024,"used":512}
+
     // 元数据服务器信息
     const data = ref({
       // CPU 返回使用率的百分比
@@ -706,6 +708,7 @@ export default {
     }
 
     return {
+      info,
       data,
       servers,
       deleteServer
