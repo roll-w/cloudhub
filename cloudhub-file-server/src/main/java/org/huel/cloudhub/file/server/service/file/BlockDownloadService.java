@@ -115,6 +115,9 @@ public class BlockDownloadService extends BlockDownloadServiceGrpc.BlockDownload
         if (end < 0) {
             end = fileLength - 1;
         }
+        if (start > end) {
+            return new BytesInfo(end, start);
+        }
         return new BytesInfo(start, end);
     }
 
@@ -264,7 +267,7 @@ public class BlockDownloadService extends BlockDownloadServiceGrpc.BlockDownload
         }
         ByteString byteString = ByteString.copyFrom(
                 block.getData(), startOff,
-                startOff + endLen - 1
+                endLen - startOff + 1
         );
         block.release();
         return DownloadBlockData.newBuilder()

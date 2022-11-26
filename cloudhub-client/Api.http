@@ -23,6 +23,10 @@ Content-Type: application/json
 
 POST {{url}}/api/user/logout
 
+### 当前用户信息
+
+GET {{url}}/api/user/current
+
 ### 管理员获取用户信息
 
 GET {{url}}/api/admin/user/get?username=user
@@ -94,6 +98,11 @@ Content-Disposition: form-data; name="object"; filename="test.jpg"
 ### 获取对象
 
 GET {{url}}/api/object/v1/test/testdir/test.jpg
+
+### 获取对象部分字节
+
+GET {{url}}/api/object/v1/test/testdir/test.jpg
+Range: bytes=1-12
 
 ### 删除对象
 
