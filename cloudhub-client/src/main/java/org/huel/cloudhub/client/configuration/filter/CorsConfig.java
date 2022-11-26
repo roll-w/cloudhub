@@ -1,6 +1,7 @@
 package org.huel.cloudhub.client.configuration.filter;
 
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -11,6 +12,8 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.StringJoiner;
 
 /**
  * @author Cheng
@@ -33,7 +36,10 @@ public class CorsConfig implements Filter {
             response.setHeader("Access-Control-Allow-Headers", headers);
             response.setHeader("Access-Control-Expose-Headers", headers);
         }
-        response.setHeader("Access-Control-Allow-Methods", "*");
+        StringJoiner methods = new StringJoiner(", ");
+        Arrays.stream(HttpMethod.values()).forEach(httpMethod ->
+                methods.add(httpMethod.name()));
+        response.setHeader("Access-Control-Allow-Methods", methods.toString());
         response.setHeader("Access-Control-Max-Age", "3600");
         response.setHeader("Access-Control-Allow-Credentials", "true");
         if (request.getMethod().equals("OPTIONS")) {
