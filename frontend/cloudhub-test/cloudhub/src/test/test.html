@@ -3,9 +3,7 @@
 <head>
     <meta charset="utf-8">
     <title>第一个 ECharts 实例</title>
-<!--    <script src="jquery.min.js"></script>-->
     <script src="https://cdn.staticfile.org/jquery/1.10.2/jquery.min.js"></script>
-    <!-- 引入 echarts.js -->
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.0/dist/echarts.min.js"></script>
 </head>
 <body>
@@ -17,21 +15,23 @@
     let base = +new Date(0, 0, 0);
     let oneDay = 24 * 3600 * 1000;
     let date = [];
-    let data = [Math.random() * 150];
+    let receiveRate = [Math.random() * 150];
     let now = new Date(base);
+
 
     // 方法等
     function addData(shift) {
         now = [now.getFullYear(), now.getMonth() + 1, now.getDate()].join('/');
         date.push(now);
-        data.push((Math.random() - 0.4) * 10 + data[data.length - 1]);
+        receiveRate.push((Math.random() - 0.4) * 10 + receiveRate[receiveRate.length - 1]);
         if (shift) {
             date.shift();
-            data.shift();
+            receiveRate.shift();
         }
         now = new Date(+new Date(now) + oneDay);
     }
-    for (let i = 1; i < 50; i++) {
+
+    for (let i = 1; i < 30; i++) {
         addData();
     }
 
@@ -40,7 +40,8 @@
         xAxis: {
             type: 'category',
             boundaryGap: false,
-            data: date
+            //receiveRate: date
+            show: false
         },
         yAxis: {
             boundaryGap: [0, '50%'],
@@ -48,15 +49,24 @@
         },
         series: [
             {
-                name:'成交',
-                type:'line',
-                smooth:true,
+                name: '',
+                type: 'line',
+                smooth: false,
                 symbol: 'none',
                 stack: 'a',
-                areaStyle: {
-                    normal: {}
+                itemStyle:{ // 折线颜色
+                    normal:{
+                        lineStyle:{
+                            color:"#82E0AA"
+                        }
+                    }
                 },
-                data: data
+                areaStyle: { // 区域颜色
+                    normal: {
+                        color: "#ABEBC6",
+                    }
+                },
+                receiveRate: receiveRate
             }
         ]
     };
@@ -64,16 +74,13 @@
     setInterval(function () {
         addData(true);
         myChart.setOption({
-            xAxis: {
-                data: date
-            },
+            xAxis: {},
             series: [{
-                name:'成交',
-                data: data
+                name: '',
+                data: receiveRate
             }]
         });
     }, 1000);
-
     // 基于准备好的dom，初始化echarts实例
     let myChart = echarts.init(document.getElementById('main'));
     myChart.setOption(option)
