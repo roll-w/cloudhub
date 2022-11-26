@@ -3,45 +3,48 @@ import url from '@/store/api'
 
 export default {
     state: {
-        id:"",
-        username:"",
-        email:"",
-        role:"",
-        is_login:false,
+        id: "",
+        username: "",
+        email: "",
+        role: "",
+        is_login: false,
     },
-    getters: {
-    },
+    getters: {},
     mutations: {
-        updateUser(state,user){
+        updateUser(state, user) {
             state.id = user.id;
             state.username = user.username;
             state.email = user.email;
             state.role = user.role;
             state.is_login = user.is_login;
         },
-        logout(state){
-            state.id="";
-            state.username="";
-            state.role="";
+        logout(state) {
+            state.id = "";
+            state.username = "";
+            state.role = "";
             state.is_login = false;
         },
     },
 
     actions: {
 
-        login(context,data){
+        login(context, data) {
             $.ajax({
-                url:url.url_login,
-                type:"post",
+                url: url.url_login,
+                type: "post",
                 contentType: "application/json;charset=UTF-8",
-                data:JSON.stringify({
+                data: JSON.stringify({
                     username: data.username,
                     password: data.password,
                 }),
+                xhrFields: {
+                    withCredentials: true
+                },
+                crossDomain: true,
                 success(resp) {
                     if (resp.message === "SUCCESS") {
                         // console.log(resp)
-                        context.commit("updateUser",{
+                        context.commit("updateUser", {
                             ...resp.data,
                             is_login: true,
                         })
@@ -82,6 +85,5 @@ export default {
         }
     },
 
-    modules: {
-    }
+    modules: {}
 }
