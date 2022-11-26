@@ -171,7 +171,7 @@
 
 <script>
 import ContentBase from "@/components/common/ContentBase";
-import NetWorkFlow from "@/components/network/NetWorkFlow";
+import NetWorkFlow from "@/components/echarts/network/NetWorkFlow";
 import Img from "@/assets/images/home.png"
 
 export default {

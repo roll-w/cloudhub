@@ -266,7 +266,7 @@
         <table class="table table-hover">
           <thead class="table-light">
           <tr>
-            <!--            <th scope="col">服务器ID</th>-->
+<!--            <th scope="col">服务器ID</th>-->
             <th scope="col">服务器IP地址</th>
             <th scope="col">服务器状态</th>
             <th scope="col">详情信息</th>
@@ -275,17 +275,16 @@
 
           <tbody>
           <tr v-for="server in servers" :key="server.serverId">
-            <!--            <th scope="row">{{ server.serverId }}</th>-->
+<!--            <th scope="row">{{ server.serverId }}</th>-->
             <th scope="row">{{ server.serverIp }}</th>
-            <th scope="row">正常/宕机</th>
+            <th scope="row"> 正常</th>
             <th scope="row">
               <div class="d-grid gap-2 d-md-flex justify-content-center">
-                <button type="button" class="btn btn-primary" data-bs-toggle="modal"
-                        :data-bs-target="'#ModalCondition' + server.serverId">
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" :data-bs-target="'#ModalCondition' + server.serverId">
                   运行状态
                 </button>
 
-                <div class="modal fade" :id="'ModalCondition' + server.serverId" tabindex="-1">
+                <div class="modal fade" :id="'ModalCondition' + server.serverId" tabindex="-1" >
                   <div class="modal-dialog">
                     <div class="modal-content" style="width:900px">
 
@@ -457,13 +456,10 @@
                                     <td>{{ docker.id }}</td>
                                     <td>{{ docker.name }}</td>
                                     <td>{{ (docker.cpuRatio * 100).toFixed(2) + '%' }}</td>
-                                    <td>{{
-                                        docker.memMessage.memUsage + 'MiB / ' + docker.memMessage.memLimit + 'MiB'
-                                      }}
-                                    </td>
+                                    <td>{{ docker.memMessage.memUsage + 'MiB / ' + docker.memMessage.memLimit + 'MiB' }}</td>
                                     <td>{{ (docker.memRatio * 100).toFixed(2) + '%' }}</td>
                                     <td>{{ docker.netIO.netIn + 'B / ' + docker.netIO.netOut + 'B' }}</td>
-                                    <td>{{ docker.blockIO.blockIn + 'B / ' + docker.blockIO.blockOut + 'B' }}</td>
+                                    <td>{{ docker.blockIO.blockIn + 'B / ' + docker.blockIO.blockOut +'B'}}</td>
                                     <td>{{ docker.pids }}</td>
                                   </tr>
                                   </tbody>
@@ -481,11 +477,58 @@
                   </div>
                 </div>
 
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" :data-bs-target="'#ModalNode' + server.serverId">
+                  容器信息
+                </button>
+
+                <div class="modal fade" :id="'ModalNode' + server.serverId" tabindex="-1" >
+                  <div class="modal-dialog">
+                    <div class="modal-content" >
+                      <div class="modal-body">
+                        <table class="table table-hover">
+                          <thead style="color: #909399">
+                          <tr>
+                            <th scope="col">node</th>
+                            <th scope="col">state</th>
+                            <th scope="col">load</th>
+                            <th scope="col">phymem</th>
+                            <th scope="col">ncpus</th>
+                            <th scope="col">allmem</th>
+                            <th scope="col">resi</th>
+                            <th scope="col">usrs</th>
+                            <th scope="col">tasks</th>
+                            <th scope="col">jobidlist</th>
+                          </tr>
+                          </thead>
+                          <tbody>
+                          <tr v-for="node in server.nodeList" :key="node.id">
+                            <td>{{ node.name }}</td>
+                            <td>{{ node.state }}</td>
+                            <td>{{ node.load  }}</td>
+                            <td>{{ node.phymem }}</td>
+                            <td>{{ node.ncpus }}</td>
+                            <td>{{ node.allmem }}</td>
+                            <td>{{ node.resi }}</td>
+                            <td>{{ node.usrs }}</td>
+                            <td>{{ node.tasks }}</td>
+                            <td>{{ node.joblist }}</td>
+                          </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </th>
           </tr>
           </tbody>
+
         </table>
+
       </ContentBase>
     </div>
     <br>
@@ -497,12 +540,12 @@
 <script>
 
 import ContentBase from "@/components/common/ContentBase";
-import SysUsed from "@/components/echarts/cpu/SysUsed";
-import UserUsed from "@/components/echarts/cpu/UserUsed";
-import Free from "@/components/echarts/cpu/Free";
-import Wait from "@/components/echarts/cpu/Wait";
-import Send from "@/components/echarts/network/Send";
-import Receive from "@/components/echarts/network/Receive"
+import SysUsed from "@/components/cpu/SysUsed";
+import UserUsed from "@/components/cpu/UserUsed";
+import Free from "@/components/cpu/Free";
+import Wait from "@/components/cpu/Wait";
+import Send from "@/components/network/Send";
+import Receive from "@/components/network/Receive"
 
 import {ref} from "vue";
 
@@ -597,10 +640,10 @@ export default {
         },
 
         // 展示每个CPU的利用率，列表长度为服务器的核数
-        coreInfo: [
+        coreInfo:[
           {
             coreId: "one",
-            coreUsage: 0.1234,
+            coreUsage:0.1234,
           },
           {
             coreId: "two",
@@ -641,6 +684,53 @@ export default {
             pids: 8 // PIDS：容器创建的进程或线程数
           },
         ],
+
+
+
+        // 参考博客: https://blog.csdn.net/qq_36949278/article/details/115455917
+
+        // 服务器节点信息
+        nodeList:[
+          {
+            id:"1",
+            name: 'node1',
+            state: 'busy',
+            load: 65.19,
+            phymem: 773743,
+            ncpus:64,
+            allmem: 839279,
+            resi: 62739,
+            usrs:"15/5",
+            tasks:64,
+            joblist:"5673[577] NONE* 5673[37] NONE*"
+          },
+          {
+            id:"2",
+            name: 'node2',
+            state: 'excl',
+            load: 65.19,
+            phymem: 773743,
+            ncpus:64,
+            allmem: 839279,
+            resi: 62739,
+            usrs:"15/5",
+            tasks:64,
+            joblist:"5673[577] NONE* 5673[37] NONE*"
+          },
+          {
+            id:"3",
+            name: 'node3',
+            state: 'free',
+            load: 65.19,
+            phymem: 773743,
+            ncpus:64,
+            allmem: 839279,
+            resi: 62739,
+            usrs:"15/5",
+            tasks:64,
+            joblist:"5673[577] NONE* 5673[37] NONE*"
+          },
+        ]
       },
 
       /*
@@ -702,6 +792,48 @@ export default {
             pids: 8 // PIDS：容器创建的进程或线程数
           },
         ],
+        // 服务器节点信息
+        nodeList:[
+          {
+            id:"1",
+            name: 'node2',
+            state: 'busy',
+            load: 65.19,
+            phymem: 773743,
+            ncpus:64,
+            allmem: 839279,
+            resi: 62739,
+            usrs:"15/5",
+            tasks:64,
+            joblist:"5673[577] NONE* 5673[37] NONE*"
+          },
+          {
+            id:"2",
+            name: 'node2',
+            state: 'excl',
+            load: 65.19,
+            phymem: 773743,
+            ncpus:64,
+            allmem: 839279,
+            resi: 62739,
+            usrs:"15/5",
+            tasks:64,
+            joblist:"5673[577] NONE* 5673[37] NONE*"
+          },
+          {
+            id:"3",
+            name: 'node3',
+            state: 'free',
+            load: 65.19,
+            phymem: 773743,
+            ncpus:64,
+            allmem: 839279,
+            resi: 62739,
+            usrs:"15/5",
+            tasks:64,
+            joblist:"5673[577] NONE* 5673[37] NONE*"
+          },
+        ]
       },
       /*
        * 第三台服务器
@@ -761,6 +893,48 @@ export default {
             pids: 8 // PIDS：容器创建的进程或线程数
           },
         ],
+        // 服务器节点信息
+        nodeList:[
+          {
+            id:"1",
+            name: 'node3',
+            state: 'busy',
+            load: 65.19,
+            phymem: 773743,
+            ncpus:64,
+            allmem: 839279,
+            resi: 62739,
+            usrs:"15/5",
+            tasks:64,
+            joblist:"5673[577] NONE* 5673[37] NONE*"
+          },
+          {
+            id:"2",
+            name: 'node2',
+            state: 'excl',
+            load: 65.19,
+            phymem: 773743,
+            ncpus:64,
+            allmem: 839279,
+            resi: 62739,
+            usrs:"15/5",
+            tasks:64,
+            joblist:"5673[577] NONE* 5673[37] NONE*"
+          },
+          {
+            id:"3",
+            name: 'node3',
+            state: 'free',
+            load: 65.19,
+            phymem: 773743,
+            ncpus:64,
+            allmem: 839279,
+            resi: 62739,
+            usrs:"15/5",
+            tasks:64,
+            joblist:"5673[577] NONE* 5673[37] NONE*"
+          },
+        ]
       }
     ])
 
@@ -783,7 +957,7 @@ export default {
 /*.font {*/
 /*  font-size: x-large;*/
 /*}*/
-.font-two {
+.font-two{
   font-weight: bold;
 }
 
