@@ -154,10 +154,9 @@
         </div>
       </div>
       <div class="col">
-<!--        实时折线图(待修改)-->
-<!--        <CategoryEchartsBase>-->
+        <NetWorkFlow style="width: 600px;height: 350px">
 
-<!--        </CategoryEchartsBase>-->
+        </NetWorkFlow>
       </div>
     </div>
   </ContentBase>
@@ -167,13 +166,15 @@
 </template>
 
 <script>
- import ContentBase from "@/components/common/ContentBase";
+import ContentBase from "@/components/common/ContentBase";
 import Img from "@/assets/images/home.png"
+import NetWorkFlow from "@/components/echarts/network/NetWorkFlow";
 
 export default {
   name: 'HomeView',
   components: {
     ContentBase,
+    NetWorkFlow
   },
 
   setup() {

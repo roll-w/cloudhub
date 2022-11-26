@@ -93,7 +93,7 @@ public class ObjectDetailsController {
             return HttpResponseEntity.failure("Have no permission to read.",
                     ErrorCode.ERROR_PERMISSION_NOT_ALLOWED);
         }
-        var res = objectMetadataService.addObjectMetadata(
+        var res = objectMetadataService.addObjectMetadataWithCheck(
                 setRequest.bucketName(),
                 setRequest.objectName(),
                 setRequest.metadata()

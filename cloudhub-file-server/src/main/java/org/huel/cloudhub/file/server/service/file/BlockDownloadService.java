@@ -63,13 +63,14 @@ public class BlockDownloadService extends BlockDownloadServiceGrpc.BlockDownload
             responseFileNotExists(responseObserver);
             return;
         }
-        BytesInfo bytesInfo = readInfoFromRequest(request, containerGroup.getBlockSizeInBytes());
+        final long fileLen = fileBlockMetaInfo.getFileLength();
+        BytesInfo bytesInfo = readInfoFromRequest(request, containerGroup.getBlockSizeInBytes(), fileLen);
 
-        final long fileLength = bytesInfo == null
-                ? fileBlockMetaInfo.getFileLength() : bytesInfo.length();
+        final long length = bytesInfo == null
+                ? fileLen : bytesInfo.length();
 
         final long responseSize = grpcProperties.getMaxRequestSizeBytes() >> 1;
-        final int responseCount = Maths.ceilDivideReturnsInt(fileLength, responseSize);
+        final int responseCount = Maths.ceilDivideReturnsInt(length, responseSize);
         final int maxBlocksInResponse = (int) (responseSize / containerProperties.getBlockSizeInBytes());
 
         DownloadBlockResponse firstResponse = buildFirstResponse(fileBlockMetaInfo,
@@ -90,7 +91,7 @@ public class BlockDownloadService extends BlockDownloadServiceGrpc.BlockDownload
         }
     }
 
-    private BytesInfo readInfoFromRequest(DownloadBlockRequest request, long blockSizeInBytes) {
+    private BytesInfo readInfoFromRequest(DownloadBlockRequest request, long blockSizeInBytes, long fileLength) {
         if (!request.hasSegmentInfo()) {
             return null;
         }
@@ -108,8 +109,11 @@ public class BlockDownloadService extends BlockDownloadServiceGrpc.BlockDownload
         }
         long start = segmentInfo.getBytes().getStartBytes();
         long end = segmentInfo.getBytes().getEndBytes();
-        if (start < 0 || end < 0) {
-            return null;
+        if (start < 0) {
+            start = 0;
+        }
+        if (end < 0) {
+            end = fileLength - 1;
         }
         return new BytesInfo(start, end);
     }
@@ -158,9 +162,9 @@ public class BlockDownloadService extends BlockDownloadServiceGrpc.BlockDownload
         }
         long blockSize = fileReader.getBlockSizeInBytes();
         int startBlock = (int) Math.floorDiv(bytesInfo.start(), blockSize);
-        int endBlock = Maths.ceilDivideReturnsInt(bytesInfo.end(), blockSize);
+        int endBlock = (int) Math.floorDiv(bytesInfo.end(), blockSize);
         long startOff = bytesInfo.start() - startBlock * blockSize;
-        long endLen = endBlock * blockSize - bytesInfo.end();
+        long endLen = bytesInfo.end() - endBlock * blockSize;
         fileReader.seek(startBlock);
         int index = 1;
         while (fileReader.hasNext()) {
@@ -173,20 +177,20 @@ public class BlockDownloadService extends BlockDownloadServiceGrpc.BlockDownload
                         read, index,
                         index == 1 ? startOff : 0,
                         endLen);
-                logger.debug("Send download response in the end. block size ={}", read.size());
+                logger.debug("Send download response in the end. block size = {}", read.size());
                 responseObserver.onNext(response);
                 return;
             }
             if (index == 1) {
                 DownloadBlockResponse response =
                         buildBlockDataResponse(read, index, startOff, -1);
-                logger.debug("Send download response in first. block size ={}", read.size());
+                logger.debug("Send download response in first. block size = {}", read.size());
                 responseObserver.onNext(response);
                 index++;
                 continue;
             }
             DownloadBlockResponse response = buildBlockDataResponse(read, index, -1, -1);
-            logger.debug("Send download response. block size ={}", read.size());
+            logger.debug("Send download response. block size = {}", read.size());
             responseObserver.onNext(response);
             index++;
         }
@@ -223,9 +227,15 @@ public class BlockDownloadService extends BlockDownloadServiceGrpc.BlockDownload
 
     private DownloadBlockResponse buildBlockDataResponse(List<ContainerBlock> containerBlocks, int index, long startOff, long endLen) {
         List<DownloadBlockData> downloadBlockData = new ArrayList<>();
-        final int size = containerBlocks.size();
+        final int size = containerBlocks.size() - 1;
         int i = 0;
         for (ContainerBlock containerBlock : containerBlocks) {
+            if (i == 0 && i == size) {
+                downloadBlockData.add(buildFirstWithLenBlockData(
+                        containerBlock, (int) startOff, (int) endLen));
+                break;
+            }
+
             if (i == 0) {
                 downloadBlockData.add(buildFirstBlockData(containerBlock, (int) startOff));
                 i++;
@@ -248,13 +258,27 @@ public class BlockDownloadService extends BlockDownloadServiceGrpc.BlockDownload
                 .build();
     }
 
+    private DownloadBlockData buildFirstWithLenBlockData(ContainerBlock block, int startOff, int endLen) {
+        if (startOff <= 0) {
+            return buildCommonBlockData(block);
+        }
+        ByteString byteString = ByteString.copyFrom(
+                block.getData(), startOff,
+                startOff + endLen - 1
+        );
+        block.release();
+        return DownloadBlockData.newBuilder()
+                .setData(byteString)
+                .build();
+    }
+
     private DownloadBlockData buildFirstBlockData(ContainerBlock block, int startOff) {
         if (startOff <= 0) {
             return buildCommonBlockData(block);
         }
         ByteString byteString = ByteString.copyFrom(
                 block.getData(), startOff,
-                ((int) block.getValidBytes() - startOff + 1)
+                ((int) block.getValidBytes() - startOff)
         );
         block.release();
         return DownloadBlockData.newBuilder()

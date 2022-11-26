@@ -31,6 +31,55 @@
                 {{ data.env.runUser }}
               </div>
             </div>
+            <!--            <div class="row">-->
+            <!--              <div class="col">-->
+            <!--                user home-->
+            <!--              </div>-->
+            <!--              <div class="col">-->
+            <!--                {{ data.env.userHome }}-->
+            <!--              </div>-->
+            <!--            </div>-->
+            <!--            <div class="row">-->
+            <!--              <div class="col">-->
+            <!--                work directory-->
+            <!--              </div>-->
+            <!--              <div class="col">-->
+            <!--                {{ data.env.workDir }}-->
+            <!--              </div>-->
+            <!--            </div>-->
+            <!--            <div class="row">-->
+            <!--              <div class="col">-->
+            <!--                java version-->
+            <!--              </div>-->
+            <!--              <div class="col">-->
+            <!--                {{ data.env.javaVersion }}-->
+            <!--              </div>-->
+            <!--            </div>-->
+            <!--            <div class="row">-->
+            <!--              <div class="col">-->
+            <!--                java home-->
+            <!--              </div>-->
+            <!--              <div class="col">-->
+            <!--                {{ data.env.javaHome }}-->
+            <!--              </div>-->
+            <!--            </div>-->
+            <!--            <div class="row">-->
+            <!--              <div class="col">-->
+            <!--                OS name-->
+            <!--              </div>-->
+            <!--              <div class="col">-->
+            <!--                {{ data.env.osName }}-->
+            <!--              </div>-->
+            <!--            </div>-->
+            <!--            <div class="row">-->
+            <!--              <div class="col">-->
+            <!--                OS version-->
+            <!--              </div>-->
+            <!--              <div class="col">-->
+            <!--                {{ data.env.osVersion }}-->
+            <!--              </div>-->
+            <!--            </div>-->
+
             <div class="row">
               <div class="col">
                 OS architecture
@@ -108,9 +157,20 @@
               </div>
             </div>
             <div class="row">
-              <!-- 展示内存使用率 -->
-              <Memory style="width: 422px; height: 80px">
-              </Memory>
+              <div class="col">
+                free (byte)
+              </div>
+              <div class="col">
+                {{ data.mem.free }}
+              </div>
+            </div>
+            <div class="row">
+              <div class="col">
+                write (byte/s)
+              </div>
+              <div class="col">
+                {{ data.mem.write }}
+              </div>
             </div>
           </div>
         </ContentBase>
@@ -130,16 +190,27 @@
             </div>
             <div class="row">
               <div class="col">
-                used (byte)
+                free (byte)
               </div>
               <div class="col">
-                {{ data.disk.total - data.disk.free }}
+                {{ data.disk.free }}
               </div>
             </div>
             <div class="row">
-              <!-- 展示磁盘使用率 -->
-              <Disk style="width: 422px; height: 80px">
-              </Disk>
+              <div class="col">
+                read (byte/s)
+              </div>
+              <div class="col">
+                {{ data.disk.read }}
+              </div>
+            </div>
+            <div class="row">
+              <div class="col">
+                write (byte/s)
+              </div>
+              <div class="col">
+                {{ data.disk.write }}
+              </div>
             </div>
           </div>
         </ContentBase>
@@ -174,18 +245,16 @@
     <!-- 网络信息 -->
     <div class="row">
       <ContentBase style="width: 1000px">
-        <div>Speed</div>
+        <div>Network</div>
         <hr>
         <div class="row">
           <div class="col">
-            <!-- 网络IO -->
-<!--            <span class="font-two">网络IO速率</span>-->
-            <ReceiveAndSend class="net"></ReceiveAndSend>
+            <span class="font-two">网络接收速率</span>
+            <Receive class="net"></Receive>
           </div>
           <div class="col">
-            <!-- 存储器IO -->
-<!--            <span class="font-two">存储器IO速率</span>-->
-            <StorageIO class="net"></StorageIO>
+            <span class="font-two">网络发送速率</span>
+            <Send class="net"></Send>
           </div>
         </div>
       </ContentBase>
@@ -433,10 +502,8 @@ import SysUsed from "@/components/echarts/cpu/SysUsed";
 import UserUsed from "@/components/echarts/cpu/UserUsed";
 import Free from "@/components/echarts/cpu/Free";
 import Wait from "@/components/echarts/cpu/Wait";
-import StorageIO from "@/components/echarts/network/StorageIO";
-import ReceiveAndSend from "@/components/echarts/network/ReceiveAndSend"
-import Memory from "@/components/echarts/storage/Memory";
-import Disk from "@/components/echarts/storage/Disk";
+import Send from "@/components/echarts/network/Send";
+import Receive from "@/components/echarts/network/Receive"
 
 import {ref} from "vue";
 
@@ -448,14 +515,10 @@ export default {
     Free,
     Wait,
     ContentBase,
-    ReceiveAndSend,
-    StorageIO,
-    Memory,
-    Disk
+    Send,
+    Receive,
   },
   setup() {
-
-    const info = {"title":"空闲率","total":1024,"used":512}
 
     // 元数据服务器信息
     const data = ref({
@@ -708,7 +771,6 @@ export default {
     }
 
     return {
-      info,
       data,
       servers,
       deleteServer

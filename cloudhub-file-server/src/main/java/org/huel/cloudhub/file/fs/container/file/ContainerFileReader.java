@@ -76,6 +76,7 @@ public class ContainerFileReader implements Closeable {
     }
 
     public boolean hasNext() {
+        // TODO: hack currentRead
         return currentRead.get() < totalBlocks;
     }
 
@@ -98,23 +99,24 @@ public class ContainerFileReader implements Closeable {
         read(size - SKIP_BUFFER_SIZE * times);
     }
 
-    public void seek(int index) throws LockException, IOException {
+    public void seek(int blocks) throws LockException, IOException {
         int nowSum = 0;
         for (BlockMetaInfo blockMetaInfo : fileBlockMetaInfo.getBlockMetaInfos()) {
-            int blocks = blockMetaInfo.getBlockGroupsInfo().occupiedBlocks();
-            if (nowSum + blocks >= index) {
+            int tBlocks = blockMetaInfo.getBlockGroupsInfo().occupiedBlocks();
+            if (nowSum + tBlocks >= blocks) {
                 long serial = blockMetaInfo.getContainerSerial();
                 // we can know that we need start from the container here.
-                seekAndRelocateContainer(serial, index);
+                seekAndRelocateContainer(serial, blocks - nowSum);
                 return;
             }
-            nowSum += blocks;
+            nowSum += tBlocks;
         }
 
     }
 
     private void seekAndRelocateContainer(long serial, int index) throws LockException, IOException {
         initIterator();
+        currentRead.set(index);
         while (containerIterator.hasNext()) {
             Container container = containerIterator.next();
             if (container.getSerial() != serial) {

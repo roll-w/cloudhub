@@ -6,6 +6,8 @@ import org.huel.cloudhub.client.data.dto.object.ObjectInfoDto;
 import org.huel.cloudhub.client.data.entity.object.ObjectMetadata;
 import org.huel.cloudhub.common.ErrorCode;
 import org.huel.cloudhub.common.MessagePackage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -19,6 +21,7 @@ public class ObjectMetadataServiceImpl implements ObjectMetadataService,
         ObjectRemoveHandler, ObjectChangeActionHandler {
     private final ObjectService objectService;
     private final ObjectMetadataRepository objectMetadataRepository;
+    private final Logger logger = LoggerFactory.getLogger(ObjectMetadataServiceImpl.class);
 
     public ObjectMetadataServiceImpl(ObjectService objectService,
                                      ObjectMetadataRepository objectMetadataRepository) {
@@ -27,14 +30,20 @@ public class ObjectMetadataServiceImpl implements ObjectMetadataService,
     }
 
     @Override
-    public MessagePackage<Void> addObjectMetadata(String bucketName, String objectName,
-                                                  Map<String, String> metadata) {
+    public MessagePackage<Void> addObjectMetadataWithCheck(String bucketName, String objectName, Map<String, String> metadata) {
         if (!objectService.isObjectExist(new ObjectInfo(objectName, bucketName))) {
+            logger.debug("Object not exist");
             return new MessagePackage<>(ErrorCode.ERROR_DATA_NOT_EXIST, null);
         }
+        return addObjectMetadata(bucketName, objectName, metadata);
+    }
 
+    @Override
+    public MessagePackage<Void> addObjectMetadata(String bucketName, String objectName,
+                                                  Map<String, String> metadata) {
         ObjectMetadata objectMetadata = objectMetadataRepository.getByObjectName(bucketName, objectName);
         if (objectMetadata == null) {
+            logger.debug("Insert with new metadata, bucket={};object={};metadata={}", bucketName, objectName, metadata);
             ObjectMetadata newMetadata = new ObjectMetadata(bucketName, objectName, metadata);
             objectMetadataRepository.insert(newMetadata);
             return new MessagePackage<>(ErrorCode.SUCCESS, null);
@@ -67,6 +76,8 @@ public class ObjectMetadataServiceImpl implements ObjectMetadataService,
 
     @Override
     public void handleObjectRemove(ObjectInfoDto objectInfoDto) {
+        logger.debug("Object remove, bucketName={};objectName={}",
+                objectInfoDto.bucketName(), objectInfoDto.objectName());
         objectMetadataRepository.deleteByObjectName(
                 objectInfoDto.bucketName(), objectInfoDto.objectName());
     }
