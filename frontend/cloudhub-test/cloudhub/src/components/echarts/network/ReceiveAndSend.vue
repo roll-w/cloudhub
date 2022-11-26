@@ -23,7 +23,7 @@ export default {
       const myChart = proxy.$echarts.init(myRef.value)
 
       // 变量
-      let base = +new Date(0, 0, 0);
+      let base = 0;
       let oneDay = 24 * 3600 * 1000;
       let date = [];
       let receiveRate = [Math.random() * 150];

@@ -9,7 +9,6 @@
 import {ref, onMounted, getCurrentInstance, toRefs} from 'vue'
 
 export default {
-  // eslint-disable-next-line vue/multi-word-component-names
   name: "PieEcharts",
   props:{
     Info:{

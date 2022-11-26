@@ -420,8 +420,6 @@
         </table>
       </ContentBase>
     </div>
-    <br>
-    <br>
   </div>
 
 </template>
