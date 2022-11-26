@@ -159,8 +159,10 @@
         </div>
       </div>
       <div class="col">
-        <span style="font-weight: bold">网络流量</span>
-        <NetWorkFlow style="width: 600px;height: 350px"></NetWorkFlow>
+<!--        实时折线图(待修改)-->
+<!--        <CategoryEchartsBase>-->
+
+<!--        </CategoryEchartsBase>-->
       </div>
     </div>
   </ContentBase>
@@ -170,15 +172,13 @@
 </template>
 
 <script>
-import ContentBase from "@/components/common/ContentBase";
-import NetWorkFlow from "@/components/echarts/network/NetWorkFlow";
+ import ContentBase from "@/components/common/ContentBase";
 import Img from "@/assets/images/home.png"
 
 export default {
   name: 'HomeView',
   components: {
     ContentBase,
-    NetWorkFlow
   },
 
   setup() {

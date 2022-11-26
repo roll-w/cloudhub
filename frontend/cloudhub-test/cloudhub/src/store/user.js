@@ -1,6 +1,6 @@
 import $ from 'jquery';
 import url from '@/store/api'
-
+import router from "@/router";
 export default {
     state: {
         id: "",
@@ -17,12 +17,6 @@ export default {
             state.email = user.email;
             state.role = user.role;
             state.is_login = user.is_login;
-        },
-        logout(state) {
-            state.id = "";
-            state.username = "";
-            state.role = "";
-            state.is_login = false;
         },
     },
 
@@ -58,30 +52,22 @@ export default {
                 }
             });
         },
-        //获取用户信息
-        // getUserInfo(context,data){
-        //     $.ajax({
-        //         url:url.url_getUserInfo,
-        //         type:"get",
-        //         success(resp){
-        //             if (resp.message === "SUCCESS"){
-        //
-        //                 context.commit("updateUser",{
-        //                     ...resp,
-        //                     is_login: true,
-        //                 });
-        //                 data.success(resp);
-        //             } else {
-        //                 data.error(resp);
-        //             }
-        //         },
-        //         error(resp){
-        //             data.error(resp);
-        //         }
-        //     });
-        // },
-        logout(context) {
-            context.commit("logout");
+        logout() {
+
+            $.ajax({
+                url:url.url_logout,
+                type:"post",
+                xhrFields: {
+                    withCredentials: true // 携带跨域cookie  //单个设置
+                },
+                crossDomain:true,
+                success(){
+                    router.push({name:"login_index"});
+                },
+                error() {
+                    console.log("退出失败");
+                }
+            })
         }
     },
 

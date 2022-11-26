@@ -15,13 +15,11 @@
             <form @submit.prevent="addBucket">
               <div class="mb-3">
                 <label for="name" class="form-label">名称:</label>
-
-                <!-- 桶名称 -->
-                <input  type="text" class="form-control" id="name" placeholder="Name" name="bucketName">
+                <input  type="text" v-model="bucketName" class="form-control" id="name" placeholder="Name">
               </div>
               <div class="mb-3">
                 <label for="name" class="form-label">策略:</label>
-                <input  type="text" class="form-control" id="name" placeholder="Visibility" name="visibility">
+                <input  type="text" v-model="bucketVisibility" class="form-control" id="name" placeholder="Visibility">
               </div>
               <figure class="text-center">
 <!--                后期修改样式-->
@@ -117,20 +115,6 @@ export default {
     let bucketName = ref([]);
     let bucketVisibility= ref([]);
 
-    // let buckets = [
-    //   {
-    //     name: "bucket1",
-    //     storageUsed: 1234,  // 存储用量(byte)
-    //     tactic: "私有桶", // 桶策略: 私有、公共读、公共读写
-    //     objectNum: 0, // 对象数量: 对象数量是桶内文件夹、当前版本对象和历史版本对象的总和
-    //   },
-    //   {
-    //     name: "bucket2",
-    //     storageUsed: 0,  // 存储用量(byte)
-    //     tactic: "公共读写", // 桶策略: 私有、公共读、公共读写
-    //     objectNum: 0, // 对象数量: 对象数量是桶内文件夹、当前版本对象和历史版本对象的总和
-    //   }
-    // ]
 
     const router = useRouter()
 
@@ -158,7 +142,8 @@ export default {
         },
         crossDomain:true,
         success(resp) {
-          buckets.value = resp;
+          console.log(resp)
+          buckets.value = resp.data;
           console.log("获取成功")
         },
         error(resp){
@@ -191,14 +176,14 @@ export default {
 
       $.ajax({
         url: url.url_addBucket,
-        type: "post",
+        type: "Put",
         contentType: "application/json;charset=UTF-8",
         data:JSON.stringify({
           bucketName:bucketName.value,
-          visibility:bucketVisibility,
+          visibility:bucketVisibility.value,
         }),
         success(resp) {
-          if (resp.message === "SUCCESS") {
+          if (resp.errorCode === "00000") {
               console.log("刷新桶列表")
               //modal自动关闭待修复
               // getBucket()
@@ -214,6 +199,8 @@ export default {
 
     return {
       buckets,
+      bucketName,
+      bucketVisibility,
       checkFile,
       deleteBucket,
       addBucket,
