@@ -2,7 +2,7 @@
   <div class="col">
     <div class="row">
       <div class="col">
-        <ContentBase style="width: 480px; margin-left: 100px">
+        <ContentBase>
           <div>Runtime</div>
           <hr>
           <!-- 展示运行环境信息 -->
@@ -44,32 +44,32 @@
       </div>
 
       <div class="col">
-        <ContentBase style="width: 480px; margin-right: 100px">
+        <ContentBase>
           <div>JVM</div>
           <hr>
           <div class="col">
             <div class="row">
               <div class="col">
-                total (byte)
+                total (MB)
               </div>
               <div class="col">
-                {{ data.jvm.total }}
-              </div>
-            </div>
-            <div class="row">
-              <div class="col">
-                max (byte)
-              </div>
-              <div class="col">
-                {{ data.jvm.max }}
+                {{ (data.jvm.total / (1024 * 1024.0)).toFixed(2) }}
               </div>
             </div>
             <div class="row">
               <div class="col">
-                free (byte)
+                max (MB)
               </div>
               <div class="col">
-                {{ data.jvm.free }}
+                {{ (data.jvm.max / (1024 * 1024)).toFixed(2) }}
+              </div>
+            </div>
+            <div class="row">
+              <div class="col">
+                free (MB)
+              </div>
+              <div class="col">
+                {{ (data.jvm.free / (1024 * 1024)).toFixed(2) }}
               </div>
             </div>
             <div class="row">
@@ -77,7 +77,7 @@
                 used (byte)
               </div>
               <div class="col">
-                {{ data.jvm.used }}
+                {{ (data.jvm.used / (1024 * 1024)).toFixed(2) }}
               </div>
             </div>
           </div>
@@ -87,59 +87,58 @@
 
     <div class="row">
       <div class="col">
-        <ContentBase style="width: 480px; margin-left: 100px">
+        <!--        <ContentBase style="width: 480px; margin-left: 100px">-->
+        <ContentBase>
           <div>System Memory</div>
           <hr>
           <div class="col">
             <div class="row">
               <div class="col">
-                total (byte)
+                total (MB)
               </div>
               <div class="col">
-                {{ data.mem.total }}
+                {{ (data.mem.total / (1024 * 1024)).toFixed(2) }}
               </div>
             </div>
             <div class="row">
               <div class="col">
-                used (byte)
+                used (MB)
               </div>
               <div class="col">
-                {{ data.mem.used }}
+                {{ (data.mem.used / (1024 * 1024)).toFixed(2) }}
               </div>
             </div>
             <div class="row">
               <!-- 展示内存使用率 -->
-              <Memory style="width: 422px; height: 80px">
-              </Memory>
+              <CategoryEchartsBase :Info="memory" style="width: 500px; height: 80px"></CategoryEchartsBase>
             </div>
           </div>
         </ContentBase>
       </div>
       <div class="col">
-        <ContentBase style="width: 480px; margin-right: 100px">
+        <ContentBase>
           <div>System Disk</div>
           <hr>
           <div class="col">
             <div class="row">
               <div class="col">
-                total (byte)
+                total (MB)
               </div>
               <div class="col">
-                {{ data.disk.total }}
+                {{ (data.disk.total / (1024 * 1024)).toFixed(2) }}
               </div>
             </div>
             <div class="row">
               <div class="col">
-                used (byte)
+                used (MB)
               </div>
               <div class="col">
-                {{ data.disk.total - data.disk.free }}
+                {{ ((data.disk.total - data.disk.free) / (1024 * 1024)).toFixed(2) }}
               </div>
             </div>
             <div class="row">
               <!-- 展示磁盘使用率 -->
-              <Disk style="width: 422px; height: 80px">
-              </Disk>
+              <CategoryEchartsBase :Info="disk" style="width: 500px; height: 80px"></CategoryEchartsBase>
             </div>
           </div>
         </ContentBase>
@@ -148,43 +147,43 @@
 
     <!-- CPU运行信息 -->
     <div class="row">
-      <ContentBase style="width: 1000px">
+      <ContentBase>
         <div>CPU 16 核</div>
         <hr>
         <div class="row">
           <div class="col">
             <!-- 系统使用率 -->
-            <SysUsed></SysUsed>
+            <PieEchartsBase :Info="sysUsed"></PieEchartsBase>
           </div>
           <div class="col">
             <!-- 用户使用率 -->
-            <UserUsed></UserUsed>
+            <PieEchartsBase :Info="userUsed"></PieEchartsBase>
           </div>
           <div class="col">
             <!-- IO 等待率 -->
-            <Wait></Wait>
+            <PieEchartsBase :Info="wait"></PieEchartsBase>
           </div>
           <div class="col">
             <!-- 空闲率 -->
-            <Free></Free>
+            <PieEchartsBase :Info="free"></PieEchartsBase>
           </div>
         </div>
       </ContentBase>
     </div>
     <!-- 网络信息 -->
     <div class="row">
-      <ContentBase style="width: 1000px">
+      <ContentBase>
         <div>Speed</div>
         <hr>
         <div class="row">
           <div class="col">
             <!-- 网络IO -->
-<!--            <span class="font-two">网络IO速率</span>-->
+            <!--            <span class="font-two">网络IO速率</span>-->
             <ReceiveAndSend class="net"></ReceiveAndSend>
           </div>
           <div class="col">
             <!-- 存储器IO -->
-<!--            <span class="font-two">存储器IO速率</span>-->
+            <!--            <span class="font-two">存储器IO速率</span>-->
             <StorageIO class="net"></StorageIO>
           </div>
         </div>
@@ -193,7 +192,8 @@
 
     <!-- 已连接文件服务器信息 -->
     <div class="row">
-      <ContentBase style="width: 1000px">
+      <!--      <ContentBase style="width: 1000px">-->
+      <ContentBase>
 
         <table class="table table-hover">
           <thead class="table-light">
@@ -429,81 +429,84 @@
 <script>
 
 import ContentBase from "@/components/common/ContentBase";
-import SysUsed from "@/components/echarts/cpu/SysUsed";
-import UserUsed from "@/components/echarts/cpu/UserUsed";
-import Free from "@/components/echarts/cpu/Free";
-import Wait from "@/components/echarts/cpu/Wait";
 import StorageIO from "@/components/echarts/network/StorageIO";
 import ReceiveAndSend from "@/components/echarts/network/ReceiveAndSend"
-import Memory from "@/components/echarts/storage/Memory";
-import Disk from "@/components/echarts/storage/Disk";
+import PieEchartsBase from "@/components/echarts/cpu/PieEchartsBase";
+import CategoryEchartsBase from "@/components/echarts/storage/CategoryEchartsBase"
 
 import {ref} from "vue";
 
 export default {
   name: "FileView",
   components: {
-    SysUsed,
-    UserUsed,
-    Free,
-    Wait,
+    PieEchartsBase,
+    CategoryEchartsBase,
     ContentBase,
     ReceiveAndSend,
     StorageIO,
-    Memory,
-    Disk
   },
   setup() {
 
-    const info = {"title":"空闲率","total":1024,"used":512}
-
-    // 元数据服务器信息
+    // 从接口获取数据
     const data = ref({
       // CPU 返回使用率的百分比
-      "cpu": {
-        "cpuCores": 16,// CPU核数
-        "sysUsed": 3.16,// 系统使用率
-        "userUsed": 14.81,// 用户使用率
-        "wait": 0.0,// IO等待率
-        "free": 80.97// 空闲率
+      cpu: {
+        cpuCores: 16,// CPU核数
+        sysUsed: 3.16,// 系统使用率
+        userUsed: 14.81,// 用户使用率
+        wait: 0.0,// IO等待率
+        free: 80.97// 空闲率
       },
-      "jvm": {// JVM信息 均为字节数
-        "total": 71303168,// JVM总内存
-        "max": 4240441344,
-        "free": 35657160,
-        "used": 35646008
+      jvm: {// JVM信息 均为字节数
+        total: 71303168,// JVM总内存
+        max: 4240441344,
+        free: 35657160,
+        used: 35646008
       },
-      "mem": {// 系统内存 均为字节数
-        "total": 16953597952,
-        "used": 14245462016,
-        "free": 2708135936,
-        "write": 1122// 写速率
+      mem: {// 系统内存 均为字节数
+        total: 16953597952,
+        used: 14245462016,
+        free: 2708135936,
+        write: 1122// 写速率
       },
-      "disk": {// 磁盘信息
-        "total": 330966233088,// 当前分区总空间
-        "free": 86880907264,// 剩余空间
-        "read": 16384,// 读速率 均为bytes/s
-        "write": 1234// 写速率
+      disk: {// 磁盘信息
+        total: 330966233088,// 当前分区总空间
+        free: 86880907264,// 剩余空间
+        read: 16384,// 读速率 均为bytes/s
+        write: 1234// 写速率
       },
-      "net": {// 网络信息 均为bytes/s
-        "recv": 18178.0,// 接收
-        "sent": 450020.0,// 发送
-        "speed": 1000000000// 理论最大速度
+      net: {// 网络信息 均为bytes/s
+        recv: 18178.0,// 接收
+        sent: 450020.0,// 发送
+        speed: 1000000000// 理论最大速度
       },
-      "env": {// 运行环境信息
-        "hostName": "Dawn",// 主机名
-        "hostAddress": "10.100.159.31",
-        "runUser": "user",
-        "userHome": "C:\\Users\\user",
-        "workDir": "D:\\Code\\Java\\cloudhub",
-        "javaVersion": "17.0.1",
-        "javaHome": "D:\\tools\\jdk17",
-        "osName": "Windows 10",
-        "osVersion": "10.0",
-        "osArch": "amd64"
+      env: {// 运行环境信息
+        hostName: "Dawn",// 主机名
+        hostAddress: "10.100.159.31",
+        runUser: "user",
+        userHome: "C:\\Users\\user",
+        workDir: "D:\\Code\\Java\\cloudhub",
+        javaVersion: "17.0.1",
+        javaHome: "D:\\tools\\jdk17",
+        osName: "Windows 10",
+        osVersion: "10.0",
+        osArch: "amd64"
       },
-
     })
+
+
+    // 将 data 中的键对数据进行再封装用于父子传参
+
+    // 4 个 CPU 使用率
+    const sysUsed = {title: "系统使用率", ratio: data.value.cpu.sysUsed}
+    const userUsed = {title: "用户使用率", ratio: data.value.cpu.userUsed}
+    const wait = {title: "IO等待率", ratio: data.value.cpu.wait}
+    const free = {title: "空闲率", ratio: data.value.cpu.free}
+
+    // 2 个 存储器使用率
+    const memory = {title: "内存使用率", ratio: (data.value.mem.used) / (data.value.mem.total)}
+    const disk = {title: "磁盘使用率", ratio: (data.value.disk.total - data.value.disk.free) / (data.value.disk.total)}
+
 
     //  所有服务器的信息(响应式数据)
     const servers = ref([
@@ -580,138 +583,17 @@ export default {
           },
         ],
       },
-
-      /*
-       * 第二台服务器
-       */
-
-      {
-        // 服务器最基本的信息
-        serverId: "2", // 服务器ID
-        serverIp: "192.168.10.102", // 服务器IP地址
-
-
-        // 服务器运行信息
-        serverInfo: {
-          coreNum: 4, // 服务器核数
-          ram: 6, // 服务器总内存（GB）
-          systemDisk: 120, // 系统盘容量（GB）（与下述"totalMB"相对应）
-          cloudDesk: "SSD", // 阿里云云盘: ESSD或SSD
-          address: "河南", // 服务器所在地
-        },
-
-        // 服务器磁盘使用信息
-        diskInfo: {
-          // 磁盘信息
-          totalMB: 120 * 1024, // 总容量（MB）（与上述“systemDisk”相对应）
-          usedMB: 6688,  // 已使用容量（MB）
-        },
-
-        // 一个服务器中可以有多个容器: 下述为某个服务器的容器列表
-        dockerList: [
-          {
-            id: "1", // CONTAINER ID：容器ID
-            name: "stress", // NAME：容器名称
-            cpuRatio: 0.1145, // CPU %：容器使用的主机 CPU百分比
-            memMessage: {memUsage: 197.7, memLimit: 256},// MEM USAGE / LIMIT：容器使用的总内存、以及允许使用的内存总量
-            memRatio: 0.7724, // MEM %：容器所使用的内存百分比
-            netIO: {netIn: 656, netOut: 0}, // NET I/O：容器通过网络接口接收和发送的数据量（单位: 字节B）
-            blockIO: {blockIn: 0, blockOut: 0},// BLOCK I/O：容器从主机上的块设备写入和的读取数据量（单位: 字节B）
-            pids: 5 // PIDS：容器创建的进程或线程数
-          },
-          {
-            id: "2", // CONTAINER ID：容器ID
-            name: "stress", // NAME：容器名称
-            cpuRatio: 1.9799, // CPU %：容器使用的主机 CPU百分比
-            memMessage: {memUsage: 197.7, memLimit: 256},// MEM USAGE / LIMIT：容器使用的总内存、以及允许使用的内存总量
-            memRatio: 0.7724, // MEM %：容器所使用的内存百分比
-            netIO: {netIn: 656, netOut: 0}, // NET I/O：容器通过网络接口接收和发送的数据量
-            blockIO: {blockIn: 0, blockOut: 0},// BLOCK I/O：容器从主机上的块设备写入和的读取数据量
-            pids: 6 // PIDS：容器创建的进程或线程数
-          },
-          {
-            id: "3", // CONTAINER ID：容器ID
-            name: "stress", // NAME：容器名称
-            cpuRatio: 1.9799, // CPU %：容器使用的主机 CPU百分比
-            memMessage: {memUsage: 197.7, memLimit: 256},// MEM USAGE / LIMIT：容器使用的总内存、以及允许使用的内存总量
-            memRatio: 0.7724, // MEM %：容器所使用的内存百分比
-            netIO: {netIn: 656, netOut: 0}, // NET I/O：容器通过网络接口接收和发送的数据量
-            blockIO: {blockIn: 0, blockOut: 0},// BLOCK I/O：容器从主机上的块设备写入和的读取数据量
-            pids: 8 // PIDS：容器创建的进程或线程数
-          },
-        ],
-      },
-      /*
-       * 第三台服务器
-       */
-      {
-        // 服务器最基本的信息
-        serverId: "3", // 服务器ID
-        serverIp: "192.168.10.103", // 服务器IP地址
-
-
-        // 服务器运行信息
-        serverInfo: {
-          coreNum: 2, // 服务器核数
-          ram: 8, // 服务器总内存（GB）
-          systemDisk: 64, // 系统盘容量（GB）（与下述"totalMB"相对应）
-          cloudDesk: "ESSD", // 阿里云云盘: ESSD或SSD
-          address: "河南", // 服务器所在地
-        },
-
-        // 服务器磁盘使用信息
-        diskInfo: {
-          // 磁盘信息
-          totalMB: 64 * 1024, // 总容量（MB）（与上述“systemDisk”相对应）
-          usedMB: 11451,  // 已使用容量（MB）
-        },
-
-        // 一个服务器中可以有多个容器: 下述为某个服务器的容器列表
-        dockerList: [
-          {
-            id: "22", // CONTAINER ID：容器ID
-            name: "stress", // NAME：容器名称
-            cpuRatio: 0.5566, // CPU %：容器使用的主机 CPU百分比
-            memMessage: {memUsage: 197.7, memLimit: 256},// MEM USAGE / LIMIT：容器使用的总内存、以及允许使用的内存总量
-            memRatio: 0.7724, // MEM %：容器所使用的内存百分比
-            netIO: {netIn: 656, netOut: 0}, // NET I/O：容器通过网络接口接收和发送的数据量（单位: 字节B）
-            blockIO: {blockIn: 0, blockOut: 0},// BLOCK I/O：容器从主机上的块设备写入和的读取数据量（单位: 字节B）
-            pids: 5 // PIDS：容器创建的进程或线程数
-          },
-          {
-            id: "2", // CONTAINER ID：容器ID
-            name: "stress", // NAME：容器名称
-            cpuRatio: 1.9799, // CPU %：容器使用的主机 CPU百分比
-            memMessage: {memUsage: 197.7, memLimit: 256},// MEM USAGE / LIMIT：容器使用的总内存、以及允许使用的内存总量
-            memRatio: 0.7724, // MEM %：容器所使用的内存百分比
-            netIO: {netIn: 656, netOut: 0}, // NET I/O：容器通过网络接口接收和发送的数据量
-            blockIO: {blockIn: 0, blockOut: 0},// BLOCK I/O：容器从主机上的块设备写入和的读取数据量
-            pids: 6 // PIDS：容器创建的进程或线程数
-          },
-          {
-            id: "3", // CONTAINER ID：容器ID
-            name: "stress", // NAME：容器名称
-            cpuRatio: 1.8888, // CPU %：容器使用的主机 CPU百分比
-            memMessage: {memUsage: 197.7, memLimit: 256},// MEM USAGE / LIMIT：容器使用的总内存、以及允许使用的内存总量
-            memRatio: 0.7724, // MEM %：容器所使用的内存百分比
-            netIO: {netIn: 656, netOut: 0}, // NET I/O：容器通过网络接口接收和发送的数据量
-            blockIO: {blockIn: 0, blockOut: 0},// BLOCK I/O：容器从主机上的块设备写入和的读取数据量
-            pids: 8 // PIDS：容器创建的进程或线程数
-          },
-        ],
-      }
     ])
 
-
-    const deleteServer = () => { // 移除服务器方法
-
-    }
-
     return {
-      info,
       data,
       servers,
-      deleteServer
+      sysUsed,
+      userUsed,
+      wait,
+      free,
+      memory,
+      disk
     }
   }
 }
@@ -722,9 +604,9 @@ export default {
 /*.font {*/
 /*  font-size: x-large;*/
 /*}*/
-.font-two {
-  font-weight: bold;
-}
+/*.font-two {*/
+/*  font-weight: bold;*/
+/*}*/
 
 .net {
   width: 450px;
