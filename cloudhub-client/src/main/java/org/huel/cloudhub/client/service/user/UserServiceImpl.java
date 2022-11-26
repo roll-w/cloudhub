@@ -3,7 +3,6 @@ package org.huel.cloudhub.client.service.user;
 import org.huel.cloudhub.client.configuration.properties.WebUrlsProperties;
 import org.huel.cloudhub.client.controller.SessionConstants;
 import org.huel.cloudhub.client.data.database.repository.UserRepository;
-import org.huel.cloudhub.client.data.database.repository.VerificationTokenRepository;
 import org.huel.cloudhub.client.data.dto.user.UserInfo;
 import org.huel.cloudhub.client.data.dto.user.UserPasswordDto;
 import org.huel.cloudhub.client.data.entity.user.Role;
@@ -13,7 +12,6 @@ import org.huel.cloudhub.common.MessagePackage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -37,16 +35,12 @@ public class UserServiceImpl implements UserService, UserGetter {
 
     private final UserRepository userRepository;
 
-    private final VerificationTokenRepository verificationTokenRepository;
-
     public UserServiceImpl(PasswordEncoder passwordEncoder,
                            AuthenticationManager authenticationManager,
-                           UserRepository userRepository,
-                           VerificationTokenRepository verificationTokenRepository) {
+                           UserRepository userRepository) {
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
         this.userRepository = userRepository;
-        this.verificationTokenRepository = verificationTokenRepository;
     }
 
     @Override
@@ -157,13 +151,6 @@ public class UserServiceImpl implements UserService, UserGetter {
         HttpSession session = request.getSession();
         session.invalidate();
         SecurityContextHolder.getContext().setAuthentication(null);
-    }
-
-    ApplicationEventPublisher eventPublisher;
-
-    @Autowired
-    public void setEventPublisher(ApplicationEventPublisher eventPublisher) {
-        this.eventPublisher = eventPublisher;
     }
 
 

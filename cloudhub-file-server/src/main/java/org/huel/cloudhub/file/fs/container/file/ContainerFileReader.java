@@ -83,6 +83,10 @@ public class ContainerFileReader implements Closeable {
 
     private static final int SKIP_BUFFER_SIZE = 640;
 
+    /**
+     * @deprecated Using {@link #seek(int)} instead.
+     */
+    @Deprecated
     public void skip(int size) throws LockException, IOException {
         if (size <= 0) {
             return;
@@ -94,8 +98,36 @@ public class ContainerFileReader implements Closeable {
         read(size - SKIP_BUFFER_SIZE * times);
     }
 
-    private void seek(int index) {
-        // TODO: modify lastResult to allow it seek, and perhaps needs reset iterator.
+    public void seek(int index) throws LockException, IOException {
+        int nowSum = 0;
+        for (BlockMetaInfo blockMetaInfo : fileBlockMetaInfo.getBlockMetaInfos()) {
+            int blocks = blockMetaInfo.getBlockGroupsInfo().occupiedBlocks();
+            if (nowSum + blocks >= index) {
+                long serial = blockMetaInfo.getContainerSerial();
+                // we can know that we need start from the container here.
+                seekAndRelocateContainer(serial, index);
+                return;
+            }
+            nowSum += blocks;
+        }
+
+    }
+
+    private void seekAndRelocateContainer(long serial, int index) throws LockException, IOException {
+        initIterator();
+        while (containerIterator.hasNext()) {
+            Container container = containerIterator.next();
+            if (container.getSerial() != serial) {
+                continue;
+            }
+            ContainerReader reader = new ContainerReader(container, containerReadOpener);
+            hackLastResult(reader, serial, index - 1);
+            return;
+        }
+    }
+
+    private void hackLastResult(ContainerReader reader, long serial, int endIndex) {
+        lastResult = new ReadResult(List.of(), reader, new ReadBlockDest(serial, endIndex));
     }
 
     public List<ContainerBlock> read(int readBlocks) throws IOException, LockException {
@@ -263,6 +295,10 @@ public class ContainerFileReader implements Closeable {
         }
 
         return new ContainerReader(containerIterator.next(), containerReadOpener);
+    }
+
+    public long getBlockSizeInBytes() {
+        return containerGroup.getBlockSizeInBytes();
     }
 
     @Override

@@ -8,9 +8,21 @@ message DownloadBlockData {
   bytes data = 1;
 }
 
-message DownloadBlocksSegmentInfo {
+message DownloadBlocksSegment {
   int32 start_index = 1;
   int32 end_index = 2;
+}
+
+message DownloadBytesSegment {
+  int64 start_bytes = 1;
+  int64 end_bytes = 2;
+}
+
+message DownloadBlocksSegmentInfo {
+  oneof Segment {
+    DownloadBlocksSegment blocks = 1;
+    DownloadBytesSegment bytes = 2;
+  }
 }
 
 message DownloadBlockRequest {

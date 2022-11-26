@@ -19,6 +19,9 @@ public interface VersionedObjectService {
     @Nullable
     VersionedObject getObjectVersionOf(ObjectInfo info, long version);
 
+    @Nullable
+    VersionedObject getObjectVersionOf(String bucketName, String objectName, long version);
+
     List<VersionedObject> getObjectVersions(String bucketName, String objectName);
 
 }

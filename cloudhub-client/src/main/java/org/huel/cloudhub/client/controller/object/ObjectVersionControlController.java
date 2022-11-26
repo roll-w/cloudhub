@@ -3,6 +3,7 @@ package org.huel.cloudhub.client.controller.object;
 import org.huel.cloudhub.client.data.dto.object.ObjectRevertRequest;
 import org.huel.cloudhub.client.data.dto.object.VersionedObjectVo;
 import org.huel.cloudhub.client.data.dto.user.UserInfo;
+import org.huel.cloudhub.client.data.entity.object.VersionedObject;
 import org.huel.cloudhub.client.service.bucket.BucketAuthService;
 import org.huel.cloudhub.client.service.object.ObjectMetadataService;
 import org.huel.cloudhub.client.service.object.ObjectService;
@@ -50,7 +51,7 @@ public class ObjectVersionControlController {
             @RequestParam String bucketName,
             @RequestParam String objectName) {
         UserInfo userInfo = userGetter.getCurrentUser(request);
-        if (!bucketAuthService.isOwnerOf(userInfo, bucketName)){
+        if (!bucketAuthService.isOwnerOf(userInfo, bucketName)) {
             return HttpResponseEntity.failure("No Permission.",
                     ErrorCode.ERROR_PERMISSION_NOT_ALLOWED);
         }
@@ -66,10 +67,22 @@ public class ObjectVersionControlController {
     public HttpResponseEntity<Void> revertVersion(HttpServletRequest request,
                                                   @RequestBody ObjectRevertRequest revertRequest) {
         UserInfo userInfo = userGetter.getCurrentUser(request);
-        if (!bucketAuthService.isOwnerOf(userInfo, revertRequest.bucketName())){
+        if (!bucketAuthService.isOwnerOf(userInfo, revertRequest.bucketName())) {
             return HttpResponseEntity.failure("No Permission.",
                     ErrorCode.ERROR_PERMISSION_NOT_ALLOWED);
         }
-        return null;
+        VersionedObject versionedObject = versionedObjectService.getObjectVersionOf(
+                revertRequest.bucketName(),
+                revertRequest.objectName(),
+                revertRequest.version());
+        if (versionedObject == null) {
+            return HttpResponseEntity.failure("Not exist version.",
+                    ErrorCode.ERROR_DATA_NOT_EXIST);
+        }
+        var res = objectService.setObjectFileId(
+                revertRequest.bucketName(),
+                revertRequest.objectName(),
+                versionedObject.getFileId());
+        return HttpResponseEntity.create(res.toResponseBody());
     }
 }

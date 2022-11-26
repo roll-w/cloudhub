@@ -49,19 +49,25 @@ public class FileDeleteService {
         String master = location.getMasterServerId();
         String[] replicas = location.getReplicaIds();
         List<SerializedFileServer> replicaServers = buildReplicaServers(replicas);
-        if (serverChecker.isActive(master)) {
-            logger.debug("Master active, delete...");
-            NodeServer server = nodeAllocator.findNodeServer(master);
-            BlockDeleteServiceGrpc.BlockDeleteServiceStub stub =
-                    requireStub(server);
-            DeleteBlocksRequest request = DeleteBlocksRequest.newBuilder()
-                    .setFileId(fileId)
-                    .addAllServers(replicaServers)
-                    .build();
-            stub.deleteBlocks(request, DeleteResponseStreamObserver.getInstance());
+        if (!serverChecker.isActive(master)) {
+            return;
+            // If master dead, we cannot to know how to delete it.
         }
+        logger.debug("Master active, delete...");
+        NodeServer server = nodeAllocator.findNodeServer(master);
+        BlockDeleteServiceGrpc.BlockDeleteServiceStub stub =
+                requireStub(server);
+        DeleteBlocksRequest request = DeleteBlocksRequest.newBuilder()
+                .setFileId(fileId)
+                .addAllServers(replicaServers)
+                .build();
+        stub.deleteBlocks(request, DeleteResponseStreamObserver.getInstance());
         logger.debug("Master with replicas delete complete.");
         repository.delete(location);
+    }
+
+    private void tryToDelete(FileStorageLocation location) {
+
     }
 
     private static class DeleteResponseStreamObserver implements StreamObserver<DeleteBlocksResponse> {
