@@ -3,16 +3,19 @@
     <NavBar/>
     <div class="d-flex flex-column p-4 flex-grow-1 allow-rolling">
       <router-view/>
+      <FooterView/>
     </div>
+
   </main>
 </template>
 
 <script>
 import NavBar from "@/components/common/NavBar";
-
+import FooterView from "@/components/common/Footer";
 export default {
   name: "HomeView",
   components:{
+    FooterView,
     NavBar,
   }
 }
