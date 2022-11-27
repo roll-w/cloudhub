@@ -28,7 +28,6 @@ public class WritePerformanceTester {
     private final int dataSize;
     private final FileUploadService fileUploadService;
     private final FileDeleteService fileDeleteService;
-    private final CountDownLatch latch;
     private final List<Result> results = new ArrayList<>();
 
     // if file delete service not null, enable auto-cleaning.
@@ -40,14 +39,12 @@ public class WritePerformanceTester {
         this.fileUploadService = fileUploadService;
         this.fileDeleteService = fileDeleteService;
         this.writer = reportWriter;
-        this.latch = new CountDownLatch(testCases);
     }
 
-    public void startWriteTest() throws IOException, InterruptedException {
+    public void startWriteTest() throws IOException {
         for (int i = 1; i <= testCases; i++) {
             recordNext(i);
         }
-        latch.await();
         printResult();
     }
 
@@ -79,7 +76,6 @@ public class WritePerformanceTester {
         }
     }
 
-
     private File generateRandomFile() throws IOException {
         File file = new File(RandomStringUtils.randomAlphanumeric(30));
         RandomFileGenerator fileGenerator =
@@ -90,10 +86,18 @@ public class WritePerformanceTester {
 
     private void recordNext(int index) throws IOException {
         File randomFile = generateRandomFile();
+        CountDownLatch latch = new CountDownLatch(1);
         InputStream stream = new FileInputStream(randomFile);
         long start = System.currentTimeMillis();
         fileUploadService.uploadFile(stream,
-                new CallbackRecorder(index, start, randomFile));
+                new CallbackRecorder(index, start, randomFile, latch));
+        try {
+            latch.await();
+            // Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            throw new IOException(e);
+        }
+        // TODO: clean files here
     }
 
     private class CallbackRecorder implements FileUploadStatusDataCallback {
@@ -101,13 +105,16 @@ public class WritePerformanceTester {
         private final long start;
         private final File randomFile;
         private String fileId;
+        private final CountDownLatch latch;
 
         long calc, total, temp, store, tempToStore, storeToLast;
 
-        private CallbackRecorder(int caseIndex, long start, File randomFile) {
+        private CallbackRecorder(int caseIndex, long start,
+                                 File randomFile, CountDownLatch latch) {
             this.caseIndex = caseIndex;
             this.start = start;
             this.randomFile = randomFile;
+            this.latch = latch;
         }
 
         @Override

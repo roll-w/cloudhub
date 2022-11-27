@@ -11,6 +11,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 /**
  * @author RollW
@@ -26,9 +28,13 @@ public class TestCommand extends AbstractShellComponent {
         this.fileDeleteService = fileDeleteService;
     }
 
+    private static final DateTimeFormatter FORMATTER =
+            DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss");
+
     @ShellMethod(key = "test write", value = "write performance test.")
-    public void startTest(int caseCount, int dataSize) throws IOException, InterruptedException {
-        File report = new File("WriteReport.clb");
+    public void startTest(int caseCount, int dataSize) throws IOException {
+        LocalDateTime time = LocalDateTime.now();
+        File report = new File("cloudhub-test-write-report_" + time.format(FORMATTER) + ".clb");
         report.createNewFile();
         PrintWriter writer = new PrintWriter(new FileOutputStream(report, false));
         WritePerformanceTester tester = new WritePerformanceTester(
