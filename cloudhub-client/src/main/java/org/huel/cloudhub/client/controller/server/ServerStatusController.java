@@ -153,7 +153,12 @@ public class ServerStatusController {
             return HttpResponseEntity.success(
                     serverInfoCheckService.getMetaServerDiskRecords());
         }
-        return HttpResponseEntity.success(
-                serverInfoCheckService.getFileServerDiskRecords(serverId));
+        List<DiskUsageInfo> disks =
+                serverInfoCheckService.getFileServerDiskRecords(serverId);
+        if (disks == null) {
+            return HttpResponseEntity.failure("Not found server",
+                    ErrorCode.ERROR_DATA_NOT_EXIST);
+        }
+        return HttpResponseEntity.success(disks);
     }
 }

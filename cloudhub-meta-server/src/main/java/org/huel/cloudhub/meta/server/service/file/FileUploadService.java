@@ -8,14 +8,22 @@ import io.grpc.stub.StreamObserver;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.huel.cloudhub.file.io.BufferedStreamIterator;
 import org.huel.cloudhub.file.io.ReopenableInputStream;
-import org.huel.cloudhub.file.rpc.block.*;
+import org.huel.cloudhub.file.rpc.block.BlockUploadServiceGrpc;
+import org.huel.cloudhub.file.rpc.block.UploadBlockData;
+import org.huel.cloudhub.file.rpc.block.UploadBlocksInfo;
+import org.huel.cloudhub.file.rpc.block.UploadBlocksRequest;
+import org.huel.cloudhub.file.rpc.block.UploadBlocksResponse;
 import org.huel.cloudhub.meta.fs.FileObjectUploadStatus;
 import org.huel.cloudhub.meta.server.configuration.FileProperties;
 import org.huel.cloudhub.meta.server.data.database.repository.FileStorageLocationRepository;
 import org.huel.cloudhub.meta.server.data.database.repository.MasterReplicaLocationRepository;
 import org.huel.cloudhub.meta.server.data.entity.FileStorageLocation;
 import org.huel.cloudhub.meta.server.data.entity.MasterReplicaLocation;
-import org.huel.cloudhub.meta.server.service.node.*;
+import org.huel.cloudhub.meta.server.service.node.HeartbeatService;
+import org.huel.cloudhub.meta.server.service.node.NodeAllocator;
+import org.huel.cloudhub.meta.server.service.node.NodeChannelPool;
+import org.huel.cloudhub.meta.server.service.node.NodeServer;
+import org.huel.cloudhub.meta.server.service.node.ServerChecker;
 import org.huel.cloudhub.rpc.GrpcProperties;
 import org.huel.cloudhub.rpc.GrpcServiceStubPool;
 import org.huel.cloudhub.rpc.StreamObserverWrapper;
@@ -28,7 +36,11 @@ import org.springframework.stereotype.Service;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -102,6 +114,21 @@ public class FileUploadService {
         uploadFile(reopenableInputStream, hash, reopenableInputStream.getLength(), callback);
     }
 
+
+    /**
+     * Test only.
+     */
+    public void uploadFile(InputStream inputStream, FileUploadStatusDataCallback callback) throws IOException {
+        logger.debug("Start calculation on the given input stream.");
+        Hasher sha256Hasher = Hashing.sha256().newHasher();
+        ReopenableInputStream reopenableInputStream = convertInputStream(inputStream, sha256Hasher);
+        final String hash = reopenableInputStream.getHash(sha256Hasher).toString();
+        if (callback != null) {
+            callback.onCalc(hash);
+        }
+        uploadFile(reopenableInputStream, hash, reopenableInputStream.getLength(), callback);
+    }
+
     public void uploadFile(InputStream inputStream, String hash, long length, FileUploadStatusCallback callback) throws IOException {
         if (checkFileExists(hash)) {
             inputStream.close();
@@ -128,6 +155,7 @@ public class FileUploadService {
         if (stub == null) {
             // TODO: retry upload
             logger.debug("Server goes down, please re-upload.");
+            inputStream.close();
             if (callback != null) {
                 callback.onNextStatus(FileObjectUploadStatus.LOST);
             }
