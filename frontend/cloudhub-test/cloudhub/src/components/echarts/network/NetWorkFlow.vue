@@ -9,8 +9,7 @@
 import {ref, onMounted, getCurrentInstance} from 'vue'
 
 export default {
-  // eslint-disable-next-line vue/multi-word-component-names
-  name: "Receive",
+  name: "netFlowAndSend",
   setup() {
     const {proxy} = getCurrentInstance() // 获取全局配置项
     const myRef = ref(null) // 获取dom实例
@@ -23,63 +22,123 @@ export default {
       // 基于准备好的dom，初始化echarts实例
       const myChart = proxy.$echarts.init(myRef.value)
 
-      // 变量
-      let base = +new Date(0, 0, 0);
-      let oneDay = 24 * 3600 * 1000;
-      let date = [];
-      let receiveRate = [Math.random() * 150];
-      let now = new Date(base);
 
-      // 方法等
-      function addData(shift) {
-        now = [now.getFullYear(), now.getMonth() + 1, now.getDate()].join('/');
-        date.push(now);
-        receiveRate.push((Math.random() - 0.4) * 10 + receiveRate[receiveRate.length - 1]);
-        if (shift) {
-          date.shift();
-          receiveRate.shift();
-        }
-        now = new Date(+new Date(now) + oneDay);
-      }
+      // 一次展示的数据的条数
+      let arrLen = 10;
 
-      for (let i = 1; i < 30; i++) {
-        addData();
+      // 网络的接收速率与发送速率
+      let netFlow = [];
+      let x = []; // x 轴
+
+      // 一次展示 10 条数据
+      for (let i = 0; i < arrLen; i++){
+        netFlow.push(0);
+        x.push(0);
       }
 
       // 指定图表的配置项和数据
       myChart.setOption({
+        backgroundColor: '#fff',
+        tooltip: {
+          trigger: 'axis',
+        },
+        title: {
+          text: `{a|网络流量(bytes/s)}`,
+          textStyle: {
+            rich: {
+              a: {
+                fontSize: 16,
+                fontWeight: 600,
+              },
+            },
+          },
+          top: '2%',
+          left: '2%',
+        },
+        legend: {
+          data: ['网络流量'],
+          textStyle: {
+            align: 'right',
+          },
+          top: '2%',
+          right: '2%',
+        },
+        grid: {
+          left: '3%',
+          right: '4%',
+          bottom: '3%',
+          containLabel: true,
+        },
+        // 设置x轴的样式
         xAxis: {
           type: 'category',
-          boundaryGap: false,
-          //receiveRate: date
-          show: false
+          show: false,
+          boundaryGap: false, //坐标轴两边留白
         },
-        yAxis: {
-          boundaryGap: [0, '50%'],
-          type: 'value'
-        },
-        series: [
+        // 设置y轴的样式
+        yAxis: [
           {
-            name: '',
-            type: 'line',
-            smooth: false,
-            symbol: 'none',
-            stack: 'a',
-            areaStyle: {},
-            receiveRate: receiveRate
-          }
-        ]
+            type: 'value',
+            axisLabel: {
+              textStyle: {
+                color: '#a8aab0',
+                fontStyle: 'normal',
+                fontFamily: '微软雅黑',
+                fontSize: 12,
+              },
+              // formatter: '{value}' // 设置y轴数据样式
+            },
+            axisLine: {
+              show: false,
+            },
+            axisTick: {
+              show: false,
+            },
+            splitLine: {
+              show: true,
+              lineStyle: {
+                color: '#E5E9ED',
+                // 	opacity:0.1
+              },
+            },
+          },
+        ],
       })
       setInterval(function () {
+        // 删除数组的首个元素,再数组尾部添加新的元素(实现从右向左动态更新的视觉效果)
+        function addData(shift) {
+          x.push(0);
+
+          netFlow.push((Math.random()*10).toFixed(2));     // ######## 从接口获取数据
+
+          if (shift) {
+            x.shift();  // 移除数组的首个元素
+            netFlow.shift();
+          }
+        }
         addData(true);
         myChart.setOption({
-          xAxis: {},
-          series: [{
-            name: '',
-            data: receiveRate
-          }]
+          series: [
+            {
+              name: '网络流量',
+              type: 'line',
+              itemStyle: {
+                normal: {
+                  color: '#5DADE2',
+                  lineStyle: {
+                    color: '#5DADE2',
+                    width: 1,
+                  },
+                  areaStyle: {
+                    color: '#AED6F1'
+                  },
+                },
+              },
+              data: netFlow,
+            }
+          ]
         });
-      }, 1000);
+      }, 1000); // 定时器
     }
 
     return {
