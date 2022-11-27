@@ -427,7 +427,7 @@
 <script>
 
 import ContentBase from "@/components/common/ContentBase";
-import StorageIO from "@/components/echarts/network/StorageIO";
+import StorageIO from "@/components/echarts/storage/StorageIO";
 import ReceiveAndSend from "@/components/echarts/network/ReceiveAndSend"
 import PieEchartsBase from "@/components/echarts/cpu/PieEchartsBase";
 import CategoryEchartsBase from "@/components/echarts/storage/CategoryEchartsBase"
