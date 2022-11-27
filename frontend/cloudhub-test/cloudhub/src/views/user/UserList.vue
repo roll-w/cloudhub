@@ -130,7 +130,7 @@ export default {
         success(resp) {
           if (resp.errorCode === "00000"){
             // Modal.getInstance("#SearchUser").show();
-            // alert("ID: "+resp.data.id+" Email: "+resp.data.email+" Role: "+resp.data.role)
+            alert("ID: "+resp.data.id+" Email: "+resp.data.email+" Role: "+resp.data.role)
           }
         },
         error(resp){

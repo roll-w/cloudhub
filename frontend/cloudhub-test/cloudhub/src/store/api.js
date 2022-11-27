@@ -19,6 +19,14 @@ const url_getUser = server + "/api/admin/user/get/all"
 const url_deleteUserById = server + "/api/admin/user/delete"
 const url_getUserByName = server + "/api/admin/user/get";
 
+
+
+
+//元数据服务器信息serverId=meta
+const url_metaServer = server + "/api/admin/status/server/get"
+
+
+
 export default {
     url_login,
     url_register,
@@ -32,5 +40,6 @@ export default {
     url_getUser,
     url_deleteUserById,
     url_getUserByName,
+    url_metaServer,
 }
 
