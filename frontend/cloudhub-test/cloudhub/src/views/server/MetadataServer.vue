@@ -599,15 +599,8 @@ export default {
 </script>
 
 <style scoped>
-/*.font {*/
-/*  font-size: x-large;*/
-/*}*/
-/*.font-two {*/
-/*  font-weight: bold;*/
-/*}*/
-
 .net {
-  width: 450px;
+  width: 550px;
   height: 300px;
 }
 </style>

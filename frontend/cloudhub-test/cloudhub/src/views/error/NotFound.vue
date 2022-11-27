@@ -1,23 +1,21 @@
 <template>
-<!--  <ContentBase >-->
-    <div>
-      <img :src="error_Img" class="rounded mx-auto d-block">
-    </div>
-<!--  </ContentBase>-->
+  <div class="text-center container p-5 my-5 border">
+    <div class="spinner-grow text-primary"
+         style="font-size:3rem;width: 7rem;height: 7rem"></div>
+    <h2 class="p-5 text-primary">404 Not Found. 资源未找到。</h2>
+    <hr>
+    <p>Powered by Cloudhub.</p>
+  </div>
 </template>
 
 <script>
-// import ContentBase from "@/components/ContentBase";
-import error_Img from "../../assets/images/404.gif"
 
 export default {
   name: "NotFound",
   components: {
-    // ContentBase
   },
   data() {
     return {
-      error_Img
     }
   }
 

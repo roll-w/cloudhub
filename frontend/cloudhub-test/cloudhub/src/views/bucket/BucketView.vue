@@ -1,45 +1,22 @@
 <template>
   <ContentBase>
-    <button type="button"  class="btn btn-link" data-bs-toggle="modal" data-bs-target="#addBucket">
-      创建桶
-    </button>
-<!--// TODO: 创建modal  -->
-    <div class="modal fade" id="addBucket" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="exampleModalLabel">创建</h5>
-          </div>
-          <div class="modal-body">
 
-            <form @submit.prevent="addBucket">
-              <div class="mb-3">
-                <label for="name" class="form-label">名称:</label>
-                <input  type="text" v-model="bucketName" class="form-control" id="name" placeholder="Name">
-              </div>
-              <div class="mb-3">
-                <label for="name" class="form-label">策略:</label>
-                <input  type="text" v-model="visibility" class="form-control" id="name" placeholder="Visibility">
-              </div>
-              <figure class="text-center">
-<!--                后期修改样式-->
-                PRIVATE or PUBLIC_READ or PUBLIC_READ_WRITE
-              </figure>
-              <div class="modal-footer">
-                <button style="margin-right: 5px" type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
-                <button type="submit" class="btn btn-primary" >添加</button>
-              </div>
-            </form>
+    <!--// TODO: 创建modal  -->
+    <div class="d-flex flex-xl-row flex-grow-1">
+      <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#addBucket">
+        创建桶
+      </button>
+      <div class="d-flex flex-fill justify-content-end">
+        <form @submit.prevent="getBucketByName">
+          <div class="input-group">
+            <input v-model="bucketName" type="text" class="form-control"
+                   placeholder="搜索桶......">
+            <button class="btn btn-outline-primary" type="submit">查询</button>
           </div>
-        </div>
+        </form>
       </div>
+
     </div>
-    <form @submit.prevent="getBucketByName">
-      <div class="input-group" style="width: 400px; margin-left: auto">
-        <input style="width: 200px" v-model="bucketName" type="text" class="form-control" placeholder="Search By BucketName">
-        <button class="btn btn-dark" type="submit">查询</button>
-      </div>
-    </form>
     <hr>
     <table class="table table-hover" style="text-align: center">
       <thead class="table-light">
@@ -56,17 +33,19 @@
         <td>{{ bucket.name }}</td>
         <td>{{ bucket.bucketVisibility }}</td>
         <td>
-          <div class="btn-group" role="group" aria-label="Basic outlined example">
+          <div class="btn-group" role="group">
             <button type="button" class="btn btn-link" @click="checkFile">查看</button>
           </div>
         </td>
         <td>
-          <div class="btn-group" role="group" aria-label="Basic outlined example">
-            <button type="button" class="btn btn-link" data-bs-toggle="modal" data-bs-target="#bucketAuthority">
+          <div class="btn-group" role="group">
+            <button type="button" class="btn btn-link" data-bs-toggle="modal"
+                    :data-cfs-bucket-name="bucket.name"
+                    data-bs-target="#bucketAuthority">
               权限
             </button>
           </div>
-          <div class="btn-group" role="group" aria-label="Basic outlined example">
+          <div class="btn-group" role="group">
             <button type="button" class="btn btn-link" @click="deleteBucket(bucket)">删除</button>
           </div>
         </td>
@@ -74,28 +53,62 @@
 
       </tbody>
     </table>
-
-    <div class="modal fade" id="bucketAuthority" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal fade" id="addBucket" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title" id="exampleModalLabel">修改桶权限</h5>
+            <h5 class="modal-title" id="exampleModalLabel">创建</h5>
+          </div>
+          <div class="modal-body">
+
+            <form @submit.prevent="addBucket">
+              <div class="mb-3">
+                <label for="name" class="form-label">名称:</label>
+                <input type="text" v-model="bucketName" class="form-control" id="name" placeholder="Name">
+              </div>
+              <div class="mb-3">
+                <label for="name" class="form-label">策略:</label>
+                <input type="text" v-model="visibility" class="form-control" id="name" placeholder="Visibility">
+              </div>
+              <figure class="text-center">
+                <!--                后期修改样式-->
+                PRIVATE or PUBLIC_READ or PUBLIC_READ_WRITE
+              </figure>
+              <div class="modal-footer">
+                <button style="margin-right: 5px" type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消
+                </button>
+                <button type="submit" class="btn btn-primary">添加</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal fade" ref="bucketVisibilityModel" id="bucketAuthority"
+         tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">修改桶权限</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body">
 
             <form @submit.prevent="settingVisibility">
-              <div class="mb-3">
-                <label for="name" class="form-label">名称:</label>
-                <input  type="text" v-model="bucketName" class="form-control" id="name" placeholder="Name">
-              </div>
-              <div class="mb-3">
-                <label for="name" class="form-label">策略:</label>
-                <input  type="text" v-model="visibility" class="form-control" id="name" placeholder="PRIVATE or PUBLIC_READ or PUBLIC_READ_WRITE" >
+              <input ref="visBucketName" type="text" v-model="bucketName" hidden id="name" placeholder="Name">
+              <div class="pb-3 form-floating">
+                <select class="form-select" id="bucket-vis-select">
+                  <option value="PRIVATE">私有读写</option>
+                  <option value="PUBLIC_READ">公共读</option>
+                  <option value="PUBLIC_READ_WRITE">公共读写</option>
+                </select>
+                <label for="name" class="form-label">设置新的桶策略：</label>
               </div>
               <div class="modal-footer">
-                <button style="margin-right: 5px" type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
-                <button type="submit" class="btn btn-primary">添加</button>
+                <div class="btn-group">
+                  <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">取消</button>
+                  <button type="submit" class="btn btn-primary">确认</button>
+                </div>
               </div>
             </form>
           </div>
@@ -108,11 +121,12 @@
 
 <script>
 import ContentBase from "@/components/common/ContentBase";
-import { Modal } from 'bootstrap/dist/js/bootstrap'
+import {Modal} from 'bootstrap/dist/js/bootstrap'
 import {useRouter} from 'vue-router'
-import {ref} from 'vue';
+import {onMounted, ref} from 'vue';
 import $ from 'jquery'
 import url from '@/store/api'
+
 export default {
   name: "BucketView",
   components: {
@@ -123,9 +137,17 @@ export default {
     //接口
     let buckets = ref([]);
     let bucketName = ref([]);
-    let visibility= ref([]);
+    let visibility = ref([]);
     const router = useRouter()
+    const bucketVisibilityModel = ref(null)
 
+    onMounted(() => {
+      bucketVisibilityModel.value.addEventListener("show.bs.modal", (event) => {
+        const button = event.relatedTarget
+        let bucketName = button.getAttribute("data-cfs-bucket-name")
+        console.log("We got bucket name=" + bucketName)
+      })
+    })
     const checkFile = () => {
       router.push('file')
       //获取指定桶的文件信息
@@ -133,29 +155,29 @@ export default {
         url: '',
         type: "",
         success() {
-        //  file = resp
+          //  file = resp
         },
-        error(resp){
+        error(resp) {
           console.log(resp)
         }
       });
     };
 
     //TODO:获得桶列表
-    const getBucket =()=> {
+    const getBucket = () => {
       $.ajax({
         url: url.url_getBucket,
         type: "GET",
         xhrFields: {
           withCredentials: true // 携带跨域cookie  //单个设置
         },
-        crossDomain:true,
+        crossDomain: true,
         success(resp) {
           console.log(resp.data)
           buckets.value = resp.data;
           console.log("Successfully obtained the bucket list！")
         },
-        error(){
+        error() {
           console.log("Bucket list acquisition failed！！！")
         }
       });
@@ -164,108 +186,108 @@ export default {
     getBucket();
 
     //TODO：删除某个桶
-    const deleteBucket = (bucket)=>{
+    const deleteBucket = (bucket) => {
       $.ajax({
         url: url.url_deleteBucket,
         xhrFields: {
           withCredentials: true // 携带跨域cookie  //单个设置
         },
-        crossDomain:true,
+        crossDomain: true,
         type: "DELETE",
         contentType: "application/json;charset=UTF-8",
         data: JSON.stringify({
           bucketName: bucket.name,
         }),
         success(resp) {
-          if (resp.errorCode === "00000"){
+          if (resp.errorCode === "00000") {
             getBucket();
           }
         },
-        error(resp){
+        error(resp) {
           console.log(resp);
         }
       })
     };
 
     //TODO：创建桶
-    const addBucket =() => {
+    const addBucket = () => {
       $.ajax({
         url: url.url_addBucket,
         type: "PUT",
         xhrFields: {
           withCredentials: true // 携带跨域cookie  //单个设置
         },
-        crossDomain:true,
+        crossDomain: true,
         contentType: "application/json;charset=UTF-8",
-        data:JSON.stringify({
-          bucketName:bucketName.value,
-          visibility:visibility.value,
+        data: JSON.stringify({
+          bucketName: bucketName.value,
+          visibility: visibility.value,
         }),
         success(resp) {
           if (resp.errorCode === "00000") {
             Modal.getInstance("#addBucket").hide();
-              getBucket()
+            getBucket()
           }
         },
-        error(resp){
+        error(resp) {
           console.log(resp)
         }
       });
     };
 
-    const settingVisibility = ()=>{
+    const settingVisibility = () => {
       $.ajax({
         url: url.url_settingVisibility,
         type: "POST",
         xhrFields: {
           withCredentials: true // 携带跨域cookie  //单个设置
         },
-        crossDomain:true,
+        crossDomain: true,
         contentType: "application/json;charset=UTF-8",
-        data:JSON.stringify({
-          bucketName:bucketName.value,
-          visibility:visibility.value,
+        data: JSON.stringify({
+          bucketName: bucketName.value,
+          visibility: visibility.value,
         }),
         success(resp) {
           if (resp.errorCode === "00000") {
             Modal.getInstance("#bucketAuthority").hide();
-              getBucket()
+            getBucket()
           }
         },
-        error(resp){
-            console.log(resp);
+        error(resp) {
+          console.log(resp);
         }
       });
     };
 
-    const getBucketByName = () =>{
+    const getBucketByName = () => {
       $.ajax({
         url: url.url_getBucketByName,
         xhrFields: {
           withCredentials: true
         },
-        crossDomain:true,
+        crossDomain: true,
         type: "GET",
         data: {
-         bucketName:bucketName.value,
+          bucketName: bucketName.value,
         },
         success(resp) {
-          if (resp.errorCode === "00000"){
-            alert("Name: "+resp.data.name+" Email: "+resp.data.bucketVisibility)
+          if (resp.errorCode === "00000") {
+            alert("Name: " + resp.data.name + " Email: " + resp.data.bucketVisibility)
           }
         },
-        error(resp){
+        error(resp) {
           console.log(resp.data);
         }
       });
     }
 
 
-
     return {
       buckets,
       bucketName,
       visibility,
+      bucketVisibilityModel,
       checkFile,
       getBucketByName,
       deleteBucket,
