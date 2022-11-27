@@ -1,6 +1,6 @@
 import { createStore } from 'vuex'
 import ModelUser from './user'
-
+import ModelFile from './file'
 export default createStore({
   state: {
   },
@@ -12,5 +12,6 @@ export default createStore({
   },
   modules: {
     user:ModelUser,
+    file:ModelFile,
   }
 })

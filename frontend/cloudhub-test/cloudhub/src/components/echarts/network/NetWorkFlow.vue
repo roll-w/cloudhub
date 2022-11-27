@@ -2,6 +2,7 @@
   <!-- 图表的大小(width与height)在调用该组件时定义 -->
   <div ref="myRef" data-bs-toggle="tooltip" data-bs-placement="top"
        title="">
+
   </div>
 </template>
 
@@ -171,7 +172,6 @@ const getNet = () =>{
 
   getNet();
 
-  console.log(net.value.recv)
     return {
       myRef,
       net,
