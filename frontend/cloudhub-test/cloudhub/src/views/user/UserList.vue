@@ -8,6 +8,19 @@
       </div>
     </form>
 
+<!--    <div class="modal fade" id="SearchUser" tabindex="-1" >-->
+<!--      <div class="modal-dialog">-->
+<!--        <div class="modal-content">-->
+<!--          <div class="modal-header">-->
+<!--            <h5 class="modal-title" id="exampleModalLabel">创建</h5>-->
+<!--          </div>-->
+<!--          <div class="modal-body">-->
+<!--            测试弹框-->
+<!--          </div>-->
+<!--        </div>-->
+<!--      </div>-->
+<!--    </div>-->
+
 
     <hr>
     <table class="table table-hover" style="text-align: center">
@@ -43,6 +56,7 @@
 
 <script>
 import ContentBase from "@/components/common/ContentBase";
+import { Modal } from 'bootstrap/dist/js/bootstrap'
 import {ref} from "vue";
 import $ from 'jquery'
 import url from "@/store/api";
@@ -68,7 +82,7 @@ export default {
         crossDomain:true,
         success(resp) {
           users.value = resp.data;
-          console.log("Successfully obtained the user list！")
+
         },
         error(){
           console.log("User list acquisition failed！！！")
@@ -115,7 +129,8 @@ export default {
         },
         success(resp) {
           if (resp.errorCode === "00000"){
-            alert("ID: "+resp.data.id+" Email: "+resp.data.email+" Role: "+resp.data.role)
+            // Modal.getInstance("#SearchUser").show();
+            // alert("ID: "+resp.data.id+" Email: "+resp.data.email+" Role: "+resp.data.role)
           }
         },
         error(resp){
