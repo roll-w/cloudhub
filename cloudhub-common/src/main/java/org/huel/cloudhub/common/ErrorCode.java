@@ -133,7 +133,7 @@ public enum ErrorCode implements ErrorEnum {
     /**
      * 文件相关错误
      */
-    ERROR_FILE("A0705"),
+    ERROR_FILE("A0705", 500),
     /**
      * 运行错误
      */
