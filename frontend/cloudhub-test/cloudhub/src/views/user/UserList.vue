@@ -3,7 +3,7 @@
     <button type="button"  class="btn btn-light btn-primary" disabled >用户信息</button>
     <form @submit.prevent="getUserByName">
       <div class="input-group" style="width: 400px; margin-left: auto">
-        <input style="width: 200px" v-model="username" type="text" class="form-control" placeholder="Search By Username">
+        <input style="width: 200px" v-model="username" type="text" class="form-control" placeholder="Search By UserName">
         <button class="btn btn-dark" type="submit">查询</button>
       </div>
     </form>
@@ -100,7 +100,7 @@ export default {
         }
       });
     };
-    // TODO:存在跨域问题为解决
+
     const getUserByName = () =>{
       $.ajax({
         url: url.url_getUserByName,
@@ -123,7 +123,6 @@ export default {
         }
       });
     }
-
 
     return {
       username,

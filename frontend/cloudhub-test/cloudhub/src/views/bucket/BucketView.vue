@@ -34,7 +34,12 @@
         </div>
       </div>
     </div>
-
+    <form @submit.prevent="getBucketByName">
+      <div class="input-group" style="width: 400px; margin-left: auto">
+        <input style="width: 200px" v-model="bucketName" type="text" class="form-control" placeholder="Search By BucketName">
+        <button class="btn btn-dark" type="submit">查询</button>
+      </div>
+    </form>
     <hr>
     <table class="table table-hover" style="text-align: center">
       <thead class="table-light">
@@ -233,6 +238,28 @@ export default {
       });
     };
 
+    const getBucketByName = () =>{
+      $.ajax({
+        url: url.url_getBucketByName,
+        xhrFields: {
+          withCredentials: true
+        },
+        crossDomain:true,
+        type: "GET",
+        data: {
+         bucketName:bucketName.value,
+        },
+        success(resp) {
+          if (resp.errorCode === "00000"){
+            alert("Name: "+resp.data.name+" Email: "+resp.data.bucketVisibility)
+          }
+        },
+        error(resp){
+          console.log(resp.data);
+        }
+      });
+    }
+
 
 
     return {
@@ -240,6 +267,7 @@ export default {
       bucketName,
       visibility,
       checkFile,
+      getBucketByName,
       deleteBucket,
       addBucket,
       settingVisibility,

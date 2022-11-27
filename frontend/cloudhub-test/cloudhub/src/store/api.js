@@ -9,7 +9,8 @@ const url_logout = server + "/api/user/logout";
 
 //桶管理
 const url_addBucket = server + "/api/bucket/create";
-const url_getBucket =server + "/api/bucket/get/all";
+const url_getBucket = server + "/api/bucket/get/all";
+const url_getBucketByName = server + "/api/bucket/get"
 const url_deleteBucket =server + "/api/bucket/delete";
 const url_settingVisibility = server + "/api/bucket/setting/visibility";
 
@@ -25,6 +26,7 @@ export default {
     url_logout,
     url_addBucket,
     url_getBucket,
+    url_getBucketByName,
     url_deleteBucket,
     url_settingVisibility,
     url_getUser,
