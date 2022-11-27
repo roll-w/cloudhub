@@ -2,10 +2,10 @@
 const server = "http://localhost:7010";
 
 // 认证
-const url_login = server +"api/user/login";
-const url_register = server +"api/user/register";
-const url_getCurrent = server + "api/user/current"
-const url_logout = server + "api/user/logout";
+const url_login = server +"/api/user/login";
+const url_register = server +"/api/user/register";
+const url_getCurrent = server + "/api/user/current"
+const url_logout = server + "/api/user/logout";
 
 //桶管理
 const url_addBucket = server + "/api/bucket/create";
