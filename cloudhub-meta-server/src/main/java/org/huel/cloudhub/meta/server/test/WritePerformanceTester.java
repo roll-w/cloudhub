@@ -29,7 +29,7 @@ public class WritePerformanceTester {
     private final FileUploadService fileUploadService;
     private final FileDeleteService fileDeleteService;
     private final CountDownLatch latch;
-    private final List<FileDelete> tempFiles = new ArrayList<>();
+    private final List<Result> results = new ArrayList<>();
 
     // if file delete service not null, enable auto-cleaning.
     public WritePerformanceTester(PrintWriter reportWriter, int testCases, int dataSize,
@@ -44,18 +44,38 @@ public class WritePerformanceTester {
     }
 
     public void startWriteTest() throws IOException, InterruptedException {
-        printTableHeader();
         for (int i = 1; i <= testCases; i++) {
             recordNext(i);
         }
         latch.await();
+        printResult();
+    }
+
+    private void printResult() {
+        printHeader();
+        long netSum = 0, ioSum = 0, totalSum = 0;
+        for (Result result : results) {
+            totalSum += result.total();
+            netSum += result.tempToStore();
+            ioSum += result.storeToLast();
+            double netRate = dataSize / (result.tempToStore / 1000d);
+            double ioRate = dataSize / (result.storeToLast / 1000d);
+            printCase(result.caseIndex(), result.start(), result.calc(),
+                    result.total(), result.tempToStore(), result.storeToLast(), netRate, ioRate);
+
+        }
+        printResultSummary(totalSum, netSum, ioSum);
         printFooter();
 
-        for (FileDelete tempFile : tempFiles) {
-            tempFile.file.delete();
-            if (fileDeleteService != null) {
-                fileDeleteService.deleteFileCompletely(tempFile.fileId());
-            }
+        for (Result result : results) {
+            clean(result.file(), result.fileId());
+        }
+    }
+
+    private void clean(File file, String fileId) {
+        file.delete();
+        if (fileDeleteService != null) {
+            fileDeleteService.deleteFileCompletely(fileId);
         }
     }
 
@@ -107,15 +127,11 @@ public class WritePerformanceTester {
                 total = end - start;
                 tempToStore = store - temp;
                 storeToLast = end - store;
-                printCase(caseIndex, start, calc, total, tempToStore, storeToLast);
-                clean();
+                collectResult(caseIndex, start, end,
+                        calc, total, tempToStore,
+                        storeToLast, randomFile, fileId);
+                latch.countDown();
             }
-        }
-
-        private void clean() {
-            tempFiles.add(new FileDelete(randomFile, fileId));
-
-            latch.countDown();
         }
 
         @Override
@@ -124,28 +140,69 @@ public class WritePerformanceTester {
         }
     }
 
-    private record FileDelete(
-            File file,
-            String fileId
-    ) {
+    private void collectResult(int caseIndex, long start, long end,
+                               long calc, long total,
+                               long tempToStore, long storeToLast,
+                               File randomFile, String fileId) {
+        Result result = new Result(
+                caseIndex, start, end,
+                calc, total, tempToStore, storeToLast,
+                randomFile, fileId);
+        results.add(result);
     }
 
-    private void printTableHeader() {
+
+    private record Result(
+            int caseIndex,
+            long start, long end,
+            long calc, long total,
+            long tempToStore, long storeToLast,
+            File file, String fileId) {
+    }
+
+    private void printHeader() {
         LocalDateTime localDateTime = LocalDateTime.now();
         writer.println("Start generate write performance report at " + localDateTime + ".");
-        writer.println("Note: total time not contains the random file generate time.");
-        writer.printf("Cases=%d, DataSize=%d(MB)\n", testCases, dataSize);
-        writer.println("=======================");
-        writer.println("case    start(timestamp)  calc(ms)  total(ms)  temp->store(ms)  store->last(ms)");
+        writer.println("Note: - total time not contains the random file generate time.");
+        writer.println("      - temp->store: file-server initialization time.");
+        writer.println("      - store->last: file-server storage time.");
+        writer.println();
+        writer.printf("Result table, Cases=%d, DataSize=%d(MB)\n", testCases, dataSize);
+        writer.println("=========================================");
+        writer.println("case    start(timestamp)  calc(ms)  total(ms)  temp->store(ms)  store->last(ms)  net(MB/s)  storage(MB/s)");
     }
 
-    private void printCase(int caseIndex, long start, long calc, long total, long tempToStore, long storeToLast) {
-        writer.printf("%4d    %16d  %8d  %9d  %15d  %15d\n",
-                caseIndex, start, calc, total, tempToStore, storeToLast);
+    private void printCase(int caseIndex, long start, long calc, long total,
+                           long tempToStore, long storeToLast,
+                           double netRate, double ioRate) {
+        writer.printf("%4d    %16d  %8d  %9d  %15d  %15d  %9.2f  %13.2f\n",
+                caseIndex, start, calc, total, tempToStore, storeToLast, netRate, ioRate);
+    }
+
+    private void printResultSummary(long total, long netSum,
+                                    long ioSum) {
+        double avaTotal = total * 1.0 / testCases;
+        double avaNet = netSum * 1.0 / testCases;
+        double avaIo = ioSum * 1.0 / testCases;
+        double avaTotalRate = (testCases * dataSize) / (total / 1000d);
+        double avaNetRate = (testCases * dataSize) / (netSum / 1000d);
+        double avaIoRate = (testCases * dataSize) / (ioSum / 1000d);
+        writer.println("+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+");
+        writer.printf("                  Cases: %-7d\n", testCases);
+        writer.printf("          Data Size(MB): %-7d\n", dataSize);
+        writer.printf("              total(ms): %-7d\n", total);
+        writer.printf("      Average total(ms): %-7.2f\n", avaTotal);
+        writer.printf(" Average total rate(ms): %-7.2f\n", avaTotalRate);
+        writer.printf("            Sum net(ms): %-7d\n", netSum);
+        writer.printf("        Average net(ms): %-7.2f\n", avaNet);
+        writer.printf(" Average net rate(MB/s): %-7.2f\n", avaNetRate);
+        writer.printf("             Sum io(ms): %-7d\n", ioSum);
+        writer.printf("         Average io(ms): %-7.2f\n", avaIo);
+        writer.printf("  Average io rate(MB/s): %-7.2f\n", avaIoRate);
     }
 
     private void printFooter() {
-        writer.println("=======================");
+        writer.println("=========================================");
         writer.println("Write performance test report end. Generated by Cloudhub.");
     }
 }

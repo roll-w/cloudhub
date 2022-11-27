@@ -31,6 +31,7 @@ import org.huel.cloudhub.server.rpc.server.SerializedFileServer;
 import org.huel.cloudhub.util.math.Maths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -213,7 +214,8 @@ public class FileUploadService {
                 .build();
     }
 
-    private void updatesFileObjectLocation(String hash,
+    @Async
+    void updatesFileObjectLocation(String hash,
                                            String master,
                                            List<String> replicas) {
         saveReplicaLocation(hash, master, replicas);
@@ -353,11 +355,12 @@ public class FileUploadService {
                 stream.close();
             } catch (IOException ignored) {
             }
+
+            // success upload.
+            updatesFileObjectLocation(fileId, master.id(), replicaIds);
             if (callback != null) {
                 callback.onNextStatus(FileObjectUploadStatus.SYNCING);
             }
-            // success upload.
-            updatesFileObjectLocation(fileId, master.id(), replicaIds);
             logger.debug("Upload file complete.");
         }
 
