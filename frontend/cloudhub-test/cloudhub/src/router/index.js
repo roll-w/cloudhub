@@ -35,17 +35,26 @@ const routes = [
             {
                 path: '/bucket',
                 name: 'bucket_index',
-                component: ()=>import('@/views/bucket/BucketView')  // 桶管理
+                component: ()=>import('@/views/bucket/BucketView'),  // 桶管理
+                meta: {
+                    title : "桶管理 | Cloudhub 对象存储系统"
+                }
             },
             {
                 path: '/user',
                 name: 'userList_index',
-                component: () =>import('@/views/user/UserList') // 用户列表
+                component: () => import('@/views/user/UserList'), // 用户列表
+                meta: {
+                    title : "用户管理 | Cloudhub 对象存储系统"
+                }
             },
             {
                 path: '/metadataserver',
                 name: 'metadataserver_index',
-                component:  () =>import('@/views/server/MetadataServer') // 元数据服务器
+                component:  () =>import('@/views/server/MetadataServer'), // 元数据服务器
+                meta: {
+                    title : "文件集群信息 | Cloudhub 对象存储系统"
+                }
             },
             {
                 path: '/fileserver',

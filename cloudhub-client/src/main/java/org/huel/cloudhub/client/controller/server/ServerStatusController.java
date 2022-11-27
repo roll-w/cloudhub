@@ -125,6 +125,12 @@ public class ServerStatusController {
             return HttpResponseEntity.success(
                     serverInfoCheckService.getMetaServerNetRecords());
         }
+        List<NetworkUsageInfo> nets =
+                serverInfoCheckService.getFileNetRecords(serverId);
+        if (nets == null) {
+            return HttpResponseEntity.failure("Not found server",
+                    ErrorCode.ERROR_DATA_NOT_EXIST);
+        }
         return HttpResponseEntity.success(
                 serverInfoCheckService.getFileNetRecords(serverId));
     }
