@@ -60,7 +60,7 @@ export default {
           left: '2%',
         },
         legend: {
-          data: ['内存写入','磁盘读入', '磁盘写出'],
+          data: ['内存写入','磁盘读出', '磁盘写入'],
           textStyle: {
             align: 'right',
           },
