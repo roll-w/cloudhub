@@ -2,6 +2,7 @@
   <ContentBase>
 
     <!--// TODO: 创建modal  -->
+    <h3 class="mb-4">桶信息</h3>
     <div class="d-flex flex-xl-row flex-grow-1">
       <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#addBucket">
         创建桶
