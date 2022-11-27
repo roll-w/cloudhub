@@ -9,7 +9,7 @@
       <div class="d-flex flex-fill justify-content-end">
         <form @submit.prevent="getBucketByName">
           <div class="input-group">
-            <input v-model="bucketName" type="text" class="form-control"
+            <input v-model="name" type="text" class="form-control"
                    placeholder="搜索桶......">
             <button class="btn btn-outline-primary" type="submit">查询</button>
           </div>
@@ -66,14 +66,14 @@
                 <label for="name" class="form-label">名称:</label>
                 <input type="text" v-model="bucketName" class="form-control" id="name" placeholder="Name">
               </div>
-              <div class="mb-3">
-                <label for="name" class="form-label">策略:</label>
-                <input type="text" v-model="visibility" class="form-control" id="name" placeholder="Visibility">
+              <div class="pb-3 form-floating">
+              <select class="form-select" id="bucket-vis-select" v-model="visibility">
+                <option value="PRIVATE">私有读写</option>
+                <option value="PUBLIC_READ">公共读</option>
+                <option value="PUBLIC_READ_WRITE">公共读写</option>
+              </select>
+              <label for="name" class="form-label">设置新的桶策略：</label>
               </div>
-              <figure class="text-center">
-                <!--                后期修改样式-->
-                PRIVATE or PUBLIC_READ or PUBLIC_READ_WRITE
-              </figure>
               <div class="modal-footer">
                 <button style="margin-right: 5px" type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消
                 </button>
@@ -96,6 +96,7 @@
 
             <form @submit.prevent="settingVisibility">
               <div class="pb-3 form-floating">
+                <input type="text" v-model="bucketName" hidden>
                 <select class="form-select" id="bucket-vis-select" v-model="visibility">
                   <option value="PRIVATE">私有读写</option>
                   <option value="PUBLIC_READ">公共读</option>
@@ -137,6 +138,7 @@ export default {
     const buckets = ref([]);
     const bucketName = ref([]);
     const visibility = ref([]);
+    const name = ref([]);
     const router = useRouter()
     const bucketVisibilityModel = ref(null)
 
@@ -144,11 +146,16 @@ export default {
       bucketVisibilityModel.value.addEventListener("show.bs.modal", (event) => {
         const button = event.relatedTarget
         let readBucketName = button.getAttribute("data-cfs-bucket-name")
-        console.log("We got bucket name=" + readBucketName)
         bucketName.value = readBucketName
       })
-    })
-    const checkFile = () => {
+    });
+
+    // const getRadioVal =(event) => {
+    //   let radioVal = event.target.value;
+    //   val.value = radioVal
+    // }
+
+      const checkFile = () => {
       router.push('file')
       //获取指定桶的文件信息
       $.ajax({
@@ -173,12 +180,10 @@ export default {
         },
         crossDomain: true,
         success(resp) {
-          console.log(resp.data)
           buckets.value = resp.data;
-          console.log("Successfully obtained the bucket list！")
         },
-        error() {
-          console.log("Bucket list acquisition failed！！！")
+        error(resp) {
+          console.log(resp)
         }
       });
     };
@@ -226,6 +231,8 @@ export default {
         success(resp) {
           if (resp.errorCode === "00000") {
             Modal.getInstance("#addBucket").hide();
+            bucketName.value=null;
+            visibility.value=null;
             getBucket()
           }
         },
@@ -269,10 +276,11 @@ export default {
         crossDomain: true,
         type: "GET",
         data: {
-          bucketName: bucketName.value,
+          bucketName: name.value,
         },
         success(resp) {
           if (resp.errorCode === "00000") {
+            name.value =null;
             alert("Name: " + resp.data.name + " Email: " + resp.data.bucketVisibility)
           }
         },
@@ -285,6 +293,7 @@ export default {
 
     return {
       buckets,
+      name,
       bucketName,
       visibility,
       bucketVisibilityModel,
