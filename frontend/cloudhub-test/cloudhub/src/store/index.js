@@ -1,6 +1,6 @@
 import { createStore } from 'vuex'
 import ModelUser from './user'
-import ModelMeta from './meta'
+
 export default createStore({
   state: {
   },
@@ -12,6 +12,5 @@ export default createStore({
   },
   modules: {
     user:ModelUser,
-    meta:ModelMeta,
   }
 })

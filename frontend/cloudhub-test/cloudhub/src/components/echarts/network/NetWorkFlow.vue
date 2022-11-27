@@ -7,7 +7,9 @@
 
 <script>
 import {ref, onMounted, getCurrentInstance} from 'vue'
-import {useStore} from "vuex";
+import $ from "jquery";
+import url from "@/store/api";
+// import {useStore} from "vuex";
 
 export default {
   name: "netFlowAndSend",
@@ -141,13 +143,38 @@ export default {
         });
       }, 1000); // 定时器
     }
-    //TODO:example
-    //假如要用到meta里的数据
-    // const store =useStore();
-    // store.state.meta.net
 
+// const store = useStore();
+  const net = ref([]);
+const getNet = () =>{
+    $.ajax({
+      url:url.url_metaServer,
+      type:"GET",
+      data:{
+        serverId:"meta"
+      },
+      xhrFields: {
+        withCredentials: true
+      },
+      crossDomain: true,
+      success(resp){
+        if (resp.errorCode === "00000"){
+          net.value = resp.data.net
+          console.log(resp.data.net);
+        }
+      },
+      error(){
+        console.log("获取失败")
+      }
+    })
+};
+
+  getNet();
+
+  console.log(net.value.recv)
     return {
       myRef,
+      net,
     }
   }
 }
