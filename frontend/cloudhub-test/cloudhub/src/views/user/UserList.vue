@@ -56,7 +56,7 @@
 
 <script>
 import ContentBase from "@/components/common/ContentBase";
-import { Modal } from 'bootstrap/dist/js/bootstrap'
+// import { Modal } from 'bootstrap/dist/js/bootstrap'
 import {ref} from "vue";
 import $ from 'jquery'
 import url from "@/store/api";
