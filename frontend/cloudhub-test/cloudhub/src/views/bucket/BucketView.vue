@@ -95,9 +95,8 @@
           <div class="modal-body">
 
             <form @submit.prevent="settingVisibility">
-              <input ref="visBucketName" type="text" v-model="bucketName" hidden id="name" placeholder="Name">
               <div class="pb-3 form-floating">
-                <select class="form-select" id="bucket-vis-select">
+                <select class="form-select" id="bucket-vis-select" v-model="visibility">
                   <option value="PRIVATE">私有读写</option>
                   <option value="PUBLIC_READ">公共读</option>
                   <option value="PUBLIC_READ_WRITE">公共读写</option>
@@ -135,17 +134,18 @@ export default {
 
   setup() {
     //接口
-    let buckets = ref([]);
-    let bucketName = ref([]);
-    let visibility = ref([]);
+    const buckets = ref([]);
+    const bucketName = ref([]);
+    const visibility = ref([]);
     const router = useRouter()
     const bucketVisibilityModel = ref(null)
 
     onMounted(() => {
       bucketVisibilityModel.value.addEventListener("show.bs.modal", (event) => {
         const button = event.relatedTarget
-        let bucketName = button.getAttribute("data-cfs-bucket-name")
-        console.log("We got bucket name=" + bucketName)
+        let readBucketName = button.getAttribute("data-cfs-bucket-name")
+        console.log("We got bucket name=" + readBucketName)
+        bucketName.value = readBucketName
       })
     })
     const checkFile = () => {
