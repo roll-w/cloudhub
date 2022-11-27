@@ -28,9 +28,9 @@ const routes = [
                 component: () => import('@/views/user/CloudViewManager')
             },
             {
-                path: '/file',
-                name: 'file_index',
-                component: () =>import('@/views/file/FileView') // 文件列表
+                path: '/bucket/:bucket/objects',
+                name: 'object_list',
+                component: () =>import('@/views/file/ObjectsView') // 文件列表
             },
             {
                 path: '/bucket',

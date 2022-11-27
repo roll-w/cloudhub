@@ -64,6 +64,8 @@ export default {
   setup() {
     // 模拟windows资源管理器
     let file = ([]);
+
+
     let files = ref([
       {
         fileName: "word",
@@ -93,7 +95,8 @@ export default {
     ])
 
     const route = useRouter()
-
+    let bucketName = route.currentRoute.value.params.bucket
+    console.log("Got bucketName=" + bucketName)
     const back = () => {
       route.push('bucket')
     }

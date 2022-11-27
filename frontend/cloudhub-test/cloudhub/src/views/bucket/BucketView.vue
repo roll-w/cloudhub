@@ -151,32 +151,13 @@ export default {
       })
     });
 
-    // const getRadioVal =(event) => {
-    //   let radioVal = event.target.value;
-    //   val.value = radioVal
-    // }
-
       const checkFile = (bucket) => {
-      router.push('file')
-      //获取指定桶的文件信息
-      $.ajax({
-        url: url.url_getObjectByBucketName,
-        type: "GET",
-        xhrFields: {
-          withCredentials: true // 携带跨域cookie  //单个设置
-        },
-        crossDomain: true,
-        data:{
-          bucketName:bucket.name,
-        },
-        success(resp) {
-          console.log(resp)
-          //  file = resp
-        },
-        error(resp) {
-          console.log(resp)
+      router.push({
+        name:'object_list',
+        params: {
+          bucket: bucket.name
         }
-      });
+      })
     };
 
     //TODO:获得桶列表
