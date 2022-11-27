@@ -7,8 +7,7 @@
 
 <script>
 import {ref, onMounted, getCurrentInstance} from 'vue'
-import $ from 'jquery';
-import url from '@/store/api';
+import {useStore} from "vuex";
 
 export default {
   name: "netFlowAndSend",
@@ -142,39 +141,10 @@ export default {
         });
       }, 1000); // 定时器
     }
-
-    //url.url_metaServer该url获取的信息是全部的cpu，jvm等建议封装一个公共js，或者在父组件传递。
-
-    const netMessage = ref([]);
-
-    const getNet = () =>{
-      $.ajax({
-        url:url.url_metaServer,
-        type:"GET",
-        data:{
-          serverId:"meta"
-        },
-        xhrFields: {
-          withCredentials: true // 携带跨域cookie  //单个设置
-        },
-        crossDomain: true,
-        success(resp){
-          //由于获取的类型过多，只把net的数据传给netMessage
-          if (resp.errorCode === "00000"){
-            netMessage.value = resp.data.net;
-            console.log("获取成功")
-            console.log(resp.data.net);
-          }
-        },
-        error(){
-          console.log("获取失败")
-        }
-      })
-    };
-    //执行获取数据
-    getNet()
-
-
+    //TODO:example
+    //假如要用到meta里的数据
+    // const store =useStore();
+    // store.state.meta.net
 
     return {
       myRef,

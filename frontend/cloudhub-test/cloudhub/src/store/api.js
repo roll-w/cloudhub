@@ -20,6 +20,8 @@ const url_deleteUserById = server + "/api/admin/user/delete"
 const url_getUserByName = server + "/api/admin/user/get";
 
 
+//文件
+const url_getObjectByBucketName = server + "/api/object/get";
 
 
 //元数据服务器信息serverId=meta
@@ -40,6 +42,7 @@ export default {
     url_getUser,
     url_deleteUserById,
     url_getUserByName,
+    url_getObjectByBucketName,
     url_metaServer,
 }
 

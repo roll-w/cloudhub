@@ -34,7 +34,7 @@
         <td>{{ bucket.bucketVisibility }}</td>
         <td>
           <div class="btn-group" role="group">
-            <button type="button" class="btn btn-link" @click="checkFile">查看</button>
+            <button type="button" class="btn btn-link" @click="checkFile(bucket)">查看</button>
           </div>
         </td>
         <td>
@@ -139,7 +139,7 @@ export default {
     const bucketName = ref([]);
     const visibility = ref([]);
     const name = ref([]);
-    const router = useRouter()
+    const router = useRouter();
     const bucketVisibilityModel = ref(null)
 
     onMounted(() => {
@@ -155,13 +155,21 @@ export default {
     //   val.value = radioVal
     // }
 
-      const checkFile = () => {
+      const checkFile = (bucket) => {
       router.push('file')
       //获取指定桶的文件信息
       $.ajax({
-        url: '',
-        type: "",
-        success() {
+        url: url.url_getObjectByBucketName,
+        type: "GET",
+        xhrFields: {
+          withCredentials: true // 携带跨域cookie  //单个设置
+        },
+        crossDomain: true,
+        data:{
+          bucketName:bucket.name,
+        },
+        success(resp) {
+          console.log(resp)
           //  file = resp
         },
         error(resp) {
