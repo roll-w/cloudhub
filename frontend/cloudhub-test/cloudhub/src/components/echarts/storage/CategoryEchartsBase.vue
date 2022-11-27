@@ -6,14 +6,21 @@
 </template>
 
 <script>
-import {ref, onMounted, getCurrentInstance} from 'vue'
+import {ref, onMounted, getCurrentInstance, toRefs} from 'vue'
 
 export default {
   // eslint-disable-next-line vue/multi-word-component-names
-  name: "Memory",
-  setup() {
+  name: "CategoryEchartsBase",
+  props:{
+    Info:{
+
+    }
+  },
+  setup(props) {
     const {proxy} = getCurrentInstance() // 获取全局配置项
     const myRef = ref(null) // 获取dom实例
+
+    const {Info} = toRefs(props)
 
     onMounted(() => {
       renderChart() // 生命周期挂载函数渲染图表
@@ -24,8 +31,8 @@ export default {
       const myChart = proxy.$echarts.init(myRef.value)
 
       let datas = [{
-        "value": 60,  // 内存使用率(单位: %)
-        "name": "内存使用率"
+        "value": (Info.value.ratio * 100).toFixed(2),  // 内存使用率(单位: %)
+        "name": Info.value.title
       }]
       // var colorList=['#C467FF','#2CAF70 ','#FFA23F','#625AFF','#4B8BFF'];
       let maxArr = (new Array(datas.length)).fill(100);

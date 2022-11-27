@@ -1,18 +1,25 @@
 <template>
   <!-- 图表的大小(width与height)在调用该组件时定义 -->
-  <div style="width: 200px;height: 200px" ref="myRef" data-bs-toggle="tooltip" data-bs-placement="top"
+  <div ref="myRef" style="width: 200px;height: 200px" data-bs-toggle="tooltip" data-bs-placement="top"
        title="">
   </div>
 </template>
 
 <script>
-import {ref, onMounted, getCurrentInstance} from 'vue'
+import {ref, onMounted, getCurrentInstance, toRefs} from 'vue'
 
 export default {
-  name: "SysUsed",
-  setup() {
+  name: "PieEcharts",
+  props:{
+    Info:{
+
+    }
+  },
+  setup(props) {
     const {proxy} = getCurrentInstance() // 获取全局配置项
     const myRef = ref(null) // 获取dom实例
+
+    const {Info} = toRefs(props)
 
     onMounted(() => {
       renderChart() // 生命周期挂载函数渲染图表
@@ -22,8 +29,8 @@ export default {
       // 基于准备好的dom，初始化echarts实例
       const myChart = proxy.$echarts.init(myRef.value)
 
-      // 系统使用率,单位: %
-      let ratio = 3.16
+      // 空闲率,单位: %
+      let ratio = Info.value.ratio
 
       // 指定图表的配置项和数据
       myChart.setOption({
@@ -36,7 +43,7 @@ export default {
             color: '#3a99ef',
             fontSize: '20'
           },
-          subtext: '系统使用率',  // 饼状图名称
+          subtext: Info.value.title,  // 饼状图名称
           subtextStyle: {
             fontWeight: 'normal',
             color: '#000',
@@ -66,7 +73,7 @@ export default {
           },
           hoverAnimation: false,
           data: [{
-            value: ratio*0.01,
+            value: ratio * 0.01,
             name: '占比',
             itemStyle: {
               normal: {
@@ -89,7 +96,7 @@ export default {
             }
           }, {
             name: '剩余',
-            value: 1-ratio*0.01,
+            value: 1 - ratio * 0.01,
             itemStyle: {
               normal: {
                 color: '#d8ebfc'

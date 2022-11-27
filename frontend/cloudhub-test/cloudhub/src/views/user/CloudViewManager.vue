@@ -160,9 +160,7 @@
       </div>
     </div>
   </ContentBase>
-  <br>
-  <br>
-  <br>
+
 </template>
 
 <script>
