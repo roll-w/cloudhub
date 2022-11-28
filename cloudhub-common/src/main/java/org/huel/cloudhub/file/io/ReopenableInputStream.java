@@ -100,7 +100,10 @@ public class ReopenableInputStream extends FilterInputStream {
 
     @Override
     public void close() throws IOException {
-        super.close();
+        try {
+            in.close();
+        } catch (Exception ignored) {
+        }
         file.delete();
         hashCodeMap.clear();
     }
