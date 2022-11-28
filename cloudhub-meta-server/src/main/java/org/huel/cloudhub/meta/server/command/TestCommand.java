@@ -3,6 +3,7 @@ package org.huel.cloudhub.meta.server.command;
 import org.huel.cloudhub.meta.server.service.file.FileDeleteService;
 import org.huel.cloudhub.meta.server.service.file.FileDownloadService;
 import org.huel.cloudhub.meta.server.service.file.FileUploadService;
+import org.huel.cloudhub.meta.server.test.RandomReadPerformanceTester;
 import org.huel.cloudhub.meta.server.test.ReadPerformanceTester;
 import org.huel.cloudhub.meta.server.test.WritePerformanceTester;
 import org.springframework.shell.standard.AbstractShellComponent;
@@ -60,6 +61,20 @@ public class TestCommand extends AbstractShellComponent {
                 fileDownloadService, fileUploadService,
                 fileDeleteService);
         tester.startReadTest();
+        writer.close();
+    }
+
+    @ShellMethod(key = "test random read", value = "read performance test.")
+    public void testRandomRead(int caseCount, int dimension, int dataSize) throws IOException {
+        LocalDateTime time = LocalDateTime.now();
+        File report = new File("cloudhub-test-random-read-report_" + time.format(FORMATTER) + ".clb");
+        report.createNewFile();
+        PrintWriter writer = new PrintWriter(new FileOutputStream(report, false));
+        RandomReadPerformanceTester tester = new RandomReadPerformanceTester(
+                writer, caseCount, dimension, dataSize,
+                fileDownloadService, fileUploadService,
+                fileDeleteService);
+        tester.startRandomReadTest();
         writer.close();
     }
 }
