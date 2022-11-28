@@ -14,7 +14,10 @@ public record ObjectInfoVo(
         String bucketName,
 
         @DataColumn(name = "object_create_time")
-        long createTime) {
+        long createTime,
+
+        @DataColumn(name = "object_size")
+        long objectSize) {
 
     public static ObjectInfoVo from(FileObjectStorage storage) {
         if (storage == null) {
@@ -23,7 +26,8 @@ public record ObjectInfoVo(
         return new ObjectInfoVo(
                 storage.getObjectName(),
                 storage.getBucketName(),
-                storage.getCreateTime());
+                storage.getCreateTime(),
+                storage.getObjectSize());
     }
 
     public static ObjectInfoVo from(ObjectInfoDto objectInfoDto) {
@@ -33,6 +37,7 @@ public record ObjectInfoVo(
         return new ObjectInfoVo(
                 objectInfoDto.objectName(),
                 objectInfoDto.bucketName(),
-                objectInfoDto.createTime());
+                objectInfoDto.createTime(),
+                objectInfoDto.objectSize());
     }
 }

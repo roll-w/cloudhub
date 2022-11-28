@@ -145,12 +145,17 @@ public class FileDownloadService {
             if (value.getDownloadMessageCase() ==
                     DownloadBlockResponse.DownloadMessageCase.CHECK_MESSAGE) {
                 saveCheckMessage(value.getCheckMessage());
+                if (callback != null ) {
+                    callback.onSaveCheckMessage(value.getCheckMessage());
+                }
                 return;
             }
             if (receiveCount.get() > responseCount) {
                 FileDownloadingException e = new FileDownloadingException(FileDownloadingException.Type.DATA_LOSS,
                         "Illegal receive count.");
-                callback.onDownloadError(e);
+                if (callback != null ) {
+                    callback.onDownloadError(e);
+                }
                 throw e;
             }
             DownloadBlocksInfo downloadBlocksInfo = value.getDownloadBlocks();
@@ -183,7 +188,9 @@ public class FileDownloadService {
         public void onCompleted() {
             // TODO: check file.
             logger.debug("download file complete. all request count: {}", receiveCount.get() - 1);
-            callback.onDownloadComplete();
+            if (callback != null) {
+                callback.onDownloadComplete();
+            }
             try {
                 outputStream.close();
             } catch (IOException e) {
@@ -192,7 +199,9 @@ public class FileDownloadService {
         }
 
         private void onFileNotExists() {
-
+            if (callback != null) {
+                callback.onDownloadError(null);
+            }
             // TODO: file not exists, choose other server
         }
 
