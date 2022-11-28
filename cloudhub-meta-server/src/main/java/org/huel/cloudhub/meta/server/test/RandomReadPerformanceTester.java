@@ -23,81 +23,88 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
 /**
- * 读取性能测试
+ * 随机文件读取性能测试
  *
  * @author RollW
  */
 @SuppressWarnings("all")
-public class ReadPerformanceTester {
+public class RandomReadPerformanceTester {
     private final PrintWriter writer;
     private final int testCases;
     private final int dataSize;
+    private final int dimensions;
     private final FileDownloadService fileDownloadService;
     private final FileUploadService fileUploadService;
     private final FileDeleteService fileDeleteService;
-    private final File tempFile;
-    private String fileId;
     private final LocalDateTime startTime = LocalDateTime.now();
     private final List<Result> results = new ArrayList<>();
 
-    // if file delete service not null, enable auto-cleaning.
-    public ReadPerformanceTester(PrintWriter reportWriter, int testCases, int dataSize,
-                                 FileDownloadService fileDownloadService,
-                                 FileUploadService fileUploadService,
-                                 @Nullable FileDeleteService fileDeleteService) {
+    public RandomReadPerformanceTester(PrintWriter reportWriter, int testCases,
+                                       int dimensions, int dataSize,
+                                       FileDownloadService fileDownloadService,
+                                       FileUploadService fileUploadService,
+                                       @Nullable FileDeleteService fileDeleteService) {
         this.testCases = testCases;
         this.dataSize = dataSize;
+        this.dimensions = dimensions;
         this.fileDownloadService = fileDownloadService;
         this.fileUploadService = fileUploadService;
         this.fileDeleteService = fileDeleteService;
         this.writer = reportWriter;
-        this.tempFile = new File(RandomStringUtils.randomAlphanumeric(30));
     }
 
-    private void initialFile() throws IOException {
-        tempFile.createNewFile();
-        RandomFileGenerator generator =
-                new RandomFileGenerator(tempFile, dataSize, 0);
-        generator.generate();
-        CountDownLatch latch = new CountDownLatch(1);
-        InputStream inputStream = new FileInputStream(tempFile);
-        fileUploadService.uploadFile(inputStream, new FileUploadStatusDataCallback() {
-            @Override
-            public void onNextStatus(FileObjectUploadStatus status) {
-                if (!status.isLastStatus()) {
-                    return;
+    private List<String> generateFiles() throws IOException {
+        List<String> fildIds = new ArrayList<>();
+        for (int i = 0; i < testCases; i++) {
+            File file = new File(RandomStringUtils.randomAlphanumeric(30));
+            file.createNewFile();
+            RandomFileGenerator generator = new
+                    RandomFileGenerator(file, dataSize, 0);
+            generator.generate();
+            InputStream stream = new FileInputStream(file);
+            CountDownLatch latch = new CountDownLatch(0);
+            fileUploadService.uploadFile(stream, new FileUploadStatusDataCallback() {
+                @Override
+                public void onNextStatus(FileObjectUploadStatus status) {
+                    if (status.isLastStatus()) {
+                        latch.countDown();
+                    }
                 }
-                latch.countDown();
-            }
 
-            @Override
-            public void onCalc(String fileId) {
-                ReadPerformanceTester.this.fileId = fileId;
+                @Override
+                public void onCalc(String fileId) {
+                    fildIds.add(fileId);
+                }
+            });
+            IOUtils.closeQuietly(stream);
+            file.delete();
+        }
+        return fildIds;
+    }
+
+    public void startRandomReadTest() throws IOException {
+        List<String> files = generateFiles();
+        for (int dimen = 1; dimen <= dimensions; dimen++) {
+            int index = 1;
+            for (String fileId : files) {
+                recordNext(index, dimen, fileId);
+                index++;
             }
-        });
-        try {
-            latch.await();
-            IOUtils.closeQuietly(inputStream);
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            throw new IOException(e);
+        }
+        printResult();
+        if (fileDeleteService == null) {
+            return;
+        }
+        for (String file : files) {
+            fileDeleteService.deleteFileCompletely(file);
         }
     }
 
-    public void startReadTest() throws IOException {
-        initialFile();
-        for (int i = 1; i <= testCases; i++) {
-            recordNext(i);
-        }
-        printResults();
-        clean();
-    }
-
-    private void recordNext(int index) {
+    private void recordNext(int index, int dimension, String fileId) {
         CountDownLatch latch = new CountDownLatch(1);
         long start = System.currentTimeMillis();
         fileDownloadService.downloadFile(NullOutputStream.INSTANCE, fileId,
-                new Callback(latch, index, start));
+                new Callback(latch, index, dimension, start, fileId));
         try {
             latch.await();
         } catch (InterruptedException e) {
@@ -107,26 +114,29 @@ public class ReadPerformanceTester {
 
     private class Callback implements FileDownloadCallback {
         private final CountDownLatch latch;
-        private final int index;
+        private final int index, dimension;
         private final long start;
         private long end, find;
+        private final String fileId;
 
-        private Callback(CountDownLatch latch, int index, long start) {
+        private Callback(CountDownLatch latch, int index, int dimension, long start, String fileId) {
             this.latch = latch;
             this.index = index;
+            this.dimension = dimension;
             this.start = start;
+            this.fileId = fileId;
         }
 
         @Override
         public void onDownloadComplete() {
             end = System.currentTimeMillis();
-            results.add(new Result(index, start, end, find, false));
+            results.add(new Result(index, dimension, start, end, find, false, fileId));
             latch.countDown();
         }
 
         @Override
         public void onDownloadError(FileDownloadingException e) {
-            results.add(new Result(index, start, end, find, true));
+            results.add(new Result(index, dimension, start, end, find, true, fileId));
             latch.countDown();
         }
 
@@ -136,14 +146,8 @@ public class ReadPerformanceTester {
         }
     }
 
-    private void clean() {
-        tempFile.delete();
-        if (fileDeleteService != null) {
-            fileDeleteService.deleteFileCompletely(fileId);
-        }
-    }
-
-    private void printResults() {
+    @SuppressWarnings("all")
+    private void printResult() {
         printHeader();
         long netSum = 0, totalSum = 0, findSum = 0;
         for (Result result : results) {
@@ -156,38 +160,41 @@ public class ReadPerformanceTester {
 
             double downloadRate = dataSize / (downloadTime / 1000d);
             double totalRate = dataSize / (totalTime / 1000d);
-            printCase(result.index(), result.start(), findTime, downloadTime, totalTime,
-                    downloadRate, totalRate, result.error());
+            printCase(result.dimension(), result.index(), result.start(), findTime, downloadTime, totalTime,
+                    downloadRate, totalRate, result.error(), result.fileId());
         }
         printSummary(totalSum, netSum, findSum);
         printFooter();
     }
 
     private void printHeader() {
-        writer.println("Start generate read performance report at " + startTime + ".");
+        writer.println("Start generate random read performance report at " + startTime + ".");
         writer.println();
-        writer.printf("Result table. Cases=%d, DataSize=%d(MB)\n", testCases, dataSize);
+        writer.printf("Result table. Cases=%d, Dimension=%d, DataSize=%d(MB)\n",
+                testCases, dimensions, dataSize);
         writer.println("=========================================");
-        writer.println("case  start(timestamp)  find(ms)  download(ms)  total(ms)  download(MB/s)  total(MB/s)  error");
+        writer.println("dimen  case  start(timestamp)  find(ms)  download(ms)  total(ms)  download(MB/s)  total(MB/s)  error  fileId(cut)");
         writer.flush();
     }
 
-    private void printCase(int index, long start, long find, long download, long total,
-                           double downloadRate, double totalRate, boolean error) {
-        writer.printf("%4d  %16d  %8d  %12d  %9d  %14.2f  %11.2f  %5b\n",
-                index, start, find, download, total, downloadRate, totalRate, error);
+    private void printCase(int dimension, int index, long start, long find, long download, long total,
+                           double downloadRate, double totalRate, boolean error, String fileId) {
+        writer.printf("%-5d  %4d  %16d  %8d  %12d  %9d  %14.2f  %11.2f  %5b  %-16s\n",
+                dimension, index, start, find, download, total,
+                downloadRate, totalRate, error, fileId);
         writer.flush();
     }
 
     private void printSummary(long total, long totalDownload, long totalFind) {
-        double avaTotal = (total * 1.d) / testCases;
-        double avaNet = (totalDownload * 1.d) / testCases;
-        double avaFind = (totalFind * 1.d) / testCases;
-        double avaDownloadRate = (testCases * dataSize) / (totalDownload / 1000d);
-        double avaTotalRate = (testCases * dataSize) / (total / 1000d);
+        double avaTotal = (total * 1.d) / (testCases * dimensions);
+        double avaNet = (totalDownload * 1.d) / (testCases * dimensions);
+        double avaFind = (totalFind * 1.d) / (testCases * dimensions);
+        double avaDownloadRate = (testCases * dimensions * dataSize) / (totalDownload / 1000d);
+        double avaTotalRate = (testCases * dimensions * dataSize) / (total / 1000d);
         writer.println("+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+");
         writer.println("Result Summary:");
         writer.printf("                       Cases: %-7d\n", testCases);
+        writer.printf("                  Dimensions: %-7d\n", dimensions);
         writer.printf("               Data Size(MB): %-7d\n", dataSize);
         writer.printf("                   total(ms): %-7d\n", total);
         writer.printf("           Average total(ms): %-7.2f\n", avaTotal);
@@ -204,16 +211,20 @@ public class ReadPerformanceTester {
         writer.println("=========================================");
         writer.println("Start: " + startTime);
         writer.println("  End: " + endTime);
-        writer.println("Read performance test report end. Generated by Cloudhub.");
+        writer.println("Random read performance test report end. Generated by Cloudhub.");
         writer.flush();
     }
+
     private record Result(
             int index,
+            int dimension,
             long start,
             long end,
             long find,
-            boolean error
+            boolean error,
+            String fileId
     ) {
     }
+
 
 }
