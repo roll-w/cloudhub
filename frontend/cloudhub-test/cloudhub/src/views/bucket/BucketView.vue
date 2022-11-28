@@ -68,12 +68,12 @@
                 <input type="text" v-model="bucketName" class="form-control" id="name" placeholder="Name">
               </div>
               <div class="pb-3 form-floating">
-              <select class="form-select" id="bucket-vis-select" v-model="visibility">
-                <option value="PRIVATE">私有读写</option>
-                <option value="PUBLIC_READ">公共读</option>
-                <option value="PUBLIC_READ_WRITE">公共读写</option>
-              </select>
-              <label for="name" class="form-label">设置新的桶策略：</label>
+                <select class="form-select" id="bucket-vis-select" v-model="visibility">
+                  <option value="PRIVATE">私有读写</option>
+                  <option value="PUBLIC_READ">公共读</option>
+                  <option value="PUBLIC_READ_WRITE">公共读写</option>
+                </select>
+                <label for="name" class="form-label">设置新的桶策略：</label>
               </div>
               <div class="modal-footer">
                 <button style="margin-right: 5px" type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消
@@ -151,9 +151,9 @@ export default {
       })
     });
 
-      const checkFile = (bucket) => {
+    const checkFile = (bucket) => {
       router.push({
-        name:'object_list',
+        name: 'object_list',
         params: {
           bucket: bucket.name
         }
@@ -221,8 +221,8 @@ export default {
         success(resp) {
           if (resp.errorCode === "00000") {
             Modal.getInstance("#addBucket").hide();
-            bucketName.value=null;
-            visibility.value=null;
+            bucketName.value = null;
+            visibility.value = null;
             getBucket()
           }
         },
@@ -270,7 +270,7 @@ export default {
         },
         success(resp) {
           if (resp.errorCode === "00000") {
-            name.value =null;
+            name.value = null;
             alert("Name: " + resp.data.name + " Email: " + resp.data.bucketVisibility)
           }
         },

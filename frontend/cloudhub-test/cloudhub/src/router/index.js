@@ -30,7 +30,10 @@ const routes = [
             {
                 path: '/bucket/:bucket/objects',
                 name: 'object_list',
-                component: () =>import('@/views/file/ObjectsView') // 文件列表
+                component: () =>import('@/views/file/ObjectsView'), // 文件列表
+                meta: {
+                    title: "对象列表 | Cloudhub 对象存储系统"
+                }
             },
             {
                 path: '/bucket',
