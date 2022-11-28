@@ -53,7 +53,7 @@ public class FileDeleteService {
             return;
             // If master dead, we cannot to know how to delete it.
         }
-        logger.debug("Master active, delete...");
+        logger.debug("Master active, delete fileId={}", fileId);
         NodeServer server = nodeAllocator.findNodeServer(master);
         BlockDeleteServiceGrpc.BlockDeleteServiceStub stub =
                 requireStub(server);
