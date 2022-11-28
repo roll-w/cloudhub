@@ -3,8 +3,8 @@
     <button type="button"  class="btn btn-light btn-primary" disabled >用户信息</button>
     <form @submit.prevent="getUserByName">
       <div class="input-group" style="width: 400px; margin-left: auto">
-        <input style="width: 200px" v-model="username" type="text" class="form-control" placeholder="Search By UserName">
-        <button class="btn btn-dark" type="submit">查询</button>
+        <input style="width: 200px" v-model="username" type="text" class="form-control" placeholder="搜索用户...">
+        <button class="btn btn-outline-primary" type="submit">查询</button>
       </div>
     </form>
 

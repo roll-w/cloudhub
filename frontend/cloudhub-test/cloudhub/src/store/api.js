@@ -22,7 +22,7 @@ const url_getUserByName = server + "/api/admin/user/get";
 
 //文件
 const url_getObjectByBucketName = server + "/api/object/get";
-
+const url_uploadObject = server + "/api/object/v1"
 
 //元数据服务器信息serverId=meta
 const url_metaServer = server + "/api/admin/status/server/get"
@@ -43,6 +43,7 @@ export default {
     url_deleteUserById,
     url_getUserByName,
     url_getObjectByBucketName,
+    url_uploadObject,
     url_metaServer,
 }
 
