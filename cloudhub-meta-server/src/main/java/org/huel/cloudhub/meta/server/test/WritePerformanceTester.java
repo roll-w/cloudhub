@@ -6,6 +6,8 @@ import org.huel.cloudhub.meta.fs.FileObjectUploadStatus;
 import org.huel.cloudhub.meta.server.service.file.FileDeleteService;
 import org.huel.cloudhub.meta.server.service.file.FileUploadService;
 import org.huel.cloudhub.meta.server.service.file.FileUploadStatusDataCallback;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -23,6 +25,8 @@ import java.util.concurrent.CountDownLatch;
  * @author RollW
  */
 public class WritePerformanceTester {
+    private final Logger logger = LoggerFactory.getLogger(WritePerformanceTester.class);
+
     private final PrintWriter writer;
     private final int testCases;
     private final int dataSize;
@@ -45,6 +49,7 @@ public class WritePerformanceTester {
     }
 
     public void startWriteTest() throws IOException {
+        logger.info("Start write test with cases={};dataSize={}", testCases, dataSize);
         for (int i = 1; i <= testCases; i++) {
             recordNext(i);
         }
@@ -72,6 +77,7 @@ public class WritePerformanceTester {
         for (FileDelete delete : fileDeletes) {
             clean(delete.file, delete.fileId());
         }
+        logger.info("Write test end.");
     }
 
     private void clean(File file, String fileId) {
@@ -101,6 +107,11 @@ public class WritePerformanceTester {
             Thread.sleep(1000);
         } catch (InterruptedException e) {
             throw new IOException(e);
+        }
+        try {
+            stream.close();
+        } catch (IOException ignored) {
+
         }
         if (fileDelete != null) {
             clean(fileDelete.file(), fileDelete.fileId());
