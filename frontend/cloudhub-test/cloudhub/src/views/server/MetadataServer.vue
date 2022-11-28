@@ -12,7 +12,7 @@
                 host name
               </div>
               <div class="col">
-                {{ data.env.hostName }}
+                {{ meta.env.hostName}}
               </div>
             </div>
             <div class="row">
@@ -20,7 +20,7 @@
                 host address
               </div>
               <div class="col">
-                {{ data.env.hostAddress }}
+                {{ meta.env.hostAddress}}
               </div>
             </div>
             <div class="row">
@@ -28,7 +28,7 @@
                 run user
               </div>
               <div class="col">
-                {{ data.env.runUser }}
+                {{ meta.env.runUser}}
               </div>
             </div>
             <div class="row">
@@ -36,7 +36,7 @@
                 OS architecture
               </div>
               <div class="col">
-                {{ data.env.osArch }}
+                {{ meta.env.osArch}}
               </div>
             </div>
           </div>
@@ -47,13 +47,17 @@
         <ContentBase>
           <div>JVM</div>
           <hr>
+
           <div class="col">
             <div class="row">
               <div class="col">
                 total (MB)
               </div>
               <div class="col">
-                {{ (data.jvm.total / (1024 * 1024.0)).toFixed(2) }}
+                {{  (meta.jvm.total / (1024 * 1024.0)).toFixed(2) }}
+<!--                 {{jvm['total']}}-->
+<!--                {{ meta.jvm }}-->
+<!--                {{ (data.jvm.total / (1024 * 1024.0)).toFixed(2) }}-->
               </div>
             </div>
             <div class="row">
@@ -61,7 +65,8 @@
                 max (MB)
               </div>
               <div class="col">
-                {{ (data.jvm.max / (1024 * 1024)).toFixed(2) }}
+                {{  (meta.jvm.max / (1024 * 1024.0)).toFixed(2) }}
+<!--                {{ (data.jvm.max / (1024 * 1024)).toFixed(2) }}-->
               </div>
             </div>
             <div class="row">
@@ -69,7 +74,8 @@
                 free (MB)
               </div>
               <div class="col">
-                {{ (data.jvm.free / (1024 * 1024)).toFixed(2) }}
+                {{  (meta.jvm.free / (1024 * 1024.0)).toFixed(2) }}
+<!--                {{ (data.jvm.free / (1024 * 1024)).toFixed(2) }}-->
               </div>
             </div>
             <div class="row">
@@ -77,7 +83,8 @@
                 used (byte)
               </div>
               <div class="col">
-                {{ (data.jvm.used / (1024 * 1024)).toFixed(2) }}
+                {{  (meta.jvm.used / (1024 * 1024.0)).toFixed(2) }}
+<!--                {{ (data.jvm.used / (1024 * 1024)).toFixed(2) }}-->
               </div>
             </div>
           </div>
@@ -97,7 +104,7 @@
                 total (MB)
               </div>
               <div class="col">
-                {{ (data.mem.total / (1024 * 1024)).toFixed(2) }}
+                {{  (meta.mem.total / (1024 * 1024.0)).toFixed(2) }}
               </div>
             </div>
             <div class="row">
@@ -105,12 +112,12 @@
                 used (MB)
               </div>
               <div class="col">
-                {{ (data.mem.used / (1024 * 1024)).toFixed(2) }}
+                {{  (meta.mem.used / (1024 * 1024.0)).toFixed(2) }}
               </div>
             </div>
             <div class="row">
               <!-- 展示内存使用率 -->
-              <CategoryEchartsBase :Info="memory" style="width: 500px; height: 80px"></CategoryEchartsBase>
+              <CategoryEchartsBase :Info="meta.mem" style="width: 500px; height: 80px"></CategoryEchartsBase>
             </div>
           </div>
         </ContentBase>
@@ -125,20 +132,21 @@
                 total (MB)
               </div>
               <div class="col">
-                {{ (data.disk.total / (1024 * 1024)).toFixed(2) }}
+                {{  (meta.disk.total / (1024 * 1024.0)).toFixed(2) }}
               </div>
             </div>
             <div class="row">
               <div class="col">
-                used (MB)
+                free (MB)
               </div>
               <div class="col">
-                {{ ((data.disk.total - data.disk.free) / (1024 * 1024)).toFixed(2) }}
+                {{  (meta.disk.free / (1024 * 1024.0)).toFixed(2) }}
               </div>
             </div>
             <div class="row">
               <!-- 展示磁盘使用率 -->
-              <CategoryEchartsBase :Info="disk" style="width: 500px; height: 80px"></CategoryEchartsBase>
+              <diskEcharts :Info="meta.disk" style="width: 500px; height: 80px"></diskEcharts>
+
             </div>
           </div>
         </ContentBase>
@@ -153,19 +161,19 @@
         <div class="row">
           <div class="col">
             <!-- 系统使用率 -->
-            <PieEchartsBase :Info="sysUsed"></PieEchartsBase>
+            <PieEchartsBase :Info="meta.cpu"></PieEchartsBase>
           </div>
           <div class="col">
             <!-- 用户使用率 -->
-            <PieEchartsBase :Info="userUsed"></PieEchartsBase>
+            <userEcharts :Info="meta.cpu"></userEcharts>
           </div>
           <div class="col">
             <!-- IO 等待率 -->
-            <PieEchartsBase :Info="wait"></PieEchartsBase>
+            <freeEcharts :Info="meta.cpu" ></freeEcharts>
           </div>
           <div class="col">
             <!-- 空闲率 -->
-            <PieEchartsBase :Info="free"></PieEchartsBase>
+            <waitEcharts :Info="meta.cpu"></waitEcharts>
           </div>
         </div>
       </ContentBase>
@@ -431,8 +439,14 @@ import StorageIO from "@/components/echarts/storage/StorageIO";
 import ReceiveAndSend from "@/components/echarts/network/ReceiveAndSend"
 import PieEchartsBase from "@/components/echarts/cpu/PieEchartsBase";
 import CategoryEchartsBase from "@/components/echarts/storage/CategoryEchartsBase"
-
+import diskEcharts from '@/components/echarts/storage/diskEcharts'
+import freeEcharts from "@/components/echarts/cpu/freeEcharts";
+import userEcharts from "@/components/echarts/cpu/userEcharts";
+import waitEcharts from "@/components/echarts/cpu/waitEcharts";
+import $ from "jquery";
+import url from "@/store/api";
 import {ref} from "vue";
+import {reactive} from "vue";
 
 export default {
   name: "FileView",
@@ -440,8 +454,12 @@ export default {
     PieEchartsBase,
     CategoryEchartsBase,
     ContentBase,
+    diskEcharts,
     ReceiveAndSend,
     StorageIO,
+    freeEcharts,
+    userEcharts,
+    waitEcharts,
   },
   setup() {
 
@@ -583,6 +601,50 @@ export default {
       },
     ])
 
+    const meta = reactive({
+      cpu:"",
+      jvm:"",
+      mem:"",
+      disk:"",
+      net:"",
+      env:"",
+    })
+
+    //获取元数据服务器信息
+    const getNet = () =>{
+      $.ajax({
+        url:url.url_metaServer,
+        type:"GET",
+        data:{
+          serverId:"meta"
+        },
+        xhrFields: {
+          withCredentials: true
+        },
+        crossDomain: true,
+        success(resp){
+          if (resp.errorCode === "00000"){
+            meta.cpu = resp.data.cpu
+            meta.jvm = resp.data.jvm
+            meta.mem = resp.data.mem
+            meta.disk = resp.data.disk
+            meta.net = resp.data.net
+            meta.env = resp.data.env
+            console.log("meta获取成功")
+            console.log(meta.jvm)
+            console.log(meta.cpu)
+          }
+        },
+        error(){
+          console.log("获取失败")
+        }
+      })
+    };
+
+    getNet();
+
+
+
     return {
       data,
       servers,
@@ -591,7 +653,8 @@ export default {
       wait,
       free,
       memory,
-      disk
+      disk,
+      meta,
     }
   }
 }

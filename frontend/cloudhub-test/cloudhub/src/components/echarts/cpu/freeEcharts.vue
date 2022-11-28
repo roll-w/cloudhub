@@ -9,7 +9,7 @@
 import {ref, onMounted, getCurrentInstance, toRefs} from 'vue'
 
 export default {
-  name: "PieEcharts",
+  name: "freeEcharts",
   props:{
     Info:{
       type:Object,
@@ -31,7 +31,7 @@ export default {
       const myChart = proxy.$echarts.init(myRef.value)
 
       // 空闲率,单位: %
-      let ratio = Info.value.sysUsed
+      let ratio = Info.value.free
 
       // 指定图表的配置项和数据
       myChart.setOption({
@@ -55,7 +55,6 @@ export default {
           formatter: function (params) {
             return params.name + '：' + params.percent + ' %'
           }
-
         },
 
         series: [{

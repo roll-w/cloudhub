@@ -1,5 +1,4 @@
 <template>
-  <!-- 图表的大小(width与height)在调用该组件时定义 -->
   <div ref="myRef" style="width: 200px;height: 200px" data-bs-toggle="tooltip" data-bs-placement="top"
        title="">
   </div>
@@ -10,7 +9,7 @@ import {ref, onMounted, getCurrentInstance, toRefs} from 'vue'
 
 export default {
   // eslint-disable-next-line vue/multi-word-component-names
-  name: "CategoryEchartsBase",
+  name: "diskEcharts",
   props:{
     Info:{
       type:Object,
@@ -32,8 +31,8 @@ export default {
       const myChart = proxy.$echarts.init(myRef.value)
 
       let datas = [{
-        //可以添加.toFixed（2）
-        "value":  (((Info.value.used) / (Info.value.total)) * 100),
+        //Info.value.ratio * 100).toFixed(2
+        "value":  (((Info.value.free) / (Info.value.total)) * 100),
         "name": "内存"
       }]
       // var colorList=['#C467FF','#2CAF70 ','#FFA23F','#625AFF','#4B8BFF'];
@@ -55,9 +54,6 @@ export default {
           axisPointer: {
             type: 'none'
           },
-          // formatter: function(params) {
-          //   return params[0].name + ' : ' + params[0].value
-          // }
         },
         xAxis: {
           show: false,

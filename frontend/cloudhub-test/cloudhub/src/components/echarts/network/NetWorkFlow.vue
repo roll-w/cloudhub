@@ -8,8 +8,8 @@
 
 <script>
 import {ref, onMounted, getCurrentInstance} from 'vue'
-import $ from "jquery";
-import url from "@/store/api";
+// import $ from "jquery";
+// import url from "@/store/api";
 // import {useStore} from "vuex";
 
 export default {
@@ -146,35 +146,12 @@ export default {
     }
 
 // const store = useStore();
-  const net = ref([]);
-const getNet = () =>{
-    $.ajax({
-      url:url.url_metaServer,
-      type:"GET",
-      data:{
-        serverId:"meta"
-      },
-      xhrFields: {
-        withCredentials: true
-      },
-      crossDomain: true,
-      success(resp){
-        if (resp.errorCode === "00000"){
-          net.value = resp.data.net
-          console.log(resp.data.net);
-        }
-      },
-      error(){
-        console.log("获取失败")
-      }
-    })
-};
+//   const net = ref([]);
 
-  getNet();
 
     return {
       myRef,
-      net,
+
     }
   }
 }
