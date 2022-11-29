@@ -53,6 +53,11 @@ public class BucketServiceImpl implements BucketService, BucketAuthService {
     }
 
     @Override
+    public int getBucketsCount() {
+        return bucketRepository.getBucketsCount();
+    }
+
+    @Override
     public List<BucketInfo> getAllUsersBuckets() {
         return bucketRepository.getAllBucketInfos();
     }

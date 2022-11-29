@@ -106,6 +106,17 @@ public class BucketManageController {
         return HttpResponseEntity.success(bucketService.getUserBuckets(userId));
     }
 
+    @GetMapping("/get/size")
+    public HttpResponseEntity<Integer> getBucketSize(HttpServletRequest request) {
+
+        var validateMessage = validate(request);
+        if (validateMessage != null) {
+            return HttpResponseEntity.create(
+                    validateMessage.toResponseBody((data) -> null));
+        }
+        return HttpResponseEntity.success(bucketService.getBucketsCount());
+    }
+
     @PostMapping("/setting/visibility")
     public HttpResponseEntity<BucketInfo> changeVisibility(
             HttpServletRequest request, @RequestBody BucketAdminCreateRequest createRequest) {

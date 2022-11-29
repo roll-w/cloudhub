@@ -20,6 +20,8 @@ public interface BucketService {
 
     List<BucketInfo> getUserBuckets(long userId);
 
+    int getBucketsCount();
+
     List<BucketInfo> getAllUsersBuckets();
 
     Bucket getBucketByName(String name);

@@ -15,6 +15,7 @@ public record BucketInfo(
 
         @DataColumn(name = "bucket_create_time")
         long createTime,
+
         @DataColumn(name = "bucket_visibility")
         BucketVisibility bucketVisibility
 ) {
