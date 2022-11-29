@@ -1,16 +1,12 @@
 package org.huel.cloudhub.client.controller.object;
 
 import org.huel.cloudhub.client.data.dto.object.ObjectInfo;
-import org.huel.cloudhub.client.data.dto.object.ObjectInfoDto;
 import org.huel.cloudhub.client.data.dto.object.ObjectInfoVo;
 import org.huel.cloudhub.client.data.dto.object.ObjectRenameRequest;
 import org.huel.cloudhub.client.data.dto.user.UserInfo;
 import org.huel.cloudhub.client.event.object.ObjectDeleteRequestEvent;
-import org.huel.cloudhub.client.event.object.ObjectGetRequestEvent;
-import org.huel.cloudhub.client.event.object.ObjectPutRequestEvent;
 import org.huel.cloudhub.client.service.bucket.BucketAuthService;
 import org.huel.cloudhub.client.service.object.ObjectMetadataService;
-import org.huel.cloudhub.client.service.object.ObjectRuntimeException;
 import org.huel.cloudhub.client.service.object.ObjectService;
 import org.huel.cloudhub.client.service.user.UserGetter;
 import org.huel.cloudhub.common.ErrorCode;
@@ -18,7 +14,6 @@ import org.huel.cloudhub.common.HttpResponseEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.http.HttpRange;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -33,8 +28,6 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.List;
-import java.util.Map;
 
 /**
  * @author RollW
@@ -77,36 +70,10 @@ public class ObjectController {
         }
         String objectName = ObjectHelper.readPath(request);
         ObjectInfo objectInfo = new ObjectInfo(objectName, bucketName);
-        response.setHeader("Content-Type",
-                "application/octet-stream");
-        Map<String, String> metadata = objectMetadataService
-                .getObjectMetadata(bucketName, objectName);
-        if (metadata != null) {
-            metadata.forEach(response::setHeader);
-        }
-        List<HttpRange> ranges = tryGetsRange(request);
-        response.setHeader("Accept-Ranges", "bytes");
-        applicationEventPublisher.publishEvent(
-                new ObjectGetRequestEvent(objectInfo));
-        if (ranges != null && !ranges.isEmpty()) {
-            HttpRange range = ranges.get(0);
-            ObjectInfoDto objectInfoDto = objectService.getObjectInBucket(bucketName, objectName);
-            if (objectInfoDto == null) {
-                throw new ObjectRuntimeException(ErrorCode.ERROR_DATA_NOT_EXIST,
-                        "Object not exist");
-            }
-            long len = objectInfoDto.objectSize();
-            response.setStatus(HttpServletResponse.SC_PARTIAL_CONTENT);
-            response.setHeader("Content-Disposition", "inline;filename=" + objectName);
-            response.setHeader("Content-Range",
-                    "bytes " + range.getRangeStart(len) + "-" + range.getRangeEnd(len) + "/" +
-                    objectInfoDto.objectSize());
-            objectService.getObjectData(objectInfo, response.getOutputStream(),
-                    range.getRangeStart(len), range.getRangeEnd(len));
-            return null;
-        }
-        objectService.getObjectData(objectInfo, response.getOutputStream());
-        return null;
+        return ObjectHelper.processGetObject(
+                request, response, bucketName,
+                objectName, objectInfo, objectMetadataService,
+                applicationEventPublisher, objectService);
     }
 
     @PutMapping(value = "/v1/{bucketName}/**", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -120,21 +87,9 @@ public class ObjectController {
             return HttpResponseEntity.failure("Have no permission to write.",
                     ErrorCode.ERROR_PERMISSION_NOT_ALLOWED);
         }
-        Map<String, String> metadata = ObjectHelper.buildInitialMetadata(objectFile);
-
-        String objectName = ObjectHelper.readPath(request);
-        ObjectInfo objectInfo = new ObjectInfo(objectName, bucketName);
-        var res =
-                objectService.saveObject(objectInfo, objectFile.getInputStream());
-        if (res.errorCode().getState()) {
-            objectMetadataService.addObjectMetadata(
-                    bucketName, objectName, metadata);
-            applicationEventPublisher.publishEvent(
-                    new ObjectPutRequestEvent(objectInfo));
-        }
-
-        return HttpResponseEntity.create(
-                res.toResponseBody(ObjectInfoVo::from));
+        return ObjectHelper.processObjectUpload(request, bucketName,
+                objectFile, objectService, objectMetadataService,
+                applicationEventPublisher);
     }
 
     @DeleteMapping(value = "/v1/{bucketName}/**")
@@ -184,11 +139,4 @@ public class ObjectController {
     }
 
 
-    private static List<HttpRange> tryGetsRange(HttpServletRequest request) {
-        String range = request.getHeader("Range");
-        if (range == null) {
-            return null;
-        }
-        return HttpRange.parseRanges(range);
-    }
 }

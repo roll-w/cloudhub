@@ -22,7 +22,7 @@ import java.util.List;
  * @author RollW
  */
 @RestController
-@ObjectVersionApi
+@ObjectAdminVersionApi
 public class ObjectAdminVersionControlController {
 
     private final UserGetter userGetter;
