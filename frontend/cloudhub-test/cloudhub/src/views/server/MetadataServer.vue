@@ -1,162 +1,206 @@
 <template>
   <div class="col">
     <div class="row">
-      <div class="col">
+      <div class="row">
         <ContentBase>
           <div>Runtime</div>
           <hr>
           <!-- 展示运行环境信息 -->
-          <div class="col">
+          <div class="col-12">
             <div class="row">
-              <div class="col">
-                host name
+              <div class="col-6">
+                <div class="row">
+                  <div class="col">
+                    主机名
+                  </div>
+                  <div class="col">
+                    {{ meta.env.hostName }}
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col">
+                    主机地址
+                  </div>
+                  <div class="col">
+                    {{ meta.env.hostAddress }}
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col">
+                    运行用户
+                  </div>
+                  <div class="col">
+                    {{ meta.env.runUser }}
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col">
+                    OS 架构
+                  </div>
+                  <div class="col">
+                    {{ meta.env.osArch }}
+                  </div>
+                </div>
               </div>
-              <div class="col">
-                {{ meta.env.hostName}}
+
+              <div class="col-6">
+                <div class="row">
+                  <div class="col">
+                    工作文件夹
+                  </div>
+                  <div class="col">
+                    {{ meta.env.workDir }}
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col">
+                    Java 版本
+                  </div>
+                  <div class="col">
+                    {{ meta.env.javaVersion }}
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col">
+                    Java Home
+                  </div>
+                  <div class="col">
+                    {{ meta.env.javaHome }}
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col">
+                    OS 名称
+                  </div>
+                  <div class="col">
+                    {{ meta.env.osName }}
+                  </div>
+                </div>
               </div>
             </div>
-            <div class="row">
-              <div class="col">
-                host address
-              </div>
-              <div class="col">
-                {{ meta.env.hostAddress}}
-              </div>
-            </div>
-            <div class="row">
-              <div class="col">
-                run user
-              </div>
-              <div class="col">
-                {{ meta.env.runUser}}
-              </div>
-            </div>
-            <div class="row">
-              <div class="col">
-                OS architecture
-              </div>
-              <div class="col">
-                {{ meta.env.osArch}}
-              </div>
-            </div>
+
           </div>
         </ContentBase>
       </div>
+      <div class="row" >
+          <div class="col-4 h-100">
+            <ContentBase>
+              <div>JVM</div>
+              <hr>
+              <div class="col">
+                <div class="row">
+                  <div class="col">
+                    total (MB)
+                  </div>
+                  <div class="col">
+                    {{ (meta.jvm.total / (1024 * 1024.0)).toFixed(2) }}
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col">
+                    max (MB)
+                  </div>
+                  <div class="col">
+                    {{ (meta.jvm.max / (1024 * 1024.0)).toFixed(2) }}
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col">
+                    free (MB)
+                  </div>
+                  <div class="col">
+                    {{ (meta.jvm.free / (1024 * 1024.0)).toFixed(2) }}
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col">
+                    used (byte)
+                  </div>
+                  <div class="col">
+                    {{ (meta.jvm.used / (1024 * 1024.0)).toFixed(2) }}
+                  </div>
+                </div>
+              </div>
+            </ContentBase>
+        </div>
+        <div class="col-4">
+          <ContentBase>
+            <div>System Memory</div>
+            <hr>
+            <div class="col">
+              <div class="row">
+                <div class="col">
+                  total (MB)
+                </div>
+                <div class="col">
+                  {{ (meta.mem.total / (1024 * 1024.0)).toFixed(2) }}
+                </div>
+              </div>
+              <div class="row">
+                <div class="col">
+                  used (MB)
+                </div>
+                <div class="col">
+                  {{ (meta.mem.used / (1024 * 1024.0)).toFixed(2) }}
+                </div>
+              </div>
+              <div class="row">
+                <div class="col">
+                  free (MB)
+                </div>
+                <div class="col">
+                  {{ (meta.mem.free / (1024 * 1024.0)).toFixed(2) }}
+                </div>
+              </div>
+              <div class="row">
+                <!-- 展示内存使用率 -->
+                <CategoryEchartsBase :Info="meta.mem" style="width: 500px; height: 80px"></CategoryEchartsBase>
+              </div>
+            </div>
+          </ContentBase>
+        </div>
 
-      <div class="col">
-        <ContentBase>
-          <div>JVM</div>
-          <hr>
-
-          <div class="col">
-            <div class="row">
-              <div class="col">
-                total (MB)
+        <div class="col-4">
+          <ContentBase>
+            <div>System Disk</div>
+            <hr>
+            <div class="col">
+              <div class="row">
+                <div class="col">
+                  total (MB)
+                </div>
+                <div class="col">
+                  {{ (meta.disk.total / (1024 * 1024.0)).toFixed(2) }}
+                </div>
               </div>
-              <div class="col">
-                {{  (meta.jvm.total / (1024 * 1024.0)).toFixed(2) }}
-<!--                 {{jvm['total']}}-->
-<!--                {{ meta.jvm }}-->
-<!--                {{ (data.jvm.total / (1024 * 1024.0)).toFixed(2) }}-->
+              <div class="row">
+                <div class="col">
+                  used (MB)
+                </div>
+                <div class="col">
+                  {{ ((meta.disk.total - meta.disk.free)  / (1024 * 1024.0)).toFixed(2) }}
+                </div>
               </div>
-            </div>
-            <div class="row">
-              <div class="col">
-                max (MB)
+              <div class="row">
+                <div class="col">
+                  free (MB)
+                </div>
+                <div class="col">
+                  {{ (meta.disk.free / (1024 * 1024.0)).toFixed(2) }}
+                </div>
               </div>
-              <div class="col">
-                {{  (meta.jvm.max / (1024 * 1024.0)).toFixed(2) }}
-<!--                {{ (data.jvm.max / (1024 * 1024)).toFixed(2) }}-->
-              </div>
-            </div>
-            <div class="row">
-              <div class="col">
-                free (MB)
-              </div>
-              <div class="col">
-                {{  (meta.jvm.free / (1024 * 1024.0)).toFixed(2) }}
-<!--                {{ (data.jvm.free / (1024 * 1024)).toFixed(2) }}-->
+              <div class="row">
+                <diskEcharts :Info="meta.disk" style="width: 500px; height: 80px"></diskEcharts>
               </div>
             </div>
-            <div class="row">
-              <div class="col">
-                used (byte)
-              </div>
-              <div class="col">
-                {{  (meta.jvm.used / (1024 * 1024.0)).toFixed(2) }}
-<!--                {{ (data.jvm.used / (1024 * 1024)).toFixed(2) }}-->
-              </div>
-            </div>
-          </div>
-        </ContentBase>
+          </ContentBase>
+        </div>
       </div>
     </div>
-
-    <div class="row">
-      <div class="col">
-        <!--        <ContentBase style="width: 480px; margin-left: 100px">-->
-        <ContentBase>
-          <div>System Memory</div>
-          <hr>
-          <div class="col">
-            <div class="row">
-              <div class="col">
-                total (MB)
-              </div>
-              <div class="col">
-                {{  (meta.mem.total / (1024 * 1024.0)).toFixed(2) }}
-              </div>
-            </div>
-            <div class="row">
-              <div class="col">
-                used (MB)
-              </div>
-              <div class="col">
-                {{  (meta.mem.used / (1024 * 1024.0)).toFixed(2) }}
-              </div>
-            </div>
-            <div class="row">
-              <!-- 展示内存使用率 -->
-              <CategoryEchartsBase :Info="meta.mem" style="width: 500px; height: 80px"></CategoryEchartsBase>
-            </div>
-          </div>
-        </ContentBase>
-      </div>
-      <div class="col">
-        <ContentBase>
-          <div>System Disk</div>
-          <hr>
-          <div class="col">
-            <div class="row">
-              <div class="col">
-                total (MB)
-              </div>
-              <div class="col">
-                {{  (meta.disk.total / (1024 * 1024.0)).toFixed(2) }}
-              </div>
-            </div>
-            <div class="row">
-              <div class="col">
-                free (MB)
-              </div>
-              <div class="col">
-                {{  (meta.disk.free / (1024 * 1024.0)).toFixed(2) }}
-              </div>
-            </div>
-            <div class="row">
-              <!-- 展示磁盘使用率 -->
-              <diskEcharts :Info="meta.disk" style="width: 500px; height: 80px"></diskEcharts>
-
-            </div>
-          </div>
-        </ContentBase>
-      </div>
-    </div>
-
     <!-- CPU运行信息 -->
     <div class="row">
       <ContentBase>
-        <div>CPU 16 核</div>
+        <div>CPU {{ meta.cpu.cpuCores }} 核</div>
         <hr>
         <div class="row">
           <div class="col">
@@ -169,7 +213,7 @@
           </div>
           <div class="col">
             <!-- IO 等待率 -->
-            <freeEcharts :Info="meta.cpu" ></freeEcharts>
+            <freeEcharts :Info="meta.cpu"></freeEcharts>
           </div>
           <div class="col">
             <!-- 空闲率 -->
@@ -217,210 +261,12 @@
           <tr v-for="server in servers" :key="server.serverId">
             <!--            <th scope="row">{{ server.serverId }}</th>-->
             <th scope="row">{{ server.serverIp }}</th>
-            <th scope="row">正常/宕机</th>
+            <th scope="row"></th>
             <th scope="row">
               <div class="d-grid gap-2 d-md-flex justify-content-center">
-                <button type="button" class="btn btn-primary" data-bs-toggle="modal"
-                        :data-bs-target="'#ModalCondition' + server.serverId">
+                <button type="button" class="btn btn-link">
                   运行状态
                 </button>
-
-                <div class="modal fade" :id="'ModalCondition' + server.serverId" tabindex="-1">
-                  <div class="modal-dialog">
-                    <div class="modal-content" style="width:900px">
-
-                      <div class="modal-body">
-                        <div class="row">
-                          <div class="col">
-                            <div class="card" style="height: 180px">
-                              <ul class="list-group list-group-flush">
-                                <li class="list-group-item">
-                                  <span class="leftspan">Runtime</span>
-                                </li>
-                                <li class="list-group-item">
-                                  <div class="col">
-                                    <div class="row">
-                                      <div class="row">
-                                        <div class="col">
-                                          <span class="leftspan">OS:</span>
-                                        </div>
-                                        <div class="col">
-                                          <span class="leftspan">Linux</span>
-                                        </div>
-                                      </div>
-                                    </div>
-                                    <div class="row">
-
-                                      <div class="row">
-                                        <div class="col">
-                                          <span class="leftspan">cpu nums:</span>
-                                        </div>
-                                        <div class="col">
-                                          <span class="leftspan"> {{ server.serverInfo.coreNum }}</span>
-
-                                        </div>
-                                      </div>
-
-                                    </div>
-                                    <div class="row">
-
-                                      <div class="row">
-                                        <div class="col">
-                                          <span class="leftspan">ram:</span>
-                                        </div>
-                                        <div class="col">
-                                          <span class="leftspan">{{ server.serverInfo.ram }}</span>
-                                        </div>
-                                      </div>
-
-                                    </div>
-                                    <div class="row">
-
-                                      <div class="row">
-                                        <div class="col">
-                                          <span class="leftspan">systemdisk:</span>
-                                        </div>
-                                        <div class="col">
-                                          <span class="leftspan">{{ server.serverInfo.systemDisk }}</span>
-                                        </div>
-                                      </div>
-
-                                    </div>
-                                    <div class="row">
-
-                                      <div class="row">
-                                        <div class="col">
-                                          <span class="leftspan">clouddesk:</span>
-                                        </div>
-                                        <div class="col">
-                                          <span class="leftspan">{{ server.serverInfo.cloudDesk }}</span>
-                                        </div>
-                                      </div>
-
-                                    </div>
-                                  </div>
-                                </li>
-                              </ul>
-                            </div>
-                          </div>
-                          <div class="col">
-                            <div class="card" style="height: 180px">
-                              <ul class="list-group list-group-flush">
-                                <li class="list-group-item">
-                                  <span class="leftspan">Disk</span>
-                                </li>
-                                <li class="list-group-item">
-                                  <div class="col">
-                                    <div class="row">
-                                      <div class="col">
-                                        <span class="leftspan">total(MB):</span>
-                                      </div>
-                                      <div class="col">
-                                        <span class="leftspan">{{ server.diskInfo.totalMB }}</span>
-                                      </div>
-                                    </div>
-                                    <div class="row">
-                                      <div class="col">
-                                        <span class="leftspan">used(MB):</span>
-                                      </div>
-                                      <div class="col">
-                                        <span class="leftspan">{{ server.diskInfo.usedMB }}</span>
-                                      </div>
-                                    </div>
-                                    <div class="row">
-                                      <div class="col">
-                                        <span class="leftspan">total(GB):</span>
-                                      </div>
-                                      <div class="col">
-                                        <span class="leftspan">{{ parseInt(server.diskInfo.totalMB / 1024) }}</span>
-                                      </div>
-                                    </div>
-                                    <div class="row">
-                                      <div class="col">
-                                        <span class="leftspan">used(GB):</span>
-                                      </div>
-                                      <div class="col">
-                                        <span class="leftspan">{{ parseInt(server.diskInfo.usedMB / 1024) }}</span>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </li>
-                              </ul>
-                            </div>
-                          </div>
-                          <div class="col">
-                            <div class="card" style="height: 180px">
-                              <ul class="list-group list-group-flush">
-                                <li class="list-group-item">
-                                  <span class="leftspan">CPU</span>
-                                </li>
-                                <li class="list-group-item">
-                                  <div class="col">
-                                    <div v-for="core in server.coreInfo" :key="core.coreId" class="row">
-                                      <div class="col">
-                                        <span class="leftspan">{{ "core " + core.coreId + ":" }}</span>
-                                      </div>
-                                      <div class="col">
-                                        <span class="leftspan">{{ (core.coreUsage * 100).toFixed(2) + '%' }}</span>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </li>
-                              </ul>
-                            </div>
-                          </div>
-                        </div>
-                        <br>
-                        <div class="container">
-                          <div class="row">
-                            <div class="card">
-                              <h5 class="card-header">
-                                <span class="leftspan">Docker</span>
-                              </h5>
-                              <div class="card-body" style="text-align: center">
-                                <table class="table table-hover">
-                                  <thead style="color: #909399">
-                                  <tr>
-                                    <!-- 参考博客:https://blog.csdn.net/weixin_40482816/article/details/117980908 -->
-                                    <th scope="col">Container ID</th>
-                                    <th scope="col">Name</th>
-                                    <th scope="col">CPU</th>
-                                    <th scope="col">MEM USAGE / LIMIT</th>
-                                    <th scope="col">MEM</th>
-                                    <th scope="col">NET I/O</th>
-                                    <th scope="col">BLOCK I/O</th>
-                                    <th scope="col">PIDS</th>
-                                  </tr>
-                                  </thead>
-                                  <tbody>
-                                  <tr v-for="docker in server.dockerList" :key="docker.id">
-                                    <td>{{ docker.id }}</td>
-                                    <td>{{ docker.name }}</td>
-                                    <td>{{ (docker.cpuRatio * 100).toFixed(2) + '%' }}</td>
-                                    <td>{{
-                                        docker.memMessage.memUsage + 'MiB / ' + docker.memMessage.memLimit + 'MiB'
-                                      }}
-                                    </td>
-                                    <td>{{ (docker.memRatio * 100).toFixed(2) + '%' }}</td>
-                                    <td>{{ docker.netIO.netIn + 'B / ' + docker.netIO.netOut + 'B' }}</td>
-                                    <td>{{ docker.blockIO.blockIn + 'B / ' + docker.blockIO.blockOut + 'B' }}</td>
-                                    <td>{{ docker.pids }}</td>
-                                  </tr>
-                                  </tbody>
-                                </table>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-
-                      </div>
-                      <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
               </div>
             </th>
           </tr>
@@ -525,105 +371,31 @@ export default {
 
 
     //  所有服务器的信息(响应式数据)
-    const servers = ref([
-
-      /*
-       * 第一台服务器
-       */
-
-      {
-        // 服务器最基本的信息
-        serverId: "1", // 服务器ID
-        serverIp: "192.168.10.101", // 服务器IP地址
-
-
-        // 服务器运行信息
-        serverInfo: {
-          coreNum: 2, // 服务器核数
-          ram: 4, // 服务器总内存（GB）
-          systemDisk: 100, // 系统盘容量（GB）（与下述"totalMB"相对应）
-          cloudDesk: "ESSD", // 阿里云云盘: ESSD或SSD
-          address: "河南", // 服务器所在地
-        },
-
-        // 服务器磁盘使用信息
-        diskInfo: {
-          // 磁盘信息
-          totalMB: 100 * 1024, // 总容量（MB）（与上述“systemDisk”相对应）
-          usedMB: 12345,  // 已使用容量（MB）
-        },
-
-        // 展示每个CPU的利用率，列表长度为服务器的核数
-        coreInfo: [
-          {
-            coreId: "one",
-            coreUsage: 0.1234,
-          },
-          {
-            coreId: "two",
-            coreUsage: 0.4567,
-          },
-        ],
-
-        // 一个服务器中可以有多个容器: 下述为某个服务器的容器列表
-        dockerList: [
-          {
-            id: "1", // CONTAINER ID：容器ID
-            name: "stress", // NAME：容器名称
-            cpuRatio: 1.9799, // CPU %：容器使用的主机 CPU百分比
-            memMessage: {memUsage: 197.7, memLimit: 256},// MEM USAGE / LIMIT：容器使用的总内存、以及允许使用的内存总量
-            memRatio: 0.7724, // MEM %：容器所使用的内存百分比
-            netIO: {netIn: 656, netOut: 0}, // NET I/O：容器通过网络接口接收和发送的数据量（单位: 字节B）
-            blockIO: {blockIn: 0, blockOut: 0},// BLOCK I/O：容器从主机上的块设备写入和的读取数据量（单位: 字节B）
-            pids: 5 // PIDS：容器创建的进程或线程数
-          },
-          {
-            id: "2", // CONTAINER ID：容器ID
-            name: "stress", // NAME：容器名称
-            cpuRatio: 0.888, // CPU %：容器使用的主机 CPU百分比
-            memMessage: {memUsage: 197.7, memLimit: 256},// MEM USAGE / LIMIT：容器使用的总内存、以及允许使用的内存总量
-            memRatio: 0.7724, // MEM %：容器所使用的内存百分比
-            netIO: {netIn: 456, netOut: 0}, // NET I/O：容器通过网络接口接收和发送的数据量
-            blockIO: {blockIn: 1, blockOut: 0},// BLOCK I/O：容器从主机上的块设备写入和的读取数据量
-            pids: 6 // PIDS：容器创建的进程或线程数
-          },
-          {
-            id: "3", // CONTAINER ID：容器ID
-            name: "stress", // NAME：容器名称
-            cpuRatio: 1.234, // CPU %：容器使用的主机 CPU百分比
-            memMessage: {memUsage: 197.7, memLimit: 256},// MEM USAGE / LIMIT：容器使用的总内存、以及允许使用的内存总量
-            memRatio: 0.7724, // MEM %：容器所使用的内存百分比
-            netIO: {netIn: 656, netOut: 0}, // NET I/O：容器通过网络接口接收和发送的数据量
-            blockIO: {blockIn: 0, blockOut: 2},// BLOCK I/O：容器从主机上的块设备写入和的读取数据量
-            pids: 8 // PIDS：容器创建的进程或线程数
-          },
-        ],
-      },
-    ])
+    const servers = ref([])
 
     const meta = reactive({
-      cpu:"",
-      jvm:"",
-      mem:"",
-      disk:"",
-      net:"",
-      env:"",
+      cpu: "",
+      jvm: "",
+      mem: "",
+      disk: "",
+      net: "",
+      env: "",
     })
 
     //获取元数据服务器信息
-    const getNet = () =>{
+    const getNet = () => {
       $.ajax({
-        url:url.url_metaServer,
-        type:"GET",
-        data:{
-          serverId:"meta"
+        url: url.url_metaServer,
+        type: "GET",
+        data: {
+          serverId: "meta"
         },
         xhrFields: {
           withCredentials: true
         },
         crossDomain: true,
-        success(resp){
-          if (resp.errorCode === "00000"){
+        success(resp) {
+          if (resp.errorCode === "00000") {
             meta.cpu = resp.data.cpu
             meta.jvm = resp.data.jvm
             meta.mem = resp.data.mem
@@ -635,14 +407,13 @@ export default {
             console.log(meta.cpu)
           }
         },
-        error(){
+        error() {
           console.log("获取失败")
         }
       })
     };
 
     getNet();
-
 
 
     return {

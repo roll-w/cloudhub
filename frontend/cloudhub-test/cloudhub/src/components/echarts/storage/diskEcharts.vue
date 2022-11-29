@@ -29,18 +29,16 @@ export default {
     const renderChart = () => {
       // 基于准备好的dom，初始化echarts实例
       const myChart = proxy.$echarts.init(myRef.value)
-
+      let used = Info.value.total - Info.value.free
+      let value = (( used / Info.value.total) * 100).toFixed(2)
       let datas = [{
-        //Info.value.ratio * 100).toFixed(2
-        "value":  (((Info.value.free) / (Info.value.total)) * 100),
-        "name": "内存"
+        "value":  value,
+        "name": "磁盘"
       }]
-      // var colorList=['#C467FF','#2CAF70 ','#FFA23F','#625AFF','#4B8BFF'];
       let maxArr = (new Array(datas.length)).fill(100);
 
       // 指定图表的配置项和数据
       myChart.setOption({
-
         backgroundColor: "#fff",
         grid: {
           left:40,
@@ -92,7 +90,7 @@ export default {
           data: datas.map(item => item.value)
         }],
         series: [{
-          name: '值',
+          name: '已用百分比',
           type: 'bar',
           zlevel: 1,
           itemStyle: {
@@ -105,7 +103,7 @@ export default {
           data: datas
         },
           {
-            name: '背景',
+            name: "总量",
             type: 'bar',
             barWidth: 20,
             barGap: '-100%',

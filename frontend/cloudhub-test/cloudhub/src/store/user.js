@@ -21,7 +21,30 @@ export default {
     },
 
     actions: {
-
+        current(context, data) {
+            $.ajax({
+                url: url.url_getCurrent,
+                type: "get",
+                xhrFields: {
+                    withCredentials: true
+                },
+                crossDomain: true,
+                success(resp) {
+                    if (resp.errorCode === "00000") {
+                        context.commit("updateUser", {
+                            ...resp.data,
+                            is_login: true,
+                        })
+                        data.success(resp);
+                    } else {
+                        data.error(resp);
+                    }
+                },
+                error(resp) {
+                    data.error(resp);
+                }
+            });
+        },
         login(context, data) {
             $.ajax({
                 url: url.url_login,

@@ -19,8 +19,9 @@
         <button type="submit" class="btn btn-primary">Login</button>
 
         <div class="input-con">
-           Do not have an account ?
-          <router-link :to="{name:'register_index'}"  class="link-primary" style="text-decoration: none">Sign up</router-link>
+          Do not have an account ?
+          <router-link :to="{name:'register_index'}" class="link-primary" style="text-decoration: none">Sign up
+          </router-link>
         </div>
       </form>
 
@@ -40,9 +41,7 @@ import {ref} from "vue";
 // import $ from 'jquery'
 export default {
   name: "LoginView",
-  components:{
-
-  },
+  components: {},
   setup() {
 
     const router = useRouter();
@@ -51,40 +50,35 @@ export default {
     let username = ref("");
     let password = ref("");
 
-    const login = () =>{
-      store.dispatch("login",{
-        username:username.value,
-        password:password.value,
+    const login = () => {
+      store.dispatch("login", {
+        username: username.value,
+        password: password.value,
 
         success() {
-          router.push({name:"home"});
+          router.push({name: "home"});
         },
-        error(resp){
+        error(resp) {
+          alert(resp.message)
           console.log(resp)
         },
       })
     };
+
 //  TODO:session没存貌似没用
-    // const getCurrent = ()=>{
-    //       $.ajax({
-    //         url:url.url_getCurrent,
-    //         type:"GET",
-    //         xhrFields: {
-    //           withCredentials: true
-    //         },
-    //         crossDomain: true,
-    //         success(resp){
-    //           if (resp.errorCode === "00000"){
-    //             router.push({name:"home"});
-    //           }
-    //         },
-    //         error(resp){
-    //           console.log(resp)
-    //         }
-    //       });
-    // };
-    //
-    // getCurrent();
+    const getCurrent = () => {
+      store.dispatch("current", {
+        success() {
+          router.push({name: "home"});
+        },
+        error(resp) {
+          console.log(resp)
+        },
+      })
+    };
+
+
+    getCurrent();
 
     return {
       Img,
@@ -98,17 +92,6 @@ export default {
 </script>
 
 <style scoped>
-
-/*容器div*/
-.container {
-  font-family: 'Roboto', sans-serif;
-  height: 100%;
-  width: 100%;
-  position: relative;
-  top: 0;
-  left: 0;
-
-}
 
 /*内容div*/
 .form-con {

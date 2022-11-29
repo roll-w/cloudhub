@@ -10,7 +10,7 @@ const routes = [
         name: "login_index",
         component: LoginView,  // 登录界面
         meta: {
-            title : "登录 | Cloudhub 对象存储系统"
+            title: "登录 | Cloudhub 对象存储系统"
         }
     },
     {
@@ -19,7 +19,7 @@ const routes = [
         redirect: 'hub',
         component: HomeView,
         meta: {
-            title : "主页 | Cloudhub 对象存储系统"
+            title: "主页 | Cloudhub 对象存储系统"
         },
         children: [
             {
@@ -30,17 +30,49 @@ const routes = [
             {
                 path: '/bucket/:bucket/objects',
                 name: 'object_list',
-                component: () =>import('@/views/file/ObjectsView'), // 文件列表
+                component: () => import('@/views/file/ObjectsView'), // 文件列表
                 meta: {
                     title: "对象列表 | Cloudhub 对象存储系统"
                 }
             },
             {
+                path: '/admin/bucket/:bucket/objects',
+                name: 'object_admin_list',
+                component: () => import('@/views/file/ObjectsView'), // 文件列表
+                meta: {
+                    title: "对象列表 | Cloudhub 对象存储系统"
+                }
+            },
+            {
+                path: '/bucket/:bucket/objects/:object',
+                name: 'object_info',
+                component: () => import('@/views/file/ObjectInfoView'), // 文件列表
+                meta: {
+                    title: "对象详情 | Cloudhub 对象存储系统"
+                }
+            },
+            {
+                path: '/admin/bucket/:bucket/objects/:object',
+                name: 'object_admin_info',
+                component: () => import('@/views/file/ObjectInfoView'), // 文件列表
+                meta: {
+                    title: "对象详情 | Cloudhub 对象存储系统"
+                }
+            },
+            {
                 path: '/bucket',
                 name: 'bucket_index',
-                component: ()=>import('@/views/bucket/BucketView'),  // 桶管理
+                component: () => import('@/views/bucket/BucketView'),  // 桶管理
                 meta: {
-                    title : "桶管理 | Cloudhub 对象存储系统"
+                    title: "桶管理 | Cloudhub 对象存储系统"
+                }
+            },
+            {
+                path: '/admin/bucket',
+                name: 'bucket_admin_index',
+                component: () => import('@/views/bucket/BucketAdminView'),  // 桶管理
+                meta: {
+                    title: "管理员桶管理 | Cloudhub 对象存储系统"
                 }
             },
             {
@@ -48,21 +80,24 @@ const routes = [
                 name: 'userList_index',
                 component: () => import('@/views/user/UserList'), // 用户列表
                 meta: {
-                    title : "用户管理 | Cloudhub 对象存储系统"
+                    title: "用户管理 | Cloudhub 对象存储系统"
                 }
             },
             {
-                path: '/metadataserver',
-                name: 'metadataserver_index',
-                component:  () =>import('@/views/server/MetadataServer'), // 元数据服务器
+                path: '/cluster',
+                name: 'cluster_index',
+                component: () => import('@/views/server/MetadataServer'), // 元数据服务器
                 meta: {
-                    title : "文件集群信息 | Cloudhub 对象存储系统"
+                    title: "文件集群信息 | Cloudhub 对象存储系统"
                 }
             },
             {
-                path: '/fileserver',
+                path: '/cluster/fs/:id',
                 name: 'fileserver_index',
-                component: () =>import('@/views/server/FileServer') // 文件服务器
+                component: () => import('@/views/server/FileServer'), // 文件服务器
+                meta: {
+                    title: "文件服务器信息 | Cloudhub 对象存储系统"
+                }
             },
         ]
     },
@@ -71,7 +106,7 @@ const routes = [
         name: "register_index",
         component: Register, // 注册界面
         meta: {
-            title : "注册 | Cloudhub 对象存储系统"
+            title: "注册 | Cloudhub 对象存储系统"
         }
     },
 
@@ -80,7 +115,7 @@ const routes = [
         name: '404',
         component: NotFound,// 404,
         meta: {
-            title : "404未找到资源 | Cloudhub 对象存储系统"
+            title: "404未找到资源 | Cloudhub 对象存储系统"
         }
     },
     {

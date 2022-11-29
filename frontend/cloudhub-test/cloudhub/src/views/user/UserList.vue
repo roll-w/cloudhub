@@ -1,29 +1,23 @@
 <template>
   <ContentBase>
-    <button type="button"  class="btn btn-light btn-primary" disabled >用户信息</button>
-    <form @submit.prevent="getUserByName">
-      <div class="input-group" style="width: 400px; margin-left: auto">
-        <input style="width: 200px" v-model="username" type="text" class="form-control" placeholder="搜索用户...">
-        <button class="btn btn-outline-primary" type="submit">查询</button>
+    <h3 class="mb-4">用户信息</h3>
+    <div class="d-flex flex-xl-row flex-grow-1">
+      <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#addUser">
+        创建用户
+      </button>
+      <div class="d-flex flex-fill justify-content-end">
+        <form @submit.prevent="getUserByName">
+          <div class="input-group">
+            <input v-model="name" type="text" class="form-control"
+                   placeholder="搜索用户......">
+            <button class="btn btn-outline-primary" type="submit">查询</button>
+          </div>
+        </form>
       </div>
-    </form>
-
-<!--    <div class="modal fade" id="SearchUser" tabindex="-1" >-->
-<!--      <div class="modal-dialog">-->
-<!--        <div class="modal-content">-->
-<!--          <div class="modal-header">-->
-<!--            <h5 class="modal-title" id="exampleModalLabel">创建</h5>-->
-<!--          </div>-->
-<!--          <div class="modal-body">-->
-<!--            测试弹框-->
-<!--          </div>-->
-<!--        </div>-->
-<!--      </div>-->
-<!--    </div>-->
-
+    </div>
 
     <hr>
-    <table class="table table-hover" style="text-align: center">
+    <table class="table table-hover text-center">
       <thead class="table-light">
       <tr>
         <th scope="col">id</th>
@@ -45,10 +39,10 @@
         <td>
           <div class="btn-group" role="group" aria-label="Basic outlined example">
             <button type="button"  class="btn btn-link" @click="deleteUserById(user)">删除</button>
+            <button type="button"  class="btn btn-link">修改</button>
           </div>
         </td>
       </tr>
-
       </tbody>
     </table>
   </ContentBase>

@@ -1,54 +1,53 @@
 <template>
   <ContentBase>
-    <div>
-      <button type="button" class="btn btn-outline-secondary" @click="back" style="margin-right: 8px">返回桶列表</button>
-      <div class="input-group" style="width: 400px;margin-left: auto ">
-        <form @submit.prevent="uploadObject" enctype="multipart/form-data">
-        <label for="formFile" class="form-label" >选择文件</label>
-        <input  class="form-control" type="file" id="formFile" @change="get"/>
-        <button type="submit" class="btn btn-link">上传文件</button>
-        </form>
+    <div class="mb-4 ms-2 d-flex flex-grow-1 flex-fill">
+      <h3>桶对象管理：{{ bucketName }} </h3>
+      <div class="d-flex flex-fill justify-content-end">
+        <button type="button" class="btn btn-outline-primary ms-2" @click="back">返回桶列表</button>
       </div>
+
     </div>
-    <hr style="margin-top: 10px">
-    <table class="table table-hover" style="text-align: center ">
+    <div class="input-group mt-5">
+      <form @submit.prevent="uploadObject" enctype="multipart/form-data">
+        <label for="formFile" class="form-label">选择文件</label>
+        <input class="form-control" type="file" id="formFile" @change="get"/>
+        <button type="submit" class="btn btn-link">上传文件</button>
+      </form>
+    </div>
+    <hr class="mt-2">
+    <table class="table table-hover text-center">
       <thead class="table-light">
       <tr>
-        <th scope="col">桶名称</th>
         <th scope="col">对象名称</th>
+        <th scope="col">最后修改日期</th>
         <th scope="col">操作</th>
         <th scope="col">详情信息</th>
       </tr>
       </thead>
-
       <tbody>
-
-      <tr v-for="file in obj" :key="file.createTime">
-        <th scope="row">{{ file.bucketName }}</th>
+      <tr v-for="file in obj" :key="file.objectName">
         <th scope="row">{{ file.objectName }}</th>
+        <th scope="row">{{ convertTimestamp(file.createTime) }}</th>
 
         <th scope="row">
-          <div class="d-grid gap-2 d-md-flex justify-content-center" role="group" aria-label="Basic outlined example">
-            <button type="button" class="btn btn-link">下载</button>
+          <div class="d-grid gap-2 d-md-flex justify-content-center" role="group">
+            <button type="button" class="btn btn-link" @click="open(file)">下载</button>
             <button type="button" class="btn btn-link">删除</button>
           </div>
         </th>
         <th scope="row">
-          <button type="button" class="btn btn-link" data-bs-toggle="modal" data-bs-target="#fileInfo">查看</button>
+          <button type="button" class="btn btn-link" @click="viewInfo(file)">查看</button>
         </th>
       </tr>
-
       </tbody>
     </table>
-    <!-- 查看文件详情信息: 为避免table的CSS样式影响该组件样式，将该组件放在table外-->
-    <ModalFileInfo></ModalFileInfo>
   </ContentBase>
 </template>
 
 <script>
 import ContentBase from "@/components/common/ContentBase";
-import ModalFileInfo from "@/components/modal/ModalFileInfo";
 import url from '@/store/api';
+import {convertTimestamp} from "@/util/time";
 import {useRouter} from "vue-router";
 import {ref} from "vue";
 import $ from 'jquery'
@@ -56,38 +55,43 @@ import $ from 'jquery'
 export default {
   name: "FileView",
   components: {
-    ContentBase,
-    ModalFileInfo
+    ContentBase
   },
   setup() {
 
     let obj = ref([]);
-    // let obj_upload =this.$refs.obj_upload.value;
-    // console.log(obj_upload)
-
-    const route = useRouter()
-    let bucketName = route.currentRoute.value.params.bucket
-    // console.log("Got bucketName=" + bucketName)
-
+    const router = useRouter()
+    let bucketName = router.currentRoute.value.params.bucket
+    const isAdminPage = () => {
+      return router.currentRoute.value.name === "object_admin_list";
+    }
     const back = () => {
-      route.push({name:"bucket_index"})
+      if (isAdminPage()) {
+        router.push({name: "bucket_admin_index"})
+      } else {
+        router.push({name: "bucket_index"})
+      }
     }
 
-    const getObject= () => {
+
+    const getObject = () => {
+      let realUrl = isAdminPage()
+          ? url.url_adminGetObjectByBucketName
+          : url.url_getObjectByBucketName
       $.ajax({
-        url:url.url_getObjectByBucketName,
+        url: realUrl,
         type: "get",
         xhrFields: {
           withCredentials: true
         },
         crossDomain: true,
-        data:{
-          bucketName:bucketName,
+        data: {
+          bucketName: bucketName,
         },
         success(resp) {
           obj.value = resp.data;
         },
-        error(resp){
+        error(resp) {
           console.log(resp)
         }
       });
@@ -97,43 +101,78 @@ export default {
 
     const objName = ref([]);
 
-    const get = (event)=>{
+    const get = (event) => {
       const files = event.target.files;
       objName.value = files[0];
       console.log(objName.value)
       console.log(objName.value.name);
     }
 
-    const uploadObject = ()=>{
+    const uploadObject = () => {
       let form = new FormData();
-      form.append("object",objName.value);
-
+      form.append("object", objName.value);
+      let realUrl = isAdminPage()
+          ? url.url_adminObjectV1
+          : url.url_objectV1
       $.ajax({
-        url:url.url_uploadObject/bucketName/objName.value.name,
+        url: realUrl / bucketName / objName.value.name,
         type: "PUT",
         xhrFields: {
           withCredentials: true
         },
         crossDomain: true,
         contentType: "multipart/form-data",
-        data:{
+        data: {
           form
         },
         success(resp) {
           console.log(resp);
           getObject();
         },
-        error(resp){
+        error(resp) {
           console.log(resp);
         }
       });
+    };
+
+    const open = (object) => {
+      if (isAdminPage()) {
+        window.open(url.url_adminObjectV1 + "/" + object.bucketName + object.objectName,
+            '_blank');
+        return
+      }
+      window.open(url.url_objectV1 + "/" + object.bucketName + object.objectName,
+          '_blank');
+    };
+
+    const viewInfo = (object) => {
+      if (isAdminPage()) {
+        router.push({
+          name: "object_admin_info",
+          params: {
+            bucket: object.bucketName,
+            object: object.objectName
+          }
+        })
+        return
+      }
+      router.push({
+        name: "object_info",
+        params: {
+          bucket: object.bucketName,
+          object: object.objectName
+        }
+      })
     };
 
     return {
       obj,
       back,
       get,
+      open,
+      viewInfo,
       bucketName,
+      convertTimestamp,
       uploadObject,
     }
   }
@@ -142,7 +181,7 @@ export default {
 </script>
 
 <style scoped>
-button{
+button {
   text-decoration: none;
   font-size: large;
 }

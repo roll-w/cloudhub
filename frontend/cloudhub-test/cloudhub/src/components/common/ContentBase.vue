@@ -1,11 +1,8 @@
 <template>
-  <!--  style="width: 1000px" -->
-  <div class="container content-field">
+  <div class="container mt-4">
     <div class="card">
       <div class="card-body">
-        <slot>
-
-        </slot>
+        <slot></slot>
       </div>
     </div>
   </div>
@@ -16,9 +13,3 @@ export default {
   name: "ContentBase"
 }
 </script>
-
-<style scoped>
-div.content-field{
-  margin-top: 30px;
-}
-</style>

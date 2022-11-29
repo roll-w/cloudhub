@@ -28,15 +28,12 @@ export default {
     })
 
     const renderChart = () => {
-      // 基于准备好的dom，初始化echarts实例
       const myChart = proxy.$echarts.init(myRef.value)
-
+      let value = ((Info.value.used / Info.value.total) * 100).toFixed(2);
       let datas = [{
-        //可以添加.toFixed（2）
-        "value":  (((Info.value.used) / (Info.value.total)) * 100),
+        "value":  value,
         "name": "内存"
       }]
-      // var colorList=['#C467FF','#2CAF70 ','#FFA23F','#625AFF','#4B8BFF'];
       let maxArr = (new Array(datas.length)).fill(100);
 
       // 指定图表的配置项和数据
@@ -55,9 +52,6 @@ export default {
           axisPointer: {
             type: 'none'
           },
-          // formatter: function(params) {
-          //   return params[0].name + ' : ' + params[0].value
-          // }
         },
         xAxis: {
           show: false,
@@ -96,7 +90,7 @@ export default {
           data: datas.map(item => item.value)
         }],
         series: [{
-          name: '值',
+          name: '已用百分比',
           type: 'bar',
           zlevel: 1,
           itemStyle: {
@@ -109,7 +103,7 @@ export default {
           data: datas
         },
           {
-            name: '背景',
+            name: '总量',
             type: 'bar',
             barWidth: 20,
             barGap: '-100%',

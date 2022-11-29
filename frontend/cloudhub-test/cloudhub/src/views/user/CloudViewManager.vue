@@ -167,6 +167,9 @@
 import ContentBase from "@/components/common/ContentBase";
 import Img from "@/assets/images/home.png"
 import NetWorkFlow from "@/components/echarts/network/NetWorkFlow";
+import {ref} from "vue";
+import $ from "jquery"
+import url from "@/store/api";
 
 export default {
   name: 'HomeView',
@@ -176,7 +179,26 @@ export default {
   },
 
   setup() {
-    let bucketNum = 3;
+    let bucketNum = ref(3);
+    const fetchBucketNum = () => {
+      $.ajax({
+        url: url.url_getBucketCount,
+        type: "get",
+        xhrFields: {
+          withCredentials: true
+        },
+        crossDomain: true,
+        success(resp) {
+          if (resp.errorCode === "00000") {
+            bucketNum.value = resp.data
+          }
+        },
+        error() {
+        }
+      });
+    }
+
+    fetchBucketNum()
     let objectNum = 6;
     let objectRequest = 10;
     let downServer = 0;

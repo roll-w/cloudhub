@@ -36,7 +36,7 @@ export default {
       // 指定图表的配置项和数据
       myChart.setOption({
         title: {
-          text: Math.floor(ratio) + '%',
+          text: "空闲率\n\n" + ratio + '%',
           x: 'center',
           y: 'center',
           textStyle: {
@@ -75,7 +75,7 @@ export default {
           hoverAnimation: false,
           data: [{
             value: ratio * 0.01,
-            name: '占比',
+            name: '空闲率',
             itemStyle: {
               normal: {
                 color: { // 颜色渐变

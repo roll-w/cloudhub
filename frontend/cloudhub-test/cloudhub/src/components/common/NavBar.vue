@@ -1,10 +1,12 @@
 <template>
-  <button class="navbar-toggler float-start bg-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#navSidebar"
+  <button class="navbar-toggler float-start bg-secondary" type="button" data-bs-toggle="collapse"
+          data-bs-target="#navSidebar"
           aria-expanded="false" aria-controls="navSidebar">
     <span class="navbar-toggler-icon"></span>
   </button>
   <div class="collapse collapse-horizontal show" id="navSidebar">
-    <nav class="d-flex flex-grow-0 flex-column flex-shrink-0 p-4 bg-light border-end border-1 h-100" data-bs-scroll="true"
+    <nav class="d-flex flex-grow-0 flex-column flex-shrink-0 p-4 bg-light border-end border-1 h-100"
+         data-bs-scroll="true"
          data-bs-backdrop="false" tabindex="-1">
       <h2>
         <router-link class="d-flex align-items-center mb-3 mb-md-0 me-md-auto link-dark text-decoration-none"
@@ -14,24 +16,28 @@
       <hr>
       <ul class="nav nav-pills flex-column mb-auto">
         <li>
-          <router-link :class="route_name === 'cloudhub_index' ? 'navbar-active' :'nav-link link-dark' "
+          <router-link :class="route_name === 'cloudhub_index' ? 'nav-link active' : 'nav-link link-dark' "
                        :to="{name:'cloudhub_index'}">总览
           </router-link>
         </li>
         <li>
-          <router-link :class="route_name === 'bucket_index' ? 'nav-link active' :'nav-link link-dark' "
+          <router-link :class="route_name === 'bucket_index' ? 'nav-link active' : 'nav-link link-dark' "
                        :to="{name:'bucket_index'}">桶管理
           </router-link>
         </li>
         <li v-if="is_ADMIN()">
-          <router-link :class="route_name === 'userList_index' ? 'nav-link active' :'nav-link link-dark' "
+          <router-link :class="route_name === 'bucket_admin_index' ? 'nav-link active' : 'nav-link link-dark' "
+                       :to="{name:'bucket_admin_index'}">管理员桶管理
+          </router-link>
+        </li>
+        <li v-if="is_ADMIN()">
+          <router-link :class="route_name === 'userList_index' ? 'nav-link active' : 'nav-link link-dark' "
                        :to="{name:'userList_index'}">用户管理
           </router-link>
         </li>
-
         <li>
-          <router-link :class="route_name === 'metadataserver_index' ? 'nav-link active' :'nav-link link-dark' "
-                       :to="{name:'metadataserver_index'}">文件集群信息
+          <router-link :class="route_name === 'cluster_index' ? 'nav-link active' : 'nav-link link-dark' "
+                       :to="{name:'cluster_index'}">文件集群信息
           </router-link>
         </li>
       </ul>
@@ -57,6 +63,8 @@
 import {useRoute} from 'vue-router'
 import {computed} from "vue";
 import {useStore} from "vuex";
+import $ from "jquery";
+import url from "@/store/api";
 
 export default {
   name: "NavBar",
@@ -65,7 +73,7 @@ export default {
     const store = useStore();
     // eslint-disable-next-line
     let route_name = computed(() => {
-      route.name
+      return route.name
     });
 
     const logout = () => {
@@ -75,6 +83,27 @@ export default {
     const is_ADMIN = () => {
       return store.state.user.role === "ADMIN";
     };
+
+    const checkState = () => {
+      $.ajax({
+        url: url.url_getCurrent,
+        type: "get",
+        xhrFields: {
+          withCredentials: true
+        },
+        crossDomain: true,
+        success(resp) {
+          if (resp.errorCode !== "00000") {
+            logout()
+          }
+        },
+        error() {
+          logout()
+        }
+      });
+    };
+
+    checkState()
 
     return {
       route_name,

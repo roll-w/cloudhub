@@ -18,13 +18,16 @@ export default {
       renderChart() // 生命周期挂载函数渲染图表
     })
 
+    const fetchNet = () => {
+
+    }
+    fetchNet()
     const renderChart = () => {
       // 基于准备好的dom，初始化echarts实例
       const myChart = proxy.$echarts.init(myRef.value)
 
-
       // 一次展示的数据的条数
-      let arrLen = 10;
+      let arrLen = 20;
 
       // 网络的接收速率与发送速率
       let receive = [];
@@ -138,6 +141,7 @@ export default {
                   },
                 },
               },
+              smooth: true,
               data: receive,
             },
             {
@@ -155,6 +159,7 @@ export default {
                   },
                 },
               },
+              smooth: true,
               data: send,
             }
 

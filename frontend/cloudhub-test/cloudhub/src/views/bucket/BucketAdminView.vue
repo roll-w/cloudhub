@@ -1,8 +1,7 @@
 <template>
   <ContentBase>
 
-    <!--// TODO: 创建modal  -->
-    <h3 class="mb-4">桶信息</h3>
+    <h3 class="mb-4">管理员桶信息</h3>
     <div class="d-flex flex-xl-row flex-grow-1">
       <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#addBucket">
         创建桶
@@ -22,6 +21,7 @@
       <thead class="table-light">
       <tr>
         <th scope="col">名称</th>
+        <th scope="col">从属用户ID</th>
         <th scope="col">策略</th>
         <th scope="col">详情</th>
         <th scope="col">编辑</th>
@@ -31,6 +31,7 @@
       <tbody>
       <tr v-for="bucket in buckets" :key="bucket.name">
         <td>{{ bucket.name }}</td>
+        <td>{{ bucket.userId }}</td>
         <td>{{ convertBucketVis(bucket.bucketVisibility) }}</td>
         <td>
           <div class="btn-group" role="group">
@@ -71,6 +72,10 @@
                 </div>
                 <label for="name" class="form-label">名称:</label>
                 <input type="text" v-model="bucketName" class="form-control" id="name" placeholder="桶名称">
+              </div>
+              <div class="mb-3">
+                <label for="name" class="form-label">设置从属用户ID：</label>
+                <input type="number" v-model="userId" class="form-control" id="name" placeholder="用户ID">
               </div>
               <div class="pb-3 form-floating">
                 <select class="form-select" id="bucket-vis-select" v-model="visibility">
@@ -134,7 +139,7 @@ import $ from 'jquery'
 import url from '@/store/api'
 
 export default {
-  name: "BucketView",
+  name: "BucketAdminView",
   components: {
     ContentBase,
   },
@@ -143,6 +148,7 @@ export default {
     //接口
     const buckets = ref([]);
     const bucketName = ref([]);
+    const userId = ref([]);
     const visibility = ref([]);
     const name = ref([]);
     const router = useRouter();
@@ -158,7 +164,7 @@ export default {
 
     const checkFile = (bucket) => {
       router.push({
-        name: 'object_list',
+        name: 'object_admin_list',
         params: {
           bucket: bucket.name
         }
@@ -166,29 +172,28 @@ export default {
     };
 
     const getBucket = () => {
-      $.ajax({
-        url: url.url_getBucket,
-        type: "GET",
-        xhrFields: {
-          withCredentials: true // 携带跨域cookie  //单个设置
-        },
-        crossDomain: true,
-        success(resp) {
-          buckets.value = resp.data;
-        },
-        error(resp) {
-          console.log(resp)
+        $.ajax({
+          url: url.url_adminGetBucket,
+          type: "GET",
+          xhrFields: {
+            withCredentials: true // 携带跨域cookie  //单个设置
+          },
+          crossDomain: true,
+          success(resp) {
+            buckets.value = resp.data;
+          },
+          error(resp) {
+            console.log(resp)
 
-        }
-      });
+          }
+        });
     };
 
     getBucket();
 
-    //TODO：删除某个桶
     const deleteBucket = (bucket) => {
       $.ajax({
-        url: url.url_deleteBucket,
+        url: url.url_adminDeleteBucket,
         xhrFields: {
           withCredentials: true // 携带跨域cookie  //单个设置
         },
@@ -212,7 +217,7 @@ export default {
     //TODO：创建桶
     const addBucket = () => {
       $.ajax({
-        url: url.url_addBucket,
+        url: url.url_adminAddBucket,
         type: "PUT",
         xhrFields: {
           withCredentials: true // 携带跨域cookie  //单个设置
@@ -251,7 +256,7 @@ export default {
 
     const settingVisibility = () => {
       $.ajax({
-        url: url.url_settingVisibility,
+        url: url.url_adminSettingVisibility,
         type: "POST",
         xhrFields: {
           withCredentials: true // 携带跨域cookie  //单个设置
@@ -259,6 +264,7 @@ export default {
         crossDomain: true,
         contentType: "application/json;charset=UTF-8",
         data: JSON.stringify({
+          userId: userId.value,
           bucketName: bucketName.value,
           visibility: visibility.value,
         }),
@@ -276,7 +282,7 @@ export default {
 
     const getBucketByName = () => {
       $.ajax({
-        url: url.url_getBucketByName,
+        url: url.url_adminGetBucketByName,
         xhrFields: {
           withCredentials: true
         },
@@ -302,6 +308,7 @@ export default {
       buckets,
       name,
       bucketName,
+      userId,
       visibility,
       bucketVisibilityModel,
       convertBucketVis,
