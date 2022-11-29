@@ -53,6 +53,20 @@ public class ObjectAdminDetailsController {
         return HttpResponseEntity.success(vos);
     }
 
+    @GetMapping("/get/detail")
+    public HttpResponseEntity<ObjectInfoVo> getObjectDetail(
+            HttpServletRequest request,
+            @RequestParam String bucketName,
+            @RequestParam String objectName) {
+        var res = ValidateHelper.validateUserAdmin(request, userGetter);
+        if (res != null) {
+            return HttpResponseEntity.create(res.toResponseBody(data -> null));
+        }
+        ObjectInfoVo vo = ObjectInfoVo.from(
+                objectService.getObjectInBucket(bucketName, objectName));
+        return HttpResponseEntity.success(vo);
+    }
+
     @GetMapping("/metadata/get")
     public HttpResponseEntity<Map<String, String>> getObjectMetadata(HttpServletRequest request,
                                                                      String bucketName,

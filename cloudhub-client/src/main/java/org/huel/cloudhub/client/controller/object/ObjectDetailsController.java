@@ -62,6 +62,25 @@ public class ObjectDetailsController {
         return HttpResponseEntity.success(vos);
     }
 
+    @GetMapping("/get/detail")
+    public HttpResponseEntity<ObjectInfoVo> getObjectDetail(
+            HttpServletRequest request,
+            @RequestParam String bucketName,
+            @RequestParam String objectName) {
+        UserInfo userInfo = userGetter.getCurrentUser(request);
+        if (userInfo == null) {
+            return HttpResponseEntity.failure("User not login.",
+                    ErrorCode.ERROR_USER_NOT_LOGIN);
+        }
+        if (!bucketAuthService.isOwnerOf(userInfo, bucketName)) {
+            return HttpResponseEntity.failure("Not permitted.",
+                    ErrorCode.ERROR_PERMISSION_NOT_ALLOWED);
+        }
+        ObjectInfoVo vo = ObjectInfoVo.from(
+                objectService.getObjectInBucket(bucketName, objectName));
+        return HttpResponseEntity.success(vo);
+    }
+
     @GetMapping("/metadata/get")
     public HttpResponseEntity<Map<String, String>> getObjectMetadata(HttpServletRequest request,
                                                                      String bucketName,
