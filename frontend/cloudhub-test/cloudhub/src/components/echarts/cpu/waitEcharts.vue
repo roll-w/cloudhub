@@ -6,7 +6,7 @@
 </template>
 
 <script>
-import {ref, onMounted, getCurrentInstance, toRefs} from 'vue'
+import {ref, getCurrentInstance, toRefs, watch} from 'vue'
 
 export default {
   name: "waitEcharts",
@@ -21,10 +21,10 @@ export default {
     const myRef = ref(null) // 获取dom实例
 
     const {Info} = toRefs(props)
-
-    onMounted(() => {
-      renderChart() // 生命周期挂载函数渲染图表
+    watch(Info, async () => {
+      renderChart()
     })
+
 
     const renderChart = () => {
       // 基于准备好的dom，初始化echarts实例

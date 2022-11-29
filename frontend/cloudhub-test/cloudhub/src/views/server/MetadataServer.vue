@@ -82,46 +82,46 @@
           </div>
         </ContentBase>
       </div>
-      <div class="row" >
-          <div class="col-4 h-100">
-            <ContentBase>
-              <div>JVM</div>
-              <hr>
-              <div class="col">
-                <div class="row">
-                  <div class="col">
-                    total (MB)
-                  </div>
-                  <div class="col">
-                    {{ (meta.jvm.total / (1024 * 1024.0)).toFixed(2) }}
-                  </div>
+      <div class="row">
+        <div class="col-4 h-100">
+          <ContentBase>
+            <div>JVM</div>
+            <hr>
+            <div class="col">
+              <div class="row">
+                <div class="col">
+                  total (MB)
                 </div>
-                <div class="row">
-                  <div class="col">
-                    max (MB)
-                  </div>
-                  <div class="col">
-                    {{ (meta.jvm.max / (1024 * 1024.0)).toFixed(2) }}
-                  </div>
-                </div>
-                <div class="row">
-                  <div class="col">
-                    free (MB)
-                  </div>
-                  <div class="col">
-                    {{ (meta.jvm.free / (1024 * 1024.0)).toFixed(2) }}
-                  </div>
-                </div>
-                <div class="row">
-                  <div class="col">
-                    used (byte)
-                  </div>
-                  <div class="col">
-                    {{ (meta.jvm.used / (1024 * 1024.0)).toFixed(2) }}
-                  </div>
+                <div class="col">
+                  {{ (meta.jvm.total / (1024 * 1024.0)).toFixed(2) }}
                 </div>
               </div>
-            </ContentBase>
+              <div class="row">
+                <div class="col">
+                  max (MB)
+                </div>
+                <div class="col">
+                  {{ (meta.jvm.max / (1024 * 1024.0)).toFixed(2) }}
+                </div>
+              </div>
+              <div class="row">
+                <div class="col">
+                  free (MB)
+                </div>
+                <div class="col">
+                  {{ (meta.jvm.free / (1024 * 1024.0)).toFixed(2) }}
+                </div>
+              </div>
+              <div class="row">
+                <div class="col">
+                  used (byte)
+                </div>
+                <div class="col">
+                  {{ (meta.jvm.used / (1024 * 1024.0)).toFixed(2) }}
+                </div>
+              </div>
+            </div>
+          </ContentBase>
         </div>
         <div class="col-4">
           <ContentBase>
@@ -178,7 +178,7 @@
                   used (MB)
                 </div>
                 <div class="col">
-                  {{ ((meta.disk.total - meta.disk.free)  / (1024 * 1024.0)).toFixed(2) }}
+                  {{ ((meta.disk.total - meta.disk.free) / (1024 * 1024.0)).toFixed(2) }}
                 </div>
               </div>
               <div class="row">
@@ -374,12 +374,14 @@ export default {
     const servers = ref([])
 
     const meta = reactive({
-      cpu: "",
-      jvm: "",
-      mem: "",
-      disk: "",
-      net: "",
-      env: "",
+      cpu: {
+        free: null
+      },
+      jvm: {},
+      mem: {},
+      disk: {},
+      net: {},
+      env: {},
     })
 
     //获取元数据服务器信息

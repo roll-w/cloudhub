@@ -100,7 +100,7 @@
           </div>
           <div class="modal-body">
 
-            <form @submit.prevent="settingVisibility">
+            <form @submit.prevent="prevent">
               <div class="pb-3 form-floating">
                 <input type="text" v-model="bucketName" hidden>
                 <select class="form-select" id="bucket-vis-select" v-model="visibility">
@@ -113,7 +113,9 @@
               <div class="modal-footer">
                 <div class="btn-group">
                   <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">取消</button>
-                  <button type="submit" class="btn btn-primary">确认</button>
+                  <button type="submit" class="btn btn-primary" data-bs-dismiss="modal" @click="settingVisibility">
+                    确认
+                  </button>
                 </div>
               </div>
             </form>
@@ -151,8 +153,7 @@ export default {
     onMounted(() => {
       bucketVisibilityModel.value.addEventListener("show.bs.modal", (event) => {
         const button = event.relatedTarget
-        let readBucketName = button.getAttribute("data-cfs-bucket-name")
-        bucketName.value = readBucketName
+        bucketName.value = button.getAttribute("data-cfs-bucket-name")
       })
     });
 
@@ -178,7 +179,6 @@ export default {
         },
         error(resp) {
           console.log(resp)
-
         }
       });
     };
@@ -249,6 +249,9 @@ export default {
       return name
     }
 
+    const prevent = () => {
+    }
+
     const settingVisibility = () => {
       $.ajax({
         url: url.url_settingVisibility,
@@ -264,7 +267,6 @@ export default {
         }),
         success(resp) {
           if (resp.errorCode === "00000") {
-            Modal.getInstance("#bucketAuthority").hide();
             getBucket()
           }
         },
@@ -309,6 +311,7 @@ export default {
       getBucketByName,
       deleteBucket,
       addBucket,
+      prevent,
       settingVisibility,
     }
   }

@@ -6,7 +6,7 @@
 </template>
 
 <script>
-import {ref, onMounted, getCurrentInstance, toRefs} from 'vue'
+import {ref, getCurrentInstance, toRefs, watch} from 'vue'
 
 export default {
   name: "freeEcharts",
@@ -21,9 +21,8 @@ export default {
     const myRef = ref(null) // 获取dom实例
 
     const {Info} = toRefs(props)
-
-    onMounted(() => {
-      renderChart() // 生命周期挂载函数渲染图表
+    watch(Info, async () => {
+      renderChart()
     })
 
     const renderChart = () => {
@@ -32,7 +31,6 @@ export default {
 
       // 空闲率,单位: %
       let ratio = Info.value.free
-
       // 指定图表的配置项和数据
       myChart.setOption({
         title: {
