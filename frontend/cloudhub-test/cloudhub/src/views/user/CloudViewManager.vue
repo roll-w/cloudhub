@@ -154,9 +154,11 @@
         </div>
       </div>
       <div class="col">
+
         <NetWorkFlow style="width: 600px;height: 350px">
 
         </NetWorkFlow>
+
       </div>
     </div>
   </ContentBase>
