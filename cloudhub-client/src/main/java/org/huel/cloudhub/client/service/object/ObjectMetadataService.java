@@ -10,7 +10,7 @@ import java.util.Map;
  */
 public interface ObjectMetadataService {
     MessagePackage<Void> addObjectMetadataWithCheck(String bucketName, String objectName,
-                                           Map<String, String> metadata);
+                                                    Map<String, String> metadata);
 
     MessagePackage<Void> addObjectMetadata(String bucketName, String objectName,
                                            Map<String, String> metadata);

@@ -5,7 +5,6 @@ import org.huel.cloudhub.client.data.database.dao.BucketDao;
 import org.huel.cloudhub.client.data.database.dao.FileObjectStorageDao;
 import org.huel.cloudhub.client.data.dto.bucket.BucketInfo;
 import org.huel.cloudhub.client.data.entity.bucket.Bucket;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -27,7 +26,6 @@ public class BucketRepository {
         return bucketDao.getBucketNameByName(name) != null;
     }
 
-    @Async //异步方法
     public void save(Bucket bucket) {
         insertOrUpdate(bucket);
     }

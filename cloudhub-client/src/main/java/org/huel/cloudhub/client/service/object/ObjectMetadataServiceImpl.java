@@ -35,12 +35,17 @@ public class ObjectMetadataServiceImpl implements ObjectMetadataService,
             logger.debug("Object not exist");
             return new MessagePackage<>(ErrorCode.ERROR_DATA_NOT_EXIST, null);
         }
-        return addObjectMetadata(bucketName, objectName, metadata);
+        return tryAddObjectMetadata(bucketName, objectName, metadata, false);
     }
 
     @Override
     public MessagePackage<Void> addObjectMetadata(String bucketName, String objectName,
                                                   Map<String, String> metadata) {
+        return tryAddObjectMetadata(bucketName, objectName, metadata, true);
+    }
+
+    private MessagePackage<Void> tryAddObjectMetadata(String bucketName, String objectName,
+                                                      Map<String, String> metadata, boolean force) {
         ObjectMetadata objectMetadata = objectMetadataRepository.getByObjectName(bucketName, objectName);
         if (objectMetadata == null) {
             logger.debug("Insert with new metadata, bucket={};object={};metadata={}", bucketName, objectName, metadata);
@@ -48,7 +53,7 @@ public class ObjectMetadataServiceImpl implements ObjectMetadataService,
             objectMetadataRepository.insert(newMetadata);
             return new MessagePackage<>(ErrorCode.SUCCESS, null);
         }
-        objectMetadata.addAll(metadata);
+        objectMetadata.addAll(metadata, force);
         objectMetadataRepository.update(objectMetadata);
         return new MessagePackage<>(ErrorCode.SUCCESS, null);
     }

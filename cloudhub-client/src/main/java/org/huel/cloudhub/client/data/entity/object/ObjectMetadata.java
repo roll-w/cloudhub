@@ -59,11 +59,19 @@ public class ObjectMetadata {
     }
 
     public void addAll(Map<String, String> metadata) {
+        addAll(metadata, false);
+    }
+
+    public void addAll(Map<String, String> metadata, boolean force) {
         if (metadata == null) {
             return;
         }
         if (this.metadata == null || this.metadata.isEmpty()) {
             this.metadata = new HashMap<>();
+        }
+        if (force) {
+            metadata.forEach(this::forcePutData);
+            return;
         }
         metadata.forEach(this::putData);
     }
@@ -76,6 +84,10 @@ public class ObjectMetadata {
         if (ObjectMetadataHeaders.getUnmodifiableHeaders().contains(k)) {
             return;
         }
+        metadata.put(k, v);
+    }
+
+    private void forcePutData(String k, String v) {
         metadata.put(k, v);
     }
 
