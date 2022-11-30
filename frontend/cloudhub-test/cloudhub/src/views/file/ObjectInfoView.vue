@@ -27,35 +27,82 @@
         <div class="col">{{ convertTimestamp(object.createTime) }}</div>
       </div>
     </div>
-    <div class="d-flex flex-grow-1 w-100 flex-fill">
-      <h4 class="mb-2 ms-2">元数据信息</h4>
-      <div class="d-flex flex-fill justify-content-end">
-        <button class="btn btn-outline-primary align-self-end">添加元数据</button>
+    <ul class="nav nav-tabs" id="infoTab">
+      <li class="nav-item" >
+        <button class="nav-link active" id="meta-tab"
+                data-bs-toggle="tab" data-bs-target="#meta-tab-pane"
+                type="button" role="tab" aria-controls="meta-tab-pane"
+                aria-selected="true">元数据信息</button>
+      </li>
+      <li class="nav-item" >
+        <button class="nav-link" id="version-tab"
+                data-bs-toggle="tab" data-bs-target="#version-tab-pane"
+                type="button" role="tab" aria-controls="version-tab-pane"
+                aria-selected="true">版本信息</button>
+      </li>
+    </ul>
+    <div class="tab-content mt-3">
+      <div class="tab-pane fade show active" id="meta-tab-pane">
+        <div class="d-flex flex-grow-1 w-100 flex-fill">
+          <h4 class="mb-2 ms-2">元数据信息</h4>
+          <div class="d-flex flex-fill justify-content-end">
+            <button class="btn btn-outline-primary align-self-end">添加元数据</button>
+          </div>
+        </div>
+        <hr>
+        <table class="table table-hover text-center">
+          <thead class="table-light">
+          <tr>
+            <th scope="col">名称</th>
+            <th scope="col">值</th>
+            <th scope="col">操作</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr v-for="meta in metadata" :key="meta.name">
+            <th scope="row">{{ meta.name }}</th>
+            <th scope="row">{{ meta.value }}</th>
+            <th>
+              <div class="d-grid gap-2 d-md-flex justify-content-center" role="group">
+                <button type="button" class="btn btn-link text-decoration-none">修改</button>
+                <button type="button" class="btn btn-link text-decoration-none">移除</button>
+              </div>
+            </th>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="tab-pane fade" id="version-tab-pane">
+        <div class="d-flex flex-grow-1 w-100 flex-fill">
+          <h4 class="mb-2 ms-2">版本信息</h4>
+        </div>
+        <hr>
+        <table class="table table-hover text-center">
+          <thead class="table-light">
+          <tr>
+            <th scope="col">版本号</th>
+            <th scope="col">创建时间</th>
+            <th scope="col">操作</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr v-for="object in versioned" :key="object.version">
+            <th scope="row">{{ object.version }}</th>
+            <th scope="row">{{ convertTimestamp(object.lastModified) }}</th>
+            <th>
+              <div class="d-grid gap-2 d-md-flex justify-content-center" role="group">
+                <button type="button" class="btn btn-link text-decoration-none">回退</button>
+                <button type="button" class="btn btn-link text-decoration-none">移除</button>
+              </div>
+            </th>
+          </tr>
+          </tbody>
+        </table>
       </div>
     </div>
 
-    <hr>
-    <table class="table table-hover text-center">
-      <thead class="table-light">
-      <tr>
-        <th scope="col">名称</th>
-        <th scope="col">值</th>
-        <th scope="col">操作</th>
-      </tr>
-      </thead>
-      <tbody>
-      <tr v-for="meta in metadata" :key="meta.name">
-        <th scope="row">{{ meta.name }}</th>
-        <th scope="row">{{ meta.value }}</th>
-        <th>
-          <div class="d-grid gap-2 d-md-flex justify-content-center" role="group">
-            <button type="button" class="btn  btn-link text-decoration-none">修改</button>
-            <button type="button" class="btn  btn-link text-decoration-none">移除</button>
-          </div>
-        </th>
-      </tr>
-      </tbody>
-    </table>
+
   </ContentBase>
 
 
@@ -82,6 +129,7 @@ export default {
     const bucketName = router.currentRoute.value.params.bucket
     const object = ref({})
     const metadata = ref({})
+    const versioned = ref({})
     const getObjectInfo = () => {
       let realUrl = isAdminPage()
           ? url.url_adminGetObjectDetail
@@ -106,6 +154,7 @@ export default {
         }
       })
     }
+
     const getMetadata = () => {
       let realUrl = isAdminPage()
           ? url.url_adminGetObjectMetadata
@@ -135,8 +184,35 @@ export default {
       })
     }
 
+    const getVersioned = () => {
+      let realUrl = isAdminPage()
+          ? url.url_adminGetVersionedObjects
+          : url.url_getVersionedObjects
+      $.ajax({
+        url: realUrl,
+        type: "get",
+        data: {
+          bucketName: bucketName,
+          objectName: objectName
+        },
+        xhrFields: {
+          withCredentials: true
+        },
+        crossDomain: true,
+        success(resp) {
+          if (resp.errorCode === "00000") {
+            versioned.value = resp.data
+          }
+        },
+        error() {
+        }
+      })
+    }
+
     getMetadata()
     getObjectInfo()
+    getVersioned()
+
     const back = () => {
       if (isAdminPage()) {
         router.push({
@@ -159,6 +235,7 @@ export default {
       bucketName,
       metadata,
       object,
+      versioned,
       convertTimestamp,
       back
     }

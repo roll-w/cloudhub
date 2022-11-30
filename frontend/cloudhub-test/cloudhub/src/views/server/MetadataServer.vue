@@ -258,13 +258,13 @@
           </thead>
 
           <tbody>
-          <tr v-for="server in servers" :key="server.serverId">
+          <tr v-for="server in servers" :key="server.id">
             <!--            <th scope="row">{{ server.serverId }}</th>-->
-            <th scope="row">{{ server.serverIp }}</th>
-            <th scope="row"></th>
+            <th scope="row">{{ server.address }}</th>
+            <th scope="row">{{ server.state }}</th>
             <th scope="row">
               <div class="d-grid gap-2 d-md-flex justify-content-center">
-                <button type="button" class="btn btn-link">
+                <button type="button" class="btn btn-link text-decoration-none" @click="toFileServerInfo(server)">
                   运行状态
                 </button>
               </div>
@@ -293,6 +293,7 @@ import $ from "jquery";
 import url from "@/store/api";
 import {ref} from "vue";
 import {reactive} from "vue";
+import {useRouter} from "vue-router";
 
 export default {
   name: "FileView",
@@ -308,7 +309,7 @@ export default {
     waitEcharts,
   },
   setup() {
-
+    const router = useRouter()
     // 从接口获取数据
     const data = ref({
       // CPU 返回使用率的百分比
@@ -415,6 +416,50 @@ export default {
       })
     };
 
+    const toFileServerInfo = (server) => {
+      router.push({
+        name: "fs_index", params: {
+          id: server.serverId
+        }
+      })
+    }
+
+    const getServers = () => {
+      $.ajax({
+        url: url.url_servers,
+        type: "GET",
+        data: {
+          serverId: "meta"
+        },
+        xhrFields: {
+          withCredentials: true
+        },
+        crossDomain: true,
+        success(resp) {
+          if (resp.errorCode === "00000") {
+            console.log(resp)
+            let serversTemp = []
+            serversTemp = serversTemp.concat(resp.data.activeServers.map(server => ({
+              address: server.address,
+              state: "活动",
+              serverId: server.serverId
+            })))
+            serversTemp = serversTemp.concat(resp.data.deadServers.map(server => ({
+              address: server.address,
+              state: "宕机",
+              serverId: server.serverId
+            })))
+            console.log(serversTemp)
+            servers.value = serversTemp
+          }
+        },
+        error() {
+          console.log("Server获取失败")
+        }
+      })
+    }
+
+    getServers();
     getNet();
 
 
@@ -428,6 +473,7 @@ export default {
       memory,
       disk,
       meta,
+      toFileServerInfo
     }
   }
 }

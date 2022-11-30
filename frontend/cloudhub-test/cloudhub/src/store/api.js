@@ -30,15 +30,18 @@ const url_getUserByName = server + "/api/admin/user/get";
 const url_getObjectByBucketName = server + "/api/object/get";
 const url_getObjectDetail = server + "/api/object/get/detail";
 const url_getObjectMetadata = server + "/api/object/metadata/get";
+const url_getVersionedObjects = server + "/api/object/version/get";
 const url_objectV1 = server + "/api/object/v1"
 
 const url_adminGetObjectByBucketName = server + "/api/admin/object/get";
 const url_adminGetObjectDetail = server + "/api/admin/object/get/detail";
 const url_adminGetObjectMetadata = server + "/api/admin/object/metadata/get";
+const url_adminGetVersionedObjects = server + "/api/admin/object/version/get";
 const url_adminObjectV1 = server + "/api/admin/object/v1"
 
 //元数据服务器信息serverId=meta
 const url_metaServer = server + "/api/admin/status/server/get"
+const url_servers = server + "/api/admin/status/connected"
 
 export default {
     url_login,
@@ -67,6 +70,9 @@ export default {
     url_getUserByName,
     url_getObjectByBucketName,
     url_objectV1,
+    url_adminGetVersionedObjects,
+    url_getVersionedObjects,
     url_metaServer,
+    url_servers,
 }
 

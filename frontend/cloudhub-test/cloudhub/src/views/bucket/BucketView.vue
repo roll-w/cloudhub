@@ -24,7 +24,7 @@
         <th scope="col">名称</th>
         <th scope="col">策略</th>
         <th scope="col">详情</th>
-        <th scope="col">编辑</th>
+        <th scope="col">操作</th>
       </tr>
       </thead>
 
@@ -61,7 +61,7 @@
           </div>
           <div class="modal-body">
 
-            <form @submit.prevent="addBucket">
+            <form @submit.prevent="prevent">
 
               <div class="mb-3">
                 <div class="alert alert-primary" role="alert">
@@ -81,9 +81,10 @@
                 <label for="name" class="form-label">设置桶策略：</label>
               </div>
               <div class="modal-footer">
-                <button style="margin-right: 5px" type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消
-                </button>
-                <button type="submit" class="btn btn-primary">添加</button>
+                <div class="btn-group">
+                  <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">取消</button>
+                  <button type="submit" class="btn btn-primary" data-bs-dismiss="modal" @click="addBucket">添加</button>
+                </div>
               </div>
             </form>
           </div>
@@ -131,7 +132,7 @@
 import ContentBase from "@/components/common/ContentBase";
 import {Modal} from 'bootstrap/dist/js/bootstrap'
 import {useRouter} from 'vue-router'
-import {onMounted, ref} from 'vue';
+import {computed, onMounted, reactive, ref} from 'vue';
 import $ from 'jquery'
 import url from '@/store/api'
 
@@ -175,7 +176,7 @@ export default {
         },
         crossDomain: true,
         success(resp) {
-          buckets.value = resp.data;
+          buckets.value = resp.data
         },
         error(resp) {
           console.log(resp)
@@ -225,7 +226,6 @@ export default {
         }),
         success(resp) {
           if (resp.errorCode === "00000") {
-            Modal.getInstance("#addBucket").hide();
             bucketName.value = null;
             visibility.value = null;
             getBucket()

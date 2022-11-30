@@ -3,6 +3,11 @@ import NotFound from "@/views/error/NotFound";
 import LoginView from "@/views/user/LoginView";
 import Register from "@/views/user/Register";
 import HomeView from "@/views/HomeView";
+import store from "@/store/index"
+
+const isAdmin = () => {
+    return store.state.user.role === "ADMIN";
+};
 
 const routes = [
     {
@@ -71,9 +76,14 @@ const routes = [
                 path: '/admin/bucket',
                 name: 'bucket_admin_index',
                 component: () => import('@/views/bucket/BucketAdminView'),  // 桶管理
+                beforeEnter: () => {
+                    return isAdmin;
+
+                },
                 meta: {
                     title: "管理员桶管理 | Cloudhub 对象存储系统"
-                }
+                },
+
             },
             {
                 path: '/user',
@@ -93,7 +103,7 @@ const routes = [
             },
             {
                 path: '/cluster/fs/:id',
-                name: 'fileserver_index',
+                name: 'fs_index',
                 component: () => import('@/views/server/FileServer'), // 文件服务器
                 meta: {
                     title: "文件服务器信息 | Cloudhub 对象存储系统"

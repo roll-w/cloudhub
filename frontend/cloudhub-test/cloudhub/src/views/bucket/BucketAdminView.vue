@@ -61,9 +61,7 @@
             <h5 class="modal-title" id="exampleModalLabel">创建</h5>
           </div>
           <div class="modal-body">
-
             <form @submit.prevent="addBucket">
-
               <div class="mb-3">
                 <div class="alert alert-primary" role="alert">
                   桶名称只能包含英文字母、数字和连接符（-）。
@@ -86,9 +84,10 @@
                 <label for="name" class="form-label">设置桶策略：</label>
               </div>
               <div class="modal-footer">
-                <button style="margin-right: 5px" type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消
-                </button>
-                <button type="submit" class="btn btn-primary">添加</button>
+                <div class="btn-group">
+                  <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">取消</button>
+                  <button type="submit" class="btn btn-primary" data-bs-dismiss="modal">添加</button>
+                </div>
               </div>
             </form>
           </div>
@@ -157,8 +156,7 @@ export default {
     onMounted(() => {
       bucketVisibilityModel.value.addEventListener("show.bs.modal", (event) => {
         const button = event.relatedTarget
-        let readBucketName = button.getAttribute("data-cfs-bucket-name")
-        bucketName.value = readBucketName
+        bucketName.value = button.getAttribute("data-cfs-bucket-name")
       })
     });
 
@@ -264,7 +262,7 @@ export default {
         crossDomain: true,
         contentType: "application/json;charset=UTF-8",
         data: JSON.stringify({
-          userId: userId.value,
+          userId: userId.value[0],
           bucketName: bucketName.value,
           visibility: visibility.value,
         }),
@@ -294,7 +292,6 @@ export default {
         success(resp) {
           if (resp.errorCode === "00000") {
             name.value = null;
-            alert("Name: " + resp.data.name + " Email: " + resp.data.bucketVisibility)
           }
         },
         error(resp) {
