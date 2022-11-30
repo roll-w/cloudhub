@@ -244,14 +244,12 @@
 
     <!-- 已连接文件服务器信息 -->
     <div class="row">
-      <!--      <ContentBase style="width: 1000px">-->
       <ContentBase>
-
         <table class="table table-hover">
           <thead class="table-light">
           <tr>
-            <!--            <th scope="col">服务器ID</th>-->
-            <th scope="col">服务器IP地址</th>
+            <th scope="col">ID</th>
+            <th scope="col">服务器地址</th>
             <th scope="col">服务器状态</th>
             <th scope="col">详情信息</th>
           </tr>
@@ -259,7 +257,7 @@
 
           <tbody>
           <tr v-for="server in servers" :key="server.id">
-            <!--            <th scope="row">{{ server.serverId }}</th>-->
+            <th scope="row">{{ server.serverId }}</th>
             <th scope="row">{{ server.address }}</th>
             <th scope="row">{{ server.state }}</th>
             <th scope="row">

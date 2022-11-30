@@ -104,7 +104,7 @@ const routes = [
             {
                 path: '/cluster/fs/:id',
                 name: 'fs_index',
-                component: () => import('@/views/server/FileServer'), // 文件服务器
+                component: () => import('@/views/server/FileServerInfo'), // 文件服务器
                 meta: {
                     title: "文件服务器信息 | Cloudhub 对象存储系统"
                 }

@@ -101,11 +101,7 @@
         </table>
       </div>
     </div>
-
-
   </ContentBase>
-
-
 </template>
 
 <script>
