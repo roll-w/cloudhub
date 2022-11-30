@@ -28,17 +28,19 @@
       </div>
     </div>
     <ul class="nav nav-tabs" id="infoTab">
-      <li class="nav-item" >
+      <li class="nav-item">
         <button class="nav-link active" id="meta-tab"
                 data-bs-toggle="tab" data-bs-target="#meta-tab-pane"
                 type="button" role="tab" aria-controls="meta-tab-pane"
-                aria-selected="true">元数据信息</button>
+                aria-selected="true">元数据信息
+        </button>
       </li>
-      <li class="nav-item" >
+      <li class="nav-item">
         <button class="nav-link" id="version-tab"
                 data-bs-toggle="tab" data-bs-target="#version-tab-pane"
                 type="button" role="tab" aria-controls="version-tab-pane"
-                aria-selected="true">版本信息</button>
+                aria-selected="true">版本信息
+        </button>
       </li>
     </ul>
     <div class="tab-content mt-3">
