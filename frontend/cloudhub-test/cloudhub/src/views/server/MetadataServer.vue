@@ -85,9 +85,10 @@
       <div class="row">
         <div class="col-4 h-100">
           <ContentBase>
-            <div>JVM</div>
+            <div style="margin-bottom: 0">JVM</div>
+
             <hr>
-            <div class="col">
+            <div class="col" style="margin-top: 0">
               <div class="row">
                 <div class="col">
                   total (MB)
@@ -96,14 +97,14 @@
                   {{ (meta.jvm.total / (1024 * 1024.0)).toFixed(2) }}
                 </div>
               </div>
-              <div class="row">
-                <div class="col">
-                  max (MB)
-                </div>
-                <div class="col">
-                  {{ (meta.jvm.max / (1024 * 1024.0)).toFixed(2) }}
-                </div>
-              </div>
+<!--              <div class="row">-->
+<!--                <div class="col">-->
+<!--                  max (MB)-->
+<!--                </div>-->
+<!--                <div class="col">-->
+<!--                  {{ (meta.jvm.max / (1024 * 1024.0)).toFixed(2) }}-->
+<!--                </div>-->
+<!--              </div>-->
               <div class="row">
                 <div class="col">
                   free (MB)
@@ -119,6 +120,10 @@
                 <div class="col">
                   {{ (meta.jvm.used / (1024 * 1024.0)).toFixed(2) }}
                 </div>
+              </div>
+              <div class="row" style="margin-top: 0">
+                <!-- 展示内存使用率 -->
+                <JvmEcharts :Info="meta.jvm" style="width: 500px; height: 80px"></JvmEcharts>
               </div>
             </div>
           </ContentBase>
@@ -292,10 +297,12 @@ import url from "@/store/api";
 import {ref} from "vue";
 import {reactive} from "vue";
 import {useRouter} from "vue-router";
+import JvmEcharts from "@/components/echarts/storage/JvmEcharts";
 
 export default {
   name: "FileView",
   components: {
+    JvmEcharts,
     PieEchartsBase,
     CategoryEchartsBase,
     ContentBase,

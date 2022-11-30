@@ -42,7 +42,9 @@ const url_adminObjectV1 = server + "/api/admin/object/v1"
 //元数据服务器信息serverId=meta
 const url_metaServer = server + "/api/admin/status/server/get"
 const url_servers = server + "/api/admin/status/connected"
-
+const url_getIO = server + "/api/admin/status/server/get/net"
+const url_getServer = server + "/api/admin/status/connected"
+const url_getWR = server + "/api/admin/status/server/get/disk"
 export default {
     url_login,
     url_register,
@@ -74,5 +76,8 @@ export default {
     url_getVersionedObjects,
     url_metaServer,
     url_servers,
+    url_getIO,
+    url_getServer,
+    url_getWR,
 }
 

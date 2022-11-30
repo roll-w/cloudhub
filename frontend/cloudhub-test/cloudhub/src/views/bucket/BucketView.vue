@@ -130,9 +130,9 @@
 
 <script>
 import ContentBase from "@/components/common/ContentBase";
-import {Modal} from 'bootstrap/dist/js/bootstrap'
+
 import {useRouter} from 'vue-router'
-import {computed, onMounted, reactive, ref} from 'vue';
+import { onMounted, ref} from 'vue';
 import $ from 'jquery'
 import url from '@/store/api'
 

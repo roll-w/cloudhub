@@ -113,10 +113,9 @@ export default {
         function addData(shift) {
           x.push(0);
 
-          for (let i = 0;i<10;i++){
-            receive.push(demo1[i]);     // ######## 从接口获取数据
-            send.push(demo2[i]);
-          }
+            receive.push(demo1[1]);     // ######## 从接口获取数据
+            send.push(demo2[1]);
+
                  // ######## 从接口获取数据
 
           if (shift) {
@@ -167,6 +166,8 @@ export default {
 
           ]
         });
+
+          getIO();
       }, 1000); // 定时器
     }
 
@@ -210,13 +211,11 @@ export default {
         success(resp){
           if (resp.errorCode === "00000") {
 
-              for (let i=0; i < 50;i++){
+              for (let i=0; i < 2;i++){
                 demo1[i] = resp.data[i].recv
                 demo2[i] = resp.data[i].sent
               }
-              console.log(demo1)
-              console.log(demo2)
-            console.log(resp.data)
+
           }
         },
         error(resp){
@@ -225,7 +224,7 @@ export default {
       })
     }
 
-    getIO();
+
 
 
     return {

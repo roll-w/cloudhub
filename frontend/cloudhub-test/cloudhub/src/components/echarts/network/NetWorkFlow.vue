@@ -7,7 +7,9 @@
 </template>
 
 <script>
-import {ref, onMounted, getCurrentInstance} from 'vue'
+import {ref, onMounted, getCurrentInstance, reactive} from 'vue'
+import $ from "jquery";
+import url from "@/store/api";
 // import $ from "jquery";
 // import url from "@/store/api";
 // import {useStore} from "vuex";
@@ -113,7 +115,7 @@ export default {
         function addData(shift) {
           x.push(0);
 
-          netFlow.push((Math.random()*10).toFixed(2));     // ######## 从接口获取数据
+          netFlow.push(demo[0]);     // ######## 从接口获取数据
 
           if (shift) {
             x.shift();  // 移除数组的首个元素
@@ -142,11 +144,61 @@ export default {
             }
           ]
         });
+
+        getIO();
       }, 1000); // 定时器
     }
 
-// const store = useStore();
-//   const net = ref([]);
+    let demo = [null];
+    const server = reactive({
+      serverId:"",
+    })
+    const getServerId = ()=>{
+      $.ajax({
+        url:url.url_getServer,
+        type:"GET",
+        xhrFields: {
+          withCredentials: true
+        },
+        crossDomain: true,
+        success(resp){
+          if (resp.errorCode === "00000") {
+            server.serverId = resp.data.activeServers[0].serverId
+          }
+        },
+        error(resp){
+          console.log(resp)
+        }
+      })
+    }
+    getServerId();
+
+    const getIO = ()=>{
+      $.ajax({
+        url:url.url_getIO,
+        type:"GET",
+        xhrFields: {
+          withCredentials: true
+        },
+        data:{
+          serverId:server.serverId,
+        },
+        crossDomain: true,
+        success(resp){
+          if (resp.errorCode === "00000") {
+
+            for (let i=0; i < 2;i++){
+              demo[i] = resp.data[i].recv
+
+            }
+
+          }
+        },
+        error(resp){
+          console.log(resp)
+        }
+      })
+    }
 
 
     return {

@@ -6,7 +6,9 @@
 </template>
 
 <script>
-import {ref, onMounted, getCurrentInstance} from 'vue'
+import {ref, onMounted, getCurrentInstance, reactive} from 'vue'
+import $ from "jquery";
+import url from "@/store/api";
 
 export default {
   name: "StorageIO",
@@ -27,14 +29,12 @@ export default {
       let arrLen = 10;
 
       // 内存的写入速率;磁盘的写入速率;磁盘的读速率
-      let memWrite = [];
       let diskRead = [];
       let diskWrite = [];
       let x = []; // x 轴
 
       // 一次展示 10 条数据
       for (let i = 0; i < arrLen; i++){
-        memWrite.push(0);
         diskWrite.push(0);
         diskRead.push(0);
         x.push(0);
@@ -113,13 +113,15 @@ export default {
         function addData(shift) {
           x.push(0);
 
-          memWrite.push(Math.random().toFixed(2))      // ####### 从接口获取数据
-          diskRead.push(Math.random().toFixed(2));        // ######## 从接口获取数据
-          diskWrite.push(Math.random().toFixed(2));     // ######## 从接口获取数据
+          // free.push(Math.random().toFixed(2))      // ####### 从接口获取数据
+          // diskRead.push(Math.random().toFixed(2));        // ######## 从接口获取数据
+          // diskWrite.push(Math.random().toFixed(2));     // ######## 从接口获取数据
+
+          diskRead.push(demo2[0])
+          diskWrite.push(demo3[0])
 
           if (shift) {
             x.shift();  // 移除数组的首个元素
-            memWrite.shift()
             diskRead.shift();
             diskWrite.shift();
           }
@@ -127,23 +129,6 @@ export default {
         addData(true);
         myChart.setOption({
           series: [
-            {
-              name: '内存写入',
-              type: 'line',
-              itemStyle: {
-                normal: {
-                  color: 'rgba(253,222,9,1)',
-                  lineStyle: {
-                    color: 'rgba(253,222,9,1)',
-                    width: 1,
-                  },
-                  areaStyle: {
-                    color: '#F9E79F'
-                  },
-                },
-              },
-              data: memWrite,
-            },
             {
               name: '磁盘读出',
               type: 'line',
@@ -180,8 +165,63 @@ export default {
             },
           ]
         });
+
+        getWR();
       }, 1000); // 定时器
     }
+
+    const server = reactive({
+      serverId:"",
+    })
+    const getServerId = ()=>{
+      $.ajax({
+        url:url.url_getServer,
+        type:"GET",
+        xhrFields: {
+          withCredentials: true
+        },
+        crossDomain: true,
+        success(resp){
+          if (resp.errorCode === "00000") {
+            server.serverId = resp.data.activeServers[0].serverId
+          }
+        },
+        error(resp){
+          console.log(resp)
+        }
+      })
+    }
+    getServerId();
+
+    let demo2 = [null];
+    let demo3 = [null];
+
+    const getWR = ()=>{
+      $.ajax({
+        url:url.url_getWR,
+        type:"GET",
+        xhrFields: {
+          withCredentials: true
+        },
+        data:{
+          serverId:server.serverId,
+        },
+        crossDomain: true,
+        success(resp){
+          if (resp.errorCode === "00000") {
+            for (let i=0; i < 2;i++){
+              demo2[0] = resp.data[1].read
+              demo2[0] = resp.data[1].write
+              console.log(resp.data[0])
+            }
+
+          }
+        },
+        error(resp){
+          console.log(resp)
+        }
+      })
+    };
 
     return {
       myRef,

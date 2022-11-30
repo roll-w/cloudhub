@@ -11,8 +11,6 @@
 
 <script>
 import ContentBase from "@/components/common/ContentBase";
-import url from "@/store/api"
-import {ref} from "vue";
 import {useRouter} from "vue-router";
 
 export default {
