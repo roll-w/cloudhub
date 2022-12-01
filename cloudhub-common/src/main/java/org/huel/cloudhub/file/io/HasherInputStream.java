@@ -38,7 +38,7 @@ public class HasherInputStream extends FilterInputStream implements HasherStream
 
     @Override
     public int read(byte[] b) throws IOException {
-        int r = super.read(b);
+        int r = in.read(b);
 
         if (r == -1) {
             return r;
@@ -50,7 +50,7 @@ public class HasherInputStream extends FilterInputStream implements HasherStream
 
     @Override
     public int read(byte[] b, int off, int len) throws IOException {
-        int r = super.read(b, off, len);
+        int r = in.read(b, off, len);
         if (r == -1) {
             return r;
         }
