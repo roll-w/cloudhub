@@ -54,6 +54,6 @@ public abstract class FileObjectStorageDao {
     @Query("SELECT 1 FROM file_object_storage_table WHERE bucket_name = {bucketName} AND object_name = {objectName}")
     public abstract Integer getBucketHasObject(String bucketName, String objectName);
 
-    @Query("SELECT COUNT(*) FROM user_buckets_table")
+    @Query("SELECT COUNT(*) FROM file_object_storage_table")
     public abstract int getObjectCount();
 }

@@ -194,6 +194,11 @@ public class ObjectServiceImpl implements ObjectService, ObjectRemoveHandler {
         return repository.isObjectExist(objectInfo.bucketName(), objectInfo.objectName());
     }
 
+    @Override
+    public int getObjectsCount() {
+        return repository.getAllObjectsCount();
+    }
+
 
     private void validateObjectInfo(ObjectInfo objectInfo) {
         Validate.notNull(objectInfo, "ObjectInfo cannot be null");

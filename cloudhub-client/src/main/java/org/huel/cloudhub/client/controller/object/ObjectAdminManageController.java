@@ -130,4 +130,16 @@ public class ObjectAdminManageController {
                 res.toResponseBody(ObjectInfoVo::from));
     }
 
+    @GetMapping("/stat/count")
+    public HttpResponseEntity<Integer> getCount(
+            HttpServletRequest request) {
+        var validateMessage =
+                ValidateHelper.validateUserAdmin(request, userGetter);
+        if (validateMessage != null) {
+            return HttpResponseEntity.create(
+                    validateMessage.toResponseBody(d -> null));
+        }
+        return HttpResponseEntity.success(objectService.getObjectsCount());
+    }
+
 }
