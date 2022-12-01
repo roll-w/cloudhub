@@ -6,19 +6,29 @@
 </template>
 
 <script>
-import {ref, onMounted, getCurrentInstance, reactive} from 'vue'
+import {ref, getCurrentInstance, reactive, onMounted} from 'vue'
 import url from '@/store/api'
 import $ from 'jquery'
+
 export default {
   name: "ReceiveAndSend",
-  setup() {
+  props: {
+    server: {
+      type: String,
+      required: true
+    }
+  },
+  setup(props) {
     const {proxy} = getCurrentInstance() // 获取全局配置项
     const myRef = ref(null) // 获取dom实例
 
-    onMounted(() => {
-      renderChart() // 生命周期挂载函数渲染图表
+    const server = reactive({
+      serverId: props.server,
     })
 
+    onMounted(() => {
+      renderChart()
+    })
 
     const renderChart = () => {
       // 基于准备好的dom，初始化echarts实例
@@ -171,28 +181,6 @@ export default {
       }, 1000); // 定时器
     }
 
-    const server = reactive({
-      serverId:"",
-    })
-    const getServerId = ()=>{
-      $.ajax({
-        url:url.url_getServer,
-        type:"GET",
-        xhrFields: {
-          withCredentials: true
-        },
-        crossDomain: true,
-        success(resp){
-          if (resp.errorCode === "00000") {
-              server.serverId = resp.data.activeServers[0].serverId
-          }
-        },
-        error(resp){
-          console.log(resp)
-        }
-      })
-    }
-    getServerId();
 
     let demo1 = [null];
     let demo2 = [null];
@@ -205,17 +193,15 @@ export default {
           withCredentials: true
         },
         data:{
-          serverId:server.serverId,
+          serverId: server.serverId,
         },
         crossDomain: true,
         success(resp){
           if (resp.errorCode === "00000") {
-
               for (let i=0; i < 2;i++){
                 demo1[i] = resp.data[i].recv
                 demo2[i] = resp.data[i].sent
               }
-
           }
         },
         error(resp){

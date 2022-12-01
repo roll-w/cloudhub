@@ -12,9 +12,19 @@ import url from "@/store/api";
 
 export default {
   name: "StorageIO",
-  setup() {
+  props: {
+    server: {
+      type: String,
+      required: true
+    }
+  },
+  setup(props) {
     const {proxy} = getCurrentInstance() // 获取全局配置项
     const myRef = ref(null) // 获取dom实例
+
+    const server = reactive({
+      serverId: props.server,
+    })
 
     onMounted(() => {
       renderChart() // 生命周期挂载函数渲染图表
@@ -34,7 +44,7 @@ export default {
       let x = []; // x 轴
 
       // 一次展示 10 条数据
-      for (let i = 0; i < arrLen; i++){
+      for (let i = 0; i < arrLen; i++) {
         diskWrite.push(0);
         diskRead.push(0);
         x.push(0);
@@ -60,7 +70,7 @@ export default {
           left: '2%',
         },
         legend: {
-          data: ['内存写入','磁盘读出', '磁盘写入'],
+          data: ['内存写入', '磁盘读出', '磁盘写入'],
           textStyle: {
             align: 'right',
           },
@@ -110,13 +120,8 @@ export default {
       })
       setInterval(function () {
         // 删除数组的首个元素,再数组尾部添加新的元素(实现从右向左动态更新的视觉效果)
-        function addData(shift) {
+        function addData(demo2, demo3, shift) {
           x.push(0);
-
-          // free.push(Math.random().toFixed(2))      // ####### 从接口获取数据
-          // diskRead.push(Math.random().toFixed(2));        // ######## 从接口获取数据
-          // diskWrite.push(Math.random().toFixed(2));     // ######## 从接口获取数据
-
           diskRead.push(demo2[0])
           diskWrite.push(demo3[0])
 
@@ -126,7 +131,7 @@ export default {
             diskWrite.shift();
           }
         }
-        addData(true);
+
         myChart.setOption({
           series: [
             {
@@ -166,58 +171,35 @@ export default {
           ]
         });
 
-        getWR();
+        getWR(addData);
       }, 1000); // 定时器
     }
-
-    const server = reactive({
-      serverId:"",
-    })
-    const getServerId = ()=>{
-      $.ajax({
-        url:url.url_getServer,
-        type:"GET",
-        xhrFields: {
-          withCredentials: true
-        },
-        crossDomain: true,
-        success(resp){
-          if (resp.errorCode === "00000") {
-            server.serverId = resp.data.activeServers[0].serverId
-          }
-        },
-        error(resp){
-          console.log(resp)
-        }
-      })
-    }
-    getServerId();
 
     let demo2 = [null];
     let demo3 = [null];
 
-    const getWR = ()=>{
+    const getWR = (addData) => {
       $.ajax({
-        url:url.url_getWR,
-        type:"GET",
+        url: url.url_getWR,
+        type: "GET",
         xhrFields: {
           withCredentials: true
         },
-        data:{
-          serverId:server.serverId,
+        data: {
+          serverId: server.serverId,
         },
         crossDomain: true,
-        success(resp){
+        success(resp) {
           if (resp.errorCode === "00000") {
-            for (let i=0; i < 2;i++){
-              demo2[0] = resp.data[1].read
-              demo2[0] = resp.data[1].write
-              console.log(resp.data[0])
+            for (let i = 0; i < 2; i++) {
+              demo2[0] = resp.data[0].read
+              demo3[0] = resp.data[0].write
+              addData(demo2, demo3, true)
             }
 
           }
         },
-        error(resp){
+        error(resp) {
           console.log(resp)
         }
       })

@@ -10,47 +10,11 @@
                 <div class="col">
                   <div class="row">
                     <h5>
-                      欢迎，User！
+                      欢迎，{{ store.state.user.username }}！
                     </h5>
                   </div>
                   <br>
                   <br>
-
-                  <!--                  <div class="row">-->
-                  <!--                    <div class="container">-->
-                  <!--                      <div class="row">-->
-                  <!--                        <div class="col">-->
-                  <!--                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"-->
-                  <!--                               class="bi bi-arrow-down-up" viewBox="0 0 16 16" style="color: #66acff">-->
-                  <!--                            <path fill-rule="evenodd"-->
-                  <!--                                  d="M11.5 15a.5.5 0 0 0 .5-.5V2.707l3.146 3.147a.5.5 0 0 0 .708-.708l-4-4a.5.5 0 0 0-.708 0l-4 4a.5.5 0 1 0 .708.708L11 2.707V14.5a.5.5 0 0 0 .5.5zm-7-14a.5.5 0 0 1 .5.5v11.793l3.146-3.147a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 0 1 .708-.708L4 13.293V1.5a.5.5 0 0 1 .5-.5z"/>-->
-                  <!--                          </svg>-->
-                  <!--                          <span style="font-size: 2px">今日流量(123321)</span>-->
-                  <!--                        </div>-->
-                  <!--                        <div class="col">-->
-                  <!--                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"-->
-                  <!--                               class="bi bi-people-fill" viewBox="0 0 16 16" style="color: #66acff">-->
-                  <!--                            <path d="M7 14s-1 0-1-1 1-4 5-4 5 3 5 4-1 1-1 1H7zm4-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>-->
-                  <!--                            <path fill-rule="evenodd"-->
-                  <!--                                  d="M5.216 14A2.238 2.238 0 0 1 5 13c0-1.355.68-2.75 1.936-3.72A6.325 6.325 0 0 0 5 9c-4 0-5 3-5 4s1 1 1 1h4.216z"/>-->
-                  <!--                            <path d="M4.5 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z"/>-->
-                  <!--                          </svg>-->
-                  <!--                          <span style="font-size: 2px">用户总数(12)</span>-->
-                  <!--                        </div>-->
-                  <!--                        <div class="col">-->
-                  <!--                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"-->
-                  <!--                               class="bi bi-chat-dots" viewBox="0 0 16 16" style="color: #66acff">-->
-                  <!--                            <path-->
-                  <!--                                d="M5 8a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm4 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm3 1a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"/>-->
-                  <!--                            <path-->
-                  <!--                                d="m2.165 15.803.02-.004c1.83-.363 2.948-.842 3.468-1.105A9.06 9.06 0 0 0 8 15c4.418 0 8-3.134 8-7s-3.582-7-8-7-8 3.134-8 7c0 1.76.743 3.37 1.97 4.6a10.437 10.437 0 0 1-.524 2.318l-.003.011a10.722 10.722 0 0 1-.244.637c-.079.186.074.394.273.362a21.673 21.673 0 0 0 .693-.125zm.8-3.108a1 1 0 0 0-.287-.801C1.618 10.83 1 9.468 1 8c0-3.192 3.004-6 7-6s7 2.808 7 6c0 3.193-3.004 6-7 6a8.06 8.06 0 0 1-2.088-.272 1 1 0 0 0-.711.074c-.387.196-1.24.57-2.634.893a10.97 10.97 0 0 0 .398-2z"/>-->
-                  <!--                          </svg>-->
-                  <!--                          <span style="font-size: 2px">好评率(99%)</span>-->
-                  <!--                        </div>-->
-                  <!--                      </div>-->
-                  <!--                    </div>-->
-                  <!--                  </div>-->
-                  <!--                  <br>-->
                   <div class="row">
                     <span>项目概述: <a href="https://gitee.com/rollw/cloudhub" class="link-primary">https://gitee.com/rollw/cloudhub</a></span>
                   </div>
@@ -172,6 +136,7 @@ import NetWorkFlow from "@/components/echarts/network/NetWorkFlow";
 import {ref} from "vue";
 import $ from "jquery"
 import url from "@/store/api";
+import {useStore} from "vuex";
 
 export default {
   name: 'HomeView',
@@ -181,7 +146,15 @@ export default {
   },
 
   setup() {
-    let bucketNum = ref(3);
+    const store = useStore()
+    const bucketNum = ref();
+    const objectNum = ref();
+    const objectRequest = ref();
+    const downServer = ref();
+    const runningServer = ref();
+    const runTime = ref();
+
+
     const fetchBucketNum = () => {
       $.ajax({
         url: url.url_getBucketCount,
@@ -200,15 +173,89 @@ export default {
       });
     }
 
+    const fetchObjectNum = () => {
+      $.ajax({
+        url: url.url_getObjectCount,
+        type: "get",
+        xhrFields: {
+          withCredentials: true
+        },
+        crossDomain: true,
+        success(resp) {
+          if (resp.errorCode === "00000") {
+            objectNum.value = resp.data
+          }
+        },
+        error() {
+        }
+      });
+    }
+
+    const fetchRequest = () => {
+      $.ajax({
+        url: url.url_getRequestCount,
+        type: "get",
+        xhrFields: {
+          withCredentials: true
+        },
+        crossDomain: true,
+        success(resp) {
+          if (resp.errorCode === "00000") {
+            objectRequest.value = resp.data
+          }
+        },
+        error() {
+        }
+      });
+    }
+
+    const fetchServers = () => {
+      $.ajax({
+        url: url.url_getServer,
+        type: "get",
+        xhrFields: {
+          withCredentials: true
+        },
+        crossDomain: true,
+        success(resp) {
+          if (resp.errorCode === "00000") {
+            runningServer.value = resp.data.activeServers.length
+            downServer.value = resp.data.deadServers.length
+          }
+        },
+        error() {
+        }
+      });
+    }
+
+    const fetchRunTime = () => {
+      $.ajax({
+        url: url.url_getRunTime,
+        type: "get",
+        xhrFields: {
+          withCredentials: true
+        },
+        crossDomain: true,
+        success(resp) {
+          if (resp.errorCode === "00000") {
+            runTime.value = resp.data
+          }
+        },
+        error() {
+        }
+      });
+    }
+
     fetchBucketNum()
-    let objectNum = 6;
-    let objectRequest = 10;
-    let downServer = 0;
-    let runningServer = 3;
-    let runTime = 22;
+    fetchObjectNum()
+    fetchRequest()
+    fetchServers()
+    fetchRunTime()
+
 
     return {
       Img,
+      store,
       bucketNum,
       objectNum,
       objectRequest,

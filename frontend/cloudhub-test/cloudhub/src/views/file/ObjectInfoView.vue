@@ -95,7 +95,7 @@
             <th>
               <div class="d-grid gap-2 d-md-flex justify-content-center" role="group">
                 <button type="button" class="btn btn-link text-decoration-none">回退</button>
-                <button type="button" class="btn btn-link text-decoration-none">移除</button>
+                <button type="button" class="btn btn-link text-decoration-none">删除</button>
               </div>
             </th>
           </tr>

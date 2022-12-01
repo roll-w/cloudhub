@@ -85,32 +85,16 @@
       <div class="row">
         <div class="col-4 h-100">
           <ContentBase>
-            <div style="margin-bottom: 0">JVM</div>
+            <div>JVM</div>
 
             <hr>
             <div class="col" style="margin-top: 0">
               <div class="row">
                 <div class="col">
-                  total (MB)
+                  max (MB)
                 </div>
                 <div class="col">
-                  {{ (meta.jvm.total / (1024 * 1024.0)).toFixed(2) }}
-                </div>
-              </div>
-<!--              <div class="row">-->
-<!--                <div class="col">-->
-<!--                  max (MB)-->
-<!--                </div>-->
-<!--                <div class="col">-->
-<!--                  {{ (meta.jvm.max / (1024 * 1024.0)).toFixed(2) }}-->
-<!--                </div>-->
-<!--              </div>-->
-              <div class="row">
-                <div class="col">
-                  free (MB)
-                </div>
-                <div class="col">
-                  {{ (meta.jvm.free / (1024 * 1024.0)).toFixed(2) }}
+                  {{ (meta.jvm.max / (1024 * 1024.0)).toFixed(2) }}
                 </div>
               </div>
               <div class="row">
@@ -121,7 +105,16 @@
                   {{ (meta.jvm.used / (1024 * 1024.0)).toFixed(2) }}
                 </div>
               </div>
-              <div class="row" style="margin-top: 0">
+              <div class="row">
+                <div class="col">
+                  free (MB)
+                </div>
+                <div class="col">
+                  {{ (meta.jvm.free / (1024 * 1024.0)).toFixed(2) }}
+                </div>
+              </div>
+
+              <div class="row" >
                 <!-- 展示内存使用率 -->
                 <JvmEcharts :Info="meta.jvm" style="width: 500px; height: 80px"></JvmEcharts>
               </div>
@@ -235,13 +228,11 @@
         <div class="row">
           <div class="col">
             <!-- 网络IO -->
-            <!--            <span class="font-two">网络IO速率</span>-->
-            <ReceiveAndSend class="net"></ReceiveAndSend>
+            <ReceiveAndSend server="meta" class="w-100 vh-50"></ReceiveAndSend>
           </div>
           <div class="col">
             <!-- 存储器IO -->
-            <!--            <span class="font-two">存储器IO速率</span>-->
-            <StorageIO class="net"></StorageIO>
+            <StorageIO server="meta" class="w-100 vh-50"></StorageIO>
           </div>
         </div>
       </ContentBase>

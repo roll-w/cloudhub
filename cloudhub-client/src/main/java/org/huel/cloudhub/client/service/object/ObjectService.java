@@ -32,4 +32,6 @@ public interface ObjectService {
     MessagePackage<ObjectInfoDto> renameObject(ObjectInfo oldInfo, String newName);
 
     boolean isObjectExist(ObjectInfo objectInfo);
+
+    int getObjectsCount();
 }
