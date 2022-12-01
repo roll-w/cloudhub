@@ -258,7 +258,8 @@
             <th scope="row">{{ server.state }}</th>
             <th scope="row">
               <div class="d-grid gap-2 d-md-flex justify-content-center">
-                <button type="button" class="btn btn-link text-decoration-none" @click="toFileServerInfo(server)">
+                <button type="button" class="btn btn-link text-decoration-none" :disabled="!server.active"
+                        @click="toFileServerInfo(server)">
                   运行状态
                 </button>
               </div>
@@ -438,12 +439,14 @@ export default {
             serversTemp = serversTemp.concat(resp.data.activeServers.map(server => ({
               address: server.address,
               state: "活动",
-              serverId: server.serverId
+              serverId: server.serverId,
+              active: true
             })))
             serversTemp = serversTemp.concat(resp.data.deadServers.map(server => ({
               address: server.address,
               state: "宕机",
-              serverId: server.serverId
+              serverId: server.serverId,
+              active: false
             })))
             console.log(serversTemp)
             servers.value = serversTemp
