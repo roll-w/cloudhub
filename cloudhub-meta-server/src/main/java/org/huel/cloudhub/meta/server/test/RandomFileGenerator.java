@@ -1,17 +1,18 @@
 package org.huel.cloudhub.meta.server.test;
 
-import org.apache.commons.lang3.RandomStringUtils;
-
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
+import java.io.OutputStream;
+import java.util.Random;
 
 /**
  * @author RollW
  */
 public class RandomFileGenerator {
+    private static final int BUFFER_SIZE = 1024 * 1024;
+
     private final File file;
     private final int sizeInMb;
     private final int addBytes;
@@ -26,18 +27,27 @@ public class RandomFileGenerator {
         this.addBytes = addBytes;
     }
 
+    private static final Random RANDOM = new Random();
+
     public void generate() throws IOException {
         file.createNewFile();
-        BufferedOutputStream outputStream = new BufferedOutputStream(
-                new FileOutputStream(file, false));
-        for (int i = 0; i < sizeInMb; i++) {
-            outputStream.write(RandomStringUtils.randomAlphanumeric(1024 * 1024)
-                    .getBytes(StandardCharsets.UTF_8));
+        OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(file, false));
+        write(sizeInMb, outputStream);
+        if (addBytes > 0) {
+            byte[] data = new byte[addBytes];
+            RANDOM.nextBytes(data);
+            outputStream.write(data);
             outputStream.flush();
         }
-        outputStream.write(RandomStringUtils.randomAlphanumeric(addBytes)
-                .getBytes(StandardCharsets.UTF_8));
-        outputStream.flush();
         outputStream.close();
+    }
+
+    private void write(int size, OutputStream outputStream) throws IOException {
+        for (int i = 0; i < size; i++) {
+            byte[] data = new byte[BUFFER_SIZE];
+            RANDOM.nextBytes(data);
+            outputStream.write(data);
+        }
+        outputStream.flush();
     }
 }
