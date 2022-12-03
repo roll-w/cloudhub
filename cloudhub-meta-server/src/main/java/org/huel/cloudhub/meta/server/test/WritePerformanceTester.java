@@ -51,6 +51,7 @@ public class WritePerformanceTester {
     public void startWriteTest() throws IOException {
         logger.info("Start write test with cases={};dataSize={}", testCases, dataSize);
         for (int i = 1; i <= testCases; i++) {
+            logger.debug("Now writing file index={}", i);
             recordNext(i);
         }
         printResult();

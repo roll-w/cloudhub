@@ -11,6 +11,8 @@ import org.huel.cloudhub.meta.server.service.file.FileDownloadService;
 import org.huel.cloudhub.meta.server.service.file.FileDownloadingException;
 import org.huel.cloudhub.meta.server.service.file.FileUploadService;
 import org.huel.cloudhub.meta.server.service.file.FileUploadStatusDataCallback;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -39,6 +41,8 @@ public class ReadPerformanceTester {
     private String fileId;
     private final LocalDateTime startTime = LocalDateTime.now();
     private final List<Result> results = new ArrayList<>();
+
+    private final Logger logger = LoggerFactory.getLogger(ReadPerformanceTester.class);
 
     // if file delete service not null, enable auto-cleaning.
     public ReadPerformanceTester(PrintWriter reportWriter, int testCases, int dataSize,
@@ -87,6 +91,7 @@ public class ReadPerformanceTester {
     public void startReadTest() throws IOException {
         initialFile();
         for (int i = 1; i <= testCases; i++) {
+            logger.info("Now reading file index={}", i);
             recordNext(i);
         }
         printResults();
