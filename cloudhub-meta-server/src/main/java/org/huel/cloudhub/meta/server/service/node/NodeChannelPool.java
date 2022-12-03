@@ -24,8 +24,8 @@ public class NodeChannelPool extends GrpcChannelPool<NodeServer>
     protected ManagedChannel buildChannel(NodeServer server) {
         return ManagedChannelBuilder.forAddress(server.host(), server.port())
                 .usePlaintext()
-                .keepAliveTime(5, TimeUnit.MINUTES)
-                .keepAliveTimeout(2, TimeUnit.MINUTES)
+                .keepAliveTime(5, TimeUnit.HOURS)
+                .keepAliveTimeout(30, TimeUnit.MINUTES)
                 .maxInboundMessageSize((int) grpcProperties.getMaxRequestSizeBytes() * 2)
                 .build();
     }

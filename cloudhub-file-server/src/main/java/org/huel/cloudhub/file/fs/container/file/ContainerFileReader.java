@@ -76,7 +76,6 @@ public class ContainerFileReader implements Closeable {
     }
 
     public boolean hasNext() {
-        // TODO: hack currentRead
         return currentRead.get() < totalBlocks;
     }
 

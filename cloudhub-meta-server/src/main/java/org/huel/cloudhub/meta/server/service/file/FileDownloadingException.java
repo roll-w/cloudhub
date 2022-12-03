@@ -22,6 +22,7 @@ public class FileDownloadingException extends RuntimeException {
     public enum Type {
         SERVER_DOWN,
         NOT_EXIST,
-        DATA_LOSS
+        DATA_LOSS,
+        OTHER
     }
 }

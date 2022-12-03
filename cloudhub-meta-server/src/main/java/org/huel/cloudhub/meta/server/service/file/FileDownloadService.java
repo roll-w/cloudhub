@@ -177,6 +177,10 @@ public class FileDownloadService {
         @Override
         public void onError(Throwable t) {
             logger.error("download file error.", t);
+            if (callback != null) {
+                callback.onDownloadError(
+                        new FileDownloadingException(FileDownloadingException.Type.OTHER, t.toString()));
+            }
             try {
                 outputStream.close();
             } catch (IOException e) {

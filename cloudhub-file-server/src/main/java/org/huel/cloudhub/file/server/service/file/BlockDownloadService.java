@@ -2,6 +2,7 @@ package org.huel.cloudhub.file.server.service.file;
 
 import com.google.protobuf.ByteString;
 import io.grpc.Status;
+import io.grpc.stub.ServerCallStreamObserver;
 import io.grpc.stub.StreamObserver;
 import org.huel.cloudhub.file.fs.LockException;
 import org.huel.cloudhub.file.fs.block.ContainerBlock;
@@ -11,7 +12,12 @@ import org.huel.cloudhub.file.fs.container.ContainerGroup;
 import org.huel.cloudhub.file.fs.container.ContainerProperties;
 import org.huel.cloudhub.file.fs.container.ContainerReadOpener;
 import org.huel.cloudhub.file.fs.container.file.ContainerFileReader;
-import org.huel.cloudhub.file.rpc.block.*;
+import org.huel.cloudhub.file.rpc.block.BlockDownloadServiceGrpc;
+import org.huel.cloudhub.file.rpc.block.DownloadBlockData;
+import org.huel.cloudhub.file.rpc.block.DownloadBlockRequest;
+import org.huel.cloudhub.file.rpc.block.DownloadBlockResponse;
+import org.huel.cloudhub.file.rpc.block.DownloadBlocksInfo;
+import org.huel.cloudhub.file.rpc.block.DownloadBlocksSegmentInfo;
 import org.huel.cloudhub.file.server.service.SourceServerGetter;
 import org.huel.cloudhub.rpc.GrpcProperties;
 import org.huel.cloudhub.util.math.Maths;
@@ -49,9 +55,11 @@ public class BlockDownloadService extends BlockDownloadServiceGrpc.BlockDownload
 
     @Override
     public void downloadBlocks(DownloadBlockRequest request,
-                               StreamObserver<DownloadBlockResponse> responseObserver) {
+                               StreamObserver<DownloadBlockResponse> observer) {
         final String fileId = request.getFileId();
         final String source = getId(request);
+        ServerCallStreamObserver<DownloadBlockResponse> responseObserver =
+                (ServerCallStreamObserver<DownloadBlockResponse>) observer;
         ContainerGroup containerGroup =
                 containerFinder.findContainerGroupByFile(fileId, source);
         if (containerGroup == null) {
@@ -133,7 +141,7 @@ public class BlockDownloadService extends BlockDownloadServiceGrpc.BlockDownload
 
     private void readSendResponse(String fileId, ContainerGroup containerGroup,
                                   FileBlockMetaInfo fileBlockMetaInfo,
-                                  StreamObserver<DownloadBlockResponse> responseObserver,
+                                  ServerCallStreamObserver<DownloadBlockResponse> responseObserver,
                                   BytesInfo bytesInfo,
                                   int maxBlocksInResponse, int responseCount, int retry) {
         if (retry >= RETRY_TIMES) {
@@ -157,7 +165,7 @@ public class BlockDownloadService extends BlockDownloadServiceGrpc.BlockDownload
         }
     }
 
-    private void sendUtilEnd(BytesInfo bytesInfo, StreamObserver<DownloadBlockResponse> responseObserver,
+    private void sendUtilEnd(BytesInfo bytesInfo, ServerCallStreamObserver<DownloadBlockResponse> responseObserver,
                              ContainerFileReader fileReader, int readSize, int responseCount) throws IOException, LockException {
         if (bytesInfo == null) {
             sendFullFile(responseObserver, fileReader, readSize);
@@ -171,6 +179,9 @@ public class BlockDownloadService extends BlockDownloadServiceGrpc.BlockDownload
         fileReader.seek(startBlock);
         int index = 1;
         while (fileReader.hasNext()) {
+            if (!responseObserver.isReady()) {
+                continue;
+            }
             List<ContainerBlock> read = fileReader.read(readSize);
             if (read == null) {
                 return;
@@ -199,10 +210,13 @@ public class BlockDownloadService extends BlockDownloadServiceGrpc.BlockDownload
         }
     }
 
-    private void sendFullFile(StreamObserver<DownloadBlockResponse> responseObserver,
+    private void sendFullFile(ServerCallStreamObserver<DownloadBlockResponse> responseObserver,
                               ContainerFileReader fileReader, int readSize) throws LockException, IOException {
         int index = 0;
         while (fileReader.hasNext()) {
+            if (!responseObserver.isReady()) {
+                continue;
+            }
             List<ContainerBlock> read = fileReader.read(readSize);
             if (read == null) {
                 return;
