@@ -91,6 +91,31 @@
         </div>
       </div>
     </div>
+    <!-- TODO 删除确认-->
+    <div class="modal fade" id="bucketDeleteConfirm">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">是否确认删除</h5>
+          </div>
+          <div class="modal-body">
+
+          </div>
+          <div class="modal-footer">
+            <div class="btn-group">
+              <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                取消
+              </button>
+              <button type="submit" class="btn btn-outline-danger" data-bs-dismiss="modal">
+                确认
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
     <div class="modal fade" ref="bucketVisibilityModel" id="bucketAuthority"
          tabindex="-1" aria-hidden="true">
       <div class="modal-dialog">
@@ -132,7 +157,7 @@
 import ContentBase from "@/components/common/ContentBase";
 
 import {useRouter} from 'vue-router'
-import { onMounted, ref} from 'vue';
+import {onMounted, ref} from 'vue';
 import $ from 'jquery'
 import url from '@/store/api'
 

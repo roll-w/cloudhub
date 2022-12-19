@@ -1,4 +1,5 @@
 <template>
+  <!--  TODO: 不再保留AdminView，和BucketView合并-->
   <ContentBase>
 
     <h3 class="mb-4">管理员桶信息</h3>
@@ -170,21 +171,21 @@ export default {
     };
 
     const getBucket = () => {
-        $.ajax({
-          url: url.url_adminGetBucket,
-          type: "GET",
-          xhrFields: {
-            withCredentials: true // 携带跨域cookie  //单个设置
-          },
-          crossDomain: true,
-          success(resp) {
-            buckets.value = resp.data;
-          },
-          error(resp) {
-            console.log(resp)
+      $.ajax({
+        url: url.url_adminGetBucket,
+        type: "GET",
+        xhrFields: {
+          withCredentials: true // 携带跨域cookie  //单个设置
+        },
+        crossDomain: true,
+        success(resp) {
+          buckets.value = resp.data;
+        },
+        error(resp) {
+          console.log(resp)
 
-          }
-        });
+        }
+      });
     };
 
     getBucket();
