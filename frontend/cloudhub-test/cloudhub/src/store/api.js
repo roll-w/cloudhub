@@ -49,6 +49,8 @@ const url_getServer = server + "/api/admin/status/connected"
 const url_getRunTime = server + "/api/admin/status/time"
 const url_getRequestCount = server + "/api/admin/stat/request/get"
 const url_getWR = server + "/api/admin/status/server/get/disk"
+const url_getContainer = server + "/api/admin/status/container/get"
+
 export default {
     url_login,
     url_register,
@@ -86,5 +88,6 @@ export default {
     url_getIO,
     url_getServer,
     url_getWR,
+    url_getContainer,
 }
 

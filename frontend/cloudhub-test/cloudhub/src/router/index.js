@@ -75,11 +75,7 @@ const routes = [
             {
                 path: '/admin/bucket',
                 name: 'bucket_admin_index',
-                component: () => import('@/views/bucket/BucketAdminView'),  // 桶管理
-                beforeEnter: () => {
-                    return isAdmin;
-
-                },
+                component: () => import('@/views/bucket/BucketView'),  // 桶管理
                 meta: {
                     title: "管理员桶管理 | Cloudhub 对象存储系统"
                 },

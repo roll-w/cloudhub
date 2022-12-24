@@ -38,7 +38,7 @@ public class BucketServiceImpl implements BucketService, BucketAuthService {
         }
         if (bucketRepository.isExistByName(bucketName)) {
             return new MessagePackage<>(ErrorCode.ERROR_DATA_EXISTED,
-                    "Bucket exited.", null);
+                    "Bucket existed.", null);
         }
         Bucket bucket = new Bucket(bucketName, userId,
                 System.currentTimeMillis(), visibility);

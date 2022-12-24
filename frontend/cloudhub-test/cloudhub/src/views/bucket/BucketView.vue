@@ -18,7 +18,7 @@
       </div>
     </div>
     <hr>
-    <table class="table table-hover" style="text-align: center">
+    <table class="table table-hover text-center">
       <thead class="table-light">
       <tr>
         <th scope="col">名称</th>
@@ -46,7 +46,10 @@
             </button>
           </div>
           <div class="btn-group" role="group">
-            <button type="button" class="btn btn-link" @click="deleteBucket(bucket)">删除</button>
+            <button type="button" class="btn btn-link" data-bs-toggle="modal"
+                    :data-cfs-bucket-name="bucket.name" data-bs-target="#bucketDeleteConfirm">
+              删除
+            </button>
           </div>
         </td>
       </tr>
@@ -60,9 +63,7 @@
             <h5 class="modal-title" id="exampleModalLabel">创建</h5>
           </div>
           <div class="modal-body">
-
             <form @submit.prevent="prevent">
-
               <div class="mb-3">
                 <div class="alert alert-primary" role="alert">
                   桶名称只能包含英文字母、数字和连接符（-）。
@@ -91,28 +92,27 @@
         </div>
       </div>
     </div>
-    <!-- TODO 删除确认-->
-    <div class="modal fade" id="bucketDeleteConfirm">
+
+    <div class="modal fade" ref="bucketDeleteConfirm" id="bucketDeleteConfirm">
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title">是否确认删除</h5>
           </div>
           <div class="modal-body">
-
+            <div>是否确认删除桶：{{ bucketName }}</div>
           </div>
           <div class="modal-footer">
             <div class="btn-group">
               <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
                 取消
               </button>
-              <button type="submit" class="btn btn-outline-danger" data-bs-dismiss="modal">
+              <button type="submit" class="btn btn-outline-danger" data-bs-dismiss="modal" @click="deleteBucketConfirm">
                 确认
               </button>
             </div>
           </div>
         </div>
-
       </div>
     </div>
 
@@ -153,193 +153,231 @@
   </ContentBase>
 </template>
 
-<script>
+<script setup>
 import ContentBase from "@/components/common/ContentBase";
+import {onMounted, ref} from "vue";
+import {useRouter} from "vue-router";
+import $ from "jquery";
+import url from "@/store/api";
 
-import {useRouter} from 'vue-router'
-import {onMounted, ref} from 'vue';
-import $ from 'jquery'
-import url from '@/store/api'
+const buckets = ref([]);
+const bucketName = ref([]);
+const visibility = ref([]);
+const name = ref([]);
+const router = useRouter();
+const bucketVisibilityModel = ref(null)
+const bucketDeleteConfirm = ref(null)
 
-export default {
-  name: "BucketView",
-  components: {
-    ContentBase,
-  },
+const ifAdmin = () => {
+  return router.currentRoute.value.name === "bucket_admin_index";
+}
 
-  setup() {
-    //接口
-    const buckets = ref([]);
-    const bucketName = ref([]);
-    const visibility = ref([]);
-    const name = ref([]);
-    const router = useRouter();
-    const bucketVisibilityModel = ref(null)
 
-    onMounted(() => {
-      bucketVisibilityModel.value.addEventListener("show.bs.modal", (event) => {
-        const button = event.relatedTarget
-        bucketName.value = button.getAttribute("data-cfs-bucket-name")
+onMounted(() => {
+  bucketVisibilityModel.value.addEventListener("show.bs.modal", (event) => {
+    const button = event.relatedTarget
+    bucketName.value = button.getAttribute("data-cfs-bucket-name")
+  })
+  bucketDeleteConfirm.value.addEventListener("show.bs.modal", (event) => {
+    const button = event.relatedTarget
+    bucketName.value = button.getAttribute("data-cfs-bucket-name")
+  })
+});
+
+const checkFile = (bucket) => {
+  const name = ifAdmin()
+      ? 'object_admin_list'
+      : 'object_list'
+
+  router.push({
+    name: name,
+    params: {
+      bucket: bucket.name
+    }
+  })
+};
+
+const getBucket = () => {
+  const request = ifAdmin() ?
+      url.url_adminGetBucket :
+      url.url_getBucket;
+  $.ajax({
+    url: request,
+    type: "GET",
+    xhrFields: {
+      withCredentials: true // 携带跨域cookie  //单个设置
+    },
+    crossDomain: true,
+    success(resp) {
+      buckets.value = resp.data
+    },
+    error(resp) {
+      window.$message({
+        type: "danger",
+        content: resp.responseJSON.message
       })
-    });
+      console.log(resp)
+    }
+  });
+};
 
-    const checkFile = (bucket) => {
-      router.push({
-        name: 'object_list',
-        params: {
-          bucket: bucket.name
-        }
-      })
-    };
+getBucket();
 
-    const getBucket = () => {
-      $.ajax({
-        url: url.url_getBucket,
-        type: "GET",
-        xhrFields: {
-          withCredentials: true // 携带跨域cookie  //单个设置
-        },
-        crossDomain: true,
-        success(resp) {
-          buckets.value = resp.data
-        },
-        error(resp) {
-          console.log(resp)
-        }
-      });
-    };
+const deleteBucketConfirm = () => {
+  deleteBucket(bucketName.value)
+}
 
-    getBucket();
+const deleteBucket = (bucketName) => {
+  const request = ifAdmin() ?
+      url.url_adminDeleteBucket :
+      url.url_deleteBucket;
 
-    //TODO：删除某个桶
-    const deleteBucket = (bucket) => {
-      $.ajax({
-        url: url.url_deleteBucket,
-        xhrFields: {
-          withCredentials: true // 携带跨域cookie  //单个设置
-        },
-        crossDomain: true,
-        type: "DELETE",
-        contentType: "application/json;charset=UTF-8",
-        data: JSON.stringify({
-          bucketName: bucket.name,
-        }),
-        success(resp) {
-          if (resp.errorCode === "00000") {
-            getBucket();
-          }
-        },
-        error(resp) {
-          console.log(resp);
-        }
-      })
-    };
-
-    //TODO：创建桶
-    const addBucket = () => {
-      $.ajax({
-        url: url.url_addBucket,
-        type: "PUT",
-        xhrFields: {
-          withCredentials: true // 携带跨域cookie  //单个设置
-        },
-        crossDomain: true,
-        contentType: "application/json;charset=UTF-8",
-        data: JSON.stringify({
-          bucketName: bucketName.value,
-          visibility: visibility.value,
-        }),
-        success(resp) {
-          if (resp.errorCode === "00000") {
-            bucketName.value = null;
-            visibility.value = null;
-            getBucket()
-          }
-        },
-        error(resp) {
-          console.log(resp)
-        }
-      });
-    };
-
-    const convertBucketVis = (name) => {
-      switch (name) {
-        case "PUBLIC_READ" :
-          return "公共读"
-        case "PUBLIC_READ_WRITE" :
-          return "公共读写"
-        case "PRIVATE" :
-          return "私有读写"
+  $.ajax({
+    url: request,
+    xhrFields: {
+      withCredentials: true // 携带跨域cookie  //单个设置
+    },
+    crossDomain: true,
+    type: "DELETE",
+    contentType: "application/json;charset=UTF-8",
+    data: JSON.stringify({
+      bucketName: bucketName,
+    }),
+    success(resp) {
+      if (resp.errorCode === "00000") {
+        getBucket();
       }
-      return name
+      window.$message({
+        type: "danger",
+        content: resp.message
+      })
+      bucketName.value = null
+    },
+    error(resp) {
+      console.log(resp);
+      window.$message({
+        type: "danger",
+        content: resp.responseJSON.message
+      })
+      bucketName.value = null
     }
+  })
+};
 
-    const prevent = () => {
+const addBucket = () => {
+  const request = ifAdmin() ?
+      url.url_adminAddBucket :
+      url.url_addBucket;
+
+  $.ajax({
+    url: request,
+    type: "PUT",
+    xhrFields: {
+      withCredentials: true // 携带跨域cookie  //单个设置
+    },
+    crossDomain: true,
+    contentType: "application/json;charset=UTF-8",
+    data: JSON.stringify({
+      bucketName: bucketName.value,
+      visibility: visibility.value,
+    }),
+    success(resp) {
+      if (resp.errorCode === "00000") {
+        bucketName.value = null;
+        visibility.value = null;
+        getBucket()
+      }
+      window.$message({
+        type: "danger",
+        content: resp.message
+      })
+    },
+    error(resp) {
+      window.$message({
+        type: "danger",
+        content: resp.responseJSON.message
+      })
+      console.log(resp)
     }
+  });
+};
 
-    const settingVisibility = () => {
-      $.ajax({
-        url: url.url_settingVisibility,
-        type: "POST",
-        xhrFields: {
-          withCredentials: true // 携带跨域cookie  //单个设置
-        },
-        crossDomain: true,
-        contentType: "application/json;charset=UTF-8",
-        data: JSON.stringify({
-          bucketName: bucketName.value,
-          visibility: visibility.value,
-        }),
-        success(resp) {
-          if (resp.errorCode === "00000") {
-            getBucket()
-          }
-        },
-        error(resp) {
-          console.log(resp);
-        }
-      });
-    };
-
-    const getBucketByName = () => {
-      $.ajax({
-        url: url.url_getBucketByName,
-        xhrFields: {
-          withCredentials: true
-        },
-        crossDomain: true,
-        type: "GET",
-        data: {
-          bucketName: name.value,
-        },
-        success(resp) {
-          if (resp.errorCode === "00000") {
-            name.value = null;
-            alert("Name: " + resp.data.name + " Email: " + resp.data.bucketVisibility)
-          }
-        },
-        error(resp) {
-          console.log(resp.data);
-        }
-      });
-    }
-
-
-    return {
-      buckets,
-      name,
-      bucketName,
-      visibility,
-      bucketVisibilityModel,
-      convertBucketVis,
-      checkFile,
-      getBucketByName,
-      deleteBucket,
-      addBucket,
-      prevent,
-      settingVisibility,
-    }
+const convertBucketVis = (name) => {
+  switch (name) {
+    case "PUBLIC_READ" :
+      return "公共读"
+    case "PUBLIC_READ_WRITE" :
+      return "公共读写"
+    case "PRIVATE" :
+      return "私有读写"
   }
+  return name
+}
+
+const prevent = () => {
+}
+
+const settingVisibility = () => {
+  const request = ifAdmin() ?
+      url.url_adminSettingVisibility :
+      url.url_settingVisibility;
+
+  $.ajax({
+    url: request,
+    type: "POST",
+    xhrFields: {
+      withCredentials: true // 携带跨域cookie  //单个设置
+    },
+    crossDomain: true,
+    contentType: "application/json;charset=UTF-8",
+    data: JSON.stringify({
+      bucketName: bucketName.value,
+      visibility: visibility.value,
+    }),
+    success(resp) {
+      if (resp.errorCode === "00000") {
+        getBucket()
+      }
+      window.$message({
+        type: "danger",
+        content: resp.message
+      })
+    },
+    error(resp) {
+      window.$message({
+        type: "danger",
+        content: resp.responseJSON.message
+      })
+      console.log(resp);
+    }
+  });
+};
+
+const getBucketByName = () => {
+  const request = ifAdmin() ?
+      url.url_adminGetBucketByName :
+      url.url_getBucketByName;
+
+  $.ajax({
+    url: request,
+    xhrFields: {
+      withCredentials: true
+    },
+    crossDomain: true,
+    type: "GET",
+    data: {
+      bucketName: name.value,
+    },
+    success(resp) {
+      if (resp.errorCode === "00000") {
+        name.value = null;
+        alert("Name: " + resp.data.name + " Email: " + resp.data.bucketVisibility)
+      }
+    },
+    error(resp) {
+      console.log(resp.data);
+    }
+  });
 }
 </script>
 
