@@ -5,14 +5,9 @@
       <div class="d-flex flex-fill justify-content-end">
         <button type="button" class="btn btn-outline-primary ms-2" @click="back">返回桶列表</button>
       </div>
-
     </div>
-    <div class="input-group mt-5">
-      <form @submit.prevent="uploadObject" enctype="multipart/form-data">
-        <label for="formFile" class="form-label">选择文件</label>
-        <input class="form-control" type="file" id="formFile" @change="get"/>
-        <button type="submit" class="btn btn-link">上传文件</button>
-      </form>
+    <div class="btn btn-outline-primary" data-bs-toggle="modal"
+         data-bs-target="#uploadObjectModal">上传文件
     </div>
     <hr class="mt-2">
     <table class="table table-hover text-center">
@@ -32,7 +27,7 @@
         <th scope="row">
           <div class="d-grid gap-2 d-md-flex justify-content-center" role="group">
             <button type="button" class="btn btn-link" @click="open(file)">下载</button>
-            <button type="button" class="btn btn-link">删除</button>
+            <button type="button" class="btn btn-link" @click="deleteObject(file.objectName)">删除</button>
           </div>
         </th>
         <th scope="row">
@@ -41,6 +36,44 @@
       </tr>
       </tbody>
     </table>
+    <div class="modal fade" id="uploadObjectModal">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">上传对象</h5>
+          </div>
+          <div class="modal-body">
+            <div class="alert alert-warning">
+              <p>上传对象时，填写框中可以写下对象路径，使用 / 分割。不填则为根路径。</p>
+            </div>
+            <form @submit.prevent="null" enctype="multipart/form-data">
+              <div class="form-floating pb-2">
+                <input type="text" id="dir-input_file" v-model="dirPath" class="form-control" placeholder="填写文件夹">
+                <label for="dir-input_file">填写文件夹路径</label>
+              </div>
+              <div class="form-floating pb-2">
+                <input type="text" class="form-control" v-model="overrideName" id="override-input_file" placeholder="覆盖文件名">
+                <label for="override-input_file" class="form-label">覆盖默认文件名</label>
+              </div>
+              <div class="pb-2">
+                <label for="formFile" class="form-label">选择文件</label>
+                <input class="form-control" type="file" id="formFile" @change="get"/>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <div class="btn-group">
+              <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                取消
+              </button>
+              <button type="submit" class="btn btn-outline-danger" data-bs-dismiss="modal" @click="uploadObject">
+                确认
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </ContentBase>
 </template>
 
@@ -51,6 +84,7 @@ import {convertTimestamp} from "@/util/time";
 import {useRouter} from "vue-router";
 import {ref} from "vue";
 import $ from 'jquery'
+import axios from "axios";
 
 export default {
   name: "FileView",
@@ -100,12 +134,16 @@ export default {
     getObject();
 
     const objName = ref([]);
+    const overrideName = ref(null);
+    const dirPath = ref('');
 
     const get = (event) => {
       const files = event.target.files;
       objName.value = files[0];
-      console.log(objName.value)
-      console.log(objName.value.name);
+    }
+
+    const deleteObject = (object) => {
+      console.log("Delete " + object)
     }
 
     const uploadObject = () => {
@@ -114,25 +152,24 @@ export default {
       let realUrl = isAdminPage()
           ? url.url_adminObjectV1
           : url.url_objectV1
-      $.ajax({
-        url: realUrl / bucketName / objName.value.name,
-        type: "PUT",
-        xhrFields: {
-          withCredentials: true
+      let name = overrideName.value === null ? objName.value.name : overrideName.value;
+      let path = dirPath.value === '' ? encodeURI(name) : dirPath.value + '/' + encodeURI(name);
+      axios.put(`${realUrl}/${bucketName}/${path}`, form, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
         },
-        crossDomain: true,
-        contentType: "multipart/form-data",
-        data: {
-          form
-        },
-        success(resp) {
-          console.log(resp);
-          getObject();
-        },
-        error(resp) {
-          console.log(resp);
-        }
-      });
+        origin: true,
+        withCredentials: true,
+      }).then(resp => {
+        overrideName.value = null
+        dirPath.value = null
+        objName.value = null
+
+        console.log(resp)
+        getObject();
+      }).catch(resp => {
+        console.log(resp)
+      })
     };
 
     const open = (object) => {
@@ -174,6 +211,9 @@ export default {
       bucketName,
       convertTimestamp,
       uploadObject,
+      dirPath,
+      overrideName,
+      deleteObject
     }
   }
 

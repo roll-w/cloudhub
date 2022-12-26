@@ -87,26 +87,26 @@ export default {
     getUser();
 
     const deleteUserById = (user) =>{
-      $.ajax({
-        url: url.url_deleteUserById,
-        xhrFields: {
-          withCredentials: true
-        },
-        crossDomain:true,
-        type: "POST",
-        contentType: "application/x-www-form-urlencoded",
-        data: {
-          userId: user.id,
-        },
-        success(resp) {
-          if (resp.errorCode === "00000"){
-              getUser()
-          }
-        },
-        error(resp){
-          console.log(resp);
-        }
-      });
+      // $.ajax({
+      //   url: url.url_deleteUserById,
+      //   xhrFields: {
+      //     withCredentials: true
+      //   },
+      //   crossDomain:true,
+      //   type: "POST",
+      //   contentType: "application/x-www-form-urlencoded",
+      //   data: {
+      //     userId: user.id,
+      //   },
+      //   success(resp) {
+      //     if (resp.errorCode === "00000"){
+      //         getUser()
+      //     }
+      //   },
+      //   error(resp){
+      //     console.log(resp);
+      //   }
+      // });
     };
 
     const getUserByName = () =>{
