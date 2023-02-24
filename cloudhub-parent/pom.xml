@@ -28,14 +28,13 @@
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project.version>1.0-SNAPSHOT</project.version>
 
         <protobuf.version>3.21.8</protobuf.version>
         <grpc.version>1.50.1</grpc.version>
         <guava.version>31.1-jre</guava.version>
         <hikari.version>5.0.1</hikari.version>
         <jjwt.version>0.11.5</jjwt.version>
-        <light.version>0.3.1</light.version>
+        <light.version>0.4.5</light.version>
         <fiesta.version>0.2.0</fiesta.version>
         <spring-shell.version>2.1.2</spring-shell.version>
         <tomcat-api.version>6.0.53</tomcat-api.version>
