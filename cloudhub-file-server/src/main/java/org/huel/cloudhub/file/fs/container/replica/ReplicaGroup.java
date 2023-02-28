@@ -53,7 +53,7 @@ public class ReplicaGroup {
         return sourceId;
     }
 
-    public List<ContainerGroup> listGroup() {
+    public List<ContainerGroup> listGroups() {
         return containerGroupMap.values().stream().toList();
     }
 }

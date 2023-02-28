@@ -8,7 +8,11 @@ import java.util.List;
  * @author RollW
  */
 public interface ContainerGroupMeta {
-    List<? extends ContainerMeta> getMetas();
+    List<? extends ContainerLocator> getChildLocators();
+
+    List<? extends ContainerMeta> loadChildContainerMeta(MetadataIndexLoader loader);
+
+    String getSource();
 
     void writeTo(OutputStream outputStream) throws IOException;
 }

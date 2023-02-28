@@ -13,7 +13,7 @@ import org.huel.cloudhub.file.fs.block.FileBlockMetaInfo;
 import org.huel.cloudhub.file.fs.container.*;
 import org.huel.cloudhub.file.fs.container.file.ContainerFileWriter;
 import org.huel.cloudhub.file.fs.container.file.FileWriteStrategy;
-import org.huel.cloudhub.file.fs.meta.MetaException;
+import org.huel.cloudhub.file.fs.meta.MetadataException;
 import org.huel.cloudhub.file.rpc.block.*;
 import org.huel.cloudhub.file.server.service.replica.ReplicaService;
 import org.huel.cloudhub.file.server.service.replica.ReplicaSynchroPart;
@@ -266,7 +266,7 @@ public class BlockReceiveService extends BlockUploadServiceGrpc.BlockUploadServi
             try (ContainerFileWriter containerFileWriter = new ContainerFileWriter(fileId,
                     savedLength, containerAllocator, containerWriterOpener, containerChecker, FileWriteStrategy.SEQUENCE)) {
                 writeUntilEnd(containerFileWriter, stagingFile.openInput(), BUFFERED_BLOCK_SIZE, validBytes);
-            } catch (IOException | MetaException e) {
+            } catch (IOException | MetadataException e) {
                 logger.error("Occurred error here while saving to container.", e);
             } catch (LockException e) {
                 logger.error("Cannot get container's lock.", e);
@@ -283,7 +283,7 @@ public class BlockReceiveService extends BlockUploadServiceGrpc.BlockUploadServi
 
     private void writeUntilEnd(ContainerFileWriter writer,
                                InputStream inputStream,
-                               int blockSize, long validBytes) throws IOException, LockException, MetaException {
+                               int blockSize, long validBytes) throws IOException, LockException, MetadataException {
         List<Block> blocks = new ArrayList<>();
         Block block;
         int size = 0;

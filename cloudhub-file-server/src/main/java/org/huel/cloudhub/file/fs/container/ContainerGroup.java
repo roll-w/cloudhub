@@ -49,7 +49,7 @@ public class ContainerGroup {
                 .computeIfAbsent(container.getIdentity().serial(),
                         v -> new ArrayList<>());
         containerFreeBlocks.addAll(container.getFreeBlockInfos());
-        if (blockSizeInBytes >= 0) {
+        if (blockSizeInBytes > 0) {
             return;
         }
         // lazy load

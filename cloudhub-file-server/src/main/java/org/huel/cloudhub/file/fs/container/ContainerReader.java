@@ -36,8 +36,8 @@ public class ContainerReader implements Closeable {
             throw new ContainerException("Container not exists.");
         }
 
-        if (stream instanceof LimitedSeekableInputStream) {
-            return (LimitedSeekableInputStream) stream;
+        if (stream instanceof LimitedSeekableInputStream limited) {
+            return limited;
         }
         return new LimitedSeekableInputStream(stream, limit);
     }
@@ -66,7 +66,7 @@ public class ContainerReader implements Closeable {
             byte[] chuck = new byte[(int) blockSizeBytes];
             int read = containerInputStream.read(chuck);
             if (read == -1) {
-                throw new ContainerException("Incorrect termination block in [%d], count=%d."
+                throw new ContainerException("Unexpected termination block in [%d], count=%d."
                         .formatted(i, count));
             }
             lastPos.incrementAndGet();
@@ -80,7 +80,7 @@ public class ContainerReader implements Closeable {
 
     public List<ContainerBlock> readBlocks(final int start, final int end) throws IOException {
         if (start >= container.getIdentity().blockLimit() || end >= container.getIdentity().blockLimit()) {
-            throw new IllegalArgumentException("Invalid start or end, exceeded container's max.");
+            throw new IllegalArgumentException("Invalid start or end, exceeds container's max.");
         }
         if (end - start < 0) {
             throw new IllegalArgumentException("Invalid range at start=%d, end=%d".formatted(start, end));
@@ -98,7 +98,7 @@ public class ContainerReader implements Closeable {
             byte[] chuck = new byte[(int) blockSizeBytes];
             int read = containerInputStream.read(chuck);
             if (read == -1) {
-                throw new ContainerException("Incorrect termination block in [%d], end=%d."
+                throw new ContainerException("Unexpected termination block in [%d], end=%d."
                         .formatted(index, end));
             }
             lastPos.incrementAndGet();

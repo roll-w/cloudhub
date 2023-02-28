@@ -8,6 +8,8 @@ import java.io.File;
 import java.util.Objects;
 
 /**
+ * A container location is a container's path in the file system.
+ *
  * @author RollW
  */
 public class ContainerLocation implements RepresentFile {

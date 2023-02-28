@@ -22,7 +22,8 @@ public class ContainerWriter implements Closeable {
     private final LimitedSeekableOutputStream stream;
 
     public ContainerWriter(Container container,
-                           ContainerWriterOpener containerWriterOpener) throws IOException, LockException {
+                           ContainerWriterOpener containerWriterOpener)
+            throws IOException, LockException {
         this.container = container;
         this.containerWriterOpener = containerWriterOpener;
         this.stream = convert(
@@ -41,8 +42,8 @@ public class ContainerWriter implements Closeable {
             return null;
         }
 
-        if (stream instanceof LimitedSeekableOutputStream) {
-            return (LimitedSeekableOutputStream) stream;
+        if (stream instanceof LimitedSeekableOutputStream limited) {
+            return limited;
         }
         return new LimitedSeekableOutputStream(stream, limit);
     }
@@ -89,10 +90,10 @@ public class ContainerWriter implements Closeable {
 
     public void writeBlocks(List<Block> blocks, int startIndex, boolean release) throws IOException {
         if (startIndex >= container.getIdentity().blockLimit()) {
-            throw new IllegalArgumentException("start index exceeds container's block limit.");
+            throw new IllegalArgumentException("Start index exceeds container's block limit.");
         }
         if (startIndex + blocks.size() - 1 >= container.getIdentity().blockLimit()) {
-            throw new IllegalArgumentException("block size to write exceeds container's block limit.");
+            throw new IllegalArgumentException("Block size to write exceeds container's block limit.");
         }
         stream.seek(startIndex * blockSizeInBytes);
         for (Block block : blocks) {
@@ -106,10 +107,10 @@ public class ContainerWriter implements Closeable {
     public void writeBlocks(List<Block> blocks, int startIndex, int len, boolean release) throws IOException {
         if (startIndex >= container.getIdentity().blockLimit() ||
                 startIndex + len >= container.getIdentity().blockLimit()) {
-            throw new IllegalArgumentException("start index exceeds container's block limit.");
+            throw new IllegalArgumentException("Start index exceeds container's block limit.");
         }
         if (startIndex + len - 1 >= container.getIdentity().blockLimit()) {
-            throw new IllegalArgumentException("block size to write exceeds container's block limit.");
+            throw new IllegalArgumentException("Block size to write exceeds container's block limit.");
         }
         stream.seek(startIndex * blockSizeInBytes);
         int i = 0;

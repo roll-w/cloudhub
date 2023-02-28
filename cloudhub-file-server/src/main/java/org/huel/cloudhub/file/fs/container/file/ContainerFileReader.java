@@ -30,6 +30,7 @@ public class ContainerFileReader implements Closeable {
     private final int totalBlocks;
     private final AtomicInteger currentRead = new AtomicInteger(0);
 
+    @Deprecated
     public ContainerFileReader(ContainerReadOpener containerReadOpener,
                                ContainerFinder containerFinder,
                                String fileId, String source) throws ContainerException {
@@ -39,7 +40,7 @@ public class ContainerFileReader implements Closeable {
         this.containers = containerGroup.containersWithFile(fileId);
         this.fileBlockMetaInfo = containerGroup.getFileBlockMetaInfo(fileId);
         if (fileBlockMetaInfo == null) {
-            throw new ContainerException("no such file");
+            throw new ContainerException("No such file '%s' of source '%s'".formatted(fileId, source));
         }
         this.totalBlocks = fileBlockMetaInfo.getBlocksCount();
         initIterator();
@@ -56,7 +57,11 @@ public class ContainerFileReader implements Closeable {
         this.containers = containerGroup.containersWithFile(fileId);
         this.fileBlockMetaInfo = fileBlockMetaInfo;
         if (fileBlockMetaInfo == null) {
-            throw new ContainerException("no such file");
+            throw new ContainerException("No such file '%s' in container group id '%s', source '%s'.".formatted(
+                    fileId,
+                    containerGroup.getContainerId(),
+                    containerGroup.getSourceId()
+            ));
         }
         this.totalBlocks = fileBlockMetaInfo.getBlocksCount();
         initIterator();
@@ -110,7 +115,6 @@ public class ContainerFileReader implements Closeable {
             }
             nowSum += tBlocks;
         }
-
     }
 
     private void seekAndRelocateContainer(long serial, int index) throws LockException, IOException {
@@ -217,7 +221,7 @@ public class ContainerFileReader implements Closeable {
                                   int toReadSize) throws IOException {
         List<ContainerBlock> containerBlocks = new ArrayList<>();
         int index = 0, sizeRead = 0, endBlock = 0;
-        List<BlockGroup> blockGroups = blockMetaInfo.getBlockGroups();
+        List<BlockGroup> blockGroups = blockMetaInfo.getRawBlockGroups();
         for (BlockGroup blockGroup : blockGroups) {
             final int startBlock = calcStartBlock(index, start, blockGroup);
             final int willReadBlocks = index == 0

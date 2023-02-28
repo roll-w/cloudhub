@@ -9,7 +9,7 @@ import org.huel.cloudhub.file.fs.container.Container;
 import org.huel.cloudhub.file.fs.container.ContainerAllocator;
 import org.huel.cloudhub.file.fs.container.ContainerDeleter;
 import org.huel.cloudhub.file.fs.container.ContainerFinder;
-import org.huel.cloudhub.file.fs.meta.MetaException;
+import org.huel.cloudhub.file.fs.meta.MetadataException;
 import org.huel.cloudhub.file.rpc.block.BlockDeleteServiceGrpc;
 import org.huel.cloudhub.file.rpc.block.DeleteBlocksRequest;
 import org.huel.cloudhub.file.rpc.block.DeleteBlocksResponse;
@@ -69,7 +69,7 @@ public class BlockDeleteService extends BlockDeleteServiceGrpc.BlockDeleteServic
                 ReplicaSynchroPart part =
                         new ReplicaSynchroPart(container, BlockGroupsInfo.EMPTY, 0);
                 parts.add(part);
-            } catch (IOException | MetaException e) {
+            } catch (IOException | MetadataException e) {
                 responseObserver.onError(Status.INTERNAL.asException());
                 logger.error("Delete blocks error: ", e);
                 return;
@@ -89,7 +89,7 @@ public class BlockDeleteService extends BlockDeleteServiceGrpc.BlockDeleteServic
 
     private boolean releaseBlockOccupation(String fileId, String source,
                                            Container container,
-                                           List<SerializedFileServer> servers) throws IOException, MetaException {
+                                           List<SerializedFileServer> servers) throws IOException, MetadataException {
         List<BlockMetaInfo> newInfos = new ArrayList<>(container.getBlockMetaInfos());
         if (newInfos.isEmpty()) {
             return false;

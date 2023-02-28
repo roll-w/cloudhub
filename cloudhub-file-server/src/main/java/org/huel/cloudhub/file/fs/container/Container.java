@@ -11,8 +11,7 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
- * Readonly container, every modification will
- * create a new version of container (not implemented).
+ * A container is a file that contains a number of blocks.
  *
  * @author RollW
  */
@@ -35,6 +34,7 @@ public class Container {
     private final ContainerIdentity identity;
     private final List<BlockMetaInfo> blockMetaInfos = new ArrayList<>();
     private List<FreeBlockInfo> freeBlockInfos;
+    // read write lock of the container
     private final ReadWriteLock mLock = new ReentrantReadWriteLock();
 
     public Container(@NonNull ContainerLocation location,
@@ -260,7 +260,7 @@ public class Container {
 
         List<FreeBlockInfo> freeBlockInfos = new ArrayList<>();
         List<BlockGroup> blockGroups = blockMetaInfos.stream()
-                .flatMap(blockMetaInfo -> blockMetaInfo.getBlockGroups().stream())
+                .flatMap(blockMetaInfo -> blockMetaInfo.getRawBlockGroups().stream())
                 .sorted(Comparator.comparingInt(BlockGroup::start))
                 .toList();
         Iterator<BlockGroup> blockGroupIterator = blockGroups.listIterator();

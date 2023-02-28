@@ -1,15 +1,19 @@
 package org.huel.cloudhub.file.fs.block;
 
+import org.huel.cloudhub.file.fs.meta.BlockFileMeta;
 import org.huel.cloudhub.file.fs.meta.SerializedBlockFileMeta;
 import org.huel.cloudhub.file.fs.meta.SerializedBlockGroup;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * @author RollW
  */
 @SuppressWarnings("unused")
-public class BlockMetaInfo {
+public class BlockMetaInfo implements BlockFileMeta {
     public static final int NOT_CROSS_CONTAINER = -1;
 
     private final String fileId;
@@ -50,6 +54,7 @@ public class BlockMetaInfo {
         return validBytes;
     }
 
+    @Override
     public long getContainerSerial() {
         return containerSerial;
     }
@@ -90,14 +95,28 @@ public class BlockMetaInfo {
         return blockGroupsInfo.occupiedBlocks();
     }
 
-    public List<BlockGroup> getBlockGroups() {
+    public List<BlockGroup> getRawBlockGroups() {
         return blockGroupsInfo.getBlockGroups();
+    }
+
+    public BlockGroupsInfo getBlockGroups() {
+        return blockGroupsInfo;
+    }
+
+    @Override
+    public long getEndBlockByteOffset() {
+        return validBytes;
+    }
+
+    @Override
+    public long getCrossContainerSerial() {
+        return nextContainerSerial;
     }
 
     public long validBytesAt(int index, long blockSizeInBytes) {
         // because of BlockMeta not hold block size value,
         // so you need pass this "blockSizeInBytes" value.
-        List<BlockGroup> blockGroups = getBlockGroups();
+        List<BlockGroup> blockGroups = getRawBlockGroups();
         BlockGroup lastGroup = blockGroups.get(blockGroups.size() - 1);
         if (lastGroup.end() == index) {
             return validBytes;
@@ -109,7 +128,7 @@ public class BlockMetaInfo {
     }
 
     public SerializedBlockFileMeta serialize() {
-        List<BlockGroup> blockGroups = getBlockGroups();
+        List<BlockGroup> blockGroups = getRawBlockGroups();
         List<SerializedBlockGroup> serializedBlockGroups = new ArrayList<>();
         blockGroups.forEach(blockGroup ->
                 serializedBlockGroups.add(blockGroup.serialize()));
@@ -135,7 +154,7 @@ public class BlockMetaInfo {
     }
 
     public BlockMetaInfo forkNextSerial(long nextContainerSerial) {
-        List<BlockGroup> blockGroups = getBlockGroups();
+        List<BlockGroup> blockGroups = getRawBlockGroups();
         return new BlockMetaInfo(fileId,
                 blockGroups, validBytes,
                 containerSerial, nextContainerSerial);

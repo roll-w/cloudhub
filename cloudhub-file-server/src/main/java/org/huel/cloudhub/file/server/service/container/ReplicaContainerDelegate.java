@@ -74,8 +74,13 @@ public class ReplicaContainerDelegate implements ReplicaContainerLoader,
         ContainerLocation location =
                 new ContainerLocation(file.getPath());
 
-        return new Container(location, nameMeta.getSourceId(), containerBlockMeta.getUsedBlock(),
-                identity, blockMetaInfos, serializedContainerMeta.getVersion(), true);
+        return new Container(
+                location, nameMeta.getSourceId(),
+                containerBlockMeta.getUsedBlock(),
+                identity, blockMetaInfos,
+                serializedContainerMeta.getVersion(),
+                true
+        );
     }
 
     @Override
@@ -158,7 +163,7 @@ public class ReplicaContainerDelegate implements ReplicaContainerLoader,
         return replicaContainerGroups
                 .values().stream()
                 .flatMap(replicaGroup ->
-                        replicaGroup.listGroup().stream())
+                        replicaGroup.listGroups().stream())
                 .flatMap(containerGroup ->
                         containerGroup.containers().stream())
                 .toList();

@@ -24,7 +24,7 @@ public class ClientFileServerChannelPool extends GrpcChannelPool<SerializedFileS
     protected ManagedChannel buildChannel(SerializedFileServer key) {
         return ManagedChannelBuilder.forAddress(key.getHost(), key.getPort())
                 .usePlaintext()
-                .keepAliveTime(5, TimeUnit.HOURS)
+                .keepAliveTime(30, TimeUnit.DAYS)
                 .keepAliveTimeout(30, TimeUnit.MINUTES)
                 .maxInboundMessageSize((int) grpcProperties.getMaxRequestSizeBytes() * 2)
                 .build();

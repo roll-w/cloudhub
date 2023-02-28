@@ -10,7 +10,8 @@ import java.io.InputStream;
  * @author RollW
  */
 public interface ContainerReadOpener {
-    SeekableInputStream openContainerRead(Container container) throws IOException, LockException;
+    SeekableInputStream openContainerRead(Container container)
+            throws IOException, LockException;
 
     void closeContainerRead(Container container, InputStream stream);
 }

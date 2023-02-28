@@ -1,7 +1,7 @@
 package org.huel.cloudhub.file.fs.container;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.huel.cloudhub.file.fs.meta.MetaException;
+import org.huel.cloudhub.file.fs.meta.MetadataException;
 
 import java.io.IOException;
 import java.util.List;
@@ -20,6 +20,6 @@ public interface ContainerAllocator {
 
     void createsContainerFileWithMeta(Container container) throws IOException;
 
-    void updatesContainerMetadata(Container container) throws MetaException, IOException;
+    void updatesContainerMetadata(Container container) throws MetadataException, IOException;
 
 }

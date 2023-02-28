@@ -32,7 +32,8 @@ import java.util.*;
  * @author RollW
  */
 @Service
-public class ContainerService implements ContainerAllocator, ContainerFinder, ContainerDeleter {
+public class ContainerService implements ContainerAllocator,
+        ContainerFinder, ContainerDeleter {
     private final Cache<String, ContainerGroup> containerCache =
             Caffeine.newBuilder()
                     .build();
@@ -93,7 +94,7 @@ public class ContainerService implements ContainerAllocator, ContainerFinder, Co
             try {
                 container = loadInContainer(serializedContainerMeta);
                 healthyContainerLocators.add(serializedContainerMeta.getLocator());
-            } catch (MetaLostException e) {
+            } catch (MetadataLostException e) {
                 logger.info("Found meta or container lost of container={}.", e.getContainerLocator());
                 damagedContainerLocators.add(e.getContainerLocator());
             }
@@ -227,26 +228,26 @@ public class ContainerService implements ContainerAllocator, ContainerFinder, Co
         return new OnCheckContainerFailureEvent(report);
     }
 
-    private Container loadInContainer(SerializedContainerMeta serializedContainerMeta) throws IOException, MetaLostException {
+    private Container loadInContainer(SerializedContainerMeta serializedContainerMeta) throws IOException, MetadataLostException {
         final String locator = serializedContainerMeta.getLocator();
         ServerFile file = localFileServer.getServerFileProvider()
                 .openFile(containerDir, locator);
         if (!file.exists()) {
-            throw new MetaLostException(serializedContainerMeta.getLocator());
+            throw new MetadataLostException(serializedContainerMeta.getLocator());
         }
 
         ContainerNameMeta nameMeta = ContainerNameMeta.parse(locator);
         ServerFile metaFile = localFileServer.getServerFileProvider()
                 .openFile(containerDir, locator + ContainerLocation.META_SUFFIX);
         if (!metaFile.exists()) {
-            throw new MetaLostException(serializedContainerMeta.getLocator());
+            throw new MetadataLostException(serializedContainerMeta.getLocator());
         }
 
         SerializedContainerBlockMeta containerBlockMeta;
         try {
             containerBlockMeta = MetaReadWriteHelper.readContainerBlockMeta(metaFile);
         } catch (InvalidProtocolBufferException e) {
-            throw new MetaLostException(serializedContainerMeta.getLocator());
+            throw new MetadataLostException(serializedContainerMeta.getLocator());
         }
         List<BlockMetaInfo> blockMetaInfos = new ArrayList<>();
         containerBlockMeta.getBlockMetasList().forEach(serializeBlockFileMeta ->
@@ -393,9 +394,9 @@ public class ContainerService implements ContainerAllocator, ContainerFinder, Co
     }
 
     @Override
-    public void updatesContainerMetadata(Container container) throws MetaException, IOException {
+    public void updatesContainerMetadata(Container container) throws MetadataException, IOException {
         if (!container.isUsable()) {
-            throw new MetaException("Not valid container.");
+            throw new MetadataException("Not valid container.");
         }
         ServerFile containerMetaFile = localFileServer.getServerFileProvider().openFile(containerProperties.getContainerPath(),
                 container.getResourceLocator() + ContainerLocation.META_SUFFIX);

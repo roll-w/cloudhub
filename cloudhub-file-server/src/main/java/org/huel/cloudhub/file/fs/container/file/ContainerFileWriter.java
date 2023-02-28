@@ -5,7 +5,7 @@ import org.huel.cloudhub.file.fs.block.Block;
 import org.huel.cloudhub.file.fs.block.BlockGroup;
 import org.huel.cloudhub.file.fs.block.BlockMetaInfo;
 import org.huel.cloudhub.file.fs.container.*;
-import org.huel.cloudhub.file.fs.meta.MetaException;
+import org.huel.cloudhub.file.fs.meta.MetadataException;
 import org.huel.cloudhub.util.math.Maths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -80,11 +80,11 @@ public class ContainerFileWriter implements Closeable {
 
     private volatile WriteResult lastResult = null;
 
-    public void writeBlocks(List<Block> blocks) throws LockException, IOException, MetaException {
+    public void writeBlocks(List<Block> blocks) throws LockException, IOException, MetadataException {
         internalWrite(lastResult, blocks);
     }
 
-    private void internalWrite(WriteResult lastResult, List<Block> blocks) throws LockException, IOException, MetaException {
+    private void internalWrite(WriteResult lastResult, List<Block> blocks) throws LockException, IOException, MetadataException {
         WriteResult newResult = overwriteWriteResult(lastResult);
         this.lastResult = recursiveWrite(blocks, newResult, 0);
     }
@@ -104,7 +104,7 @@ public class ContainerFileWriter implements Closeable {
         return result;
     }
 
-    private WriteResult recursiveWrite(List<Block> blocks, WriteResult writeResult, int off) throws LockException, IOException, MetaException {
+    private WriteResult recursiveWrite(List<Block> blocks, WriteResult writeResult, int off) throws LockException, IOException, MetadataException {
         // TODO: method body too long, split to more methods.
         ContainerWriter writer = forNext(writeResult);
         if (writer == null) {
@@ -174,7 +174,7 @@ public class ContainerFileWriter implements Closeable {
         return result.endIndex() + 1;
     }
 
-    private ContainerWriter forNext(WriteResult result) throws LockException, IOException, MetaException {
+    private ContainerWriter forNext(WriteResult result) throws LockException, IOException, MetadataException {
         if (result == null) {
             return open(findNextAllowContainer());
         }
@@ -195,7 +195,7 @@ public class ContainerFileWriter implements Closeable {
         return open(next);
     }
 
-    private Container updatesContainerMeta(WriteResult result) throws IOException, MetaException, LockException {
+    private Container updatesContainerMeta(WriteResult result) throws IOException, MetadataException, LockException {
         Container container = result.container;
         String newCrc = containerChecker.calculateChecksum(container);
         container.getIdentity().updatesChecksum(newCrc);
@@ -291,7 +291,7 @@ public class ContainerFileWriter implements Closeable {
         handleClose(lastResult);
         try {
             updatesContainerMeta(lastResult);
-        } catch (MetaException | LockException e) {
+        } catch (MetadataException | LockException e) {
             throw new IOException(e);
         }
         lastResult = null;

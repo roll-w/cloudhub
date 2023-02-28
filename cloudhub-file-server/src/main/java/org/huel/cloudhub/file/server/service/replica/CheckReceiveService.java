@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * @author RollW
@@ -22,6 +23,8 @@ import java.util.List;
 public class CheckReceiveService extends CheckServiceGrpc.CheckServiceImplBase {
     private final ContainerFinder containerFinder;
     private final ContainerChecker containerChecker;
+
+    // TODO: check source
 
     public CheckReceiveService(ContainerFinder containerFinder, ContainerChecker containerChecker) {
         this.containerFinder = containerFinder;
@@ -42,24 +45,33 @@ public class CheckReceiveService extends CheckServiceGrpc.CheckServiceImplBase {
             return;
         }
         List<SerializedContainerStatus> statuses = new ArrayList<>();
-
+        CountDownLatch latch = new CountDownLatch(group.containers().size());
         group.containers().stream()
                 .filter(container -> serials.contains(container.getSerial()))
                 .parallel().forEach(container -> {
                     String checkValue = null;
+                    boolean metaDamaged = false;
                     try {
                         checkValue = containerChecker.calculateChecksum(container);
-                    } catch (LockException | IOException e) {
+                    } catch (LockException e) {
                         e.printStackTrace();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        metaDamaged = true;
                     }
                     SerializedContainerStatus status = SerializedContainerStatus.newBuilder()
-                            .setMetaDamaged(false)
+                            .setMetaDamaged(metaDamaged)
                             .setSerial(container.getSerial())
                             .setCheckValue(checkValue)
                             .build();
                     statuses.add(status);
+                    latch.countDown();
                 });
-
+        try {
+            latch.await();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         responseObserver.onNext(CheckResponse.newBuilder()
                 .addAllStatus(statuses)
                 .build());

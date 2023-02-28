@@ -7,7 +7,7 @@ import java.util.List;
  */
 public interface ContainerGroupMetaBuilder {
     // TODO: refactor container meta
-    ContainerGroupMetaBuilder setMetas(List<? extends ContainerMeta> metas);
+    ContainerGroupMetaBuilder setLocators(List<? extends ContainerLocator> locators);
 
     ContainerGroupMeta build();
 }

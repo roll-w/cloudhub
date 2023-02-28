@@ -84,6 +84,7 @@ public class SynchroService extends SynchroServiceGrpc.SynchroServiceImplBase {
                 .forEach(needSync::add);
         List<ReplicaSynchroPart> parts = needSync.stream()
                 .map(group::getContainer)
+                .filter(Objects::nonNull)
                 .map(container -> new ReplicaSynchroPart(container,
                         BlockGroupsInfo.build(0, container.getIdentity().blockLimit() - 1),
                         -1))
@@ -99,9 +100,7 @@ public class SynchroService extends SynchroServiceGrpc.SynchroServiceImplBase {
         if (request.hasSource()) {
             return request.getSource();
         }
-        // if there's no source, then the server must be the master.
+        // if there's no source, then the current server must be the master.
         return ContainerFinder.LOCAL;
     }
-
-
 }

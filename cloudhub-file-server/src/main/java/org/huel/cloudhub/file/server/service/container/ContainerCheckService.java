@@ -18,6 +18,7 @@ import java.io.InputStream;
  * @author RollW
  */
 @Service
+@SuppressWarnings({"UnstableApiUsage"})
 public class ContainerCheckService implements ContainerChecker {
     private final ContainerReadOpener containerReadOpener;
 
@@ -27,6 +28,20 @@ public class ContainerCheckService implements ContainerChecker {
 
     @Override
     public boolean checkContainer(Container container) {
+        // need first check the container's checksum
+        // then check the container's files
+        String calcChecksum;
+        try {
+            calcChecksum = calculateChecksum(container);
+        } catch (LockException | IOException e) {
+            return false;
+        }
+        String containerChecksum = container.getIdentity().crc();
+        if (!calcChecksum.equals(containerChecksum)) {
+            return false;
+        }
+        // TODO: check the files
+
         return false;
     }
 
@@ -58,7 +73,7 @@ public class ContainerCheckService implements ContainerChecker {
     private static void readFully(InputStream input) throws IOException {
         byte[] buffer = new byte[DEFAULT_BUFFER_SIZE];
         while (EOF != input.read(buffer)) {
-            continue;
+            // leave it empty
         }
     }
 }

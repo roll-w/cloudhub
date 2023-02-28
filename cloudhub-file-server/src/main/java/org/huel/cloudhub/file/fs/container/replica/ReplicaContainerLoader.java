@@ -8,5 +8,6 @@ import java.io.IOException;
  * @author RollW
  */
 public interface ReplicaContainerLoader {
-    void loadInReplicaContainers(SerializedReplicaContainerGroupMeta containerGroupMeta) throws IOException;
+    void loadInReplicaContainers(SerializedReplicaContainerGroupMeta containerGroupMeta)
+            throws IOException;
 }
