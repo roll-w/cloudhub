@@ -34,7 +34,8 @@
 
 ## 文件系统架构设计
 
-Cloudhub文件系统（下简称CFS）被设计成一个仅限读及有限写操作的、可伸缩的分布式文件系统。
+Cloudhub文件系统（Cloudhub File System, CFS）是支撑Cloudhub的核心部分，
+其被设计成一个仅限读及有限写操作的、可伸缩的分布式文件系统。
 
 CFS以做到BASE为目标，牺牲一部分一致性以保证系统的高可用。
 > BASE: Basically Available, Soft State, Eventual Consistency
@@ -136,3 +137,24 @@ CFS始终维持在软状态，即不同的文件服务器的副本同步存在�
 
 完整测试结果位于`/tests` 目录下。
 
+
+## 开源许可
+
+```text
+Cloudhub - A distributed object storage system.
+Copyright (C) 2022 HUEL Team, Chengbo Yang, Yikai Wang, Gong Cheng, Jiale Chang
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along
+with this program; if not, write to the Free Software Foundation, Inc.,
+51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+```
