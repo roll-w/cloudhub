@@ -1,4 +1,21 @@
-# 前端页面
+# 前端
+
+Cloudhub的前端部分。
+
+## Project setup
+```bash
+npm install
+```
+
+### Compiles and hot-reloads for development
+```bash
+npm run serve
+```
+
+### Compiles and minifies for production
+```bash
+npm run build
+```
 
 ## 文件服务器
 - 服务器信息查看
