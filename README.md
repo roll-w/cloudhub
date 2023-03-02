@@ -142,7 +142,7 @@ CFS始终维持在软状态，即不同的文件服务器的副本同步存在�
 
 ```text
 Cloudhub - A distributed object storage system.
-Copyright (C) 2022 HUEL Team, Chengbo Yang, Yikai Wang, Gong Cheng, Jiale Chang
+Copyright (C) 2022 HUEL Team.
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
