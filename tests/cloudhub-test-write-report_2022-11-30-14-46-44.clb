@@ -32,7 +32,7 @@ case  start(timestamp)  calc(ms)  total(ms)  temp->store(ms)  store->last(ms)  t
   24     1669795995444     27150     104206            37035            40021        19.65             26.58      55.30          51.17
   25     1669796213991     24849      82488            17867            39772        24.83             35.53     114.62          51.49
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-Result Summary:631,048
+Result Summary:
                     Cases: 25     
             Data Size(MB): 2048   
                 total(ms): 2610022
