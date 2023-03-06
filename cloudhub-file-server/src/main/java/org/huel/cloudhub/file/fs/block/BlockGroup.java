@@ -32,6 +32,7 @@ public class BlockGroup {
         return index >= start && index <= end;
     }
 
+    @Deprecated
     public SerializedBlockGroup serialize() {
         return SerializedBlockGroup.newBuilder()
                 .setStart(start)
@@ -39,6 +40,7 @@ public class BlockGroup {
                 .build();
     }
 
+    @Deprecated
     public static BlockGroup deserialize(SerializedBlockGroup serializedBlockGroup) {
         return new BlockGroup(serializedBlockGroup.getStart(),
                 serializedBlockGroup.getEnd());

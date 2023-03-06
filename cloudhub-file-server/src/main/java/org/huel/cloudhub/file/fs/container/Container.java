@@ -95,6 +95,7 @@ public class Container {
         return Collections.unmodifiableList(blockMetaInfos);
     }
 
+    @Deprecated
     public List<SerializedBlockFileMeta> getSerializedMetaInfos() {
         List<SerializedBlockFileMeta> serializeBlockFileMetas =
                 new ArrayList<>();

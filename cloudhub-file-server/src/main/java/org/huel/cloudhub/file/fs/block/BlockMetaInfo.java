@@ -127,6 +127,7 @@ public class BlockMetaInfo implements BlockFileMeta {
         return -1;
     }
 
+    @Deprecated
     public SerializedBlockFileMeta serialize() {
         List<BlockGroup> blockGroups = getRawBlockGroups();
         List<SerializedBlockGroup> serializedBlockGroups = new ArrayList<>();
@@ -141,6 +142,7 @@ public class BlockMetaInfo implements BlockFileMeta {
                 .build();
     }
 
+    @Deprecated
     public static BlockMetaInfo deserialize(SerializedBlockFileMeta blockFileMeta, long containerSerial) {
         List<BlockGroup> blockGroups = new ArrayList<>();
         blockFileMeta.getBlockGroupsList().forEach(serializedBlockGroup ->

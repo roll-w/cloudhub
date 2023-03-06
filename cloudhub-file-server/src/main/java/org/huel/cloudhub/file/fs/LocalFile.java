@@ -102,13 +102,13 @@ public class LocalFile implements ServerFile {
     }
 
     @Override
-    public ServerFile getParent() throws IOException {
+    public ServerFile getParent() {
         return new LocalFile(file.getParentFile());
     }
 
     @NonNull
     @Override
-    public List<ServerFile> listFiles() throws IOException {
+    public List<ServerFile> listFiles() {
         File[] files = file.listFiles();
         if (files == null) {
             return List.of();
