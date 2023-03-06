@@ -68,7 +68,7 @@ public final class RandomFileGenerator {
             return defaultValue;
         }
         return Integer.parseInt(
-                strings.stream().findFirst().orElseThrow()
+                strings.stream().findFirst().orElse(defaultValue + "")
         );
     }
 
@@ -76,6 +76,6 @@ public final class RandomFileGenerator {
         if (strings == null || strings.isEmpty()) {
             return defaultValue;
         }
-        return strings.stream().findFirst().orElseThrow();
+        return strings.stream().findFirst().orElse(defaultValue);
     }
 }
