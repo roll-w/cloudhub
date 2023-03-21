@@ -7,11 +7,13 @@ import org.huel.cloudhub.client.service.rpc.FileServerCheckService;
 import org.huel.cloudhub.client.service.rpc.ServerInfoCheckService;
 import org.huel.cloudhub.client.service.server.ServerStatusService;
 import org.huel.cloudhub.client.service.user.UserGetter;
-import org.huel.cloudhub.common.ErrorCode;
-import org.huel.cloudhub.common.HttpResponseEntity;
+import org.huel.cloudhub.common.BusinessRuntimeException;
+import org.huel.cloudhub.common.CommonErrorCode;
 import org.huel.cloudhub.server.DiskUsageInfo;
 import org.huel.cloudhub.server.NetworkUsageInfo;
 import org.huel.cloudhub.server.ServerHostInfo;
+import org.huel.cloudhub.web.HttpResponseEntity;
+import org.huel.cloudhub.web.WebCommonErrorCode;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -44,7 +46,7 @@ public class ServerStatusController {
         var validateMessage =
                 ValidateHelper.validateUserAdmin(httpServletRequest, userGetter);
         if (validateMessage != null) {
-            return HttpResponseEntity.create(
+            return HttpResponseEntity.of(
                     validateMessage.toResponseBody(d -> null));
         }
         return HttpResponseEntity.success(serverStatusService.getRunTimeLength());
@@ -55,7 +57,7 @@ public class ServerStatusController {
         var validateMessage =
                 ValidateHelper.validateUserAdmin(httpServletRequest, userGetter);
         if (validateMessage != null) {
-            return HttpResponseEntity.create(
+            return HttpResponseEntity.of(
                     validateMessage.toResponseBody(d -> null));
         }
 
@@ -72,12 +74,12 @@ public class ServerStatusController {
         var validateMessage =
                 ValidateHelper.validateUserAdmin(request, userGetter);
         if (validateMessage != null) {
-            return HttpResponseEntity.create(
+            return HttpResponseEntity.of(
                     validateMessage.toResponseBody(d -> null));
         }
         if (serverId == null || serverId.isEmpty()) {
-            return HttpResponseEntity.failure("Missing of server id.",
-                    ErrorCode.ERROR_PARAM_MISSING);
+            throw new BusinessRuntimeException(WebCommonErrorCode.ERROR_PARAM_MISSING,
+                    "Missing server id.");
         }
         return HttpResponseEntity.success(
                 fileServerCheckService.getContainerStatus(serverId));
@@ -92,7 +94,7 @@ public class ServerStatusController {
         var validateMessage =
                 ValidateHelper.validateUserAdmin(request, userGetter);
         if (validateMessage != null) {
-            return HttpResponseEntity.create(
+            return HttpResponseEntity.of(
                     validateMessage.toResponseBody(d -> null));
         }
         if (serverId == null || serverId.isEmpty()) {
@@ -114,7 +116,7 @@ public class ServerStatusController {
         var validateMessage =
                 ValidateHelper.validateUserAdmin(request, userGetter);
         if (validateMessage != null) {
-            return HttpResponseEntity.create(
+            return HttpResponseEntity.of(
                     validateMessage.toResponseBody(d -> null));
         }
         if (serverId == null || serverId.isEmpty()) {
@@ -128,8 +130,8 @@ public class ServerStatusController {
         List<NetworkUsageInfo> nets =
                 serverInfoCheckService.getFileNetRecords(serverId);
         if (nets == null) {
-            return HttpResponseEntity.failure("Not found server",
-                    ErrorCode.ERROR_DATA_NOT_EXIST);
+            throw new BusinessRuntimeException(CommonErrorCode.ERROR_NOT_FOUND,
+                    "Not found server: " + serverId);
         }
         return HttpResponseEntity.success(
                 serverInfoCheckService.getFileNetRecords(serverId));
@@ -142,12 +144,12 @@ public class ServerStatusController {
         var validateMessage =
                 ValidateHelper.validateUserAdmin(request, userGetter);
         if (validateMessage != null) {
-            return HttpResponseEntity.create(
+            return HttpResponseEntity.of(
                     validateMessage.toResponseBody(d -> null));
         }
         if (serverId == null || serverId.isEmpty()) {
-            return HttpResponseEntity.failure("Not found server",
-                    ErrorCode.ERROR_DATA_NOT_EXIST);
+            throw new BusinessRuntimeException(CommonErrorCode.ERROR_NOT_FOUND,
+                    "Not found server: " + serverId);
         }
         if (serverId.equalsIgnoreCase(META_SERVER_ID)) {
             return HttpResponseEntity.success(
@@ -156,8 +158,8 @@ public class ServerStatusController {
         List<DiskUsageInfo> disks =
                 serverInfoCheckService.getFileServerDiskRecords(serverId);
         if (disks == null) {
-            return HttpResponseEntity.failure("Not found server",
-                    ErrorCode.ERROR_DATA_NOT_EXIST);
+            throw new BusinessRuntimeException(CommonErrorCode.ERROR_NOT_FOUND,
+                    "Not found server: " + serverId);
         }
         return HttpResponseEntity.success(disks);
     }

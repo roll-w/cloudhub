@@ -12,8 +12,8 @@ import org.huel.cloudhub.client.event.object.OnObjectDeleteEvent;
 import org.huel.cloudhub.client.event.object.OnObjectRenameEvent;
 import org.huel.cloudhub.client.service.rpc.ClientFileDownloadService;
 import org.huel.cloudhub.client.service.rpc.ClientFileUploadService;
-import org.huel.cloudhub.common.ErrorCode;
-import org.huel.cloudhub.common.MessagePackage;
+import org.huel.cloudhub.common.IoErrorCode;
+import org.huel.cloudhub.common.SystemRuntimeException;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
@@ -44,7 +44,7 @@ public class ObjectServiceImpl implements ObjectService, ObjectRemoveHandler {
     }
 
     @Override
-    public MessagePackage<ObjectInfoDto> saveObject(ObjectInfo objectInfo,
+    public ObjectInfoDto saveObject(ObjectInfo objectInfo,
                                                     InputStream stream) throws IOException {
         validateObjectInfo(objectInfo);
         var fileIdWrapper = new Object() {
@@ -64,17 +64,16 @@ public class ObjectServiceImpl implements ObjectService, ObjectRemoveHandler {
         try {
             latch.await();
         } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+            throw new SystemRuntimeException(e);
         }
         if (fileIdWrapper.fileId == null) {
-            return new MessagePackage<>(ErrorCode.ERROR_FILE,
-                    "Upload file error.", null);
+            throw new ObjectRuntimeException(IoErrorCode.ERROR_FILE_UPLOAD);
         }
         FileObjectStorage storage = saveLocation(
                 objectInfo.bucketName(), objectInfo.objectName(),
                 fileIdWrapper.fileSize, fileIdWrapper.fileId);
 
-        return new MessagePackage<>(ErrorCode.SUCCESS, ObjectInfoDto.from(storage));
+        return ObjectInfoDto.from(storage);
     }
 
     private FileObjectStorage saveLocation(String bucketName,
@@ -101,8 +100,7 @@ public class ObjectServiceImpl implements ObjectService, ObjectRemoveHandler {
         validateObjectInfo(objectInfo);
         FileObjectStorage storage = repository.getById(objectInfo.bucketName(), objectInfo.objectName());
         if (storage == null) {
-            throw new ObjectRuntimeException(ErrorCode.ERROR_DATA_NOT_EXIST,
-                    "Object not exist");
+            throw new ObjectRuntimeException(ObjectErrorCode.ERROR_OBJECT_NOT_EXIST);
         }
 
         // write
@@ -112,7 +110,7 @@ public class ObjectServiceImpl implements ObjectService, ObjectRemoveHandler {
         try {
             latch.await();
         } catch (InterruptedException e) {
-            throw new ObjectRuntimeException(e);
+            throw new SystemRuntimeException(e);
         }
     }
 
@@ -121,8 +119,7 @@ public class ObjectServiceImpl implements ObjectService, ObjectRemoveHandler {
         validateObjectInfo(objectInfo);
         FileObjectStorage storage = repository.getById(objectInfo.bucketName(), objectInfo.objectName());
         if (storage == null) {
-            throw new ObjectRuntimeException(ErrorCode.ERROR_DATA_NOT_EXIST,
-                    "Object not exist");
+            throw new ObjectRuntimeException(ObjectErrorCode.ERROR_OBJECT_NOT_EXIST);
         }
         CountDownLatch latch = new CountDownLatch(1);
         clientFileDownloadService.downloadFile(stream, storage.getFileId(),
@@ -130,28 +127,25 @@ public class ObjectServiceImpl implements ObjectService, ObjectRemoveHandler {
         try {
             latch.await();
         } catch (InterruptedException e) {
-            throw new ObjectRuntimeException(e);
+            throw new SystemRuntimeException(e);
         }
     }
 
     @Override
-    public MessagePackage<Void> deleteObject(ObjectInfo objectInfo) {
+    public void deleteObject(ObjectInfo objectInfo) {
         validateObjectInfo(objectInfo);
         FileObjectStorage storage = repository.getById(objectInfo.bucketName(), objectInfo.objectName());
         if (storage == null) {
-            return new MessagePackage<>(ErrorCode.ERROR_DATA_NOT_EXIST,
-                    "Object not exist", null);
+            throw new ObjectRuntimeException(ObjectErrorCode.ERROR_OBJECT_NOT_EXIST);
         }
         OnObjectDeleteEvent event = new OnObjectDeleteEvent(ObjectInfoDto.from(storage));
         eventPublisher.publishEvent(event);
         repository.delete(storage);
-        return new MessagePackage<>(ErrorCode.SUCCESS, null);
     }
 
     @Override
-    public MessagePackage<Void> clearBucketObjects(String bucketName) {
+    public void clearBucketObjects(String bucketName) {
         repository.deleteByBucketName(bucketName);
-        return new MessagePackage<>(ErrorCode.SUCCESS, null);
     }
 
     @Override
@@ -165,19 +159,17 @@ public class ObjectServiceImpl implements ObjectService, ObjectRemoveHandler {
     }
 
     @Override
-    public MessagePackage<Void> setObjectFileId(String bucketName, String objectName, String fileId) {
+    public void setObjectFileId(String bucketName, String objectName, String fileId) {
         FileObjectStorage objectStorage = repository.getById(bucketName, objectName);
         if (objectStorage == null) {
-            return new MessagePackage<>(ErrorCode.ERROR_DATA_NOT_EXIST,
-                    "Not exist.", null);
+            throw new ObjectRuntimeException(ObjectErrorCode.ERROR_OBJECT_NOT_EXIST);
         }
         objectStorage.setFileId(fileId);
         repository.update(objectStorage);
-        return new MessagePackage<>(ErrorCode.SUCCESS, null);
     }
 
     @Override
-    public MessagePackage<ObjectInfoDto> renameObject(ObjectInfo oldInfo, String newName) {
+    public ObjectInfoDto renameObject(ObjectInfo oldInfo, String newName) {
         Validate.notEmpty(newName, "objectName cannot be null or empty.");
         FileObjectStorage storage =
                 repository.getById(oldInfo.bucketName(), oldInfo.objectName());
@@ -186,7 +178,7 @@ public class ObjectServiceImpl implements ObjectService, ObjectRemoveHandler {
         ObjectInfoDto dto = ObjectInfoDto.from(storage);
         OnObjectRenameEvent event = new OnObjectRenameEvent(oldInfo, newName);
         eventPublisher.publishEvent(event);
-        return new MessagePackage<>(ErrorCode.SUCCESS, dto);
+        return dto;
     }
 
     @Override

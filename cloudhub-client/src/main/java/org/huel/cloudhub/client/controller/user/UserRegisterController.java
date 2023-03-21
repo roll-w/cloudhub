@@ -4,8 +4,8 @@ import org.apache.commons.lang3.Validate;
 import org.huel.cloudhub.client.data.dto.user.UserInfo;
 import org.huel.cloudhub.client.data.dto.user.UserRegisterRequest;
 import org.huel.cloudhub.client.service.user.UserService;
-import org.huel.cloudhub.common.HttpResponseEntity;
 import org.huel.cloudhub.common.MessagePackage;
+import org.huel.cloudhub.web.HttpResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -35,7 +35,7 @@ public class UserRegisterController {
                         registerRequest.getPassword(),
                         registerRequest.getEmail()
                 );
-        return HttpResponseEntity.create(
+        return HttpResponseEntity.of(
                 infoMessagePackage.toResponseBody()
         );
     }

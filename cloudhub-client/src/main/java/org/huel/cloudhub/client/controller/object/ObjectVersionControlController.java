@@ -5,12 +5,14 @@ import org.huel.cloudhub.client.data.dto.object.VersionedObjectVo;
 import org.huel.cloudhub.client.data.dto.user.UserInfo;
 import org.huel.cloudhub.client.data.entity.object.VersionedObject;
 import org.huel.cloudhub.client.service.bucket.BucketAuthService;
+import org.huel.cloudhub.client.service.object.ObjectErrorCode;
 import org.huel.cloudhub.client.service.object.ObjectMetadataService;
+import org.huel.cloudhub.client.service.object.ObjectRuntimeException;
 import org.huel.cloudhub.client.service.object.ObjectService;
 import org.huel.cloudhub.client.service.object.VersionedObjectService;
 import org.huel.cloudhub.client.service.user.UserGetter;
-import org.huel.cloudhub.common.ErrorCode;
-import org.huel.cloudhub.common.HttpResponseEntity;
+import org.huel.cloudhub.web.AuthErrorCode;
+import org.huel.cloudhub.web.HttpResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -52,8 +54,7 @@ public class ObjectVersionControlController {
             @RequestParam String objectName) {
         UserInfo userInfo = userGetter.getCurrentUser(request);
         if (!bucketAuthService.isOwnerOf(userInfo, bucketName)) {
-            return HttpResponseEntity.failure("No Permission.",
-                    ErrorCode.ERROR_PERMISSION_NOT_ALLOWED);
+            throw new ObjectRuntimeException(AuthErrorCode.ERROR_NOT_HAS_ROLE);
         }
         List<VersionedObjectVo> versionedObjects = versionedObjectService
                 .getObjectVersions(bucketName, objectName)
@@ -68,21 +69,19 @@ public class ObjectVersionControlController {
                                                   @RequestBody ObjectRevertRequest revertRequest) {
         UserInfo userInfo = userGetter.getCurrentUser(request);
         if (!bucketAuthService.isOwnerOf(userInfo, revertRequest.bucketName())) {
-            return HttpResponseEntity.failure("No Permission.",
-                    ErrorCode.ERROR_PERMISSION_NOT_ALLOWED);
+            throw new ObjectRuntimeException(AuthErrorCode.ERROR_NOT_HAS_ROLE);
         }
         VersionedObject versionedObject = versionedObjectService.getObjectVersionOf(
                 revertRequest.bucketName(),
                 revertRequest.objectName(),
                 revertRequest.version());
         if (versionedObject == null) {
-            return HttpResponseEntity.failure("Not exist version.",
-                    ErrorCode.ERROR_DATA_NOT_EXIST);
+            throw new ObjectRuntimeException(ObjectErrorCode.ERROR_VERSIONED_OBJECT_NOT_EXIST);
         }
-        var res = objectService.setObjectFileId(
+        objectService.setObjectFileId(
                 revertRequest.bucketName(),
                 revertRequest.objectName(),
                 versionedObject.getFileId());
-        return HttpResponseEntity.create(res.toResponseBody());
+        return HttpResponseEntity.success();
     }
 }

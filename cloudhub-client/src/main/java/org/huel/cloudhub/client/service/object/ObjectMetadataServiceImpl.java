@@ -4,8 +4,6 @@ import org.huel.cloudhub.client.data.database.repository.ObjectMetadataRepositor
 import org.huel.cloudhub.client.data.dto.object.ObjectInfo;
 import org.huel.cloudhub.client.data.dto.object.ObjectInfoDto;
 import org.huel.cloudhub.client.data.entity.object.ObjectMetadata;
-import org.huel.cloudhub.common.ErrorCode;
-import org.huel.cloudhub.common.MessagePackage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -30,32 +28,30 @@ public class ObjectMetadataServiceImpl implements ObjectMetadataService,
     }
 
     @Override
-    public MessagePackage<Void> addObjectMetadataWithCheck(String bucketName, String objectName, Map<String, String> metadata) {
+    public void addObjectMetadataWithCheck(String bucketName, String objectName, Map<String, String> metadata) {
         if (!objectService.isObjectExist(new ObjectInfo(objectName, bucketName))) {
-            logger.debug("Object not exist");
-            return new MessagePackage<>(ErrorCode.ERROR_DATA_NOT_EXIST, null);
+            throw new ObjectRuntimeException(ObjectErrorCode.ERROR_OBJECT_NOT_EXIST);
         }
-        return tryAddObjectMetadata(bucketName, objectName, metadata, false);
+        tryAddObjectMetadata(bucketName, objectName, metadata, false);
     }
 
     @Override
-    public MessagePackage<Void> addObjectMetadata(String bucketName, String objectName,
-                                                  Map<String, String> metadata) {
-        return tryAddObjectMetadata(bucketName, objectName, metadata, true);
+    public void addObjectMetadata(String bucketName, String objectName,
+                                  Map<String, String> metadata) {
+        tryAddObjectMetadata(bucketName, objectName, metadata, true);
     }
 
-    private MessagePackage<Void> tryAddObjectMetadata(String bucketName, String objectName,
+    private void tryAddObjectMetadata(String bucketName, String objectName,
                                                       Map<String, String> metadata, boolean force) {
         ObjectMetadata objectMetadata = objectMetadataRepository.getByObjectName(bucketName, objectName);
         if (objectMetadata == null) {
             logger.debug("Insert with new metadata, bucket={};object={};metadata={}", bucketName, objectName, metadata);
             ObjectMetadata newMetadata = new ObjectMetadata(bucketName, objectName, metadata);
             objectMetadataRepository.insert(newMetadata);
-            return new MessagePackage<>(ErrorCode.SUCCESS, null);
+            return;
         }
         objectMetadata.addAll(metadata, force);
         objectMetadataRepository.update(objectMetadata);
-        return new MessagePackage<>(ErrorCode.SUCCESS, null);
     }
 
     @Override
@@ -69,14 +65,13 @@ public class ObjectMetadataServiceImpl implements ObjectMetadataService,
     }
 
     @Override
-    public MessagePackage<Void> removeObjectMetadata(String bucketName, String objectName, List<String> metadataKeys) {
+    public void removeObjectMetadata(String bucketName, String objectName, List<String> metadataKeys) {
         ObjectMetadata objectMetadata = objectMetadataRepository.getByObjectName(bucketName, objectName);
         if (objectMetadata == null) {
-            return new MessagePackage<>(ErrorCode.SUCCESS, null);
+            return;
         }
         metadataKeys.forEach(objectMetadata::removeKey);
         objectMetadataRepository.update(objectMetadata);
-        return new MessagePackage<>(ErrorCode.SUCCESS, null);
     }
 
     @Override

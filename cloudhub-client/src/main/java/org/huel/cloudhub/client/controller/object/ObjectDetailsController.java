@@ -5,11 +5,14 @@ import org.huel.cloudhub.client.data.dto.object.ObjectMetadataRemoveRequest;
 import org.huel.cloudhub.client.data.dto.object.ObjectMetadataSetRequest;
 import org.huel.cloudhub.client.data.dto.user.UserInfo;
 import org.huel.cloudhub.client.service.bucket.BucketAuthService;
+import org.huel.cloudhub.client.service.object.ObjectErrorCode;
 import org.huel.cloudhub.client.service.object.ObjectMetadataService;
+import org.huel.cloudhub.client.service.object.ObjectRuntimeException;
 import org.huel.cloudhub.client.service.object.ObjectService;
 import org.huel.cloudhub.client.service.user.UserGetter;
-import org.huel.cloudhub.common.ErrorCode;
-import org.huel.cloudhub.common.HttpResponseEntity;
+import org.huel.cloudhub.web.AuthErrorCode;
+import org.huel.cloudhub.web.HttpResponseEntity;
+import org.huel.cloudhub.web.UserErrorCode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -50,12 +53,10 @@ public class ObjectDetailsController {
             @RequestParam String bucketName) {
         UserInfo userInfo = userGetter.getCurrentUser(request);
         if (userInfo == null) {
-            return HttpResponseEntity.failure("User not login.",
-                    ErrorCode.ERROR_USER_NOT_LOGIN);
+            throw new ObjectRuntimeException(UserErrorCode.ERROR_USER_NOT_LOGIN);
         }
         if (!bucketAuthService.isOwnerOf(userInfo, bucketName)) {
-            return HttpResponseEntity.failure("Not permitted.",
-                    ErrorCode.ERROR_PERMISSION_NOT_ALLOWED);
+            throw new ObjectRuntimeException(AuthErrorCode.ERROR_NOT_HAS_ROLE);
         }
         List<ObjectInfoVo> vos = objectService.getObjectsInBucket(bucketName)
                 .stream().map(ObjectInfoVo::from).toList();
@@ -69,12 +70,10 @@ public class ObjectDetailsController {
             @RequestParam String objectName) {
         UserInfo userInfo = userGetter.getCurrentUser(request);
         if (userInfo == null) {
-            return HttpResponseEntity.failure("User not login.",
-                    ErrorCode.ERROR_USER_NOT_LOGIN);
+            throw new ObjectRuntimeException(UserErrorCode.ERROR_USER_NOT_LOGIN);
         }
         if (!bucketAuthService.isOwnerOf(userInfo, bucketName)) {
-            return HttpResponseEntity.failure("Not permitted.",
-                    ErrorCode.ERROR_PERMISSION_NOT_ALLOWED);
+            throw new ObjectRuntimeException(AuthErrorCode.ERROR_NOT_HAS_ROLE);
         }
         ObjectInfoVo vo = ObjectInfoVo.from(
                 objectService.getObjectInBucket(bucketName, objectName));
@@ -89,14 +88,13 @@ public class ObjectDetailsController {
         BucketAuthService.BucketControlCode controlCode =
                 bucketAuthService.allowRead(userInfo, bucketName);
         if (!controlCode.isSuccess()) {
-            return HttpResponseEntity.failure("Have no permission to read.",
-                    ErrorCode.ERROR_PERMISSION_NOT_ALLOWED);
+            throw new ObjectRuntimeException(AuthErrorCode.ERROR_NOT_HAS_ROLE,
+                    "Have no permission to read.");
         }
         Map<String, String> metadata = objectMetadataService
                 .getObjectMetadata(bucketName, objectName);
         if (metadata == null) {
-            return HttpResponseEntity.failure("Not found",
-                    ErrorCode.ERROR_DATA_NOT_EXIST);
+           throw new ObjectRuntimeException(ObjectErrorCode.ERROR_OBJECT_NOT_EXIST);
         }
 
         return HttpResponseEntity.success(metadata);
@@ -109,15 +107,15 @@ public class ObjectDetailsController {
         BucketAuthService.BucketControlCode controlCode =
                 bucketAuthService.allowWrite(userInfo, setRequest.bucketName());
         if (!controlCode.isSuccess()) {
-            return HttpResponseEntity.failure("Have no permission to read.",
-                    ErrorCode.ERROR_PERMISSION_NOT_ALLOWED);
+            throw new ObjectRuntimeException(AuthErrorCode.ERROR_NOT_HAS_ROLE,
+                    "Have no permission to read.");
         }
-        var res = objectMetadataService.addObjectMetadataWithCheck(
+        objectMetadataService.addObjectMetadataWithCheck(
                 setRequest.bucketName(),
                 setRequest.objectName(),
                 setRequest.metadata()
         );
-        return HttpResponseEntity.create(res.toResponseBody());
+        return HttpResponseEntity.success();
     }
 
     @PostMapping("/metadata/remove")
@@ -127,14 +125,14 @@ public class ObjectDetailsController {
         BucketAuthService.BucketControlCode controlCode =
                 bucketAuthService.allowWrite(userInfo, removeRequest.bucketName());
         if (!controlCode.isSuccess()) {
-            return HttpResponseEntity.failure("Have no permission to read.",
-                    ErrorCode.ERROR_PERMISSION_NOT_ALLOWED);
+            throw new ObjectRuntimeException(AuthErrorCode.ERROR_NOT_HAS_ROLE,
+                    "Have no permission to read.");
         }
-        var res = objectMetadataService.removeObjectMetadata(
+       objectMetadataService.removeObjectMetadata(
                 removeRequest.bucketName(),
                 removeRequest.objectName(),
                 removeRequest.removeKeys()
         );
-        return HttpResponseEntity.create(res.toResponseBody());
+        return HttpResponseEntity.success();
     }
 }

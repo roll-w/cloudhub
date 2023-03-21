@@ -3,7 +3,7 @@ package org.huel.cloudhub.client.controller.server;
 import org.huel.cloudhub.client.controller.ValidateHelper;
 import org.huel.cloudhub.client.event.object.ObjectRequestCounter;
 import org.huel.cloudhub.client.service.user.UserGetter;
-import org.huel.cloudhub.common.HttpResponseEntity;
+import org.huel.cloudhub.web.HttpResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -29,7 +29,7 @@ public class StatController {
         var validateMessage =
                 ValidateHelper.validateUserAdmin(httpServletRequest, userGetter);
         if (validateMessage != null) {
-            return HttpResponseEntity.create(
+            return HttpResponseEntity.of(
                     validateMessage.toResponseBody(d -> null));
         }
         return HttpResponseEntity.success(objectRequestCounter.getGetCount());

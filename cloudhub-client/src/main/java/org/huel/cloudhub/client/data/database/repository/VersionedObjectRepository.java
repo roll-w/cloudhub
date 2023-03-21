@@ -56,4 +56,8 @@ public class VersionedObjectRepository {
     public List<VersionedObject> getVersionedObjects(String bucketName, String objectName) {
         return versionedObjectDao.getObjectsVersion(bucketName, objectName);
     }
+
+    public void updateObjects(List<VersionedObject> objects) {
+        versionedObjectDao.update(objects);
+    }
 }

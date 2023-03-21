@@ -4,11 +4,12 @@ import org.huel.cloudhub.client.controller.ValidateHelper;
 import org.huel.cloudhub.client.data.dto.object.ObjectInfoVo;
 import org.huel.cloudhub.client.data.dto.object.ObjectMetadataRemoveRequest;
 import org.huel.cloudhub.client.data.dto.object.ObjectMetadataSetRequest;
+import org.huel.cloudhub.client.service.object.ObjectErrorCode;
 import org.huel.cloudhub.client.service.object.ObjectMetadataService;
+import org.huel.cloudhub.client.service.object.ObjectRuntimeException;
 import org.huel.cloudhub.client.service.object.ObjectService;
 import org.huel.cloudhub.client.service.user.UserGetter;
-import org.huel.cloudhub.common.ErrorCode;
-import org.huel.cloudhub.common.HttpResponseEntity;
+import org.huel.cloudhub.web.HttpResponseEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -46,7 +47,7 @@ public class ObjectAdminDetailsController {
             @RequestParam String bucketName) {
         var res = ValidateHelper.validateUserAdmin(request, userGetter);
         if (res != null) {
-            return HttpResponseEntity.create(res.toResponseBody(data -> null));
+            return HttpResponseEntity.of(res.toResponseBody(data -> null));
         }
         List<ObjectInfoVo> vos = objectService.getObjectsInBucket(bucketName)
                 .stream().map(ObjectInfoVo::from).toList();
@@ -60,7 +61,7 @@ public class ObjectAdminDetailsController {
             @RequestParam String objectName) {
         var res = ValidateHelper.validateUserAdmin(request, userGetter);
         if (res != null) {
-            return HttpResponseEntity.create(res.toResponseBody(data -> null));
+            return HttpResponseEntity.of(res.toResponseBody(data -> null));
         }
         ObjectInfoVo vo = ObjectInfoVo.from(
                 objectService.getObjectInBucket(bucketName, objectName));
@@ -73,15 +74,13 @@ public class ObjectAdminDetailsController {
                                                                      String objectName) {
         var res = ValidateHelper.validateUserAdmin(request, userGetter);
         if (res != null) {
-            return HttpResponseEntity.create(res.toResponseBody(data -> null));
+            return HttpResponseEntity.of(res.toResponseBody(data -> null));
         }
         Map<String, String> metadata = objectMetadataService
                 .getObjectMetadata(bucketName, objectName);
         if (metadata == null) {
-            return HttpResponseEntity.failure("Not found",
-                    ErrorCode.ERROR_DATA_NOT_EXIST);
+            throw new ObjectRuntimeException(ObjectErrorCode.ERROR_OBJECT_NOT_EXIST);
         }
-
         return HttpResponseEntity.success(metadata);
     }
 
@@ -90,14 +89,14 @@ public class ObjectAdminDetailsController {
                                                       @RequestBody ObjectMetadataSetRequest setRequest) {
         var validate = ValidateHelper.validateUserAdmin(request, userGetter);
         if (validate != null) {
-            return HttpResponseEntity.create(validate.toResponseBody(data -> null));
+            return HttpResponseEntity.of(validate.toResponseBody(data -> null));
         }
-        var res = objectMetadataService.addObjectMetadataWithCheck(
+        objectMetadataService.addObjectMetadataWithCheck(
                 setRequest.bucketName(),
                 setRequest.objectName(),
                 setRequest.metadata()
         );
-        return HttpResponseEntity.create(res.toResponseBody());
+        return HttpResponseEntity.success();
     }
 
     @PostMapping("/metadata/remove")
@@ -105,13 +104,13 @@ public class ObjectAdminDetailsController {
                                                          @RequestBody ObjectMetadataRemoveRequest removeRequest) {
         var validate = ValidateHelper.validateUserAdmin(request, userGetter);
         if (validate != null) {
-            return HttpResponseEntity.create(validate.toResponseBody(data -> null));
+            return HttpResponseEntity.of(validate.toResponseBody(data -> null));
         }
-        var res = objectMetadataService.removeObjectMetadata(
+       objectMetadataService.removeObjectMetadata(
                 removeRequest.bucketName(),
                 removeRequest.objectName(),
                 removeRequest.removeKeys()
         );
-        return HttpResponseEntity.create(res.toResponseBody());
+        return HttpResponseEntity.success();
     }
 }

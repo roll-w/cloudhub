@@ -6,8 +6,6 @@ import org.huel.cloudhub.client.data.database.repository.VersionedObjectReposito
 import org.huel.cloudhub.client.data.dto.object.ObjectInfo;
 import org.huel.cloudhub.client.data.dto.object.ObjectInfoDto;
 import org.huel.cloudhub.client.data.entity.object.VersionedObject;
-import org.huel.cloudhub.common.ErrorCode;
-import org.huel.cloudhub.common.MessagePackage;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -25,7 +23,7 @@ public class VersionedObjectServiceImpl implements VersionedObjectService,
     }
 
     @Override
-    public MessagePackage<VersionedObject> createNewVersionObject(ObjectInfoDto objectInfoDto) {
+    public VersionedObject createNewVersionObject(ObjectInfoDto objectInfoDto) {
         validateObjectInfoDto(objectInfoDto);
 
         VersionedObject latest =
@@ -41,7 +39,7 @@ public class VersionedObjectServiceImpl implements VersionedObjectService,
                 version,
                 objectInfoDto.createTime());
         versionedObjectRepository.insert(versionedObject);
-        return new MessagePackage<>(ErrorCode.SUCCESS, versionedObject);
+        return versionedObject;
     }
 
     @Override
@@ -116,7 +114,15 @@ public class VersionedObjectServiceImpl implements VersionedObjectService,
 
     @Override
     public void onObjectRename(ObjectInfo oldInfo, String newName) {
-        // TODO:
+        List<VersionedObject> objects =
+                versionedObjectRepository.getVersionedObjects(oldInfo.bucketName(), oldInfo.objectName());
+        if (objects == null || objects.isEmpty()) {
+            return;
+        }
+        for (VersionedObject object : objects) {
+            object.setObjectName(newName);
+        }
+        versionedObjectRepository.updateObjects(objects);
     }
 
     private void validateObjectInfoDto(ObjectInfoDto objectInfo) {

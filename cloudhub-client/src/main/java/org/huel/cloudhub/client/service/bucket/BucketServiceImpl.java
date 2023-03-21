@@ -6,8 +6,8 @@ import org.huel.cloudhub.client.data.dto.bucket.BucketInfo;
 import org.huel.cloudhub.client.data.dto.user.UserInfo;
 import org.huel.cloudhub.client.data.entity.bucket.Bucket;
 import org.huel.cloudhub.client.data.entity.bucket.BucketVisibility;
-import org.huel.cloudhub.common.ErrorCode;
-import org.huel.cloudhub.common.MessagePackage;
+import org.huel.cloudhub.web.AuthErrorCode;
+import org.huel.cloudhub.web.WebCommonErrorCode;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -28,23 +28,20 @@ public class BucketServiceImpl implements BucketService, BucketAuthService {
     }
 
     @Override
-    public MessagePackage<BucketInfo> createBucket(long userId, String bucketName,
-                                                   BucketVisibility visibility) {
+    public BucketInfo createBucket(long userId, String bucketName,
+                                   BucketVisibility visibility) {
         Validate.notEmpty(bucketName, "bucketName cannot be null or empty");
         Validate.notNull(visibility, "bucketVisibility cannot be null");
         if (!sBucketNamePattern.matcher(bucketName).matches()) {
-            throw new BucketRuntimeException(
-                    ErrorCode.ERROR_ILLEGAL_PARAM, "Illegal bucket name.");
+            throw new BucketRuntimeException(WebCommonErrorCode.ERROR_PARAM_FAILED);
         }
         if (bucketRepository.isExistByName(bucketName)) {
-            return new MessagePackage<>(ErrorCode.ERROR_DATA_EXISTED,
-                    "Bucket existed.", null);
+            throw new BucketRuntimeException(BucketErrorCode.ERROR_BUCKET_EXISTED);
         }
         Bucket bucket = new Bucket(bucketName, userId,
                 System.currentTimeMillis(), visibility);
         bucketRepository.save(bucket);
-
-        return new MessagePackage<>(ErrorCode.SUCCESS, bucket.toInfo());
+        return bucket.toInfo();
     }
 
     @Override
@@ -67,49 +64,40 @@ public class BucketServiceImpl implements BucketService, BucketAuthService {
     }
 
     @Override
-    public MessagePackage<Void> deleteBucket(long userId, String bucketName) {
+    public void deleteBucket(long userId, String bucketName) {
         Bucket bucket = bucketRepository.getBucketByName(bucketName);
         if (bucket == null) {
-            return new MessagePackage<>(ErrorCode.ERROR_DATA_NOT_EXIST,
-                    "Bucket not exist.", null);
+            throw new BucketRuntimeException(BucketErrorCode.ERROR_BUCKET_NOT_EXIST);
         }
         if (bucket.getUserId() != userId) {
-            return new MessagePackage<>(ErrorCode.ERROR_PERMISSION_NOT_ALLOWED,
-                    "You are not permitted.", null);
+            throw new BucketRuntimeException(AuthErrorCode.ERROR_NOT_HAS_ROLE);
         }
         if (!bucketRepository.isBucketEmpty(bucketName)) {
-            return new MessagePackage<>(ErrorCode.ERROR_DATA_NOT_EMPTY,
-                    "Bucket not empty, cannot delete", null);
+            throw new BucketRuntimeException(BucketErrorCode.ERROR_BUCKET_NOT_EMPTY);
         }
         bucketRepository.deleteByName(bucketName);
-        return new MessagePackage<>(ErrorCode.SUCCESS, null);
     }
 
     @Override
-    public MessagePackage<Void> deleteBucket(String bucketName) {
+    public void deleteBucket(String bucketName) {
         if (!bucketRepository.isExistByName(bucketName)) {
-            return new MessagePackage<>(ErrorCode.ERROR_DATA_NOT_EXIST,
-                    "Bucket not exist.", null);
+            throw new BucketRuntimeException(BucketErrorCode.ERROR_BUCKET_NOT_EXIST);
         }
         if (!bucketRepository.isBucketEmpty(bucketName)) {
-            return new MessagePackage<>(ErrorCode.ERROR_DATA_NOT_EMPTY,
-                    "Bucket not empty, cannot delete", null);
+            throw new BucketRuntimeException(BucketErrorCode.ERROR_BUCKET_NOT_EMPTY);
         }
         bucketRepository.deleteByName(bucketName);
-        return new MessagePackage<>(ErrorCode.SUCCESS, null);
     }
 
     @Override
-    public MessagePackage<BucketInfo> setVisibility(String name, BucketVisibility bucketVisibility) {
+    public BucketInfo setVisibility(String name, BucketVisibility bucketVisibility) {
         Bucket bucket = bucketRepository.getBucketByName(name);
         if (bucket == null) {
-            return new MessagePackage<>(ErrorCode.ERROR_DATA_NOT_EXIST,
-                    "Bucket not exist.", null);
+            throw new BucketRuntimeException(BucketErrorCode.ERROR_BUCKET_NOT_EXIST);
         }
-
         bucket.setBucketVisibility(bucketVisibility);
         bucketRepository.save(bucket);
-        return new MessagePackage<>(ErrorCode.SUCCESS, bucket.toInfo());
+        return bucket.toInfo();
     }
 
     @Override

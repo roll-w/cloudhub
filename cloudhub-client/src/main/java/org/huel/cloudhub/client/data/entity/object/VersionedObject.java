@@ -8,7 +8,7 @@ import space.lingu.light.PrimaryKey;
 /**
  * @author RollW
  */
-@DataTable(tableName = "object_versioned_table", configuration =
+@DataTable(name = "object_versioned_table", configuration =
 @LightConfiguration(key = LightConfiguration.KEY_VARCHAR_LENGTH, value = "120"))
 public class VersionedObject {
     // TODO: Versioned Object

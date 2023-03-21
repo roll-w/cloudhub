@@ -1,12 +1,12 @@
 package org.huel.cloudhub.client.service.bucket;
 
 import org.huel.cloudhub.common.ErrorCode;
-import org.huel.cloudhub.common.SystemRuntimeException;
+import org.huel.cloudhub.common.BusinessRuntimeException;
 
 /**
  * @author RollW
  */
-public class BucketRuntimeException extends SystemRuntimeException {
+public class BucketRuntimeException extends BusinessRuntimeException {
     public BucketRuntimeException(ErrorCode errorCode) {
         super(errorCode);
     }
@@ -17,10 +17,6 @@ public class BucketRuntimeException extends SystemRuntimeException {
 
     public BucketRuntimeException(ErrorCode errorCode, String message, Throwable cause) {
         super(errorCode, message, cause);
-    }
-
-    public BucketRuntimeException(Throwable cause) {
-        super(cause);
     }
 
     public BucketRuntimeException(ErrorCode errorCode, Throwable cause) {

@@ -7,10 +7,16 @@ import org.huel.cloudhub.client.data.dto.user.UserInfo;
 import org.huel.cloudhub.client.data.entity.user.User;
 import org.huel.cloudhub.client.service.user.UserGetter;
 import org.huel.cloudhub.client.service.user.UserManageService;
-import org.huel.cloudhub.common.ErrorCode;
-import org.huel.cloudhub.common.HttpResponseEntity;
+import org.huel.cloudhub.common.BusinessRuntimeException;
 import org.huel.cloudhub.common.MessagePackage;
-import org.springframework.web.bind.annotation.*;
+import org.huel.cloudhub.web.HttpResponseEntity;
+import org.huel.cloudhub.web.UserErrorCode;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
@@ -37,7 +43,7 @@ public class UserManageController {
             @RequestBody UserCreateRequest userCreateRequest) {
         var validateMessage = validate(request);
         if (validateMessage != null) {
-            return HttpResponseEntity.create(
+            return HttpResponseEntity.of(
                     validateMessage.toResponseBody((data) -> null));
         }
 
@@ -47,7 +53,7 @@ public class UserManageController {
                     userCreateRequest.username(),
                     userCreateRequest.password(),
                     userCreateRequest.email());
-            return HttpResponseEntity.create(res.toResponseBody());
+            return HttpResponseEntity.of(res.toResponseBody());
         }
         var res = userManageService.createUser(
                 userCreateRequest.username(),
@@ -55,7 +61,7 @@ public class UserManageController {
                 userCreateRequest.email(),
                 userCreateRequest.role(),
                 userCreateRequest.discardEmail());
-        return HttpResponseEntity.create(res.toResponseBody());
+        return HttpResponseEntity.of(res.toResponseBody());
     }
 
     @PostMapping("/delete")
@@ -63,7 +69,7 @@ public class UserManageController {
     public HttpResponseEntity<Void> delete(HttpServletRequest request, @RequestParam Map<String, String> map) {
         var validateMessage = validate(request);
         if (validateMessage != null) {
-            return HttpResponseEntity.create(
+            return HttpResponseEntity.of(
                     validateMessage.toResponseBody((data) -> null));
         }
         String userIdParam = map.get("userId");
@@ -72,15 +78,14 @@ public class UserManageController {
         long userId = Long.parseLong(userIdParam);
         var res =
                 userManageService.deleteUser(userId);
-        return HttpResponseEntity.create(res.toResponseBody());
+        return HttpResponseEntity.of(res.toResponseBody());
     }
 
     @GetMapping("/get")
     public HttpResponseEntity<UserInfo> getUser(@RequestParam String username) {
         User user = userManageService.queryUser(username);
         if (user == null) {
-            return HttpResponseEntity.failure("User not exist",
-                    ErrorCode.ERROR_USER_NOT_EXIST, (UserInfo) null);
+            throw new BusinessRuntimeException(UserErrorCode.ERROR_USER_NOT_EXIST);
         }
         return HttpResponseEntity.success(user.toInfo());
     }
@@ -89,7 +94,7 @@ public class UserManageController {
     public HttpResponseEntity<List<UserInfo>> getAllUsers(HttpServletRequest request) {
         var validateMessage = validate(request);
         if (validateMessage != null) {
-            return HttpResponseEntity.create(
+            return HttpResponseEntity.of(
                     validateMessage.toResponseBody((data) -> null));
         }
 

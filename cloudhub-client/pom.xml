@@ -58,6 +58,16 @@
 
         <dependency>
             <groupId>org.huel.cloudhub</groupId>
+            <artifactId>cloudhub-web-common</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.huel.cloudhub</groupId>
+            <artifactId>cloudhub-fs</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.huel.cloudhub</groupId>
             <artifactId>cloudhub-client-rpc-api</artifactId>
         </dependency>
 

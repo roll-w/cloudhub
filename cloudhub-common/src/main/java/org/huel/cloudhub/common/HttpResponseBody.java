@@ -1,50 +1,43 @@
 package org.huel.cloudhub.common;
 
-import org.springframework.http.HttpStatus;
-
 /**
  * @author RollW
  */
 @SuppressWarnings("unchecked")
 public class HttpResponseBody<D> {
     private static final HttpResponseBody<?> SUCCESS = new HttpResponseBody<>(
-            HttpStatus.OK.value(), ErrorCode.SUCCESS.toString(), ErrorCode.SUCCESS);
+            CommonErrorCode.SUCCESS, 200, "OK");
 
-    private final int status;
-    private String message;
-    private ErrorCode errorCode;
-
-    private D data;
+    protected final int status;
+    protected String message;
+    protected ErrorCode errorCode;
+    protected String tip;
+    protected D data;
 
     private HttpResponseBody() {
-        this.status = HttpStatus.OK.value();
+        this.status = 200;
     }
 
-    public HttpResponseBody(int status, String message, ErrorCode errorCode) {
+    public HttpResponseBody(ErrorCode errorCode, int status, String message) {
         this.status = status;
         this.message = message;
         this.errorCode = errorCode;
     }
 
-    public HttpResponseBody(int status, String message,
-                            ErrorCode errorCode, D data) {
+    public HttpResponseBody(ErrorCode errorCode, int status,
+                            String message, D data) {
         this.status = status;
         this.message = message;
         this.errorCode = errorCode;
         this.data = data;
     }
 
-    public HttpResponseBody(HttpStatus status, String message, ErrorCode errorCode) {
-        this.status = status.value();
+    public HttpResponseBody(ErrorCode errorCode, int status,
+                            String message, String tip, D data) {
+        this.status = status;
         this.message = message;
         this.errorCode = errorCode;
-    }
-
-    public HttpResponseBody(HttpStatus status, String message,
-                            ErrorCode errorCode, D data) {
-        this.status = status.value();
-        this.message = message;
-        this.errorCode = errorCode;
+        this.tip = tip;
         this.data = data;
     }
 
@@ -53,6 +46,12 @@ public class HttpResponseBody<D> {
     }
 
     public String getMessage() {
+        if (message == null && tip == null) {
+            return null;
+        }
+        if (message == null) {
+            return tip;
+        }
         return message;
     }
 
@@ -74,13 +73,96 @@ public class HttpResponseBody<D> {
         return data;
     }
 
-    private HttpResponseBody<D> setData(D data) {
+    protected HttpResponseBody<D> setData(D data) {
         this.data = data;
         return this;
     }
 
+    public String getTip() {
+        // for json convert
+        if (tip == null) {
+            return message;
+        }
+        return tip;
+    }
+
+    public String rawTip() {
+        return tip;
+    }
+
+    public HttpResponseBody<D> setTip(String tip) {
+        this.tip = tip;
+        return this;
+    }
+
+    public boolean hasTip() {
+        return tip != null;
+    }
+
     public HttpResponseBody<D> fork() {
-        return new HttpResponseBody<>(getStatus(), getMessage(), getErrorCode(), getData());
+        return new HttpResponseBody<>(errorCode, status, message, tip, data);
+    }
+
+    public HttpResponseBody<D> fork(String tip) {
+        return new HttpResponseBody<>(errorCode, status, message, tip, data);
+    }
+
+    public HttpResponseBody<D> fork(String tip, int status) {
+        return new HttpResponseBody<>(errorCode, status, message, tip, data);
+    }
+
+    public HttpResponseBody<D> fork(String message, String tip) {
+        return new HttpResponseBody<>(errorCode, status, message, tip, data);
+    }
+
+    public static <D> Builder<D> builder() {
+        return new Builder<>();
+    }
+
+    public static <D> Builder<D> builder(D data) {
+        return new Builder<D>().data(data);
+    }
+
+    public static class Builder<D> {
+        private Integer status;
+        private String message;
+        private ErrorCode errorCode;
+        private String tip;
+        private D data = null;
+
+        public Builder() {
+        }
+
+        public Builder<D> status(int status) {
+            this.status = status;
+            return this;
+        }
+
+        public Builder<D> message(String message) {
+            this.message = message;
+            return this;
+        }
+
+        public Builder<D> errorCode(ErrorCode errorCode) {
+            this.errorCode = errorCode;
+            return this;
+        }
+
+        public Builder<D> tip(String tip) {
+            this.tip = tip;
+            return this;
+        }
+
+        public Builder<D> data(D data) {
+            this.data = data;
+            return this;
+        }
+
+        public HttpResponseBody<D> build() {
+            return new HttpResponseBody<>(errorCode,
+                    status == null ? errorCode.getStatus() : status,
+                    message, tip, data);
+        }
     }
 
     public static <D> HttpResponseBody<D> success() {
@@ -88,47 +170,56 @@ public class HttpResponseBody<D> {
     }
 
     public static <D> HttpResponseBody<D> success(String message) {
-        return (HttpResponseBody<D>) success()
+        return HttpResponseBody.<D>success()
                 .fork()
                 .setMessage(message);
     }
 
     public static <D> HttpResponseBody<D> success(String message, D data) {
-        return (HttpResponseBody<D>) success()
+        return HttpResponseBody.<D>success()
                 .fork()
                 .setMessage(message)
                 .setData(data);
     }
 
     public static <D> HttpResponseBody<D> success(D data) {
-        return (HttpResponseBody<D>) success()
+        return HttpResponseBody.<D>success()
                 .fork()
                 .setData(data);
     }
 
-    // for semantic control
-
-    public static <D> HttpResponseBody<D> failure(HttpStatus status,
-                                                  String message,
-                                                  ErrorCode errorCode,
-                                                  D data) {
-        return new HttpResponseBody<>(status, message, errorCode, data);
+    public static <D> HttpResponseBody<D> of(ErrorCode errorCode,
+                                             int status,
+                                             String message,
+                                             D data) {
+        return new HttpResponseBody<>(errorCode, status, message, data);
     }
 
-    public static <D> HttpResponseBody<D> failure(HttpStatus status,
-                                                  String message,
-                                                  ErrorCode errorCode) {
-        return new HttpResponseBody<>(status, message, errorCode);
+
+    public static <D> HttpResponseBody<D> of(ErrorCode errorCode,
+                                             String message) {
+        return new HttpResponseBody<>(errorCode, errorCode.getStatus(), message);
     }
 
-    public static <D> HttpResponseBody<D> failure(String message,
-                                                  ErrorCode errorCode) {
-        return new HttpResponseBody<>(errorCode.getStatus(), message, errorCode);
+    public static <D> HttpResponseBody<D> of(ErrorCode errorCode,
+                                             D data) {
+        return new HttpResponseBody<>(errorCode, errorCode.getStatus(), null, data);
     }
 
-    public static <D> HttpResponseBody<D> failure(String message,
-                                                  ErrorCode errorCode,
-                                                  D data) {
-        return new HttpResponseBody<>(errorCode.getStatus(), message, errorCode, data);
+    public static <D> HttpResponseBody<D> of(ErrorCode errorCode) {
+        return new HttpResponseBody<>(errorCode, errorCode.getStatus(), null);
+    }
+
+    public static <D> HttpResponseBody<D> of(ErrorCode errorCode,
+                                             String message,
+                                             D data) {
+        return new HttpResponseBody<>(errorCode, errorCode.getStatus(), message, data);
+    }
+
+    public static <D> HttpResponseBody<D> of(ErrorCode errorCode, Integer status,
+                                             String message, String tip, D data) {
+        return new HttpResponseBody<>(errorCode,
+                status == null ? errorCode.getStatus() : status,
+                message, tip, data);
     }
 }

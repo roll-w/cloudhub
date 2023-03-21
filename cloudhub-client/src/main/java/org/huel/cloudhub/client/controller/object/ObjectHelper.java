@@ -6,12 +6,13 @@ import org.huel.cloudhub.client.data.dto.object.ObjectInfoDto;
 import org.huel.cloudhub.client.data.dto.object.ObjectInfoVo;
 import org.huel.cloudhub.client.event.object.ObjectGetRequestEvent;
 import org.huel.cloudhub.client.event.object.ObjectPutRequestEvent;
+import org.huel.cloudhub.client.service.object.ObjectErrorCode;
 import org.huel.cloudhub.client.service.object.ObjectMetadataHeaders;
 import org.huel.cloudhub.client.service.object.ObjectMetadataService;
 import org.huel.cloudhub.client.service.object.ObjectRuntimeException;
 import org.huel.cloudhub.client.service.object.ObjectService;
-import org.huel.cloudhub.common.ErrorCode;
-import org.huel.cloudhub.common.HttpResponseEntity;
+import org.huel.cloudhub.web.HttpResponseEntity;
+import org.huel.cloudhub.web.WebCommonErrorCode;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpRange;
 import org.springframework.util.AntPathMatcher;
@@ -80,8 +81,7 @@ public final class ObjectHelper {
             HttpRange range = ranges.get(0);
             ObjectInfoDto objectInfoDto = objectService.getObjectInBucket(bucketName, objectName);
             if (objectInfoDto == null) {
-                throw new ObjectRuntimeException(ErrorCode.ERROR_DATA_NOT_EXIST,
-                        "Object not exist");
+                throw new ObjectRuntimeException(ObjectErrorCode.ERROR_OBJECT_NOT_EXIST);
             }
             long len = objectInfoDto.objectSize();
             response.setStatus(HttpServletResponse.SC_PARTIAL_CONTENT);
@@ -99,20 +99,19 @@ public final class ObjectHelper {
 
     public static HttpResponseEntity<ObjectInfoVo> processObjectUpload(HttpServletRequest request, @PathVariable("bucketName") String bucketName, @RequestPart(name = "object") MultipartFile objectFile, ObjectService objectService, ObjectMetadataService objectMetadataService, ApplicationEventPublisher applicationEventPublisher) throws IOException {
         Map<String, String> metadata = ObjectHelper.buildInitialMetadata(objectFile);
-
         String objectName = ObjectHelper.readPath(request);
-        ObjectInfo objectInfo = new ObjectInfo(objectName, bucketName);
-        var res =
-                objectService.saveObject(objectInfo, objectFile.getInputStream());
-        if (res.errorCode().getState()) {
-            objectMetadataService.addObjectMetadata(
-                    bucketName, objectName, metadata);
-            applicationEventPublisher.publishEvent(
-                    new ObjectPutRequestEvent(objectInfo));
+        if (objectName.isEmpty()) {
+            throw new ObjectRuntimeException(WebCommonErrorCode.ERROR_PARAM_FAILED,
+                    "Invalid object name");
         }
-
-        return HttpResponseEntity.create(
-                res.toResponseBody(ObjectInfoVo::from));
+        ObjectInfo objectInfo = new ObjectInfo(objectName, bucketName);
+        ObjectInfoDto res =
+                objectService.saveObject(objectInfo, objectFile.getInputStream());
+        objectMetadataService.addObjectMetadata(
+                bucketName, objectName, metadata);
+        applicationEventPublisher.publishEvent(
+                new ObjectPutRequestEvent(objectInfo));
+        return HttpResponseEntity.success(ObjectInfoVo.from(res));
     }
 
 

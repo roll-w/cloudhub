@@ -4,11 +4,12 @@ import org.huel.cloudhub.client.controller.ValidateHelper;
 import org.huel.cloudhub.client.data.dto.object.ObjectRevertRequest;
 import org.huel.cloudhub.client.data.dto.object.VersionedObjectVo;
 import org.huel.cloudhub.client.data.entity.object.VersionedObject;
+import org.huel.cloudhub.client.service.object.ObjectErrorCode;
 import org.huel.cloudhub.client.service.object.ObjectService;
 import org.huel.cloudhub.client.service.object.VersionedObjectService;
 import org.huel.cloudhub.client.service.user.UserGetter;
-import org.huel.cloudhub.common.ErrorCode;
-import org.huel.cloudhub.common.HttpResponseEntity;
+import org.huel.cloudhub.common.BusinessRuntimeException;
+import org.huel.cloudhub.web.HttpResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -44,7 +45,7 @@ public class ObjectAdminVersionControlController {
             @RequestParam String objectName) {
         var res = ValidateHelper.validateUserAdmin(request, userGetter);
         if (res != null) {
-            return HttpResponseEntity.create(res.toResponseBody(data -> null));
+            return HttpResponseEntity.of(res.toResponseBody(data -> null));
         }
         List<VersionedObjectVo> versionedObjects = versionedObjectService
                 .getObjectVersions(bucketName, objectName)
@@ -59,20 +60,20 @@ public class ObjectAdminVersionControlController {
                                                   @RequestBody ObjectRevertRequest revertRequest) {
         var validate = ValidateHelper.validateUserAdmin(request, userGetter);
         if (validate != null) {
-            return HttpResponseEntity.create(validate.toResponseBody(data -> null));
+            return HttpResponseEntity.of(validate.toResponseBody(data -> null));
         }
         VersionedObject versionedObject = versionedObjectService.getObjectVersionOf(
                 revertRequest.bucketName(),
                 revertRequest.objectName(),
                 revertRequest.version());
         if (versionedObject == null) {
-            return HttpResponseEntity.failure("Not exist version.",
-                    ErrorCode.ERROR_DATA_NOT_EXIST);
+            throw new BusinessRuntimeException(ObjectErrorCode.ERROR_VERSIONED_OBJECT_NOT_EXIST);
         }
-        var res = objectService.setObjectFileId(
+        objectService.setObjectFileId(
                 revertRequest.bucketName(),
                 revertRequest.objectName(),
-                versionedObject.getFileId());
-        return HttpResponseEntity.create(res.toResponseBody());
+                versionedObject.getFileId()
+        );
+        return HttpResponseEntity.success();
     }
 }

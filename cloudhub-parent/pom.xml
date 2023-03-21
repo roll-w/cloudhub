@@ -21,6 +21,8 @@
         <module>../cloudhub-client</module>
         <module>../cloudhub-common</module>
         <module>../cloudhub-grpc-parent</module>
+        <module>../cloudhub-fs</module>
+        <module>../cloudhub-web-common</module>
     </modules>
 
     <properties>
@@ -35,7 +37,7 @@
         <hikari.version>5.0.1</hikari.version>
         <jjwt.version>0.11.5</jjwt.version>
         <light.version>0.4.5</light.version>
-        <fiesta.version>0.2.0</fiesta.version>
+        <fiesta.version>0.2.1</fiesta.version>
         <spring-shell.version>2.1.2</spring-shell.version>
         <tomcat-api.version>6.0.53</tomcat-api.version>
     </properties>
@@ -101,6 +103,18 @@
             <dependency>
                 <groupId>org.huel.cloudhub</groupId>
                 <artifactId>cloudhub-common</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.huel.cloudhub</groupId>
+                <artifactId>cloudhub-web-common</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.huel.cloudhub</groupId>
+                <artifactId>cloudhub-fs</artifactId>
                 <version>${project.version}</version>
             </dependency>
 

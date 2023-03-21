@@ -11,12 +11,12 @@ import java.util.List;
  * @author RollW
  */
 public interface BucketService {
-    MessagePackage<BucketInfo> createBucket(long userId, String bucketName,
-                                            BucketVisibility visibility);
+    BucketInfo createBucket(long userId, String bucketName,
+                            BucketVisibility visibility);
 
-    MessagePackage<Void> deleteBucket(long userId, String bucketName);
+    void deleteBucket(long userId, String bucketName);
 
-    MessagePackage<Void> deleteBucket(String bucketName);
+    void deleteBucket(String bucketName);
 
     List<BucketInfo> getUserBuckets(long userId);
 
@@ -26,6 +26,6 @@ public interface BucketService {
 
     Bucket getBucketByName(String name);
 
-    MessagePackage<BucketInfo> setVisibility(String name, BucketVisibility bucketVisibility);
+    BucketInfo setVisibility(String name, BucketVisibility bucketVisibility);
 
 }

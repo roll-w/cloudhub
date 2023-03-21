@@ -2,14 +2,16 @@ package org.huel.cloudhub.client.controller.object;
 
 import org.huel.cloudhub.client.controller.ValidateHelper;
 import org.huel.cloudhub.client.data.dto.object.ObjectInfo;
+import org.huel.cloudhub.client.data.dto.object.ObjectInfoDto;
 import org.huel.cloudhub.client.data.dto.object.ObjectInfoVo;
 import org.huel.cloudhub.client.data.dto.object.ObjectRenameRequest;
 import org.huel.cloudhub.client.event.object.ObjectDeleteRequestEvent;
 import org.huel.cloudhub.client.service.object.ObjectMetadataService;
+import org.huel.cloudhub.client.service.object.ObjectRuntimeException;
 import org.huel.cloudhub.client.service.object.ObjectService;
 import org.huel.cloudhub.client.service.user.UserGetter;
-import org.huel.cloudhub.common.ErrorCode;
-import org.huel.cloudhub.common.HttpResponseEntity;
+import org.huel.cloudhub.web.HttpResponseEntity;
+import org.huel.cloudhub.web.WebCommonErrorCode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
@@ -59,7 +61,7 @@ public class ObjectAdminManageController {
         var validateMessage =
                 ValidateHelper.validateUserAdmin(request, userGetter);
         if (validateMessage != null) {
-            return HttpResponseEntity.create(
+            return HttpResponseEntity.of(
                     validateMessage.toResponseBody(d -> null));
         }
         String objectName = ObjectHelper.readPath(request);
@@ -78,8 +80,9 @@ public class ObjectAdminManageController {
             throws IOException {
         var validateMessage =
                 ValidateHelper.validateUserAdmin(request, userGetter);
+
         if (validateMessage != null) {
-            return HttpResponseEntity.create(
+            return HttpResponseEntity.of(
                     validateMessage.toResponseBody(d -> null));
         }
         return ObjectHelper.processObjectUpload(request, bucketName,
@@ -94,21 +97,20 @@ public class ObjectAdminManageController {
         var validateMessage =
                 ValidateHelper.validateUserAdmin(request, userGetter);
         if (validateMessage != null) {
-            return HttpResponseEntity.create(
+            return HttpResponseEntity.of(
                     validateMessage.toResponseBody(d -> null));
         }
 
         final String objectName = ObjectHelper.readPath(request);
         if (objectName.isEmpty()) {
-            return HttpResponseEntity.failure("Not valid object name.",
-                    ErrorCode.ERROR_NULL);
+            throw new ObjectRuntimeException(WebCommonErrorCode.ERROR_PARAM_FAILED,
+                    "Invalid object name");
         }
         ObjectInfo objectInfo = new ObjectInfo(objectName, bucketName);
         applicationEventPublisher.publishEvent(
                 new ObjectDeleteRequestEvent(objectInfo));
-        var res =
-                objectService.deleteObject(objectInfo);
-        return HttpResponseEntity.create(res.toResponseBody());
+        objectService.deleteObject(objectInfo);
+        return HttpResponseEntity.success();
     }
 
     @PostMapping("/setting/rename")
@@ -117,17 +119,16 @@ public class ObjectAdminManageController {
         var validateMessage =
                 ValidateHelper.validateUserAdmin(request, userGetter);
         if (validateMessage != null) {
-            return HttpResponseEntity.create(
+            return HttpResponseEntity.of(
                     validateMessage.toResponseBody(d -> null));
         }
         ObjectInfo objectInfo = new ObjectInfo(
                 objectRenameRequest.objectName(),
                 objectRenameRequest.bucketName());
 
-        var res = objectService.renameObject(
+        ObjectInfoDto res = objectService.renameObject(
                 objectInfo, objectRenameRequest.newName());
-        return HttpResponseEntity.create(
-                res.toResponseBody(ObjectInfoVo::from));
+        return HttpResponseEntity.success(ObjectInfoVo.from(res));
     }
 
     @GetMapping("/stat/count")
@@ -136,7 +137,7 @@ public class ObjectAdminManageController {
         var validateMessage =
                 ValidateHelper.validateUserAdmin(request, userGetter);
         if (validateMessage != null) {
-            return HttpResponseEntity.create(
+            return HttpResponseEntity.of(
                     validateMessage.toResponseBody(d -> null));
         }
         return HttpResponseEntity.success(objectService.getObjectsCount());

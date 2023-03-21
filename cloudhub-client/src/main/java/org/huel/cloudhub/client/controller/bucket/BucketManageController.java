@@ -5,12 +5,21 @@ import org.huel.cloudhub.client.data.dto.bucket.BucketAdminCreateRequest;
 import org.huel.cloudhub.client.data.dto.bucket.BucketAdminDeleteRequest;
 import org.huel.cloudhub.client.data.dto.bucket.BucketInfo;
 import org.huel.cloudhub.client.data.entity.bucket.Bucket;
+import org.huel.cloudhub.client.service.bucket.BucketErrorCode;
+import org.huel.cloudhub.client.service.bucket.BucketRuntimeException;
 import org.huel.cloudhub.client.service.bucket.BucketService;
 import org.huel.cloudhub.client.service.user.UserGetter;
-import org.huel.cloudhub.common.ErrorCode;
-import org.huel.cloudhub.common.HttpResponseEntity;
+import org.huel.cloudhub.common.BusinessRuntimeException;
 import org.huel.cloudhub.common.MessagePackage;
-import org.springframework.web.bind.annotation.*;
+import org.huel.cloudhub.web.HttpResponseEntity;
+import org.huel.cloudhub.web.WebCommonErrorCode;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
@@ -36,19 +45,19 @@ public class BucketManageController {
                                                  @RequestBody BucketAdminCreateRequest bucketCreateRequest) {
         var validateMessage = validate(request);
         if (validateMessage != null) {
-            return HttpResponseEntity.create(
+            return HttpResponseEntity.of(
                     validateMessage.toResponseBody((data) -> null));
         }
         // 有警告应该问题不大不太懂
         if (bucketCreateRequest.userId() == null) {
-            return HttpResponseEntity.failure("No given user id.",
-                    ErrorCode.ERROR_PARAM_MISSING);
+            throw new BusinessRuntimeException(
+                    WebCommonErrorCode.ERROR_PARAM_MISSING, "No user id");
         }
         var res = bucketService.createBucket(
                 bucketCreateRequest.userId(),
                 bucketCreateRequest.bucketName(),
                 bucketCreateRequest.visibility());
-        return HttpResponseEntity.create(res.toResponseBody());
+        return HttpResponseEntity.success(res);
     }
 
 
@@ -57,21 +66,21 @@ public class BucketManageController {
                                            @RequestBody BucketAdminDeleteRequest bucketAdminDeleteRequest) {
         var validateMessage = validate(request);
         if (validateMessage != null) {
-            return HttpResponseEntity.create(
+            return HttpResponseEntity.of(
                     validateMessage.toResponseBody((data) -> null));
         }
         if (bucketAdminDeleteRequest.userId() == null) {
-            return HttpResponseEntity.failure("No given user id.",
-                    ErrorCode.ERROR_PARAM_MISSING);
+            throw new BusinessRuntimeException(
+                    WebCommonErrorCode.ERROR_PARAM_MISSING, "No user id");
         }
         if (bucketAdminDeleteRequest.bucketName() == null) {
-            return HttpResponseEntity.failure("Bucket name missing",
-                    ErrorCode.ERROR_PARAM_MISSING);
+            throw new BusinessRuntimeException(
+                    WebCommonErrorCode.ERROR_PARAM_MISSING, "No bucket name");
         }
-        var res = bucketService.deleteBucket(
+        bucketService.deleteBucket(
                 bucketAdminDeleteRequest.userId(),
                 bucketAdminDeleteRequest.bucketName());
-        return HttpResponseEntity.create(res.toResponseBody());
+        return HttpResponseEntity.success();
     }
 
     @GetMapping("/get")
@@ -79,13 +88,12 @@ public class BucketManageController {
                                                     @RequestParam String bucketName) {
         var validateMessage = validate(request);
         if (validateMessage != null) {
-            return HttpResponseEntity.create(
+            return HttpResponseEntity.of(
                     validateMessage.toResponseBody((data) -> null));
         }
         Bucket bucket = bucketService.getBucketByName(bucketName);
         if (bucket == null) {
-            return HttpResponseEntity.failure("Bucket not exist.",
-                    ErrorCode.ERROR_DATA_NOT_EXIST);
+            throw new BucketRuntimeException(BucketErrorCode.ERROR_BUCKET_NOT_EXIST);
         }
         return HttpResponseEntity.success(bucket.toInfo());
     }
@@ -97,7 +105,7 @@ public class BucketManageController {
 
         var validateMessage = validate(request);
         if (validateMessage != null) {
-            return HttpResponseEntity.create(
+            return HttpResponseEntity.of(
                     validateMessage.toResponseBody((data) -> null));
         }
         if (userId == null) {
@@ -111,7 +119,7 @@ public class BucketManageController {
 
         var validateMessage = validate(request);
         if (validateMessage != null) {
-            return HttpResponseEntity.create(
+            return HttpResponseEntity.of(
                     validateMessage.toResponseBody((data) -> null));
         }
         return HttpResponseEntity.success(bucketService.getBucketsCount());
@@ -122,13 +130,13 @@ public class BucketManageController {
             HttpServletRequest request, @RequestBody BucketAdminCreateRequest createRequest) {
         var validateMessage = validate(request);
         if (validateMessage != null) {
-            return HttpResponseEntity.create(
+            return HttpResponseEntity.of(
                     validateMessage.toResponseBody((data) -> null));
         }
         var res = bucketService.setVisibility(
                 createRequest.bucketName(),
                 createRequest.visibility());
-        return HttpResponseEntity.create(res.toResponseBody());
+        return HttpResponseEntity.success(res);
     }
 
 

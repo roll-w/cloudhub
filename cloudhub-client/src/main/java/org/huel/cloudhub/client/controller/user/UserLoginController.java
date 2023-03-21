@@ -1,12 +1,14 @@
 package org.huel.cloudhub.client.controller.user;
 
 import org.apache.commons.lang3.StringUtils;
-import org.huel.cloudhub.common.ErrorCode;
-import org.huel.cloudhub.common.HttpResponseEntity;
-import org.huel.cloudhub.common.MessagePackage;
 import org.huel.cloudhub.client.data.dto.user.UserInfo;
 import org.huel.cloudhub.client.data.dto.user.UserLoginRequest;
 import org.huel.cloudhub.client.service.user.UserService;
+import org.huel.cloudhub.common.BusinessRuntimeException;
+import org.huel.cloudhub.common.MessagePackage;
+import org.huel.cloudhub.web.HttpResponseEntity;
+import org.huel.cloudhub.web.UserErrorCode;
+import org.huel.cloudhub.web.WebCommonErrorCode;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -32,29 +34,24 @@ public class UserLoginController {
     public HttpResponseEntity<UserInfo> login(HttpServletRequest request,
                                               @RequestBody UserLoginRequest userLoginRequest) {
         if (StringUtils.isEmpty(userLoginRequest.username())) {
-            return HttpResponseEntity.failure(
-                    "Username cannot be empty.",
-                    ErrorCode.ERROR_PARAM_MISSING);
+            throw new BusinessRuntimeException(WebCommonErrorCode.ERROR_PARAM_MISSING,
+                    "Username cannot be empty.");
         }
         if (StringUtils.isEmpty(userLoginRequest.password())) {
-            return HttpResponseEntity.failure(
-                    "Password cannot be empty.",
-                    ErrorCode.ERROR_PARAM_MISSING);
+            throw new BusinessRuntimeException(WebCommonErrorCode.ERROR_PARAM_MISSING,
+                    "Password cannot be empty.");
         }
 
         MessagePackage<UserInfo> infoMessagePackage =
                 userService.loginByUsername(request, userLoginRequest.username(), userLoginRequest.password());
-        return HttpResponseEntity.create(infoMessagePackage.toResponseBody());
+        return HttpResponseEntity.of(infoMessagePackage.toResponseBody());
     }
 
     @GetMapping("/current")
     public HttpResponseEntity<UserInfo> current(HttpServletRequest request) {
         UserInfo userInfo = userService.getCurrentUser(request);
         if (userInfo == null) {
-            return HttpResponseEntity.failure(
-                    "No user login.",
-                    ErrorCode.ERROR_USER_NOT_LOGIN,
-                    null);
+            throw new BusinessRuntimeException(UserErrorCode.ERROR_USER_NOT_LOGIN);
         }
         return HttpResponseEntity.success(userInfo);
     }
@@ -64,13 +61,4 @@ public class UserLoginController {
         userService.logout(request);
         return HttpResponseEntity.success();
     }
-
-
-    @GetMapping("/message")
-    public HttpResponseEntity<String> needsLoginFirst() {
-        return HttpResponseEntity.failure("need login first.",
-                ErrorCode.ERROR_USER_NOT_LOGIN,
-                "need login first");
-    }
-
 }

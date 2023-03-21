@@ -1,12 +1,12 @@
 package org.huel.cloudhub.file.server;
 
 import org.huel.cloudhub.common.ErrorCode;
-import org.huel.cloudhub.common.SystemRuntimeException;
+import org.huel.cloudhub.common.BusinessRuntimeException;
 
 /**
  * @author RollW
  */
-public class FileServerRuntimeException extends SystemRuntimeException {
+public class FileServerRuntimeException extends BusinessRuntimeException {
     public FileServerRuntimeException(ErrorCode errorCode) {
         super(errorCode);
     }
@@ -17,10 +17,6 @@ public class FileServerRuntimeException extends SystemRuntimeException {
 
     public FileServerRuntimeException(ErrorCode errorCode, String message, Throwable cause) {
         super(errorCode, message, cause);
-    }
-
-    public FileServerRuntimeException(Throwable cause) {
-        super(cause);
     }
 
     public FileServerRuntimeException(ErrorCode errorCode, Throwable cause) {

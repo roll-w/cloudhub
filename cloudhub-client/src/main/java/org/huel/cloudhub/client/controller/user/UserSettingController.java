@@ -5,8 +5,9 @@ import org.huel.cloudhub.client.data.dto.user.UserInfo;
 import org.huel.cloudhub.client.data.dto.user.UserPasswordResetRequest;
 import org.huel.cloudhub.client.service.user.UserGetter;
 import org.huel.cloudhub.client.service.user.UserSettingService;
-import org.huel.cloudhub.common.ErrorCode;
-import org.huel.cloudhub.common.HttpResponseEntity;
+import org.huel.cloudhub.common.BusinessRuntimeException;
+import org.huel.cloudhub.web.HttpResponseEntity;
+import org.huel.cloudhub.web.UserErrorCode;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -37,8 +38,7 @@ public class UserSettingController {
             @RequestBody UserPasswordResetRequest passwordResetRequest) {
         UserInfo userInfo = userGetter.getCurrentUser(request);
         if (userInfo == null) {
-            return HttpResponseEntity.failure("User not login.",
-                    ErrorCode.ERROR_USER_NOT_LOGIN);
+            throw new BusinessRuntimeException(UserErrorCode.ERROR_USER_NOT_LOGIN);
         }
 
         var res = userSettingService.resetPassword(
@@ -46,7 +46,7 @@ public class UserSettingController {
                 passwordResetRequest.oldPassword(),
                 passwordResetRequest.newPassword());
 
-        return HttpResponseEntity.create(res.toResponseBody());
+        return HttpResponseEntity.of(res.toResponseBody());
     }
 
     //  忘记密码,首先判断用户是否存在
@@ -57,13 +57,12 @@ public class UserSettingController {
         UserInfo userInfo = userGetter.getCurrentUser(request);
         // 使用userInfo.id判断空值会警告
         if (userInfo == null) {
-            return HttpResponseEntity.failure("User not login.",
-                    ErrorCode.ERROR_USER_NOT_LOGIN);
+            throw new BusinessRuntimeException(UserErrorCode.ERROR_USER_NOT_LOGIN);
         }
         var res = userSettingService.resetPassword(
                 userInfo.id(),
                 userPasswordResetRequest.newPassword());
-        return HttpResponseEntity.create(res.toResponseBody());
+        return HttpResponseEntity.of(res.toResponseBody());
     }
 
     //    更新用户名
@@ -73,13 +72,11 @@ public class UserSettingController {
             @RequestBody UsernameResetRequest usernameResetRequest) {
         UserInfo userInfo = userGetter.getCurrentUser(request);
         if (userInfo == null) {
-            return HttpResponseEntity.failure("User not login.",
-                    ErrorCode.ERROR_USER_NOT_LOGIN);
+            throw new BusinessRuntimeException(UserErrorCode.ERROR_USER_NOT_LOGIN);
         }
-        var res =
-                userSettingService.resetUsername(userInfo.id(),
-                        usernameResetRequest.newUsername());
-        return HttpResponseEntity.create(res.toResponseBody());
+        var res = userSettingService.resetUsername(userInfo.id(),
+                usernameResetRequest.newUsername());
+        return HttpResponseEntity.of(res.toResponseBody());
     }
 
     public record UsernameResetRequest(

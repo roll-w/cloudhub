@@ -3,6 +3,7 @@ package org.huel.cloudhub.client.service.user;
 import org.apache.commons.lang3.StringUtils;
 import org.huel.cloudhub.common.ErrorCode;
 import org.huel.cloudhub.client.data.dto.user.UserPasswordDto;
+import org.huel.cloudhub.web.UserErrorCode;
 import space.lingu.NonNull;
 
 import java.util.regex.Matcher;
@@ -15,17 +16,17 @@ public class UserChecker {
     @NonNull
     public static ErrorCode checkUser(UserPasswordDto user) {
         if (!checkUsername(user.username())) {
-            return ErrorCode.ERROR_USERNAME_NON_COMPLIANCE;
+            return UserErrorCode.ERROR_USERNAME_NON_COMPLIANCE;
         }
         if (!checkPassword(user.password())) {
-            return ErrorCode.ERROR_PASSWORD_NON_COMPLIANCE;
+            return UserErrorCode.ERROR_PASSWORD_NON_COMPLIANCE;
         }
 
         if (!checkEmail(user.email())) {
-            return ErrorCode.ERROR_EMAIL_NON_COMPLIANCE;
+            return UserErrorCode.ERROR_EMAIL_NON_COMPLIANCE;
         }
 
-        return ErrorCode.SUCCESS;
+        return UserErrorCode.SUCCESS;
     }
 
     public static final String USERNAME_REGEX = "^[a-zA-Z]\\w{3,18}$";

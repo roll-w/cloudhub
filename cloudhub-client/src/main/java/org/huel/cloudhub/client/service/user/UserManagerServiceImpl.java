@@ -5,8 +5,8 @@ import org.huel.cloudhub.client.data.database.repository.UserRepository;
 import org.huel.cloudhub.client.data.dto.user.UserInfo;
 import org.huel.cloudhub.client.data.entity.user.Role;
 import org.huel.cloudhub.client.data.entity.user.User;
-import org.huel.cloudhub.common.ErrorCode;
 import org.huel.cloudhub.common.MessagePackage;
+import org.huel.cloudhub.web.UserErrorCode;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -38,7 +38,7 @@ public class UserManagerServiceImpl implements UserManageService {
 
         // TODO: 还要检查用户名和密码是否合法
         if (userRepository.isExistByName(username)) {
-            return new MessagePackage<>(ErrorCode.ERROR_USER_EXISTED,
+            return new MessagePackage<>(UserErrorCode.ERROR_USER_EXISTED,
                     "User existed.", null);
         }
         Role newRole = role == null ? Role.USER : role;
@@ -47,22 +47,22 @@ public class UserManagerServiceImpl implements UserManageService {
         user.setEnabled(true);
         if (discardEmail) {
             userRepository.save(user);
-            return new MessagePackage<>(ErrorCode.SUCCESS, user.toInfo());
+            return new MessagePackage<>(UserErrorCode.SUCCESS, user.toInfo());
         }
         if (userRepository.isExistByEmail(email)) {
-            return new MessagePackage<>(ErrorCode.ERROR_EMAIL_EXISTED,
+            return new MessagePackage<>(UserErrorCode.ERROR_EMAIL_EXISTED,
                     "Email address existed.", null);
         }
-        return new MessagePackage<>(ErrorCode.SUCCESS, user.toInfo());
+        return new MessagePackage<>(UserErrorCode.SUCCESS, user.toInfo());
     }
 
     @Override
     public MessagePackage<Void> deleteUser(long userId) {
         if (userRepository.isExistById(userId)) {
             userRepository.deleteById(userId);
-            return new MessagePackage<>(ErrorCode.SUCCESS, null);
+            return new MessagePackage<>(UserErrorCode.SUCCESS, null);
         }
-        return new MessagePackage<>(ErrorCode.ERROR_USER_NOT_EXIST,
+        return new MessagePackage<>(UserErrorCode.ERROR_USER_NOT_EXIST,
                 "User not exist.", null);
     }
 
@@ -70,19 +70,19 @@ public class UserManagerServiceImpl implements UserManageService {
     public MessagePackage<Void> deleteUsers(List<Long> userIds) {
         // 不管是否存在
         userRepository.deleteByIds(userIds);
-        return new MessagePackage<>(ErrorCode.SUCCESS, null);
+        return new MessagePackage<>(UserErrorCode.SUCCESS, null);
     }
 
     @Override
     public MessagePackage<UserInfo> setRoleTo(long userId, Role role) {
         User user = userRepository.getUserById(userId);
         if (user == null) {
-            return new MessagePackage<>(ErrorCode.ERROR_USER_NOT_EXIST,
+            return new MessagePackage<>(UserErrorCode.ERROR_USER_NOT_EXIST,
                     "User not exists", null);
         }
         user.setRole(role);
         userRepository.save(user);
-        return new MessagePackage<>(ErrorCode.SUCCESS, user.toInfo());
+        return new MessagePackage<>(UserErrorCode.SUCCESS, user.toInfo());
     }
 
     @Override

@@ -5,6 +5,7 @@ import java.util.function.Function;
 /**
  * @author RollW
  */
+@Deprecated
 public record MessagePackage<D>(
         ErrorCode errorCode,
         String message,
@@ -15,16 +16,16 @@ public record MessagePackage<D>(
     }
 
     public HttpResponseBody<D> toResponseBody() {
-        if (errorCode.getState()) {
+        if (errorCode.success()) {
             return HttpResponseBody.success(message(), data());
         }
-        return HttpResponseBody.failure(message(), errorCode(), data());
+        return HttpResponseBody.of(errorCode(), message(), data());
     }
 
     public <T> HttpResponseBody<T> toResponseBody(Function<D, T> typeTrans) {
-        if (errorCode.getState()) {
+        if (errorCode.success()) {
             return HttpResponseBody.success(message(), typeTrans.apply(data()));
         }
-        return HttpResponseBody.failure(message(), errorCode(), typeTrans.apply(data()));
+        return HttpResponseBody.of(errorCode(), message(), typeTrans.apply(data()));
     }
 }

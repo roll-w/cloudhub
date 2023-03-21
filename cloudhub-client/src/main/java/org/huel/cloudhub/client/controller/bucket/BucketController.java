@@ -4,12 +4,14 @@ import org.huel.cloudhub.client.data.dto.bucket.BucketCreateRequest;
 import org.huel.cloudhub.client.data.dto.bucket.BucketInfo;
 import org.huel.cloudhub.client.data.dto.user.UserInfo;
 import org.huel.cloudhub.client.data.entity.bucket.Bucket;
+import org.huel.cloudhub.client.service.bucket.BucketErrorCode;
+import org.huel.cloudhub.client.service.bucket.BucketRuntimeException;
 import org.huel.cloudhub.client.service.bucket.BucketService;
 import org.huel.cloudhub.client.service.user.UserGetter;
-import org.huel.cloudhub.common.ErrorCode;
-import org.huel.cloudhub.common.HttpResponseEntity;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.huel.cloudhub.common.BusinessRuntimeException;
+import org.huel.cloudhub.web.AuthErrorCode;
+import org.huel.cloudhub.web.HttpResponseEntity;
+import org.huel.cloudhub.web.UserErrorCode;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -45,14 +47,13 @@ public class BucketController {
                                                  @RequestBody BucketCreateRequest bucketCreateRequest) {
         UserInfo userInfo = userGetter.getCurrentUser(request);
         if (userInfo == null) {
-            return HttpResponseEntity.failure("User not login.",
-                    ErrorCode.ERROR_USER_NOT_LOGIN);
+            throw new BusinessRuntimeException(UserErrorCode.ERROR_USER_NOT_LOGIN);
         }
-        var res = bucketService.createBucket(
+        BucketInfo bucketInfo = bucketService.createBucket(
                 userInfo.id(),
                 bucketCreateRequest.bucketName(),
                 bucketCreateRequest.visibility());
-        return HttpResponseEntity.create(res.toResponseBody());
+        return HttpResponseEntity.success(bucketInfo);
     }
 
 
@@ -62,20 +63,17 @@ public class BucketController {
         String bucketName = map.get("bucketName");
         UserInfo userInfo = userGetter.getCurrentUser(request);
         if (userInfo == null) {
-            return HttpResponseEntity.failure("User not login.",
-                    ErrorCode.ERROR_USER_NOT_LOGIN);
+            throw new BusinessRuntimeException(UserErrorCode.ERROR_USER_NOT_LOGIN);
         }
-        var res =
-                bucketService.deleteBucket(userInfo.id(), bucketName);
-        return HttpResponseEntity.create(res.toResponseBody());
+        bucketService.deleteBucket(userInfo.id(), bucketName);
+        return HttpResponseEntity.success();
     }
 
     @GetMapping("/get")
     public HttpResponseEntity<BucketInfo> getBucket(@RequestParam String bucketName) {
         Bucket bucket = bucketService.getBucketByName(bucketName);
         if (bucket == null) {
-            return HttpResponseEntity.failure("Bucket not exist.",
-                    ErrorCode.ERROR_DATA_NOT_EXIST);
+            throw new BucketRuntimeException(BucketErrorCode.ERROR_BUCKET_NOT_EXIST);
         }
         return HttpResponseEntity.success(bucket.toInfo());
     }
@@ -85,8 +83,7 @@ public class BucketController {
     public HttpResponseEntity<List<BucketInfo>> getBuckets(HttpServletRequest request) {
         UserInfo userInfo = userGetter.getCurrentUser(request);
         if (userInfo == null) {
-            return HttpResponseEntity.failure("User not login.",
-                    ErrorCode.ERROR_USER_NOT_LOGIN);
+            throw new BucketRuntimeException(UserErrorCode.ERROR_USER_NOT_LOGIN);
         }
         return HttpResponseEntity.success(
                 bucketService.getUserBuckets(userInfo.id()));
@@ -98,21 +95,19 @@ public class BucketController {
             @RequestBody BucketCreateRequest bucketCreateRequest) {
         UserInfo userInfo = userGetter.getCurrentUser(request);
         if (userInfo == null) {
-            return HttpResponseEntity.failure("User not login.",
-                    ErrorCode.ERROR_USER_NOT_LOGIN);
+            throw new BusinessRuntimeException(UserErrorCode.ERROR_USER_NOT_LOGIN);
         }
         Bucket bucket = bucketService.getBucketByName(bucketCreateRequest.bucketName());
         if (bucket == null) {
-            return HttpResponseEntity.failure("Bucket not exist",
-                    ErrorCode.ERROR_DATA_NOT_EXIST);
+            throw new BucketRuntimeException(BucketErrorCode.ERROR_BUCKET_NOT_EXIST);
+
         }
         if (!Objects.equals(bucket.getUserId(), userInfo.id())) {
-            return HttpResponseEntity.failure("Not permitted",
-                    ErrorCode.ERROR_PERMISSION_NOT_ALLOWED);
+            throw new BucketRuntimeException(AuthErrorCode.ERROR_NOT_HAS_ROLE);
         }
-        var res = bucketService.setVisibility(
+        BucketInfo bucketInfo = bucketService.setVisibility(
                 bucketCreateRequest.bucketName(),
                 bucketCreateRequest.visibility());
-        return HttpResponseEntity.create(res.toResponseBody());
+        return HttpResponseEntity.success(bucketInfo);
     }
 }
