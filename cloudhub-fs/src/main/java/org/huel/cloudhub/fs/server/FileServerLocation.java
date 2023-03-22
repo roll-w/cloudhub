@@ -3,8 +3,9 @@ package org.huel.cloudhub.fs.server;
 /**
  * @author RollW
  */
-public record ServerInfo(
-        String address,
+public record FileServerLocation(
+        String host,
+        int port,
         String serverId
 ) {
 }
