@@ -14,13 +14,14 @@ import java.util.Map;
  */
 @SpringBootApplication
 @EnableScheduling
-public class ClientApplication {
+public class ObjectClientApplication {
     private static ConfigurableApplicationContext sContext;
 
     public static void main(String[] args) throws Exception {
         SpringApplication application =
-                new SpringApplication(ClientApplication.class);
-        ClientConfigLoader loader = ClientConfigLoader.tryOpenDefault();
+                new SpringApplication(ObjectClientApplication.class);
+        ClientConfigLoader loader =
+                ClientConfigLoader.tryOpenDefault(ObjectClientApplication.class);
 
         Map<String, Object> overrideProperties = new HashMap<>();
         overrideProperties.put("server.port", loader.getWebPort());

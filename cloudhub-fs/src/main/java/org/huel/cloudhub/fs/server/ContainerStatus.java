@@ -1,4 +1,4 @@
-package org.huel.cloudhub.client.data.dto.fs;
+package org.huel.cloudhub.fs.server;
 
 import org.huel.cloudhub.file.rpc.container.SerializedContainerInfo;
 

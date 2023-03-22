@@ -23,6 +23,8 @@
         <module>../cloudhub-grpc-parent</module>
         <module>../cloudhub-fs</module>
         <module>../cloudhub-web-common</module>
+        <module>../cloudhub-disk-client</module>
+        <module>../cloudhub-client-config-loader</module>
     </modules>
 
     <properties>
@@ -133,6 +135,12 @@
             <dependency>
                 <groupId>org.huel.cloudhub</groupId>
                 <artifactId>cloudhub-client-rpc-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.huel.cloudhub</groupId>
+                <artifactId>cloudhub-client-config-loader</artifactId>
                 <version>${project.version}</version>
             </dependency>
 

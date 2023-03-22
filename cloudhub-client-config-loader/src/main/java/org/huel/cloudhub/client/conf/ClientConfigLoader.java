@@ -1,6 +1,5 @@
 package org.huel.cloudhub.client.conf;
 
-import org.huel.cloudhub.client.ClientApplication;
 import org.huel.cloudhub.conf.AbstractConfigLoader;
 
 import java.io.IOException;
@@ -10,11 +9,10 @@ import java.io.InputStream;
  * @author RollW
  */
 public class ClientConfigLoader extends AbstractConfigLoader {
-    public static final String RPC_PORT_DEFAULT = "7011";
-    public static final String RPC_MAX_INBOUND_SIZE_DEFAULT = "40";
+    public static final int RPC_PORT_DEFAULT = 7011;
+    public static final int RPC_MAX_INBOUND_SIZE_DEFAULT = 40;
 
-    public static final String WEB_PORT_DEFAULT = "7010";
-
+    public static final int WEB_PORT_DEFAULT = 7010;
     public static final String FILE_TEMP_PATH_DEFAULT = "tmp/tmp";
 
     public ClientConfigLoader(InputStream inputStream) throws IOException {
@@ -25,8 +23,16 @@ public class ClientConfigLoader extends AbstractConfigLoader {
         return getInt(ClientConfigKeys.RPC_PORT, RPC_PORT_DEFAULT);
     }
 
+    public int getRpcPort(int defaultPort) {
+        return getInt(ClientConfigKeys.RPC_PORT, defaultPort);
+    }
+
     public int getWebPort() {
         return getInt(ClientConfigKeys.WEB_PORT, WEB_PORT_DEFAULT);
+    }
+
+    public int getWebPort(int defaultPort) {
+        return getInt(ClientConfigKeys.WEB_PORT, defaultPort);
     }
 
     public String getTempFilePath() {
@@ -54,8 +60,9 @@ public class ClientConfigLoader extends AbstractConfigLoader {
         return get(ClientConfigKeys.DATABASE_PASSWORD, null);
     }
 
-    public static ClientConfigLoader tryOpenDefault() throws IOException {
+    public static ClientConfigLoader tryOpenDefault(Class<?> loader) throws IOException {
         return new ClientConfigLoader(
-                openConfigInput(ClientApplication.class));
+                openConfigInput(loader)
+        );
     }
 }

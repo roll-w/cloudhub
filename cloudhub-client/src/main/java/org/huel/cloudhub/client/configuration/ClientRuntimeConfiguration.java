@@ -1,5 +1,6 @@
 package org.huel.cloudhub.client.configuration;
 
+import org.huel.cloudhub.client.ObjectClientApplication;
 import org.huel.cloudhub.client.conf.ClientConfigLoader;
 import org.huel.cloudhub.rpc.GrpcProperties;
 import org.springframework.context.annotation.Bean;
@@ -16,7 +17,7 @@ public class ClientRuntimeConfiguration {
     private final ClientConfigLoader clientConfigLoader;
 
     public ClientRuntimeConfiguration() throws IOException {
-        this.clientConfigLoader = ClientConfigLoader.tryOpenDefault();
+        this.clientConfigLoader = ClientConfigLoader.tryOpenDefault(ObjectClientApplication.class);
     }
 
     @Bean

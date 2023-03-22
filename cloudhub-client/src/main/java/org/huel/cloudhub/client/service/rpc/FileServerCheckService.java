@@ -2,9 +2,9 @@ package org.huel.cloudhub.client.service.rpc;
 
 import io.grpc.ManagedChannel;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.huel.cloudhub.client.data.dto.fs.ConnectedServers;
-import org.huel.cloudhub.client.data.dto.fs.ContainerStatus;
-import org.huel.cloudhub.client.data.dto.fs.ServerInfo;
+import org.huel.cloudhub.fs.server.ConnectedServers;
+import org.huel.cloudhub.fs.server.ContainerStatus;
+import org.huel.cloudhub.fs.server.ServerInfo;
 import org.huel.cloudhub.client.rpc.server.FileServerStatusRequest;
 import org.huel.cloudhub.client.rpc.server.FileServerStatusResponse;
 import org.huel.cloudhub.client.rpc.server.FileServerStatusServiceGrpc;

@@ -29,6 +29,14 @@ public class AbstractConfigLoader {
         return Integer.parseInt(properties.getProperty(key, defaultValue));
     }
 
+    protected int getInt(String key, int defaultValue) {
+        String value = properties.getProperty(key);
+        if (value != null) {
+            return Integer.parseInt(value);
+        }
+        return defaultValue;
+    }
+
     protected static InputStream openConfigInput(Class<?> appClz) throws IOException {
         File confFile = tryFile();
         if (!confFile.exists()) {
