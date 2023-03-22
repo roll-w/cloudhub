@@ -58,12 +58,8 @@ public class ObjectAdminManageController {
     public HttpResponseEntity<String> getObjectFile(HttpServletRequest request,
                                                     HttpServletResponse response,
                                                     @PathVariable("bucketName") String bucketName) throws IOException {
-        var validateMessage =
-                ValidateHelper.validateUserAdmin(request, userGetter);
-        if (validateMessage != null) {
-            return HttpResponseEntity.of(
-                    validateMessage.toResponseBody(d -> null));
-        }
+        ValidateHelper.validateUserAdmin(request, userGetter);
+
         String objectName = ObjectHelper.readPath(request);
         ObjectInfo objectInfo = new ObjectInfo(objectName, bucketName);
         return ObjectHelper.processGetObject(
@@ -78,13 +74,8 @@ public class ObjectAdminManageController {
                                                          @PathVariable("bucketName") String bucketName,
                                                          @RequestPart(name = "object") MultipartFile objectFile)
             throws IOException {
-        var validateMessage =
-                ValidateHelper.validateUserAdmin(request, userGetter);
+        ValidateHelper.validateUserAdmin(request, userGetter);
 
-        if (validateMessage != null) {
-            return HttpResponseEntity.of(
-                    validateMessage.toResponseBody(d -> null));
-        }
         return ObjectHelper.processObjectUpload(request, bucketName,
                 objectFile, objectService, objectMetadataService,
                 applicationEventPublisher);
@@ -94,12 +85,7 @@ public class ObjectAdminManageController {
     @DeleteMapping(value = "/v1/{bucketName}/**")
     public HttpResponseEntity<Void> deleteObject(HttpServletRequest request,
                                                  @PathVariable("bucketName") String bucketName) {
-        var validateMessage =
-                ValidateHelper.validateUserAdmin(request, userGetter);
-        if (validateMessage != null) {
-            return HttpResponseEntity.of(
-                    validateMessage.toResponseBody(d -> null));
-        }
+        ValidateHelper.validateUserAdmin(request, userGetter);
 
         final String objectName = ObjectHelper.readPath(request);
         if (objectName.isEmpty()) {
@@ -116,12 +102,8 @@ public class ObjectAdminManageController {
     @PostMapping("/setting/rename")
     public HttpResponseEntity<ObjectInfoVo> renameObject(
             HttpServletRequest request, @RequestBody ObjectRenameRequest objectRenameRequest) {
-        var validateMessage =
-                ValidateHelper.validateUserAdmin(request, userGetter);
-        if (validateMessage != null) {
-            return HttpResponseEntity.of(
-                    validateMessage.toResponseBody(d -> null));
-        }
+        ValidateHelper.validateUserAdmin(request, userGetter);
+
         ObjectInfo objectInfo = new ObjectInfo(
                 objectRenameRequest.objectName(),
                 objectRenameRequest.bucketName());
@@ -134,12 +116,8 @@ public class ObjectAdminManageController {
     @GetMapping("/stat/count")
     public HttpResponseEntity<Integer> getCount(
             HttpServletRequest request) {
-        var validateMessage =
-                ValidateHelper.validateUserAdmin(request, userGetter);
-        if (validateMessage != null) {
-            return HttpResponseEntity.of(
-                    validateMessage.toResponseBody(d -> null));
-        }
+        ValidateHelper.validateUserAdmin(request, userGetter);
+
         return HttpResponseEntity.success(objectService.getObjectsCount());
     }
 

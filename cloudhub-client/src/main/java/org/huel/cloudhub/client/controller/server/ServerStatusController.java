@@ -1,8 +1,8 @@
 package org.huel.cloudhub.client.controller.server;
 
 import org.huel.cloudhub.client.controller.ValidateHelper;
-import org.huel.cloudhub.client.data.dto.fs.ConnectedServers;
-import org.huel.cloudhub.client.data.dto.fs.ContainerStatus;
+import org.huel.cloudhub.fs.server.ConnectedServers;
+import org.huel.cloudhub.fs.server.ContainerStatus;
 import org.huel.cloudhub.client.service.rpc.FileServerCheckService;
 import org.huel.cloudhub.client.service.rpc.ServerInfoCheckService;
 import org.huel.cloudhub.client.service.server.ServerStatusService;
@@ -42,24 +42,15 @@ public class ServerStatusController {
     }
 
     @GetMapping("/time")
-    public HttpResponseEntity<Long> getRunTimeFromStart(HttpServletRequest httpServletRequest) {
-        var validateMessage =
-                ValidateHelper.validateUserAdmin(httpServletRequest, userGetter);
-        if (validateMessage != null) {
-            return HttpResponseEntity.of(
-                    validateMessage.toResponseBody(d -> null));
-        }
+    public HttpResponseEntity<Long> getRunTimeFromStart(HttpServletRequest request) {
+        ValidateHelper.validateUserAdmin(request, userGetter);
+
         return HttpResponseEntity.success(serverStatusService.getRunTimeLength());
     }
 
     @GetMapping("/connected")
-    public HttpResponseEntity<ConnectedServers> getConnectedServers(HttpServletRequest httpServletRequest) {
-        var validateMessage =
-                ValidateHelper.validateUserAdmin(httpServletRequest, userGetter);
-        if (validateMessage != null) {
-            return HttpResponseEntity.of(
-                    validateMessage.toResponseBody(d -> null));
-        }
+    public HttpResponseEntity<ConnectedServers> getConnectedServers(HttpServletRequest request) {
+        ValidateHelper.validateUserAdmin(request, userGetter);
 
         ConnectedServers connectedServers =
                 fileServerCheckService.getConnectedServers();
@@ -71,12 +62,8 @@ public class ServerStatusController {
     public HttpResponseEntity<List<ContainerStatus>> getFileServerContainerStatuses(
             HttpServletRequest request,
             @RequestParam String serverId) {
-        var validateMessage =
-                ValidateHelper.validateUserAdmin(request, userGetter);
-        if (validateMessage != null) {
-            return HttpResponseEntity.of(
-                    validateMessage.toResponseBody(d -> null));
-        }
+        ValidateHelper.validateUserAdmin(request, userGetter);
+
         if (serverId == null || serverId.isEmpty()) {
             throw new BusinessRuntimeException(WebCommonErrorCode.ERROR_PARAM_MISSING,
                     "Missing server id.");
@@ -91,12 +78,8 @@ public class ServerStatusController {
     public HttpResponseEntity<ServerHostInfo> getServerStatus(
             HttpServletRequest request,
             @RequestParam(required = false, defaultValue = "") String serverId) {
-        var validateMessage =
-                ValidateHelper.validateUserAdmin(request, userGetter);
-        if (validateMessage != null) {
-            return HttpResponseEntity.of(
-                    validateMessage.toResponseBody(d -> null));
-        }
+        ValidateHelper.validateUserAdmin(request, userGetter);
+
         if (serverId == null || serverId.isEmpty()) {
             return HttpResponseEntity.success(
                     serverStatusService.getCurrentInfo());
@@ -113,12 +96,9 @@ public class ServerStatusController {
     public HttpResponseEntity<List<NetworkUsageInfo>> getServerNetInfos(
             HttpServletRequest request,
             @RequestParam(required = false, defaultValue = "") String serverId) {
-        var validateMessage =
-                ValidateHelper.validateUserAdmin(request, userGetter);
-        if (validateMessage != null) {
-            return HttpResponseEntity.of(
-                    validateMessage.toResponseBody(d -> null));
-        }
+        ValidateHelper.validateUserAdmin(request, userGetter);
+
+
         if (serverId == null || serverId.isEmpty()) {
             return HttpResponseEntity.success(
                     serverStatusService.getNetInfos());
@@ -141,12 +121,8 @@ public class ServerStatusController {
     public HttpResponseEntity<List<DiskUsageInfo>> getServerDiskInfos(
             HttpServletRequest request,
             @RequestParam(required = false, defaultValue = "") String serverId) {
-        var validateMessage =
-                ValidateHelper.validateUserAdmin(request, userGetter);
-        if (validateMessage != null) {
-            return HttpResponseEntity.of(
-                    validateMessage.toResponseBody(d -> null));
-        }
+        ValidateHelper.validateUserAdmin(request, userGetter);
+
         if (serverId == null || serverId.isEmpty()) {
             throw new BusinessRuntimeException(CommonErrorCode.ERROR_NOT_FOUND,
                     "Not found server: " + serverId);

@@ -45,10 +45,8 @@ public class ObjectAdminDetailsController {
     public HttpResponseEntity<List<ObjectInfoVo>> getObjectsInBucket(
             HttpServletRequest request,
             @RequestParam String bucketName) {
-        var res = ValidateHelper.validateUserAdmin(request, userGetter);
-        if (res != null) {
-            return HttpResponseEntity.of(res.toResponseBody(data -> null));
-        }
+        ValidateHelper.validateUserAdmin(request, userGetter);
+
         List<ObjectInfoVo> vos = objectService.getObjectsInBucket(bucketName)
                 .stream().map(ObjectInfoVo::from).toList();
         return HttpResponseEntity.success(vos);
@@ -59,10 +57,8 @@ public class ObjectAdminDetailsController {
             HttpServletRequest request,
             @RequestParam String bucketName,
             @RequestParam String objectName) {
-        var res = ValidateHelper.validateUserAdmin(request, userGetter);
-        if (res != null) {
-            return HttpResponseEntity.of(res.toResponseBody(data -> null));
-        }
+        ValidateHelper.validateUserAdmin(request, userGetter);
+
         ObjectInfoVo vo = ObjectInfoVo.from(
                 objectService.getObjectInBucket(bucketName, objectName));
         return HttpResponseEntity.success(vo);
@@ -72,10 +68,8 @@ public class ObjectAdminDetailsController {
     public HttpResponseEntity<Map<String, String>> getObjectMetadata(HttpServletRequest request,
                                                                      String bucketName,
                                                                      String objectName) {
-        var res = ValidateHelper.validateUserAdmin(request, userGetter);
-        if (res != null) {
-            return HttpResponseEntity.of(res.toResponseBody(data -> null));
-        }
+        ValidateHelper.validateUserAdmin(request, userGetter);
+
         Map<String, String> metadata = objectMetadataService
                 .getObjectMetadata(bucketName, objectName);
         if (metadata == null) {
@@ -87,10 +81,8 @@ public class ObjectAdminDetailsController {
     @PostMapping("/metadata/set")
     public HttpResponseEntity<Void> setObjectMetadata(HttpServletRequest request,
                                                       @RequestBody ObjectMetadataSetRequest setRequest) {
-        var validate = ValidateHelper.validateUserAdmin(request, userGetter);
-        if (validate != null) {
-            return HttpResponseEntity.of(validate.toResponseBody(data -> null));
-        }
+        ValidateHelper.validateUserAdmin(request, userGetter);
+
         objectMetadataService.addObjectMetadataWithCheck(
                 setRequest.bucketName(),
                 setRequest.objectName(),
@@ -102,11 +94,9 @@ public class ObjectAdminDetailsController {
     @PostMapping("/metadata/remove")
     public HttpResponseEntity<Void> removeObjectMetadata(HttpServletRequest request,
                                                          @RequestBody ObjectMetadataRemoveRequest removeRequest) {
-        var validate = ValidateHelper.validateUserAdmin(request, userGetter);
-        if (validate != null) {
-            return HttpResponseEntity.of(validate.toResponseBody(data -> null));
-        }
-       objectMetadataService.removeObjectMetadata(
+        ValidateHelper.validateUserAdmin(request, userGetter);
+
+        objectMetadataService.removeObjectMetadata(
                 removeRequest.bucketName(),
                 removeRequest.objectName(),
                 removeRequest.removeKeys()

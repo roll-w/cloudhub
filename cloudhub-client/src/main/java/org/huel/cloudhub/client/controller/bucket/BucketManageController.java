@@ -10,7 +10,6 @@ import org.huel.cloudhub.client.service.bucket.BucketRuntimeException;
 import org.huel.cloudhub.client.service.bucket.BucketService;
 import org.huel.cloudhub.client.service.user.UserGetter;
 import org.huel.cloudhub.common.BusinessRuntimeException;
-import org.huel.cloudhub.common.MessagePackage;
 import org.huel.cloudhub.web.HttpResponseEntity;
 import org.huel.cloudhub.web.WebCommonErrorCode;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -43,12 +42,8 @@ public class BucketManageController {
     @PutMapping("/create")
     public HttpResponseEntity<BucketInfo> create(HttpServletRequest request,
                                                  @RequestBody BucketAdminCreateRequest bucketCreateRequest) {
-        var validateMessage = validate(request);
-        if (validateMessage != null) {
-            return HttpResponseEntity.of(
-                    validateMessage.toResponseBody((data) -> null));
-        }
-        // 有警告应该问题不大不太懂
+        ValidateHelper.validateUserAdmin(request, userGetter);
+
         if (bucketCreateRequest.userId() == null) {
             throw new BusinessRuntimeException(
                     WebCommonErrorCode.ERROR_PARAM_MISSING, "No user id");
@@ -64,11 +59,8 @@ public class BucketManageController {
     @DeleteMapping("/delete")
     public HttpResponseEntity<Void> delete(HttpServletRequest request,
                                            @RequestBody BucketAdminDeleteRequest bucketAdminDeleteRequest) {
-        var validateMessage = validate(request);
-        if (validateMessage != null) {
-            return HttpResponseEntity.of(
-                    validateMessage.toResponseBody((data) -> null));
-        }
+        ValidateHelper.validateUserAdmin(request, userGetter);
+
         if (bucketAdminDeleteRequest.userId() == null) {
             throw new BusinessRuntimeException(
                     WebCommonErrorCode.ERROR_PARAM_MISSING, "No user id");
@@ -86,11 +78,8 @@ public class BucketManageController {
     @GetMapping("/get")
     public HttpResponseEntity<BucketInfo> getBucket(HttpServletRequest request,
                                                     @RequestParam String bucketName) {
-        var validateMessage = validate(request);
-        if (validateMessage != null) {
-            return HttpResponseEntity.of(
-                    validateMessage.toResponseBody((data) -> null));
-        }
+        ValidateHelper.validateUserAdmin(request, userGetter);
+
         Bucket bucket = bucketService.getBucketByName(bucketName);
         if (bucket == null) {
             throw new BucketRuntimeException(BucketErrorCode.ERROR_BUCKET_NOT_EXIST);
@@ -102,12 +91,8 @@ public class BucketManageController {
     @GetMapping("/get/all")
     public HttpResponseEntity<List<BucketInfo>> getBuckets(HttpServletRequest request,
                                                            @RequestParam(required = false) Long userId) {
+        ValidateHelper.validateUserAdmin(request, userGetter);
 
-        var validateMessage = validate(request);
-        if (validateMessage != null) {
-            return HttpResponseEntity.of(
-                    validateMessage.toResponseBody((data) -> null));
-        }
         if (userId == null) {
             return HttpResponseEntity.success(bucketService.getAllUsersBuckets());
         }
@@ -116,31 +101,20 @@ public class BucketManageController {
 
     @GetMapping("/get/size")
     public HttpResponseEntity<Integer> getBucketSize(HttpServletRequest request) {
+        ValidateHelper.validateUserAdmin(request, userGetter);
 
-        var validateMessage = validate(request);
-        if (validateMessage != null) {
-            return HttpResponseEntity.of(
-                    validateMessage.toResponseBody((data) -> null));
-        }
         return HttpResponseEntity.success(bucketService.getBucketsCount());
     }
 
     @PostMapping("/setting/visibility")
     public HttpResponseEntity<BucketInfo> changeVisibility(
             HttpServletRequest request, @RequestBody BucketAdminCreateRequest createRequest) {
-        var validateMessage = validate(request);
-        if (validateMessage != null) {
-            return HttpResponseEntity.of(
-                    validateMessage.toResponseBody((data) -> null));
-        }
+        ValidateHelper.validateUserAdmin(request, userGetter);
+
         var res = bucketService.setVisibility(
                 createRequest.bucketName(),
                 createRequest.visibility());
         return HttpResponseEntity.success(res);
     }
 
-
-    private MessagePackage<?> validate(HttpServletRequest request) {
-        return ValidateHelper.validateUserAdmin(request, userGetter);
-    }
 }

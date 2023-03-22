@@ -25,13 +25,9 @@ public class StatController {
     }
 
     @GetMapping("/request/get")
-    public HttpResponseEntity<Long> getGetRequestCount(HttpServletRequest httpServletRequest) {
-        var validateMessage =
-                ValidateHelper.validateUserAdmin(httpServletRequest, userGetter);
-        if (validateMessage != null) {
-            return HttpResponseEntity.of(
-                    validateMessage.toResponseBody(d -> null));
-        }
+    public HttpResponseEntity<Long> getGetRequestCount(HttpServletRequest request) {
+        ValidateHelper.validateUserAdmin(request, userGetter);
+
         return HttpResponseEntity.success(objectRequestCounter.getGetCount());
     }
 

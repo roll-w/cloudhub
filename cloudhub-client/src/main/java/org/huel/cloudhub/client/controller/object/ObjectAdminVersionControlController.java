@@ -43,10 +43,8 @@ public class ObjectAdminVersionControlController {
             HttpServletRequest request,
             @RequestParam String bucketName,
             @RequestParam String objectName) {
-        var res = ValidateHelper.validateUserAdmin(request, userGetter);
-        if (res != null) {
-            return HttpResponseEntity.of(res.toResponseBody(data -> null));
-        }
+        ValidateHelper.validateUserAdmin(request, userGetter);
+
         List<VersionedObjectVo> versionedObjects = versionedObjectService
                 .getObjectVersions(bucketName, objectName)
                 .stream()
@@ -58,10 +56,8 @@ public class ObjectAdminVersionControlController {
     @PostMapping("/revert")
     public HttpResponseEntity<Void> revertVersion(HttpServletRequest request,
                                                   @RequestBody ObjectRevertRequest revertRequest) {
-        var validate = ValidateHelper.validateUserAdmin(request, userGetter);
-        if (validate != null) {
-            return HttpResponseEntity.of(validate.toResponseBody(data -> null));
-        }
+        ValidateHelper.validateUserAdmin(request, userGetter);
+
         VersionedObject versionedObject = versionedObjectService.getObjectVersionOf(
                 revertRequest.bucketName(),
                 revertRequest.objectName(),

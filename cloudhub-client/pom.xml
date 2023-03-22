@@ -71,6 +71,11 @@
             <artifactId>cloudhub-client-rpc-api</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>org.huel.cloudhub</groupId>
+            <artifactId>cloudhub-client-config-loader</artifactId>
+        </dependency>
+
         <!--数据库-->
         <dependency>
             <groupId>mysql</groupId>
@@ -98,8 +103,8 @@
             <groupId>space.lingu.light</groupId>
             <artifactId>light-core-logging-slf4j</artifactId>
         </dependency>
-
     </dependencies>
+
     <build>
         <plugins>
             <plugin>

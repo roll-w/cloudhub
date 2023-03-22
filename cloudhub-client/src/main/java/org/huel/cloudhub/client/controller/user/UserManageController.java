@@ -8,7 +8,6 @@ import org.huel.cloudhub.client.data.entity.user.User;
 import org.huel.cloudhub.client.service.user.UserGetter;
 import org.huel.cloudhub.client.service.user.UserManageService;
 import org.huel.cloudhub.common.BusinessRuntimeException;
-import org.huel.cloudhub.common.MessagePackage;
 import org.huel.cloudhub.web.HttpResponseEntity;
 import org.huel.cloudhub.web.UserErrorCode;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -41,11 +40,7 @@ public class UserManageController {
     public HttpResponseEntity<UserInfo> create(
             HttpServletRequest request,
             @RequestBody UserCreateRequest userCreateRequest) {
-        var validateMessage = validate(request);
-        if (validateMessage != null) {
-            return HttpResponseEntity.of(
-                    validateMessage.toResponseBody((data) -> null));
-        }
+        ValidateHelper.validateUserAdmin(request, userGetter);
 
         // 参数比较多的时候，换成RequestBody
         if (userCreateRequest.discardEmail() == null) {
@@ -67,11 +62,8 @@ public class UserManageController {
     @PostMapping("/delete")
     //@DeleteMapping("/delete")
     public HttpResponseEntity<Void> delete(HttpServletRequest request, @RequestParam Map<String, String> map) {
-        var validateMessage = validate(request);
-        if (validateMessage != null) {
-            return HttpResponseEntity.of(
-                    validateMessage.toResponseBody((data) -> null));
-        }
+        ValidateHelper.validateUserAdmin(request, userGetter);
+
         String userIdParam = map.get("userId");
         Validate.notNull(userIdParam, "userId cannot be null.");
 
@@ -92,17 +84,9 @@ public class UserManageController {
 
     @GetMapping("/get/all")
     public HttpResponseEntity<List<UserInfo>> getAllUsers(HttpServletRequest request) {
-        var validateMessage = validate(request);
-        if (validateMessage != null) {
-            return HttpResponseEntity.of(
-                    validateMessage.toResponseBody((data) -> null));
-        }
+        ValidateHelper.validateUserAdmin(request, userGetter);
 
         List<UserInfo> userInfos = userManageService.getUsers();
         return HttpResponseEntity.success(userInfos);
-    }
-
-    private MessagePackage<?> validate(HttpServletRequest request) {
-        return ValidateHelper.validateUserAdmin(request, userGetter);
     }
 }
