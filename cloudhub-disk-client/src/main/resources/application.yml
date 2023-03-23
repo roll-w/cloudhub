@@ -1,0 +1,34 @@
+server:
+  servlet:
+    session:
+      cookie:
+        name: cloudhub_session
+  tomcat:
+    connection-timeout: -1
+
+logging:
+  charset:
+    console: UTF-8
+  level:
+    org.huel.cloudhub: debug
+
+spring:
+  application:
+    name: Cloudhub Disk Client
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 2048MB
+      max-request-size: 5000MB
+  mvc:
+    path match:
+      matching-strategy: ant_path_matcher
+  cache:
+    type: caffeine
+
+
+web-url:
+  backend-url: http://localhost:${server.port}
+  frontend-url: http://localhost:${server.port}
+  allowed-origins:
+    - http://localhost:${server.port}
