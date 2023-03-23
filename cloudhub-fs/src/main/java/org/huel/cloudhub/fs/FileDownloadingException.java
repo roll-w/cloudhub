@@ -3,7 +3,7 @@ package org.huel.cloudhub.fs;
 /**
  * @author RollW
  */
-public class FileDownloadingException extends CfsException {
+public class FileDownloadingException extends CFSException {
     private final Type type;
 
     public FileDownloadingException(Type type) {

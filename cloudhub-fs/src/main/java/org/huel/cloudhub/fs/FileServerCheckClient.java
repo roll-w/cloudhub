@@ -43,7 +43,7 @@ public class FileServerCheckClient {
     }
 
     @Nullable
-    public List<ContainerStatus> getContainerStatus(String id) {
+    public List<ContainerStatus> getContainerStatuses(String id) {
         if (id == null) {
             return null;
         }

@@ -4,10 +4,12 @@ import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import space.lingu.NonNull;
 
+import java.io.Closeable;
+
 /**
  * @author RollW
  */
-public class MetaServerConnection {
+public class MetaServerConnection implements Closeable {
     private final String host;
     private final int port;
 
@@ -42,5 +44,10 @@ public class MetaServerConnection {
 
     public int getPort() {
         return port;
+    }
+
+    @Override
+    public void close() {
+        managedChannel.shutdown();
     }
 }

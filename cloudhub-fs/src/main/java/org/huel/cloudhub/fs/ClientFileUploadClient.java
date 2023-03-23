@@ -31,24 +31,25 @@ public class ClientFileUploadClient {
     private static final Logger logger = LoggerFactory.getLogger(ClientFileUploadClient.class);
 
     private final GrpcProperties grpcProperties;
-    private final String tempDir;
     private final ClientFileUploadServiceGrpc.ClientFileUploadServiceStub stub;
 
     public ClientFileUploadClient(MetaServerConnection metaServerConnection,
-                                  GrpcProperties grpcProperties,
-                                  String tempDir) {
+                                  GrpcProperties grpcProperties) {
         this.grpcProperties = grpcProperties;
         this.stub = ClientFileUploadServiceGrpc.newStub(
                 metaServerConnection.getManagedChannel());
-        this.tempDir = tempDir;
     }
 
-    public void uploadFile(InputStream inputStream, ClientFileUploadCallback callback) throws IOException {
+    public void uploadFile(InputStream inputStream,
+                           String tempDir,
+                           ClientFileUploadCallback callback) throws IOException {
         logger.debug("Start calculation on the given input stream.");
         // TODO:
         Hasher sha256 = Hashing.sha256().newHasher();
-        ReopenableInputStream reopenableInputStream = convertInputStream(inputStream, sha256);
+        ReopenableInputStream reopenableInputStream =
+                convertInputStream(tempDir, inputStream, sha256);
         final String hash = reopenableInputStream.getHash(sha256).toString();
+        logger.trace("Start upload file with hash={}", hash);
         int bufferSize = (int) (grpcProperties.getMaxRequestSizeBytes() >> 1) / 10;
 
         ClientFileUploadResponseObserver observer = new ClientFileUploadResponseObserver(
@@ -183,13 +184,6 @@ public class ClientFileUploadClient {
             }
         }
     }
-
-    private ReopenableInputStream convertInputStream(InputStream inputStream,
-                                                     Hasher... hashers)
-            throws IOException {
-        return convertInputStream(tempDir, inputStream, hashers);
-    }
-
 
     private static ReopenableInputStream convertInputStream(String tempDir,
                                                             InputStream inputStream,
