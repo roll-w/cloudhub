@@ -8,8 +8,11 @@ option java_outer_classname = "SynchroProtos";
 
 // container request
 message SynchroRequest {
+  // from the source
   optional string source = 1;
+  // files that need to be synchronized
   repeated string file_ids = 2;
+  // the targets
   repeated SerializedFileServer servers = 3;
 }
 
@@ -23,7 +26,6 @@ message DeleteContainerRequest {
 }
 
 message DeleteContainerResponse {
-
 }
 
 service SynchroService {

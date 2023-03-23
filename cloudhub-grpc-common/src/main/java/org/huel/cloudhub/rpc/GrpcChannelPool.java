@@ -9,6 +9,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
+ * Manage gRPC channels.
+ *
  * @author RollW
  */
 public abstract class GrpcChannelPool<K> implements Closeable {
@@ -20,6 +22,9 @@ public abstract class GrpcChannelPool<K> implements Closeable {
     @NonNull
     protected abstract ManagedChannel buildChannel(K key);
 
+    /**
+     * Establish a new channel.
+     */
     protected ManagedChannel establish(K key) {
         ManagedChannel managedChannel = buildChannel(key);
         channelMap.put(key, managedChannel);

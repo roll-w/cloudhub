@@ -5,6 +5,8 @@ package org.huel.cloudhub.rpc;
  */
 public class GrpcProperties {
     private final int port;
+
+    // in mb
     private final int maxRequestSize;
 
     public GrpcProperties(int port, int maxRequestSize) {
