@@ -437,13 +437,13 @@ export default {
             console.log(resp)
             let serversTemp = []
             serversTemp = serversTemp.concat(resp.data.activeServers.map(server => ({
-              address: server.address,
+              address: server.host,
               state: "活动",
               serverId: server.serverId,
               active: true
             })))
             serversTemp = serversTemp.concat(resp.data.deadServers.map(server => ({
-              address: server.address,
+              address: server.host,
               state: "宕机",
               serverId: server.serverId,
               active: false
