@@ -1,14 +1,13 @@
 package org.huel.cloudhub.client.controller.server;
 
 import org.huel.cloudhub.client.controller.ValidateHelper;
-import org.huel.cloudhub.fs.server.ConnectedServers;
-import org.huel.cloudhub.fs.server.ContainerStatus;
-import org.huel.cloudhub.client.service.rpc.FileServerCheckService;
-import org.huel.cloudhub.client.service.rpc.ServerInfoCheckService;
 import org.huel.cloudhub.client.service.server.ServerStatusService;
 import org.huel.cloudhub.client.service.user.UserGetter;
 import org.huel.cloudhub.common.BusinessRuntimeException;
 import org.huel.cloudhub.common.CommonErrorCode;
+import org.huel.cloudhub.fs.CFSClient;
+import org.huel.cloudhub.fs.server.ConnectedServers;
+import org.huel.cloudhub.fs.server.ContainerStatus;
 import org.huel.cloudhub.server.DiskUsageInfo;
 import org.huel.cloudhub.server.NetworkUsageInfo;
 import org.huel.cloudhub.server.ServerHostInfo;
@@ -28,17 +27,15 @@ import java.util.List;
 @ServerApi
 public class ServerStatusController {
     private final UserGetter userGetter;
+    private final CFSClient cfsClient;
     private final ServerStatusService serverStatusService;
-    private final FileServerCheckService fileServerCheckService;
-    private final ServerInfoCheckService serverInfoCheckService;
 
     public ServerStatusController(UserGetter userGetter,
-                                  ServerStatusService serverStatusService,
-                                  FileServerCheckService fileServerCheckService, ServerInfoCheckService serverInfoCheckService) {
+                                  CFSClient cfsClient,
+                                  ServerStatusService serverStatusService) {
         this.userGetter = userGetter;
+        this.cfsClient = cfsClient;
         this.serverStatusService = serverStatusService;
-        this.fileServerCheckService = fileServerCheckService;
-        this.serverInfoCheckService = serverInfoCheckService;
     }
 
     @GetMapping("/time")
@@ -53,7 +50,7 @@ public class ServerStatusController {
         ValidateHelper.validateUserAdmin(request, userGetter);
 
         ConnectedServers connectedServers =
-                fileServerCheckService.getConnectedServers();
+                cfsClient.getConnectedServers();
         return HttpResponseEntity.success(connectedServers);
     }
 
@@ -69,7 +66,7 @@ public class ServerStatusController {
                     "Missing server id.");
         }
         return HttpResponseEntity.success(
-                fileServerCheckService.getContainerStatus(serverId));
+                cfsClient.getContainerStatuses(serverId));
     }
 
     public static final String META_SERVER_ID = "meta";
@@ -86,10 +83,10 @@ public class ServerStatusController {
         }
         if (serverId.equalsIgnoreCase(META_SERVER_ID)) {
             return HttpResponseEntity.success(
-                    serverInfoCheckService.getMetaServerInfo());
+                    cfsClient.getMetaServerInfo());
         }
         return HttpResponseEntity.success(
-                serverInfoCheckService.getFileServerInfo(serverId));
+                cfsClient.getFileServerInfo(serverId));
     }
 
     @GetMapping("/server/get/net")
@@ -97,24 +94,22 @@ public class ServerStatusController {
             HttpServletRequest request,
             @RequestParam(required = false, defaultValue = "") String serverId) {
         ValidateHelper.validateUserAdmin(request, userGetter);
-
-
         if (serverId == null || serverId.isEmpty()) {
             return HttpResponseEntity.success(
                     serverStatusService.getNetInfos());
         }
         if (serverId.equalsIgnoreCase(META_SERVER_ID)) {
             return HttpResponseEntity.success(
-                    serverInfoCheckService.getMetaServerNetRecords());
+                    cfsClient.getMetaServerNetRecords());
         }
         List<NetworkUsageInfo> nets =
-                serverInfoCheckService.getFileNetRecords(serverId);
+                cfsClient.getFileNetRecords(serverId);
         if (nets == null) {
             throw new BusinessRuntimeException(CommonErrorCode.ERROR_NOT_FOUND,
                     "Not found server: " + serverId);
         }
         return HttpResponseEntity.success(
-                serverInfoCheckService.getFileNetRecords(serverId));
+                cfsClient.getFileNetRecords(serverId));
     }
 
     @GetMapping("/server/get/disk")
@@ -129,10 +124,10 @@ public class ServerStatusController {
         }
         if (serverId.equalsIgnoreCase(META_SERVER_ID)) {
             return HttpResponseEntity.success(
-                    serverInfoCheckService.getMetaServerDiskRecords());
+                    cfsClient.getMetaServerDiskRecords());
         }
         List<DiskUsageInfo> disks =
-                serverInfoCheckService.getFileServerDiskRecords(serverId);
+                cfsClient.getFileServerDiskRecords(serverId);
         if (disks == null) {
             throw new BusinessRuntimeException(CommonErrorCode.ERROR_NOT_FOUND,
                     "Not found server: " + serverId);

@@ -3,6 +3,7 @@ package org.huel.cloudhub.client.service.object;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import org.apache.commons.lang3.Validate;
+import org.huel.cloudhub.client.conf.ClientConfigLoader;
 import org.huel.cloudhub.client.data.database.repository.FileObjectStorageRepository;
 import org.huel.cloudhub.client.data.dto.object.ObjectInfo;
 import org.huel.cloudhub.client.data.dto.object.ObjectInfoDto;
@@ -10,10 +11,9 @@ import org.huel.cloudhub.client.data.entity.object.FileObjectStorage;
 import org.huel.cloudhub.client.event.object.OnNewlyObjectEvent;
 import org.huel.cloudhub.client.event.object.OnObjectDeleteEvent;
 import org.huel.cloudhub.client.event.object.OnObjectRenameEvent;
-import org.huel.cloudhub.client.service.rpc.ClientFileDownloadService;
-import org.huel.cloudhub.client.service.rpc.ClientFileUploadService;
 import org.huel.cloudhub.common.IoErrorCode;
 import org.huel.cloudhub.common.SystemRuntimeException;
+import org.huel.cloudhub.fs.CFSClient;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
@@ -29,31 +29,30 @@ import java.util.concurrent.CountDownLatch;
 @Service
 public class ObjectServiceImpl implements ObjectService, ObjectRemoveHandler {
     private final FileObjectStorageRepository repository;
-    private final ClientFileDownloadService clientFileDownloadService;
-    private final ClientFileUploadService clientFileUploadService;
+    private final String tempDir ;
+    private final CFSClient cfsClient;
     private final ApplicationEventPublisher eventPublisher;
 
     public ObjectServiceImpl(FileObjectStorageRepository repository,
-                             ClientFileDownloadService clientFileDownloadService,
-                             ClientFileUploadService clientFileUploadService,
+                             CFSClient cfsClient,
+                             ClientConfigLoader clientConfigLoader,
                              ApplicationEventPublisher eventPublisher) {
         this.repository = repository;
-        this.clientFileDownloadService = clientFileDownloadService;
-        this.clientFileUploadService = clientFileUploadService;
+        this.cfsClient = cfsClient;
         this.eventPublisher = eventPublisher;
+        this.tempDir = clientConfigLoader.getTempFilePath();
     }
 
     @Override
     public ObjectInfoDto saveObject(ObjectInfo objectInfo,
-                                                    InputStream stream) throws IOException {
+                                    InputStream stream) throws IOException {
         validateObjectInfo(objectInfo);
         var fileIdWrapper = new Object() {
             String fileId = null;
             long fileSize = -1;
         };
-
         CountDownLatch latch = new CountDownLatch(1);
-        clientFileUploadService.uploadFile(stream, (success, fileId, fileSize) -> {
+        cfsClient.uploadFile(stream, tempDir, (success, fileId, fileSize) -> {
             latch.countDown();
             if (!success) {
                 return;
@@ -96,7 +95,7 @@ public class ObjectServiceImpl implements ObjectService, ObjectRemoveHandler {
 
     @Override
     public void getObjectData(ObjectInfo objectInfo,
-                              OutputStream stream) {
+                              OutputStream stream) throws IOException {
         validateObjectInfo(objectInfo);
         FileObjectStorage storage = repository.getById(objectInfo.bucketName(), objectInfo.objectName());
         if (storage == null) {
@@ -105,7 +104,7 @@ public class ObjectServiceImpl implements ObjectService, ObjectRemoveHandler {
 
         // write
         CountDownLatch latch = new CountDownLatch(1);
-        clientFileDownloadService.downloadFile(stream, storage.getFileId(),
+        cfsClient.downloadFile(stream, storage.getFileId(),
                 success -> latch.countDown());
         try {
             latch.await();
@@ -115,14 +114,15 @@ public class ObjectServiceImpl implements ObjectService, ObjectRemoveHandler {
     }
 
     @Override
-    public void getObjectData(ObjectInfo objectInfo, OutputStream stream, long startBytes, long endBytes) {
+    public void getObjectData(ObjectInfo objectInfo, OutputStream stream,
+                              long startBytes, long endBytes) throws IOException {
         validateObjectInfo(objectInfo);
         FileObjectStorage storage = repository.getById(objectInfo.bucketName(), objectInfo.objectName());
         if (storage == null) {
             throw new ObjectRuntimeException(ObjectErrorCode.ERROR_OBJECT_NOT_EXIST);
         }
         CountDownLatch latch = new CountDownLatch(1);
-        clientFileDownloadService.downloadFile(stream, storage.getFileId(),
+        cfsClient.downloadFile(stream, storage.getFileId(),
                 startBytes, endBytes, success -> latch.countDown());
         try {
             latch.await();

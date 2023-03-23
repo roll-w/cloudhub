@@ -14,9 +14,9 @@ import java.util.List;
 public interface ObjectService {
     ObjectInfoDto saveObject(ObjectInfo objectInfo, InputStream stream) throws IOException;
 
-    void getObjectData(ObjectInfo objectInfo, OutputStream stream);
+    void getObjectData(ObjectInfo objectInfo, OutputStream stream) throws IOException;
 
-    void getObjectData(ObjectInfo objectInfo, OutputStream stream, long startBytes, long endBytes);
+    void getObjectData(ObjectInfo objectInfo, OutputStream stream, long startBytes, long endBytes) throws IOException;
 
     void deleteObject(ObjectInfo objectInfo);
 

@@ -65,7 +65,15 @@ public final class ObjectHelper {
     }
 
     @Nullable
-    public static HttpResponseEntity<String> processGetObject(HttpServletRequest request, HttpServletResponse response, @PathVariable("bucketName") String bucketName, String objectName, ObjectInfo objectInfo, ObjectMetadataService objectMetadataService, ApplicationEventPublisher applicationEventPublisher, ObjectService objectService) throws IOException {
+    public static HttpResponseEntity<String> processGetObject(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            String bucketName,
+            String objectName,
+            ObjectInfo objectInfo,
+            ObjectMetadataService objectMetadataService,
+            ApplicationEventPublisher applicationEventPublisher,
+            ObjectService objectService) throws IOException {
         response.setHeader("Content-Type",
                 "application/octet-stream");
         Map<String, String> metadata = objectMetadataService

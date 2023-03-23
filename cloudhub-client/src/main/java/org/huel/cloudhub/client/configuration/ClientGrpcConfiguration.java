@@ -1,9 +1,7 @@
 package org.huel.cloudhub.client.configuration;
 
-import io.grpc.ManagedChannel;
-import io.grpc.ManagedChannelBuilder;
 import org.huel.cloudhub.client.conf.ClientConfigLoader;
-import org.huel.cloudhub.client.service.rpc.FileServerChannelPool;
+import org.huel.cloudhub.fs.CFSClient;
 import org.huel.cloudhub.rpc.GrpcProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,14 +12,11 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class ClientGrpcConfiguration {
     @Bean
-    public FileServerChannelPool fileServerChannelPool(GrpcProperties grpcProperties) {
-        return new FileServerChannelPool(grpcProperties);
-    }
-
-    @Bean
-    public ManagedChannel metaManagedChannel(ClientConfigLoader clientConfigLoader) {
-        return ManagedChannelBuilder.forTarget(clientConfigLoader.getMetaServerAddress())
-                .usePlaintext()
-                .build();
+    public CFSClient cfsClient(ClientConfigLoader clientConfigLoader, GrpcProperties grpcProperties) {
+        return new CFSClient(
+                clientConfigLoader.getMetaServerAddress(),
+                clientConfigLoader.getRpcPort(),
+                grpcProperties
+        );
     }
 }
