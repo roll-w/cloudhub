@@ -39,7 +39,6 @@ public class HeartbeatService extends HeartbeatServiceGrpc.HeartbeatServiceImplB
         if (!heartbeatWatcherPool.isActive(request.getId())) {
             responseObserver.onNext(
                     HeartbeatResponse.newBuilder()
-                            .setMessage("first time registration.")
                             .setPeriod(heartbeatServerProperties.getStandardPeriod())
                             .build()
             );
@@ -52,7 +51,6 @@ public class HeartbeatService extends HeartbeatServiceGrpc.HeartbeatServiceImplB
         heartbeatWatcherPool.updateWatcher(request);
         responseObserver.onNext(
                 HeartbeatResponse.newBuilder()
-                        .setMessage("update success.")
                         .build()
         );
         responseObserver.onCompleted();

@@ -23,9 +23,6 @@ message Heartbeat {
 }
 
 message HeartbeatResponse {
-  // @deprecated message
-  optional string message = 2;
-
   // when receive first heartbeat from file-server,
   // the meta server needs respond a standard period
   // for control.
