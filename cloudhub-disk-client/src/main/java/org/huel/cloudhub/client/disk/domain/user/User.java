@@ -20,7 +20,7 @@ import java.util.Objects;
 })
 @LightConfiguration(key = LightConfiguration.KEY_VARCHAR_LENGTH, value = "120")
 @SuppressWarnings({"ClassCanBeRecord"})
-public class User implements UserDetails {
+public class User implements UserDetails, UserIdentity {
     @PrimaryKey(autoGenerate = true)
     @DataColumn(name = "id")
     private final Long id;
