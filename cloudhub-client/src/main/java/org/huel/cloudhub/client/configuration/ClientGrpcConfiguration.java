@@ -15,7 +15,6 @@ public class ClientGrpcConfiguration {
     public CFSClient cfsClient(ClientConfigLoader clientConfigLoader, GrpcProperties grpcProperties) {
         return new CFSClient(
                 clientConfigLoader.getMetaServerAddress(),
-                clientConfigLoader.getRpcPort(),
                 grpcProperties
         );
     }

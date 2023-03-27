@@ -103,6 +103,11 @@
             <groupId>space.lingu.light</groupId>
             <artifactId>light-core-logging-slf4j</artifactId>
         </dependency>
+
+        <dependency>
+            <groupId>space.lingu.light</groupId>
+            <artifactId>light-core-connection-hikari</artifactId>
+        </dependency>
     </dependencies>
 
     <build>

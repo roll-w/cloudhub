@@ -188,6 +188,12 @@
             </dependency>
 
             <dependency>
+                <groupId>space.lingu.light</groupId>
+                <artifactId>light-core-connection-hikari</artifactId>
+                <version>${light.version}</version>
+            </dependency>
+
+            <dependency>
                 <groupId>space.lingu.fiesta</groupId>
                 <artifactId>fiesta-annotations</artifactId>
                 <version>${fiesta.version}</version>
