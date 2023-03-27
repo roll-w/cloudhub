@@ -2,9 +2,12 @@ package org.huel.cloudhub.web;
 
 import org.huel.cloudhub.common.ErrorCode;
 import org.huel.cloudhub.common.HttpResponseBody;
+import org.huel.cloudhub.web.data.page.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.MultiValueMap;
+
+import java.util.List;
 
 /**
  * Http响应实体。携带Http状态码及Header。
@@ -85,6 +88,11 @@ public class HttpResponseEntity<D> extends ResponseEntity<HttpResponseBody<D>> {
         return new HttpResponseEntity<>(body);
     }
 
+    public static <D> HttpResponseEntity<D> of(HttpResponseBody<D> body,
+                                               Page<D> page) {
+        return new HttpResponseEntity<>(body);
+    }
+
     public static <D> HttpResponseEntity<D> success() {
         return of(
                 HttpResponseBody.success()
@@ -102,6 +110,13 @@ public class HttpResponseEntity<D> extends ResponseEntity<HttpResponseBody<D>> {
                 HttpResponseBody.success(data)
         );
     }
+
+    public static <D> HttpResponseEntity<List<D>> success(Page<D> page) {
+        return of(
+                PageableHttpResponseBody.success(page)
+        );
+    }
+
 
     public static <D> HttpResponseEntity<D> of(ErrorCode errorCode,
                                                String message) {
@@ -137,4 +152,12 @@ public class HttpResponseEntity<D> extends ResponseEntity<HttpResponseBody<D>> {
                         .build()
         );
     }
+
+    public static <D> HttpResponseEntity<List<D>> of(ErrorCode errorCode,
+                                                     Page<D> page) {
+        return of(
+                PageableHttpResponseBody.of(errorCode, page)
+        );
+    }
 }
+
