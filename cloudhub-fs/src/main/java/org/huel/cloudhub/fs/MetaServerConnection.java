@@ -19,6 +19,10 @@ public class MetaServerConnection implements Closeable {
         this(host, port, ($) -> {});
     }
 
+    public MetaServerConnection(String target) {
+        this(target, ($) -> {});
+    }
+
     public MetaServerConnection(String host, int port,
                                 @NonNull ChannelConfigure configure) {
         this.managedChannel = buildChannel(host, port, configure);
@@ -26,9 +30,25 @@ public class MetaServerConnection implements Closeable {
         this.port = port;
     }
 
+
+    public MetaServerConnection(String target,
+                                @NonNull ChannelConfigure configure) {
+        this.managedChannel = buildChannel(target, configure);
+        this.host = null;
+        this.port = -1;
+    }
+
     private ManagedChannel buildChannel(String host, int port,
                                         ChannelConfigure configurator) {
         ManagedChannelBuilder<?> builder = ManagedChannelBuilder.forAddress(host, port)
+                .usePlaintext();
+        configurator.configure(builder);
+        return builder.build();
+    }
+
+    private ManagedChannel buildChannel(String target,
+                                        ChannelConfigure configurator) {
+        ManagedChannelBuilder<?> builder = ManagedChannelBuilder.forTarget(target)
                 .usePlaintext();
         configurator.configure(builder);
         return builder.build();

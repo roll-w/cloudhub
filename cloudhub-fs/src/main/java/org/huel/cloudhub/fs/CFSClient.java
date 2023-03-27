@@ -45,12 +45,17 @@ public class CFSClient implements Closeable {
         this(new MetaServerConnection(host, port), grpcProperties);
     }
 
+    public CFSClient(String target,
+                     GrpcProperties grpcProperties) {
+        this(new MetaServerConnection(target), grpcProperties);
+    }
+
     public CFSClient(MetaServerConnection metaServerConnection,
                      GrpcProperties grpcProperties) {
         this.metaServerConnection = metaServerConnection;
         this.metaFileStatusClient = new MetaFileStatusClient(metaServerConnection);
         this.clientFileDeleteClient = new ClientFileDeleteClient(metaServerConnection);
-        this.channelPool = new FileServerChannelPool(null);
+        this.channelPool = new FileServerChannelPool(grpcProperties);
         this.clientFileDownloadClient = new ClientFileDownloadClient(channelPool, metaFileStatusClient);
         this.clientFileUploadClient = new ClientFileUploadClient(
                 metaServerConnection,
