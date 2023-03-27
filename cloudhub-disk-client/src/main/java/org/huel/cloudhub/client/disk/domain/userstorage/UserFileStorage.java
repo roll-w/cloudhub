@@ -15,14 +15,17 @@ import space.lingu.light.PrimaryKey;
 })
 public class UserFileStorage {
     @DataColumn(name = "id")
-    @PrimaryKey
+    @PrimaryKey(autoGenerate = true)
     private final Long id;
 
     @DataColumn(name = "name")
     private final String name;
 
-    @DataColumn(name = "user_id")
-    private final long userId;
+    @DataColumn(name = "owner")
+    private final long owner;
+
+    @DataColumn(name = "owner_type")
+    private final OwnerType ownerType;
 
     @DataColumn(name = "file_id")
     private final String fileId;
@@ -43,15 +46,16 @@ public class UserFileStorage {
     private final long updateTime;
 
     public UserFileStorage(Long id, String name,
-                           long userId, String fileId,
+                           long owner, OwnerType ownerType,
+                           String fileId,
                            long directoryId,
                            String mimeType, FileType fileCategory,
-
                            long createTime,
                            long updateTime) {
         this.id = id;
         this.name = name;
-        this.userId = userId;
+        this.owner = owner;
+        this.ownerType = ownerType;
         this.fileId = fileId;
         this.directoryId = directoryId;
         this.mimeType = mimeType;
@@ -68,8 +72,12 @@ public class UserFileStorage {
         return name;
     }
 
-    public long getUserId() {
-        return userId;
+    public long getOwner() {
+        return owner;
+    }
+
+    public OwnerType getOwnerType() {
+        return ownerType;
     }
 
     public String getFileId() {
@@ -99,7 +107,8 @@ public class UserFileStorage {
     public static final class Builder {
         private Long id;
         private String name;
-        private long userId;
+        private long owner;
+        private OwnerType ownerType;
         private String fileId;
         private long directoryId;
         private String mimeType;
@@ -113,7 +122,8 @@ public class UserFileStorage {
         public Builder(UserFileStorage userFileStorage) {
             this.id = userFileStorage.id;
             this.name = userFileStorage.name;
-            this.userId = userFileStorage.userId;
+            this.owner = userFileStorage.owner;
+            this.ownerType = userFileStorage.ownerType;
             this.fileId = userFileStorage.fileId;
             this.directoryId = userFileStorage.directoryId;
             this.mimeType = userFileStorage.mimeType;
@@ -132,8 +142,13 @@ public class UserFileStorage {
             return this;
         }
 
-        public Builder setUserId(long userId) {
-            this.userId = userId;
+        public Builder setOwner(long owner) {
+            this.owner = owner;
+            return this;
+        }
+
+        public Builder setOwnerType(OwnerType ownerType) {
+            this.ownerType = ownerType;
             return this;
         }
 
@@ -168,7 +183,7 @@ public class UserFileStorage {
         }
 
         public UserFileStorage build() {
-            return new UserFileStorage(id, name, userId, fileId,
+            return new UserFileStorage(id, name, owner, ownerType, fileId,
                     directoryId, mimeType, fileCategory, createTime, updateTime);
         }
     }

@@ -5,6 +5,8 @@ import space.lingu.light.DataTable;
 import space.lingu.light.PrimaryKey;
 import space.lingu.light.SQLDataType;
 
+import java.util.Objects;
+
 /**
  * @author RollW
  */
@@ -47,6 +49,32 @@ public class DiskFileStorage {
 
     public long getLastAccessTime() {
         return lastAccessTime;
+    }
+
+    public Builder toBuilder() {
+        return new Builder(this);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof DiskFileStorage that)) return false;
+        return fileSize == that.fileSize && createTime == that.createTime && lastAccessTime == that.lastAccessTime && Objects.equals(fileId, that.fileId);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(fileId, fileSize, createTime, lastAccessTime);
+    }
+
+    @Override
+    public String toString() {
+        return "DiskFileStorage{" +
+                "fileId='" + fileId + '\'' +
+                ", fileSize=" + fileSize +
+                ", createTime=" + createTime +
+                ", lastAccessTime=" + lastAccessTime +
+                '}';
     }
 
     public static Builder builder() {
