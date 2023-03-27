@@ -16,7 +16,6 @@
 
 package org.huel.cloudhub.client.disk.domain.user.service;
 
-import com.google.cloud.audit.RequestMetadata;
 import com.google.common.base.Preconditions;
 import org.huel.cloudhub.client.disk.domain.user.Role;
 import org.huel.cloudhub.client.disk.domain.user.User;
@@ -26,6 +25,7 @@ import org.huel.cloudhub.client.disk.domain.user.event.OnUserLoginEvent;
 import org.huel.cloudhub.client.disk.domain.user.event.OnUserRegistrationEvent;
 import org.huel.cloudhub.client.disk.domain.user.repository.UserRepository;
 import org.huel.cloudhub.common.Result;
+import org.huel.cloudhub.web.RequestMetadata;
 import org.huel.cloudhub.web.UserErrorCode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

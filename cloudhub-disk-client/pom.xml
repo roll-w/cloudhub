@@ -51,6 +51,21 @@
         </dependency>
 
         <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-api</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-impl</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-jackson</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>org.huel.cloudhub</groupId>
             <artifactId>cloudhub-common</artifactId>
         </dependency>
@@ -58,6 +73,11 @@
         <dependency>
             <groupId>org.huel.cloudhub</groupId>
             <artifactId>cloudhub-web-common</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.huel.cloudhub</groupId>
+            <artifactId>cloudhub-client-config-loader</artifactId>
         </dependency>
 
         <dependency>
@@ -91,6 +111,12 @@
             <groupId>space.lingu.light</groupId>
             <artifactId>light-core-logging-slf4j</artifactId>
         </dependency>
+
+        <dependency>
+            <groupId>space.lingu.light</groupId>
+            <artifactId>light-core-connection-hikari</artifactId>
+        </dependency>
+
     </dependencies>
 
     <build>
