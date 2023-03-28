@@ -2,7 +2,6 @@
 
 Frontend for Cloudhub Disk.
 
-
 ## Project Setup
 
 ```sh

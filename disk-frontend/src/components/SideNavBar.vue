@@ -70,14 +70,26 @@ router.afterEach(() => {
 
 const menuOptions = [
   {
-    label: "Example",
+    label: "文件",
     key: "1",
   },
   {
-    label: "Example2",
+    label: "收藏夹",
     key: "2",
   },
-]
+  {
+    label: "订阅",
+    key: "3",
+  },
+  {
+    label: "回收站",
+    key: "4",
+  }
+];
+
+const option = menuOptions;
+
+
 
 </script>
 

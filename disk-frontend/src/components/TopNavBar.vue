@@ -18,8 +18,8 @@
   <n-layout-header bordered style="height: var(--header-height)">
     <div class="p-5 flex">
       <n-text :depth="1" class="ui-logo flex justify-start">
-<!--        <img alt="Logo" src="../assets/lamp.svg">-->
-        <span>Cloudhub Disk</span>
+        <img alt="Logo" src="../assets/cloud.svg">
+        <span>数据知识中心库</span>
       </n-text>
       <div class="flex justify-end justify-items-end flex-grow">
         <n-space>
