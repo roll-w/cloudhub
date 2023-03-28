@@ -29,6 +29,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 import space.lingu.NonNull;
 
@@ -44,6 +45,8 @@ import java.io.IOException;
 public class TokenAuthenticationFilter extends OncePerRequestFilter {
     private final AuthenticationTokenService authenticationTokenService;
     private final UserDetailsService userDetailsService;
+
+    private final AntPathMatcher antPathMatcher = new AntPathMatcher();
 
     public TokenAuthenticationFilter(AuthenticationTokenService authenticationTokenService,
                                      UserDetailsService userDetailsService) {
@@ -67,7 +70,8 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
                 return;
             }
 
-            String token = request.getHeader("Authorization");
+            String token = loadToken(request);
+
             if (token == null || token.isEmpty()) {
                 nullNextFilter(isAdminApi, remoteIp, method, request, response, filterChain);
                 return;
@@ -118,8 +122,8 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
         if (requestUri == null || requestUri.length() <= 10) {
             return false;
         }
-        String adminStart = requestUri.substring(0, 10);
-        return adminStart.equalsIgnoreCase("/api/admin");
+
+        return antPathMatcher.match("/api/{version}/admin/**", requestUri);
     }
 
     private void nullNextFilter(boolean isAdminApi, String remoteIp, HttpMethod method,
@@ -127,5 +131,13 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
                                 FilterChain filterChain) throws IOException, ServletException {
         setApiContext(isAdminApi, remoteIp, method, null);
         filterChain.doFilter(request, response);
+    }
+
+    private String loadToken(HttpServletRequest request) {
+        String token = request.getHeader("Authorization");
+        if (token == null || token.isEmpty()) {
+            return request.getParameter("token");
+        }
+        return token;
     }
 }
