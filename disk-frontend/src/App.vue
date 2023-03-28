@@ -6,6 +6,7 @@ import TopNavBar from "@/components/TopNavBar.vue";
 import {tokenKey, userDataKey, userKey, useUserStore} from "@/stores/user";
 import router from "@/router";
 import {useSiteStore} from "@/stores/site";
+import MessageApi from "@/MessageApi.vue";
 
 
 const userStore = useUserStore()
@@ -86,19 +87,23 @@ userStore.$subscribe((mutation, state) => {
  */
 const themeOverrides = {
   "common": {
-    "primaryColor": "#0277ec",
+    "primaryColor": "#f5a737",
     "baseColor": "#F4F4F4FF",
-    "primaryColorHover": "#5599f1",
-    "primaryColorPressed": "#6a9bf6",
-    "primaryColorSuppl": "#5f87d0",
-    "warningColor": "#ED7F3BFF",
-    "warningColorHover": "#FC8E40FF",
-    "warningColorPressed": "#C96610FF",
-    "warningColorSuppl": "#FC8240FF",
+    "primaryColorHover": "#f19155",
+    "primaryColorPressed": "#f6a46a",
+    "primaryColorSuppl": "#d08e5f",
+    "warningColor": "#edc33b",
+    "warningColorHover": "#fcba40",
+    "warningColorPressed": "#c99e10",
+    "warningColorSuppl": "#fcc040",
     "errorColor": "#D03050FF",
     "errorColorHover": "#DE5782FF",
     "errorColorPressed": "#AB1F39FF",
     "errorColorSuppl": "#E85364FF",
+    // "infoColor": "#6530d0",
+    // "infoColorHover": "#7957de",
+    // "infoColorPressed": "#421fab",
+    // "infoColorSuppl": "#536ce8",
     "fontFamily": `'Muli', '思源黑体', 'Source Han Sans',  -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue', sans-serif`,
     "fontSize": "16px",
     "fontSizeMini": "14px",
@@ -175,7 +180,7 @@ siteStore.$subscribe((mutation, state) => {
                      :theme="dark" :theme-overrides="themeOverrides" class="h-100">
     <n-loading-bar-provider>
       <n-message-provider>
-
+        <message-api/>
         <n-notification-provider :max="5">
           <n-dialog-provider>
             <n-layout position="absolute">

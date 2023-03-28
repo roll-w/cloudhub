@@ -1,19 +1,3 @@
-<!--
-  - Copyright (C) 2023 RollW
-  -
-  - Licensed under the Apache License, Version 2.0 (the "License");
-  - you may not use this file except in compliance with the License.
-  - You may obtain a copy of the License at
-  -
-  -        http://www.apache.org/licenses/LICENSE-2.0
-  -
-  - Unless required by applicable law or agreed to in writing, software
-  - distributed under the License is distributed on an "AS IS" BASIS,
-  - WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  - See the License for the specific language governing permissions and
-  - limitations under the License.
-  -->
-
 <template>
 <!--  <n-watermark-->
 <!--      :content="username  + ' ID:' + userId + ' ' + role"-->
@@ -42,9 +26,11 @@
 <script setup>
 
 import {RouterLink, useRouter} from "vue-router";
-import {onBeforeMount, ref} from "vue";
+import {h, onBeforeMount, ref} from "vue";
 
-import {useMessage} from "naive-ui";
+import {useMessage, NIcon} from "naive-ui";
+import {driveFilePage} from "@/router";
+import FileIcon from "@/components/icon/FileIcon.vue";
 
 const message = useMessage()
 
@@ -71,7 +57,20 @@ router.afterEach(() => {
 const menuOptions = [
   {
     label: "文件",
-    key: "1",
+    key: "menu-file",
+    children: [
+      {
+        label: "全部文件",
+        key: driveFilePage,
+        icon () {
+          return h(NIcon, {
+            class: "text-2xl"
+          }, {
+            default: () => h(FileIcon)
+          })
+        },
+      }
+    ]
   },
   {
     label: "收藏夹",

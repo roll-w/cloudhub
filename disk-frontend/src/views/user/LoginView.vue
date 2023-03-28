@@ -1,50 +1,50 @@
 <template>
-  <div class="A" style="height: 100vh;overflow: hidden; position: relative">
-    <div class="login" style="width: 300px; border-radius: 10px; margin: 0 auto; background-color: white; padding: 20px;
-      position: absolute; top: 30%; left: 50%; transform: translateX(-50%) translateY(-50%);">
-
-        <n-h5 style="text-align: center">
-          <n-text type="primary">登录</n-text>
-        </n-h5>
-
-
-      <n-form ref="formRef">
-        <n-form-item path="age" label="账号">
-          <n-input />
-        </n-form-item>
-        <n-form-item path="password" label="密码">
-          <n-input
-              type="password"
-              @keydown.enter.prevent
-          />
-        </n-form-item>
-
-        <n-row :gutter="[0, 24]">
-          <n-col :span="15">
-            <div style="display: flex; justify-content: flex-end">
-              <n-button >登录</n-button>
-            </div>
-          </n-col>
-        </n-row>
-
-      </n-form>
-
-    </div>
+  <div class="center">
+    <n-card>
+      <LoginForm v-if="isLoginPage()"/>
+      <RegisterForm v-else/>
+    </n-card>
   </div>
 </template>
 
 <script setup>
+import RegisterForm from "@/components/user/login/RegisterForm.vue";
+import LoginForm from "@/components/user/login/LoginForm.vue";
+import {useRouter} from "vue-router";
+import {useUserStore} from "@/stores/user";
+import {index, login} from "@/router";
+import {getCurrentInstance} from "vue";
 
+const router = useRouter()
+const userStore = useUserStore()
+
+const checkLogin = () => {
+  if (userStore.isLogin) {
+    router.push({
+      name: index
+    })
+  }
+}
+
+checkLogin()
+
+const isLoginPage = () => {
+  return router.currentRoute.value.name === login
+}
+
+const code = `public class LampBlog {
+  public static void main(String[] args) {
+    System.out.println("Hello, Lamp Blog!");
+  }
+}`
 </script>
 
 <style scoped>
-
-div.login{
-  border:solid 1px;
-}
-
-div.A{
-
-
+.center {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 64px);
+  justify-content: center;
+  position: relative;
 }
 </style>

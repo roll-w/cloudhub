@@ -1,23 +1,7 @@
-<!--
-  - Copyright (C) 2023 RollW
-  -
-  - Licensed under the Apache License, Version 2.0 (the "License");
-  - you may not use this file except in compliance with the License.
-  - You may obtain a copy of the License at
-  -
-  -        http://www.apache.org/licenses/LICENSE-2.0
-  -
-  - Unless required by applicable law or agreed to in writing, software
-  - distributed under the License is distributed on an "AS IS" BASIS,
-  - WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  - See the License for the specific language governing permissions and
-  - limitations under the License.
-  -->
-
 <template>
   <n-layout-header bordered style="height: var(--header-height)">
     <div class="p-5 flex">
-      <n-text :depth="1" class="ui-logo flex justify-start">
+      <n-text :depth="1" class="ui-logo flex justify-start" @click="handleLogoClick">
         <img alt="Logo" src="../assets/cloud.svg">
         <span>数据知识中心库</span>
       </n-text>
@@ -48,9 +32,7 @@ import {useUserStore} from "@/stores/user";
 import {getCurrentInstance, h, onMounted, ref} from "vue";
 import {NAvatar, NText} from "naive-ui";
 import {useSiteStore} from "@/stores/site";
-// import {admin, articleEditorPage, index, login, userPage} from "@/router";
-// import api from "@/request/api";
-// import {createConfig} from "@/request/axios_config";
+import {index, login} from "@/router";
 
 const router = useRouter();
 const {proxy} = getCurrentInstance()
@@ -80,14 +62,14 @@ const loadUsername = (newUsername, newRole) => {
   role.value = newRole
 }
 
-// onMounted(() => {
-//   if (!userStore.userData.setup) {
-//     requestPersonalData()
-//   }
-// })
-//
-// loadUsername(userStore.userData.nickname || userStore.user.username, userStore.user.role)
-//
+onMounted(() => {
+  if (!userStore.userData.setup) {
+    // requestPersonalData()
+  }
+})
+
+loadUsername(userStore.userData.nickname || userStore.user.username, userStore.user.role)
+
 const userOptions = [
   {
     label: `${userStore.user.username}`,
@@ -230,18 +212,18 @@ const handleLogoClick = () => {
 };
 
 const handleLoginClick = () => {
-  // router.push({
-  //   name: login
-  // });
+  router.push({
+    name: login
+  });
 };
 
 const handleSelect = (key) => {
   switch (key) {
     case "logout":
       userStore.logout();
-      // router.push({
-      //   name: index
-      // })
+      router.push({
+        name: index
+      })
       break;
   }
 }

@@ -3,13 +3,10 @@
       :native-scrollbar="false" has-sider
       position="absolute"
       style="top: var(--header-height);">
-    <!--sidebar-->
-    <SideNavBar/>
     <n-layout
         :native-scrollbar="false"
         content-style="min-height: calc(100vh - var(--header-height)); display: flex; flex-direction: column;"
-        position="absolute"
-        style="left: var(--sidebar-width);">
+        position="absolute">
       <router-view v-slot="{ Component }" v-model:name="name">
         <transition mode="out-in" name="fade">
           <component :is="Component" :key="$route.fullPath"/>
@@ -22,7 +19,6 @@
 </template>
 
 <script setup>
-import SideNavBar from "@/components/SideNavBar.vue";
 import Footer from "@/components/Footer.vue";
 import {ref, watch} from "vue";
 
