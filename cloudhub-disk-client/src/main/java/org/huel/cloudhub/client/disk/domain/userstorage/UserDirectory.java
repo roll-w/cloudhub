@@ -2,7 +2,6 @@ package org.huel.cloudhub.client.disk.domain.userstorage;
 
 import space.lingu.light.DataColumn;
 import space.lingu.light.DataTable;
-import space.lingu.light.Index;
 import space.lingu.light.PrimaryKey;
 import space.lingu.light.SQLDataType;
 
@@ -11,11 +10,18 @@ import space.lingu.light.SQLDataType;
  *
  * @author RollW
  */
-@DataTable(name = "user_directory", indices = {
-        @Index(value = {"name", "parent_id"}, unique = true)
-})
-public class UserDirectory {
+@DataTable(name = "user_directory")
+public class UserDirectory implements Storage {
     public static final long ROOT = 0;
+
+    public static final UserDirectory ROOT_DIRECTORY = new UserDirectory(
+            ROOT,
+            ROOT,
+            ROOT, OwnerType.USER,
+            "root",
+            0, 0, false
+    );
+
     @DataColumn(name = "id")
     @PrimaryKey(autoGenerate = true)
     private final Long id;
@@ -38,11 +44,14 @@ public class UserDirectory {
     @DataColumn(name = "update_time", dataType = SQLDataType.TIMESTAMP)
     private final long updateTime;
 
+    @DataColumn(name = "deleted")
+    private final boolean deleted;
+
     public UserDirectory(Long id, Long parentId,
                          long owner, OwnerType ownerType,
                          String name,
                          long createTime,
-                         long updateTime) {
+                         long updateTime, boolean deleted) {
         this.id = id;
         this.parentId = parentId;
         this.owner = owner;
@@ -50,14 +59,30 @@ public class UserDirectory {
         this.name = name;
         this.createTime = createTime;
         this.updateTime = updateTime;
+        this.deleted = deleted;
     }
 
     public Long getId() {
         return id;
     }
 
+    @Override
+    public long getStorageId() {
+        return id;
+    }
+
+    @Override
+    public StorageType getStorageType() {
+        return StorageType.FOLDER;
+    }
+
     public Long getParentId() {
         return parentId;
+    }
+
+    @Override
+    public long getOwnerId() {
+        return 0;
     }
 
     public long getOwner() {
@@ -80,6 +105,18 @@ public class UserDirectory {
         return updateTime;
     }
 
+    public boolean isDeleted() {
+        return deleted;
+    }
+
+    public Builder toBuilder() {
+        return new Builder(this);
+    }
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
     public static final class Builder {
         private Long id;
         private Long parentId;
@@ -88,6 +125,7 @@ public class UserDirectory {
         private String name;
         private long createTime;
         private long updateTime;
+        private boolean deleted;
 
         public Builder() {
         }
@@ -100,6 +138,7 @@ public class UserDirectory {
             this.name = userDirectory.name;
             this.createTime = userDirectory.createTime;
             this.updateTime = userDirectory.updateTime;
+            this.deleted = userDirectory.deleted;
         }
 
         public Builder setId(Long id) {
@@ -137,9 +176,14 @@ public class UserDirectory {
             return this;
         }
 
+        public Builder setDeleted(boolean deleted) {
+            this.deleted = deleted;
+            return this;
+        }
+
         public UserDirectory build() {
             return new UserDirectory(id, parentId, owner, ownerType,
-                    name, createTime, updateTime);
+                    name, createTime, updateTime, deleted);
         }
     }
 

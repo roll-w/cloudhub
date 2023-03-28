@@ -3,6 +3,7 @@ package org.huel.cloudhub.client.disk.domain.userstorage;
 import space.lingu.light.DataColumn;
 import space.lingu.light.DataTable;
 import space.lingu.light.Index;
+import space.lingu.light.LightConfiguration;
 import space.lingu.light.PrimaryKey;
 
 /**
@@ -13,12 +14,13 @@ import space.lingu.light.PrimaryKey;
 @DataTable(name = "user_file_storage", indices = {
         @Index(value = {"name", "directory_id"}, unique = true)
 })
-public class UserFileStorage {
+public class UserFileStorage implements Storage {
     @DataColumn(name = "id")
     @PrimaryKey(autoGenerate = true)
     private final Long id;
 
     @DataColumn(name = "name")
+    @LightConfiguration(key = LightConfiguration.KEY_VARCHAR_LENGTH, value = "255")
     private final String name;
 
     @DataColumn(name = "owner")
@@ -45,13 +47,16 @@ public class UserFileStorage {
     @DataColumn(name = "update_time")
     private final long updateTime;
 
+    @DataColumn(name = "deleted")
+    private final boolean deleted;
+
     public UserFileStorage(Long id, String name,
                            long owner, OwnerType ownerType,
                            String fileId,
                            long directoryId,
                            String mimeType, FileType fileCategory,
                            long createTime,
-                           long updateTime) {
+                           long updateTime, boolean deleted) {
         this.id = id;
         this.name = name;
         this.owner = owner;
@@ -62,6 +67,7 @@ public class UserFileStorage {
         this.fileCategory = fileCategory;
         this.createTime = createTime;
         this.updateTime = updateTime;
+        this.deleted = deleted;
     }
 
     public Long getId() {
@@ -76,6 +82,27 @@ public class UserFileStorage {
         return owner;
     }
 
+    @Override
+    public long getStorageId() {
+        return id;
+    }
+
+    @Override
+    public StorageType getStorageType() {
+        return StorageType.FILE;
+    }
+
+    @Override
+    public Long getParentId() {
+        return directoryId;
+    }
+
+    @Override
+    public long getOwnerId() {
+        return owner;
+    }
+
+    @Override
     public OwnerType getOwnerType() {
         return ownerType;
     }
@@ -104,6 +131,18 @@ public class UserFileStorage {
         return updateTime;
     }
 
+    public boolean isDeleted() {
+        return deleted;
+    }
+
+    public Builder toBuilder() {
+        return new Builder(this);
+    }
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
     public static final class Builder {
         private Long id;
         private String name;
@@ -115,6 +154,7 @@ public class UserFileStorage {
         private FileType fileCategory;
         private long createTime;
         private long updateTime;
+        private boolean deleted;
 
         public Builder() {
         }
@@ -130,6 +170,7 @@ public class UserFileStorage {
             this.fileCategory = userFileStorage.fileCategory;
             this.createTime = userFileStorage.createTime;
             this.updateTime = userFileStorage.updateTime;
+            this.deleted = userFileStorage.deleted;
         }
 
         public Builder setId(Long id) {
@@ -182,9 +223,14 @@ public class UserFileStorage {
             return this;
         }
 
+        public Builder setDeleted(boolean deleted) {
+            this.deleted = deleted;
+            return this;
+        }
+
         public UserFileStorage build() {
             return new UserFileStorage(id, name, owner, ownerType, fileId,
-                    directoryId, mimeType, fileCategory, createTime, updateTime);
+                    directoryId, mimeType, fileCategory, createTime, updateTime, deleted);
         }
     }
 }
