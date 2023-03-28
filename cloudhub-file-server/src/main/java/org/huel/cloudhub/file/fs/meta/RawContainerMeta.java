@@ -1,5 +1,6 @@
 package org.huel.cloudhub.file.fs.meta;
 
+import org.huel.cloudhub.file.fs.container.ContainerFinder;
 import org.huel.cloudhub.file.fs.container.ContainerType;
 
 import java.io.IOException;
@@ -9,10 +10,9 @@ import java.util.List;
 /**
  * @author RollW
  */
-public class ReplicaContainerMeta implements ContainerMeta {
+public class RawContainerMeta implements ContainerMeta {
     private final String locator;
     private final long version;
-    private final String source;
     private final int blockSize;
     private final int usedBlock;
     private final int blockCapacity;
@@ -21,14 +21,25 @@ public class ReplicaContainerMeta implements ContainerMeta {
 
     private final SerializedContainerBlockMeta serializedContainerMeta;
 
-    public ReplicaContainerMeta(String locator, long version,
-                                String source, int blockSize,
-                                int usedBlock, int blockCapacity,
-                                String checksum,
-                                List<? extends BlockFileMeta> blockFileMetas) {
-        this(locator, version, source, blockSize, usedBlock,
-                blockCapacity, checksum,
-                blockFileMetas,
+    public RawContainerMeta(String locator, long version,
+                            List<? extends BlockFileMeta> blockFileMetas,
+                            SerializedContainerBlockMeta serializedContainerMeta) {
+        this.locator = locator;
+        this.version = version;
+        this.blockSize = serializedContainerMeta.getBlockSize();
+        this.usedBlock = serializedContainerMeta.getUsedBlock();
+        this.blockCapacity = serializedContainerMeta.getBlockCap();
+        this.checksum = serializedContainerMeta.getCrc();
+        this.blockFileMetas = blockFileMetas;
+        this.serializedContainerMeta = serializedContainerMeta;
+    }
+
+    public RawContainerMeta(String locator, long version,
+                            int blockSize,
+                            int usedBlock, int blockCapacity,
+                            String checksum,
+                            List<? extends BlockFileMeta> blockFileMetas) {
+        this(locator, version, blockFileMetas,
                 Helper.buildSerializedContainerMeta(
                         blockSize, usedBlock,
                         blockCapacity, checksum,
@@ -36,48 +47,9 @@ public class ReplicaContainerMeta implements ContainerMeta {
         );
     }
 
-    public ReplicaContainerMeta(String locator,
-                                long version, String source,
-                                List<? extends BlockFileMeta> blockFileMetas,
-                                SerializedContainerBlockMeta serializedContainerMeta) {
-        this(locator, version, source,
-                serializedContainerMeta.getBlockSize(),
-                serializedContainerMeta.getUsedBlock(),
-                serializedContainerMeta.getBlockCap(),
-                serializedContainerMeta.getCrc(),
-                blockFileMetas);
-    }
-
-    protected ReplicaContainerMeta(String locator, long version,
-                                   String source, int blockSize,
-                                   int usedBlock, int blockCapacity,
-                                   String checksum,
-                                   List<? extends BlockFileMeta> blockFileMetas,
-                                   SerializedContainerBlockMeta serializedContainerMeta) {
-        this.locator = locator;
-        this.version = version;
-        this.source = source;
-        this.blockSize = blockSize;
-        this.usedBlock = usedBlock;
-        this.blockCapacity = blockCapacity;
-        this.checksum = checksum;
-        this.blockFileMetas = blockFileMetas;
-        this.serializedContainerMeta = serializedContainerMeta;
-    }
-
     @Override
     public String getLocator() {
         return locator;
-    }
-
-    @Override
-    public long getVersion() {
-        return version;
-    }
-
-    @Override
-    public String getSource() {
-        return source;
     }
 
     @Override
@@ -101,8 +73,18 @@ public class ReplicaContainerMeta implements ContainerMeta {
     }
 
     @Override
+    public long getVersion() {
+        return version;
+    }
+
+    @Override
+    public String getSource() {
+        return ContainerFinder.LOCAL;
+    }
+
+    @Override
     public ContainerType getContainerType() {
-        return ContainerType.REPLICA;
+        return ContainerType.ORIGINAL;
     }
 
     @Override
@@ -118,15 +100,11 @@ public class ReplicaContainerMeta implements ContainerMeta {
     public static final class Builder implements ContainerMetaBuilder {
         private String locator;
         private long version;
-        private String source;
         private int blockSize;
         private int usedBlock;
         private int blockCapacity;
         private String checksum;
         private List<? extends BlockFileMeta> blockFileMetas;
-
-        public Builder() {
-        }
 
         @Override
         public Builder setLocator(String locator) {
@@ -142,7 +120,6 @@ public class ReplicaContainerMeta implements ContainerMeta {
 
         @Override
         public Builder setSource(String source) {
-            this.source = source;
             return this;
         }
 
@@ -177,12 +154,11 @@ public class ReplicaContainerMeta implements ContainerMeta {
         }
 
         @Override
-        public ReplicaContainerMeta build() {
-            return new ReplicaContainerMeta(
-                    locator, version, source,
-                    blockSize, usedBlock,
-                    blockCapacity, checksum,
-                    blockFileMetas);
+        public RawContainerMeta build() {
+            return new RawContainerMeta(locator, version,
+                    blockSize, usedBlock, blockCapacity,
+                    checksum, blockFileMetas
+            );
         }
     }
 }
