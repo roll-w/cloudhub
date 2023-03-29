@@ -5,21 +5,25 @@
         文件
       </n-h2>
       <div>
-        Selected file: {{ getCheckedList()  }}
+        Selected file: {{ getCheckedList() }}
       </div>
-      <div class="flex">
+      <div class="flex flex-fill flex-wrap transition-all duration-300">
         <div v-for="i in [0, 1, 2, 3, 4]"
              class="flex flex-col items-center p-6 cursor-pointer
              rounded-2xl transition-all duration-300
+             ease-in-out
              hover:bg-gray-100 hover:bg-opacity-50 m-2"
+             @contextmenu="handleContextmenu2($event, i)"
+             @dblclick="handleDblClick($event, i)"
              @mouseenter="fileMenuShowState[i] = true"
              @mouseleave="fileMenuShowState[i] = false"
         >
-          <div :class="['w-100 flex justify-start items-start align-baseline ',
-          fileMenuShowState[i] || checkedState[i] ? '' : 'invisible']">
-            <n-checkbox v-model:checked="checkedState[i]" />
+          <div :class="['w-100 block flex justify-start transition-all duration-300 items-start align-baseline ',
+          fileMenuShowState[i] || checkedState[i] ? 'opacity-100' : 'opacity-0']">
+            <n-checkbox v-model:checked="checkedState[i]"/>
             <div class="pl-3 flex flex-fill justify-end">
-              <n-button circle>
+              <n-button circle
+                        @click="handleClickMoreOptions($event, i)">
                 <template #icon>
                   <n-icon size="20">
                     <RefreshRound/>
@@ -47,6 +51,16 @@
         :on-clickoutside="onClickOutside"
         :options="options"
         :show="showDropdown"
+        :x="xRef"
+        :y="yRef"
+        placement="bottom-start"
+        trigger="manual"
+        @select="handleSelect"/>
+
+    <n-dropdown
+        :on-clickoutside="onClickOutside"
+        :options="fileOptions"
+        :show="showFileDropdown"
         :x="xRef"
         :y="yRef"
         placement="bottom-start"
@@ -83,6 +97,29 @@ const getCheckedList = () => {
 const xRef = ref(0)
 const yRef = ref(0)
 const showDropdown = ref(false)
+const showFileDropdown = ref(false)
+
+const handleClickMoreOptions = (e, target) => {
+  const before = showFileDropdown.value
+
+  console.log('before', before)
+  showDropdown.value = false
+  e.preventDefault();
+
+  console.log('click',target)
+
+  xRef.value = e.clientX
+  yRef.value = e.clientY
+
+  showFileDropdown.value = !before
+
+  console.log('after', showFileDropdown.value)
+}
+
+const handleDblClick = (e, target) => {
+  console.log('double', target)
+}
+
 const options = [
   {
     label: "新建文件夹",
@@ -142,19 +179,70 @@ const options = [
   },
 ];
 
+const fileOptions = [
+  {
+    label: "下载",
+    key: "download",
+  }, {
+    label: "分享",
+    key: "share",
+  },
+  {
+    label: "收藏",
+    key: "collect",
+  },
+  {
+    key: 'header-divider',
+    type: 'divider'
+  },
+  {
+    label: "重命名",
+    key: "rename",
+  },
+  {
+    label: "移动",
+    key: "move",
+  },
+  {
+    label: () => h(
+        'div',
+        {
+          class: "text-red-500 mr-10"
+        },
+        {default: () => "删除"}
+    ),
+    key: "delete",
+  },
+]
+
 const handleContextmenu = (e) => {
   e.preventDefault();
   xRef.value = e.clientX;
   yRef.value = e.clientY;
+  if (showFileDropdown.value) {
+    return
+  }
   showDropdown.value = true;
+}
+
+const handleContextmenu2 = (e, target) => {
+  e.preventDefault();
+  console.log('context', target)
+
+  xRef.value = e.clientX;
+  yRef.value = e.clientY;
+  showDropdown.value = false;
+  showFileDropdown.value = true;
 }
 
 const handleSelect = () => {
   showDropdown.value = false;
+  showFileDropdown.value = false;
 }
 
 const onClickOutside = () => {
   showDropdown.value = false;
+  showFileDropdown.value = false;
 }
 
 </script>
