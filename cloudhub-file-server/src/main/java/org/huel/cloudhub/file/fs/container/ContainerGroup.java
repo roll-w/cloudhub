@@ -42,7 +42,7 @@ public class ContainerGroup {
     public void put(Container container) {
         final long latestSerial = Math.max(container.getIdentity().serial(), this.latestSerial);
         this.latestSerial = latestSerial;
-        containers.put(container.getResourceLocator(), container);
+        containers.put(container.getLocator(), container);
         container.getBlockMetaInfos().forEach(blockMetaInfo ->
                 fileIds.add(blockMetaInfo.getFileId()));
         List<FreeBlockInfo> containerFreeBlocks = serialFreeBlockInfos
@@ -57,7 +57,7 @@ public class ContainerGroup {
     }
 
     public void remove(Container container) {
-        containers.remove(container.getResourceLocator());
+        containers.remove(container.getLocator());
         container.getBlockMetaInfos().forEach(blockMetaInfo ->
                 fileIds.remove(blockMetaInfo.getFileId()));
         // Delete the file id directly.

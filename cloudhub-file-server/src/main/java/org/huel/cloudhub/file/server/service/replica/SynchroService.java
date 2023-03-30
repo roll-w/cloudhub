@@ -13,6 +13,8 @@ import org.huel.cloudhub.file.rpc.synchro.SynchroRequest;
 import org.huel.cloudhub.file.rpc.synchro.SynchroResponse;
 import org.huel.cloudhub.file.rpc.synchro.SynchroServiceGrpc;
 import org.huel.cloudhub.server.rpc.server.SerializedFileServer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
@@ -25,6 +27,8 @@ import java.util.Set;
  */
 @Service
 public class SynchroService extends SynchroServiceGrpc.SynchroServiceImplBase {
+    private static final Logger logger = LoggerFactory.getLogger(SynchroService.class);
+
     private final ContainerFinder containerFinder;
     private final CheckService checkService;
     private final ReplicaService replicaService;
@@ -41,23 +45,34 @@ public class SynchroService extends SynchroServiceGrpc.SynchroServiceImplBase {
     public void sendSynchro(SynchroRequest request, StreamObserver<SynchroResponse> responseObserver) {
         List<SerializedFileServer> servers = request.getServersList();
         String source = getSource(request);
-        for (String fileId : request.getFileIdsList()) {
-            ContainerGroup group = containerFinder.findContainerGroupByFile(fileId, source);
-            if (group == null) {
+        // pre-check all file exists
+        for (String id : request.getFileIdsList()) {
+            ContainerGroup containerGroup =
+                    containerFinder.findContainerGroupByFile(id, source);
+            if (containerGroup == null) {
+                logger.error("File not found: {}", id);
                 responseObserver.onError(Status.NOT_FOUND.asRuntimeException());
                 return;
             }
-            servers.parallelStream().forEach(server ->
-                    checkServerAndBuildReplica(group, fileId, server));
         }
+
+        for (String fileId : request.getFileIdsList()) {
+            ContainerGroup group = containerFinder.findContainerGroupByFile(fileId, source);
+            servers.forEach(server ->
+                    checkServerAndBuildReplica(group, fileId, server));
+
+        }
+
     }
 
     @Override
-    public void deleteContainers(DeleteContainerRequest request, StreamObserver<DeleteContainerResponse> responseObserver) {
+    public void deleteContainers(DeleteContainerRequest request,
+                                 StreamObserver<DeleteContainerResponse> responseObserver) {
         super.deleteContainers(request, responseObserver);
     }
 
-    private void checkServerAndBuildReplica(ContainerGroup group, String fileId, SerializedFileServer dest) {
+    private void checkServerAndBuildReplica(ContainerGroup group, String fileId,
+                                            SerializedFileServer dest) {
         List<Container> containers = group.containersWithFile(fileId);
         List<Long> serials = containers
                 .stream().map(Container::getSerial)
@@ -67,7 +82,9 @@ public class SynchroService extends SynchroServiceGrpc.SynchroServiceImplBase {
                 group.getContainerId(),
                 group.getSourceId(),
                 serials,
-                dest);
+                dest
+        );
+
         Set<Long> needSync = new HashSet<>();
         List<Long> recvSerials = statuses.stream()
                 .map(SerializedContainerStatus::getSerial)
@@ -85,14 +102,17 @@ public class SynchroService extends SynchroServiceGrpc.SynchroServiceImplBase {
         List<ReplicaSynchroPart> parts = needSync.stream()
                 .map(group::getContainer)
                 .filter(Objects::nonNull)
-                .map(container -> new ReplicaSynchroPart(container,
+                .map(container -> new ReplicaSynchroPart(
+                        container,
                         BlockGroupsInfo.build(0, container.getIdentity().blockLimit() - 1),
-                        -1))
+                        -1)
+                )
                 .toList();
         sendFullSyncRequest(parts, dest);
     }
 
-    private void sendFullSyncRequest(List<ReplicaSynchroPart> parts, SerializedFileServer server) {
+    private void sendFullSyncRequest(List<ReplicaSynchroPart> parts,
+                                     SerializedFileServer server) {
         replicaService.requestReplicasSynchro(parts, server);
     }
 

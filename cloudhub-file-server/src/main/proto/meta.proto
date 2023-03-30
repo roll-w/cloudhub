@@ -9,18 +9,20 @@ message SerializedBlockGroup {
   int32 end = 2;
 }
 
+// BlockFileMeta/
 // part of .meta
 message SerializedBlockFileMeta {
   string file_id = 1;
   // if the file is scattered in different, non-adjacent blocks.
   repeated SerializedBlockGroup block_groups = 2;
-  // Marks the last block valid bytes count.
+  // Marks the last block valid bytes count/offset.
   // If cross containers, this value has no effect in this case.
   int64 end_block_bytes = 4;
   // If not cross container, set this value = -1.
   int64 cross_serial = 5;
 }
 
+// ContainerMeta
 // .meta file
 message SerializedContainerBlockMeta {
   // in kb, block size.
@@ -32,12 +34,14 @@ message SerializedContainerBlockMeta {
   repeated SerializedBlockFileMeta block_metas = 5;
 }
 
+// ContainerLocator
 // part of .cmeta
 message SerializedContainerMeta {
   string locator = 1;
   int64 version = 2;
 }
 
+// ContainerGroupMeta
 // .cmeta file
 message SerializedContainerGroupMeta {
   repeated SerializedContainerMeta meta = 1;

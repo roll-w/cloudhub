@@ -35,7 +35,7 @@ public class ContainerOpenService implements ContainerReadOpener, ContainerWrite
             return new SeekableFileInputStream(container.getLocation());
         }
         throw new LockException("Unable to acquire read lock on container %s."
-                .formatted(container.getResourceLocator()));
+                .formatted(container.getLocator()));
     }
 
     @Override
@@ -63,7 +63,7 @@ public class ContainerOpenService implements ContainerReadOpener, ContainerWrite
             return new SeekableFileOutputStream(container.getLocation());
         }
         throw new LockException("Unable to acquire write lock on container %s."
-                .formatted(container.getResourceLocator()));
+                .formatted(container.getLocator()));
 
     }
 

@@ -1,6 +1,7 @@
 package org.huel.cloudhub.file.fs.meta;
 
 import org.huel.cloudhub.file.fs.container.ContainerFinder;
+import org.huel.cloudhub.file.fs.container.replica.ReplicaContainerNameMeta;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -11,48 +12,51 @@ import java.util.List;
 /**
  * @author RollW
  */
-public class RawContainerGroupMeta implements ContainerGroupMeta {
-    private final SerializedContainerGroupMeta serializedContainerGroupMeta;
+public class ReplicaContainerGroupMeta implements ContainerGroupMeta {
+    private final SerializedReplicaContainerGroupMeta serializedContainerGroupMeta;
     private final List<ContainerLocator> containerLocators;
 
-    protected RawContainerGroupMeta(
+    protected ReplicaContainerGroupMeta(
             List<ContainerLocator> containerLocators,
-            SerializedContainerGroupMeta serializedContainerGroupMeta) {
+            SerializedReplicaContainerGroupMeta serializedContainerGroupMeta) {
         this.serializedContainerGroupMeta = serializedContainerGroupMeta;
         this.containerLocators = containerLocators;
     }
 
-    public RawContainerGroupMeta(
-            SerializedContainerGroupMeta serializedContainerGroupMeta) {
+    public ReplicaContainerGroupMeta(
+            SerializedReplicaContainerGroupMeta serializedContainerGroupMeta) {
         this(converts(serializedContainerGroupMeta), serializedContainerGroupMeta);
     }
 
-    public RawContainerGroupMeta(List<ContainerLocator> containerLocators) {
+    public ReplicaContainerGroupMeta(List<ContainerLocator> containerLocators) {
         this(containerLocators, converts(containerLocators));
     }
 
-    private static SerializedContainerGroupMeta converts(
+    private static SerializedReplicaContainerGroupMeta converts(
             List<ContainerLocator> containerLocators) {
-        List<SerializedContainerMeta> serializedContainerMetas = new ArrayList<>();
+        List<SerializedReplicaContainerMeta> serializedContainerMetas = new ArrayList<>();
         for (ContainerLocator containerLocator : containerLocators) {
-            SerializedContainerMeta serializedContainerMeta = SerializedContainerMeta.newBuilder()
+            SerializedReplicaContainerMeta serializedContainerMeta = SerializedReplicaContainerMeta.newBuilder()
                     .setVersion(containerLocator.getVersion())
                     .setLocator(containerLocator.getLocator())
                     .build();
             serializedContainerMetas.add(serializedContainerMeta);
         }
-        return SerializedContainerGroupMeta.newBuilder()
+        return SerializedReplicaContainerGroupMeta.newBuilder()
                 .addAllMeta(serializedContainerMetas)
                 .build();
     }
 
     private static List<ContainerLocator> converts(
-            SerializedContainerGroupMeta serializedContainerGroupMeta) {
+            SerializedReplicaContainerGroupMeta serializedReplicaContainerGroupMeta) {
         List<ContainerLocator> containerLocators = new ArrayList<>();
-        for (SerializedContainerMeta serializedContainerMeta :
-                serializedContainerGroupMeta.getMetaList()) {
+        for (SerializedReplicaContainerMeta serializedContainerMeta :
+                serializedReplicaContainerGroupMeta.getMetaList()) {
+            ReplicaContainerNameMeta containerNameMeta =
+                    ReplicaContainerNameMeta.parse(serializedContainerMeta.getLocator());
             ContainerLocatorInfo containerLocatorInfo = new ContainerLocatorInfo(
                     ContainerFinder.LOCAL,
+                    containerNameMeta.getSerial(),
                     serializedContainerMeta.getVersion(),
                     serializedContainerMeta.getLocator()
             );
@@ -64,6 +68,11 @@ public class RawContainerGroupMeta implements ContainerGroupMeta {
     @Override
     public List<? extends ContainerLocator> getChildLocators() {
         return Collections.unmodifiableList(containerLocators);
+    }
+
+    @Override
+    public ContainerLocator getChildLocator(String locator) {
+        return null;
     }
 
     @Override

@@ -3,6 +3,7 @@ package org.huel.cloudhub.file.fs.container;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.huel.cloudhub.file.fs.block.BlockGroup;
 import org.huel.cloudhub.file.fs.block.BlockMetaInfo;
+import org.huel.cloudhub.file.fs.meta.ContainerLocator;
 import org.huel.cloudhub.file.fs.meta.SerializedBlockFileMeta;
 
 import java.util.*;
@@ -15,7 +16,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  *
  * @author RollW
  */
-public class Container {
+public class Container implements ContainerLocator {
     /**
      * Pass this flag in constructor {@code usedBlock} param.
      * <p>
@@ -135,13 +136,15 @@ public class Container {
         return location;
     }
 
-    public String getResourceLocator() {
+    @Override
+    public String getLocator() {
         return location.getResourceLocator();
     }
 
     public ContainerIdentity getIdentity() {
         return identity;
     }
+
 
     public long getSerial() {
         return identity.serial();

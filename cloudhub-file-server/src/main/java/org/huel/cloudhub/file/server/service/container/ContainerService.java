@@ -38,6 +38,7 @@ public class ContainerService implements ContainerAllocator,
             Caffeine.newBuilder()
                     .build();
     private final ContainerProperties containerProperties;
+    private final ContainerChecker containerChecker;
     private final ReplicaContainerLoader replicaContainerLoader;
     private final ReplicaContainerFinder replicaContainerFinder;
     private final ReplicaContainerDeleter replicaContainerDeleter;
@@ -47,12 +48,14 @@ public class ContainerService implements ContainerAllocator,
     private final ServerFile containerDir;
 
     public ContainerService(ContainerProperties containerProperties,
+                            ContainerChecker containerChecker,
                             ReplicaContainerLoader replicaContainerLoader,
                             ReplicaContainerFinder replicaContainerFinder,
                             ReplicaContainerDeleter replicaContainerDeleter,
                             LocalFileServer localFileServer,
                             ApplicationEventPublisher eventPublisher) throws IOException {
         this.containerProperties = containerProperties;
+        this.containerChecker = containerChecker;
         this.replicaContainerLoader = replicaContainerLoader;
         this.replicaContainerFinder = replicaContainerFinder;
         this.replicaContainerDeleter = replicaContainerDeleter;
@@ -172,7 +175,7 @@ public class ContainerService implements ContainerAllocator,
             SerializedContainerBlockMeta containerBlockMeta =
                     MetaReadWriteHelper.readContainerBlockMeta(metaFile);
 
-            String crc = ContainerCheckService.calculateChecksum(containerFile);
+            String crc = containerChecker.calculateChecksum(containerFile);
             String savedCrc = containerBlockMeta.getCrc();
             if (!Objects.equals(crc, savedCrc)) {
                 // we don't know which one is damaged, so it's unreliable
@@ -294,7 +297,7 @@ public class ContainerService implements ContainerAllocator,
 
         Container container = createsNewContainer(containerId,
                 containerGroup.lastSerial() + 1);
-        logger.info("Allocate new container, locator={}", container.getResourceLocator());
+        logger.info("Allocate new container, locator={}", container.getLocator());
         containerGroup.put(container);
         // although a new container has been allocated, but it actually not usable.
         return container;
@@ -365,14 +368,14 @@ public class ContainerService implements ContainerAllocator,
         if (container.isUsable()) {
             return;
         }
-        logger.info("Creates container, locator: {}, ", container.getResourceLocator());
+        logger.info("Creates container, locator: {}, ", container.getLocator());
         ServerFile containerFile = localFileServer.getServerFileProvider().openFile(containerProperties.getContainerPath(),
-                container.getResourceLocator());
+                container.getLocator());
         ServerFile containerMetaFile = localFileServer.getServerFileProvider().openFile(containerProperties.getContainerPath(),
-                container.getResourceLocator() + ContainerLocation.META_SUFFIX);
+                container.getLocator() + ContainerLocation.META_SUFFIX);
         ServerFile metaFile = localFileServer.getServerFileProvider().openFile(
                 containerProperties.getMetaPath(),
-                ContainerIdentity.toCmetaId(container.getResourceLocator()) + ContainerMetaKeys.CONTAINER_META_SUFFIX);
+                ContainerIdentity.toCmetaId(container.getLocator()) + ContainerMetaKeys.CONTAINER_META_SUFFIX);
         containerFile.createFile();
         containerMetaFile.createFile();
         metaFile.createFile();
@@ -380,7 +383,7 @@ public class ContainerService implements ContainerAllocator,
         allocateContainerSize(container);
 
         SerializedContainerMeta meta = SerializedContainerMeta.newBuilder()
-                .setLocator(container.getResourceLocator())
+                .setLocator(container.getLocator())
                 .setVersion(0)
                 .build();
         writeContainerMeta(meta);
@@ -399,7 +402,7 @@ public class ContainerService implements ContainerAllocator,
             throw new MetadataException("Not valid container.");
         }
         ServerFile containerMetaFile = localFileServer.getServerFileProvider().openFile(containerProperties.getContainerPath(),
-                container.getResourceLocator() + ContainerLocation.META_SUFFIX);
+                container.getLocator() + ContainerLocation.META_SUFFIX);
         SerializedContainerBlockMeta containerBlockMeta = SerializedContainerBlockMeta.newBuilder()
                 .setBlockSize(container.getIdentity().blockSize())
                 .setBlockCap(container.getIdentity().blockLimit())
@@ -470,7 +473,7 @@ public class ContainerService implements ContainerAllocator,
         }
 
         SerializedContainerMeta meta = SerializedContainerMeta.newBuilder()
-                .setLocator(container.getResourceLocator())
+                .setLocator(container.getLocator())
                 .setVersion(container.getVersion())
                 .build();
         writeContainerMeta(meta);
@@ -606,9 +609,9 @@ public class ContainerService implements ContainerAllocator,
 
     private void removeContainer(Container container) throws IOException {
         ServerFile file = localFileServer.getServerFileProvider().openFile(containerDir,
-                container.getResourceLocator());
+                container.getLocator());
         ServerFile metaFile = localFileServer.getServerFileProvider().openFile(containerDir,
-                container.getResourceLocator() + ContainerLocation.META_SUFFIX);
+                container.getLocator() + ContainerLocation.META_SUFFIX);
         removeContainerGroupMeta(container);
         file.delete();
         metaFile.delete();

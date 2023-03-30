@@ -21,6 +21,11 @@ public class ReplicaContainerNameMeta {
         this.name = toName();
     }
 
+    public static boolean check(String containerLocator) {
+        String[] metas = containerLocator.split(Pattern.quote("_"));
+        return metas.length == 3;
+    }
+
     private String toName() {
         return "%s_%s_%010d".formatted(sourceId, id, serial);
     }

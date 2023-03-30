@@ -11,12 +11,12 @@ import java.util.Map;
 /**
  * @author RollW
  */
-public class ReplicaGroup {
+public class SourcedContainerGroup {
     private final String sourceId;
     private final Map<String, ContainerGroup> containerGroupMap =
             new HashMap<>();
 
-    public ReplicaGroup(String sourceId) {
+    public SourcedContainerGroup(String sourceId) {
         this.sourceId = sourceId;
     }
 

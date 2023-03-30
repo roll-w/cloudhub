@@ -46,7 +46,7 @@ public class ContainerStatusService extends ContainerStatusServiceGrpc.Container
                         SerializedContainerInfo.newBuilder()
                                 .setContainerId(container.getIdentity().id())
                                 .setSerial(container.getSerial())
-                                .setLocator(container.getResourceLocator())
+                                .setLocator(container.getLocator())
                                 .setSource(container.getSource())
                                 .setLimitBlocks(container.getIdentity().blockLimit())
                                 .setLimitMbs((container.getIdentity().blockLimit() *

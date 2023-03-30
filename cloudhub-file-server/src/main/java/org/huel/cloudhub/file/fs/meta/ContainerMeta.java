@@ -9,7 +9,7 @@ import java.util.List;
 /**
  * @author RollW
  */
-public interface ContainerMeta extends ContainerLocator {
+public interface ContainerMeta extends ContainerLocator, MetadataCacheable<ContainerMeta> {
     @Override
     String getLocator();
 
@@ -22,6 +22,9 @@ public interface ContainerMeta extends ContainerLocator {
     String getChecksum();
 
     @Override
+    long getSerial();
+
+    @Override
     long getVersion();
 
     @Override
@@ -30,6 +33,21 @@ public interface ContainerMeta extends ContainerLocator {
     ContainerType getContainerType();
 
     List<? extends BlockFileMeta> getBlockFileMetas();
+
+    @Override
+    default String getKey() {
+        return getLocator();
+    }
+
+    @Override
+    default ContainerMeta getMeta() {
+        return this;
+    }
+
+    @Override
+    default Class<ContainerMeta> getCacheableClass() {
+        return ContainerMeta.class;
+    }
 
     void writeTo(OutputStream outputStream) throws IOException;
 }

@@ -10,6 +10,8 @@ import java.util.List;
 public interface ContainerGroupMeta {
     List<? extends ContainerLocator> getChildLocators();
 
+    ContainerLocator getChildLocator(String locator);
+
     List<? extends ContainerMeta> loadChildContainerMeta(MetadataLoader loader)
             throws IOException, MetadataException;
 

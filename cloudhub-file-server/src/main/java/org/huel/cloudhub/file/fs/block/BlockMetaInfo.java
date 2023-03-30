@@ -143,7 +143,8 @@ public class BlockMetaInfo implements BlockFileMeta {
     }
 
     @Deprecated
-    public static BlockMetaInfo deserialize(SerializedBlockFileMeta blockFileMeta, long containerSerial) {
+    public static BlockMetaInfo deserialize(SerializedBlockFileMeta blockFileMeta,
+                                            long containerSerial) {
         List<BlockGroup> blockGroups = new ArrayList<>();
         blockFileMeta.getBlockGroupsList().forEach(serializedBlockGroup ->
                 blockGroups.add(BlockGroup.deserialize(serializedBlockGroup)));

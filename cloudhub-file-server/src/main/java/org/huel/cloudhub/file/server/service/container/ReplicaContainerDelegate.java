@@ -25,7 +25,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 public class ReplicaContainerDelegate implements ReplicaContainerLoader,
         ReplicaContainerCreator, ReplicaContainerFinder, ReplicaContainerDeleter {
-    private final Map<String, ReplicaGroup> replicaContainerGroups =
+    private final Map<String, SourcedContainerGroup> replicaContainerGroups =
             new ConcurrentHashMap<>();
     private final ContainerProperties containerProperties;
     private final LocalFileServer localFileServer;
@@ -49,12 +49,12 @@ public class ReplicaContainerDelegate implements ReplicaContainerLoader,
     }
 
     private void updatesContainer(Container container) {
-        ReplicaGroup replicaGroup = replicaContainerGroups.get(container.getSource());
-        if (replicaGroup == null) {
-            replicaGroup = new ReplicaGroup(container.getSource());
-            replicaContainerGroups.put(container.getSource(), replicaGroup);
+        SourcedContainerGroup sourcedContainerGroup = replicaContainerGroups.get(container.getSource());
+        if (sourcedContainerGroup == null) {
+            sourcedContainerGroup = new SourcedContainerGroup(container.getSource());
+            replicaContainerGroups.put(container.getSource(), sourcedContainerGroup);
         }
-        replicaGroup.put(container);
+        sourcedContainerGroup.put(container);
     }
 
     private Container loadInContainer(SerializedReplicaContainerMeta serializedContainerMeta) throws IOException {
@@ -87,14 +87,14 @@ public class ReplicaContainerDelegate implements ReplicaContainerLoader,
     public Container findOrCreateContainer(String id, String source,
                                            long serial,
                                            SerializedContainerBlockMeta serializedContainerBlockMeta) {
-        final ReplicaGroup replicaGroup = replicaContainerGroups
-                .computeIfAbsent(source, ReplicaGroup::new);
-        Container container = replicaGroup.getContainer(id, serial);
+        final SourcedContainerGroup sourcedContainerGroup = replicaContainerGroups
+                .computeIfAbsent(source, SourcedContainerGroup::new);
+        Container container = sourcedContainerGroup.getContainer(id, serial);
         if (container != null) {
             return container;
         }
         container = createReplicaContainer(id, source, serial, serializedContainerBlockMeta);
-        replicaGroup.put(container);
+        sourcedContainerGroup.put(container);
         return container;
     }
 
@@ -138,11 +138,11 @@ public class ReplicaContainerDelegate implements ReplicaContainerLoader,
                                         SerializedContainerBlockMeta serializedContainerBlockMeta) throws IOException {
         containerDir.mkdirs();
         ServerFile containerFile = localFileServer.getServerFileProvider()
-                .openFile(containerDir, container.getResourceLocator());
+                .openFile(containerDir, container.getLocator());
         boolean containerExists = container.isUsable();
         containerFile.createFile();
         ServerFile metaFile = localFileServer.getServerFileProvider()
-                .openFile(containerDir, container.getResourceLocator() + ContainerLocation.REPLICA_META_SUFFIX);
+                .openFile(containerDir, container.getLocator() + ContainerLocation.REPLICA_META_SUFFIX);
         metaFile.createFile();
         if (!containerExists) {
             // first time create.
@@ -162,8 +162,8 @@ public class ReplicaContainerDelegate implements ReplicaContainerLoader,
     public List<Container> listContainers() {
         return replicaContainerGroups
                 .values().stream()
-                .flatMap(replicaGroup ->
-                        replicaGroup.listGroups().stream())
+                .flatMap(sourcedContainerGroup ->
+                        sourcedContainerGroup.listGroups().stream())
                 .flatMap(containerGroup ->
                         containerGroup.containers().stream())
                 .toList();
@@ -174,7 +174,7 @@ public class ReplicaContainerDelegate implements ReplicaContainerLoader,
             return;
         }
         SerializedReplicaContainerMeta meta = SerializedReplicaContainerMeta.newBuilder()
-                .setLocator(container.getResourceLocator())
+                .setLocator(container.getLocator())
                 .setVersion(container.getVersion())
                 .build();
         writeContainerMeta(meta);
@@ -207,7 +207,7 @@ public class ReplicaContainerDelegate implements ReplicaContainerLoader,
 
     @Override
     public ContainerGroup findContainerGroup(String containerId, String source) {
-        ReplicaGroup group = replicaContainerGroups.get(source);
+        SourcedContainerGroup group = replicaContainerGroups.get(source);
         if (group == null) {
             return null;
         }
@@ -230,9 +230,9 @@ public class ReplicaContainerDelegate implements ReplicaContainerLoader,
 
     private void removeContainer(Container container) throws IOException {
         ServerFile file = localFileServer.getServerFileProvider().openFile(containerDir,
-                container.getResourceLocator());
+                container.getLocator());
         ServerFile metaFile = localFileServer.getServerFileProvider().openFile(containerDir,
-                container.getResourceLocator() + ContainerLocation.REPLICA_META_SUFFIX);
+                container.getLocator() + ContainerLocation.REPLICA_META_SUFFIX);
         removeContainerGroupMeta(container);
         file.delete();
         metaFile.delete();

@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -30,7 +31,11 @@ public class ContainerFileWriter implements Closeable {
     private final ContainerChecker containerChecker;
     private final FileWriteStrategy fileWriteStrategy;
     private final AtomicInteger writeBlocksSum = new AtomicInteger(0);
-    private int expectBlocks = -1;
+    /**
+     * blocks count of this file.
+     */
+    private int expectBlocks = -1;// -1 means not calculated.
+
 
     private List<Container> allowWriteContainers;
     private Iterator<Container> containerIterator;
@@ -253,7 +258,7 @@ public class ContainerFileWriter implements Closeable {
             //
         }
         if (fileWriteStrategy == FileWriteStrategy.SEARCH_MAX) {
-            // TODO:
+            // TODO: file write strategy
         }
         throw new UnsupportedOperationException("Not supported.");
     }
@@ -273,6 +278,15 @@ public class ContainerFileWriter implements Closeable {
     private boolean allowsWrite(Container container) {
         if (fileWriteStrategy == FileWriteStrategy.SEQUENCE) {
             return true;
+        }
+        if (fileWriteStrategy == FileWriteStrategy.SKIP_SMALL) {
+            Optional<FreeBlockInfo> blockInfo = container.getFreeBlockInfos().stream()
+                    .filter(freeBlockInfo -> freeBlockInfo.getCount() >= expectBlocks)
+                    .findFirst();
+            if (blockInfo.isPresent()) {
+                return true;
+            }
+
         }
         // TODO: file write policy
         return true;

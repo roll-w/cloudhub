@@ -32,7 +32,7 @@ public class ContainerWriter implements Closeable {
         );
         if (stream == null) {
             throw new ContainerException("Container '%s' not exists"
-                    .formatted(container.getResourceLocator()));
+                    .formatted(container.getLocator()));
         }
         this.blockSizeInBytes = container.getIdentity().blockSizeBytes();
     }

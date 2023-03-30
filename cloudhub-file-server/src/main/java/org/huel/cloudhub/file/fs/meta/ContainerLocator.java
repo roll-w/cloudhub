@@ -6,6 +6,8 @@ package org.huel.cloudhub.file.fs.meta;
 public interface ContainerLocator {
     String getLocator();
 
+    long getSerial();
+
     long getVersion();
 
     String getSource();

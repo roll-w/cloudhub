@@ -165,7 +165,7 @@ public class ReplicaReceiveService extends ReplicaServiceGrpc.ReplicaServiceImpl
             if (container == null) {
                 return;
             }
-            logger.debug("Send check value: cont={}.", container.getResourceLocator());
+            logger.debug("Send check value: cont={}.", container.getLocator());
             try {
                 String value = containerChecker.calculateChecksum(container);
                 responseObserver.onNext(ReplicaResponse.newBuilder()

@@ -1,6 +1,7 @@
 package org.huel.cloudhub.file.fs.meta;
 
 import org.huel.cloudhub.file.fs.block.BlockGroupsInfo;
+import org.huel.cloudhub.file.fs.block.BlockMetaInfo;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,6 +25,15 @@ class Helper {
                 .build();
     }
 
+    public static List<? extends BlockFileMeta> extractBlockFileMetas(
+            long serial,
+            SerializedContainerBlockMeta serializedContainerBlockMeta) {
+        return serializedContainerBlockMeta.getBlockMetasList()
+                .stream()
+                .map(meta ->
+                        BlockMetaInfo.deserialize(meta, serial))
+                .toList();
+    }
 
     private static List<SerializedBlockFileMeta> transformBlockFileMetas(
             List<? extends BlockFileMeta> blockFileMetas) {

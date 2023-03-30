@@ -1,8 +1,9 @@
 package org.huel.cloudhub.file.fs.meta;
 
+import org.huel.cloudhub.file.fs.container.ContainerIdentity;
+import org.huel.cloudhub.file.fs.container.ContainerNameMeta;
+import org.huel.cloudhub.file.fs.container.replica.ReplicaContainerNameMeta;
 import org.huel.cloudhub.file.server.service.file.FileUtils;
-
-import java.util.Objects;
 
 /**
  * @author RollW
@@ -17,15 +18,28 @@ public final class ContainerMetaKeys {
 
     private static final String REPLICA_CONTAINER_META_SUFFIX_N = "rcmeta";
 
+    public static String toMetaFileName(String containerLocator) {
+        if (containerLocator == null) {
+            throw new NullPointerException();
+        }
+        if (ReplicaContainerNameMeta.check(containerLocator)) {
+            ReplicaContainerNameMeta containerNameMeta =
+                    ReplicaContainerNameMeta.parse(containerLocator);
+            return ContainerIdentity.toCmetaId(containerNameMeta.getId()) + REPLICA_CONTAINER_META_SUFFIX;
+        }
+        ContainerNameMeta containerNameMeta = ContainerNameMeta.parse(containerLocator);
+        return ContainerIdentity.toCmetaId(containerNameMeta.getId()) + CONTAINER_META_SUFFIX;
+    }
+
     public static boolean isMetaFile(String fileName) {
         if (fileName == null) {
             throw new NullPointerException();
         }
         final String extName = FileUtils.getExtensionName(fileName);
-        if (Objects.equals(extName, CONTAINER_META_SUFFIX_N)) {
+        if (CONTAINER_META_SUFFIX_N.equalsIgnoreCase(extName)) {
             return true;
         }
-        return Objects.equals(extName, REPLICA_CONTAINER_META_SUFFIX_N);
+        return REPLICA_CONTAINER_META_SUFFIX_N.equalsIgnoreCase(extName);
     }
 
     public static boolean isReplicaMetaFile(String metaFileName) {

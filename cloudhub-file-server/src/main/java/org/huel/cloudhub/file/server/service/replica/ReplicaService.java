@@ -211,8 +211,10 @@ public class ReplicaService {
         private void sendFullSync(Container container) {
             ReplicaRequest.CheckMessage checkMessage =
                     buildFullSyncCheckMessage(container);
-
-
+            requestObserver.onNext(ReplicaRequest.newBuilder()
+                    .setCheckMessage(checkMessage)
+                    .build()
+            );
         }
 
 

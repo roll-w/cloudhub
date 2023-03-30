@@ -10,6 +10,8 @@ public interface ContainerMetaBuilder {
 
     ContainerMetaBuilder setVersion(long version);
 
+    ContainerMetaBuilder setSerial(long serial);
+
     ContainerMetaBuilder setSource(String source);
 
     ContainerMetaBuilder setBlockSize(int blockSize);
