@@ -8,14 +8,14 @@ import space.lingu.light.PrimaryKey;
 /**
  * @author RollW
  */
-@DataTable(tableName = "file_object_storage_table", configuration =
-@LightConfiguration(key = LightConfiguration.KEY_VARCHAR_LENGTH, value = "120"))
+@DataTable(name = "file_object_storage_table")
+@LightConfiguration(key = LightConfiguration.KEY_VARCHAR_LENGTH, value = "120")
 public class FileObjectStorage {
     /**
      * 存储桶ID
      */
-    @DataColumn(name = "bucket_name", configuration =
-    @LightConfiguration(key = LightConfiguration.KEY_VARCHAR_LENGTH, value = "200"))
+    @DataColumn(name = "bucket_name")
+    @LightConfiguration(key = LightConfiguration.KEY_VARCHAR_LENGTH, value = "200")
     @PrimaryKey
     private String bucketName;
 
@@ -23,8 +23,8 @@ public class FileObjectStorage {
      * 对象名：可以是一个完整的路径，作为Object的Key。
      */
     @PrimaryKey
-    @DataColumn(name = "object_name", configuration =
-    @LightConfiguration(key = LightConfiguration.KEY_VARCHAR_LENGTH, value = "256"))
+    @DataColumn(name = "object_name")
+    @LightConfiguration(key = LightConfiguration.KEY_VARCHAR_LENGTH, value = "256")
     private String objectName;
 
     @DataColumn(name = "file_id")
