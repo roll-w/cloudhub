@@ -27,3 +27,5 @@ echo "Conf dir is in the $CONF_DIR. If you need changes settings, please follow 
 printf "Starting cloudhub-file-server......\n"
 
 exec "$JAVA_HOME"/bin/java -jar bin/cloudhub-file-server.jar --conf "$CONF_DIR"
+
+echo "Starting cloudhub-file-server......[OK]"
