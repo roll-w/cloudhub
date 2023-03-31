@@ -27,6 +27,7 @@ public class ContainerMetaFactory {
 
     private record ContainerNameInfo(
             String name,
+            String id,
             long serial,
             String source) {
     }
@@ -63,6 +64,7 @@ public class ContainerMetaFactory {
             if (isReplica) {
                 return new ReplicaContainerMeta(
                         locator,
+                        containerNameInfo.id(),
                         containerNameInfo.serial(),
                         containerLocator.getVersion(),
                         containerNameInfo.source(),
@@ -70,7 +72,9 @@ public class ContainerMetaFactory {
                 );
             }
             return new LocalContainerMeta(
-                    locator, containerNameInfo.serial(),
+                    locator,
+                    containerNameInfo.id(),
+                    containerNameInfo.serial(),
                     containerLocator.getVersion(),
                     serializedContainerBlockMeta
             );
@@ -83,6 +87,7 @@ public class ContainerMetaFactory {
                     ReplicaContainerNameMeta.parse(name);
             return new ContainerNameInfo(
                     replicaContainerNameMeta.getName(),
+                    replicaContainerNameMeta.getId(),
                     replicaContainerNameMeta.getSerial(),
                     replicaContainerNameMeta.getSourceId()
             );
@@ -90,6 +95,7 @@ public class ContainerMetaFactory {
         ContainerNameMeta containerNameMeta = ContainerNameMeta.parse(name);
         return new ContainerNameInfo(
                 containerNameMeta.getName(),
+                containerNameMeta.getId(),
                 containerNameMeta.getSerial(),
                 null
         );

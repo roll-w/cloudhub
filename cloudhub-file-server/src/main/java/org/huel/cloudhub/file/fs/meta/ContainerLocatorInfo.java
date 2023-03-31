@@ -5,6 +5,7 @@ package org.huel.cloudhub.file.fs.meta;
  */
 public record ContainerLocatorInfo(
         String locator,
+        String id,
         long serial,
         long version,
         String source
@@ -12,6 +13,11 @@ public record ContainerLocatorInfo(
     @Override
     public String getLocator() {
         return locator;
+    }
+
+    @Override
+    public String getId() {
+        return id;
     }
 
     @Override

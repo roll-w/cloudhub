@@ -127,7 +127,8 @@ public class ClientFileDownloadClient {
         private final OutputStream outputStream;
         private final AtomicInteger receiveCount = new AtomicInteger(1);
 
-        private DownloadBlockStreamObserver(ClientFileDownloadCallback callback, OutputStream outputStream) {
+        private DownloadBlockStreamObserver(ClientFileDownloadCallback callback,
+                                            OutputStream outputStream) {
             this.callback = callback;
             this.outputStream = outputStream;
         }
@@ -174,6 +175,7 @@ public class ClientFileDownloadClient {
             try {
                 writeTo(dataList, outputStream, -1);
             } catch (IOException e) {
+                callback.onComplete(false);
                 logger.debug("Download error, may the writing problem.", e);
             }
         }
@@ -218,7 +220,9 @@ public class ClientFileDownloadClient {
 
     }
 
-    private void writeTo(List<DownloadBlockData> downloadBlockData, OutputStream stream, long validBytes) throws IOException {
+    private void writeTo(List<DownloadBlockData> downloadBlockData,
+                         OutputStream stream,
+                         long validBytes) throws IOException {
         if (validBytes < 0) {
             writeFully(downloadBlockData, stream);
             return;
@@ -235,7 +239,8 @@ public class ClientFileDownloadClient {
         stream.flush();
     }
 
-    private void writeFully(List<DownloadBlockData> downloadBlockData, OutputStream stream) throws IOException {
+    private void writeFully(List<DownloadBlockData> downloadBlockData,
+                            OutputStream stream) throws IOException {
         for (DownloadBlockData downloadBlockDatum : downloadBlockData) {
             byte[] data = downloadBlockDatum.getData().toByteArray();
             writeOffset(stream, data, -1);

@@ -255,12 +255,31 @@ public class ContainerFileWriter implements Closeable {
             return container.getFreeBlockInfos();
         }
         if (fileWriteStrategy == FileWriteStrategy.SKIP_SMALL) {
-            //
+            return skipSmallBlocks(container);
         }
         if (fileWriteStrategy == FileWriteStrategy.SEARCH_MAX) {
-            // TODO: file write strategy
+            return searchMaxBlocks(container);
         }
         throw new UnsupportedOperationException("Not supported.");
+    }
+
+
+    private List<FreeBlockInfo> skipSmallBlocks(Container container) {
+        final int smallBlocks = expectBlocks / 4;
+
+        List<FreeBlockInfo> blockInfos = container.getFreeBlockInfos().stream()
+                .filter(freeBlockInfo -> freeBlockInfo.getCount() >= smallBlocks)
+                .toList();
+        if (blockInfos.isEmpty()) {
+            return searchMaxBlocks(container);
+        }
+        return blockInfos;
+    }
+
+    private List<FreeBlockInfo> searchMaxBlocks(Container container) {
+        return container.getFreeBlockInfos().stream()
+                .filter(freeBlockInfo -> freeBlockInfo.getCount() >= expectBlocks)
+                .toList();
     }
 
     private Container findNextAllowContainer() {
@@ -286,9 +305,7 @@ public class ContainerFileWriter implements Closeable {
             if (blockInfo.isPresent()) {
                 return true;
             }
-
         }
-        // TODO: file write policy
         return true;
     }
 

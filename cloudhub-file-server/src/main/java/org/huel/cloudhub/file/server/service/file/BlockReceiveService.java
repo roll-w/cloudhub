@@ -2,6 +2,7 @@ package org.huel.cloudhub.file.server.service.file;
 
 import io.grpc.Context;
 import io.grpc.Status;
+import io.grpc.stub.ServerCallStreamObserver;
 import io.grpc.stub.StreamObserver;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.huel.cloudhub.file.fs.LocalFileServer;
@@ -96,6 +97,7 @@ public class BlockReceiveService extends BlockUploadServiceGrpc.BlockUploadServi
 
     private class UploadBlocksRequestObserver implements StreamObserver<UploadBlocksRequest> {
         private final StreamObserverWrapper<UploadBlocksResponse> responseObserver;
+        private final ServerCallStreamObserver<UploadBlocksResponse> callStreamObserver;
         private final ServerFile stagingFile;
         private final AtomicInteger received = new AtomicInteger(0);
         private OutputStream stagingOut;
@@ -113,6 +115,7 @@ public class BlockReceiveService extends BlockUploadServiceGrpc.BlockUploadServi
 
         UploadBlocksRequestObserver(StreamObserver<UploadBlocksResponse> responseObserver) throws IOException {
             this.responseObserver = new StreamObserverWrapper<>(responseObserver);
+            this.callStreamObserver = (ServerCallStreamObserver<UploadBlocksResponse>) responseObserver;
             this.stagingFile = openNewStagingFile();
         }
 

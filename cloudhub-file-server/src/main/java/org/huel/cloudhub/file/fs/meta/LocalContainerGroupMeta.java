@@ -56,6 +56,7 @@ public class LocalContainerGroupMeta implements ContainerGroupMeta {
                     ContainerNameMeta.parse(serializedContainerMeta.getLocator());
             ContainerLocatorInfo containerLocatorInfo = new ContainerLocatorInfo(
                     ContainerFinder.LOCAL,
+                    containerNameMeta.getId(),
                     containerNameMeta.getSerial(),
                     serializedContainerMeta.getVersion(),
                     serializedContainerMeta.getLocator()

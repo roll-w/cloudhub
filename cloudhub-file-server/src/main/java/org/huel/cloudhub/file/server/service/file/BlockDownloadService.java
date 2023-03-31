@@ -2,7 +2,6 @@ package org.huel.cloudhub.file.server.service.file;
 
 import com.google.protobuf.ByteString;
 import io.grpc.Status;
-import io.grpc.stub.ServerCallStreamObserver;
 import io.grpc.stub.StreamObserver;
 import org.huel.cloudhub.file.fs.LockException;
 import org.huel.cloudhub.file.fs.block.ContainerBlock;
@@ -20,6 +19,7 @@ import org.huel.cloudhub.file.rpc.block.DownloadBlocksInfo;
 import org.huel.cloudhub.file.rpc.block.DownloadBlocksSegmentInfo;
 import org.huel.cloudhub.file.server.service.SourceServerGetter;
 import org.huel.cloudhub.rpc.GrpcProperties;
+import org.huel.cloudhub.rpc.StreamObserverWrapper;
 import org.huel.cloudhub.util.math.Maths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,8 +58,8 @@ public class BlockDownloadService extends BlockDownloadServiceGrpc.BlockDownload
                                StreamObserver<DownloadBlockResponse> observer) {
         final String fileId = request.getFileId();
         final String source = getId(request);
-        ServerCallStreamObserver<DownloadBlockResponse> responseObserver =
-                (ServerCallStreamObserver<DownloadBlockResponse>) observer;
+        StreamObserverWrapper<DownloadBlockResponse> responseObserver =
+                new StreamObserverWrapper<>(observer) ;
         ContainerGroup containerGroup =
                 containerFinder.findContainerGroupByFile(fileId, source);
         if (containerGroup == null) {
@@ -99,7 +99,9 @@ public class BlockDownloadService extends BlockDownloadServiceGrpc.BlockDownload
         }
     }
 
-    private BytesInfo readInfoFromRequest(DownloadBlockRequest request, long blockSizeInBytes, long fileLength) {
+    private BytesInfo readInfoFromRequest(DownloadBlockRequest request,
+                                          long blockSizeInBytes,
+                                          long fileLength) {
         if (!request.hasSegmentInfo()) {
             return null;
         }
@@ -141,7 +143,7 @@ public class BlockDownloadService extends BlockDownloadServiceGrpc.BlockDownload
 
     private void readSendResponse(String fileId, ContainerGroup containerGroup,
                                   FileBlockMetaInfo fileBlockMetaInfo,
-                                  ServerCallStreamObserver<DownloadBlockResponse> responseObserver,
+                                  StreamObserverWrapper<DownloadBlockResponse> responseObserver,
                                   BytesInfo bytesInfo,
                                   int maxBlocksInResponse, int responseCount, int retry) {
         if (retry >= RETRY_TIMES) {
@@ -160,13 +162,20 @@ public class BlockDownloadService extends BlockDownloadServiceGrpc.BlockDownload
             throw new RuntimeException(e);
         } catch (LockException e) {
             logger.error("Cannot get container's read lock.", e);
-            readSendResponse(fileId, containerGroup, fileBlockMetaInfo,
-                    responseObserver, bytesInfo, maxBlocksInResponse, responseCount, retry + 1);
+            readSendResponse(
+                    fileId, containerGroup, fileBlockMetaInfo,
+                    responseObserver, bytesInfo,
+                    maxBlocksInResponse, responseCount,
+                    retry + 1
+            );
         }
     }
 
-    private void sendUtilEnd(BytesInfo bytesInfo, ServerCallStreamObserver<DownloadBlockResponse> responseObserver,
-                             ContainerFileReader fileReader, int readSize, int responseCount) throws IOException, LockException {
+    private void sendUtilEnd(BytesInfo bytesInfo,
+                             StreamObserverWrapper<DownloadBlockResponse> responseObserver,
+                             ContainerFileReader fileReader,
+                             int readSize, int responseCount)
+            throws IOException, LockException {
         if (bytesInfo == null) {
             sendFullFile(responseObserver, fileReader, readSize);
             return;
@@ -179,9 +188,13 @@ public class BlockDownloadService extends BlockDownloadServiceGrpc.BlockDownload
         fileReader.seek(startBlock);
         int index = 1;
         while (fileReader.hasNext()) {
+            if (responseObserver.isClose()) {
+                return;
+            }
             if (!responseObserver.isReady()) {
                 continue;
             }
+
             List<ContainerBlock> read = fileReader.read(readSize);
             if (read == null) {
                 return;
@@ -210,10 +223,13 @@ public class BlockDownloadService extends BlockDownloadServiceGrpc.BlockDownload
         }
     }
 
-    private void sendFullFile(ServerCallStreamObserver<DownloadBlockResponse> responseObserver,
+    private void sendFullFile(StreamObserverWrapper<DownloadBlockResponse> responseObserver,
                               ContainerFileReader fileReader, int readSize) throws LockException, IOException {
         int index = 0;
         while (fileReader.hasNext()) {
+            if (responseObserver.isClose()) {
+                return;
+            }
             if (!responseObserver.isReady()) {
                 continue;
             }

@@ -10,6 +10,7 @@ import org.huel.cloudhub.file.fs.meta.MetadataCacheStrategy;
 import org.huel.cloudhub.file.fs.meta.MetadataCacheable;
 import org.huel.cloudhub.file.fs.meta.MetadataException;
 import org.huel.cloudhub.file.fs.meta.MetadataLoader;
+import org.huel.cloudhub.file.fs.meta.cache.MetadataFullyCacheStrategy;
 
 import java.io.IOException;
 
@@ -28,6 +29,7 @@ public class ContainerMetadataLoader implements MetadataLoader {
         this.containerMetaFactory = containerMetaFactory;
         this.dataDirectory = dataDirectory;
         this.fileServer = fileServer;
+        this.metadataCacheStrategy = new MetadataFullyCacheStrategy();
     }
 
     @Override

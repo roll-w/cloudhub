@@ -141,10 +141,14 @@ public class Container implements ContainerLocator {
         return location.getResourceLocator();
     }
 
+    @Override
+    public String getId() {
+        return identity.id();
+    }
+
     public ContainerIdentity getIdentity() {
         return identity;
     }
-
 
     public long getSerial() {
         return identity.serial();

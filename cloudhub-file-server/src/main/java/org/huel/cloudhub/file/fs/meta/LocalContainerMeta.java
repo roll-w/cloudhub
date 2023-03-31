@@ -12,6 +12,7 @@ import java.util.List;
  */
 public class LocalContainerMeta implements ContainerMeta {
     private final String locator;
+    private final String id;
     private final long version;
     private final long serial;
     private final int blockSize;
@@ -22,10 +23,11 @@ public class LocalContainerMeta implements ContainerMeta {
 
     private final SerializedContainerBlockMeta serializedContainerMeta;
 
-    public LocalContainerMeta(String locator, long serial,
+    public LocalContainerMeta(String locator, String id, long serial,
                               long version,
                               SerializedContainerBlockMeta serializedContainerMeta) {
         this.locator = locator;
+        this.id = id;
         this.version = version;
         this.serial = serial;
         this.blockSize = serializedContainerMeta.getBlockSize();
@@ -36,13 +38,13 @@ public class LocalContainerMeta implements ContainerMeta {
         this.serializedContainerMeta = serializedContainerMeta;
     }
 
-    public LocalContainerMeta(String locator, long serial,
+    public LocalContainerMeta(String locator, String id, long serial,
                               long version,
                               int blockSize,
                               int usedBlock, int blockCapacity,
                               String checksum,
                               List<? extends BlockFileMeta> blockFileMetas) {
-        this(locator, serial, version,
+        this(locator, id, serial, version,
                 Helper.buildSerializedContainerMeta(
                         blockSize, usedBlock,
                         blockCapacity, checksum,
@@ -53,6 +55,11 @@ public class LocalContainerMeta implements ContainerMeta {
     @Override
     public String getLocator() {
         return locator;
+    }
+
+    @Override
+    public String getId() {
+        return null;
     }
 
     @Override
@@ -107,6 +114,7 @@ public class LocalContainerMeta implements ContainerMeta {
 
     public static final class Builder implements ContainerMetaBuilder {
         private String locator;
+        private String id;
         private long version;
         private long serial;
         private int blockSize;
@@ -118,6 +126,12 @@ public class LocalContainerMeta implements ContainerMeta {
         @Override
         public Builder setLocator(String locator) {
             this.locator = locator;
+            return this;
+        }
+
+        @Override
+        public Builder setId(String id) {
+            this.id = id;
             return this;
         }
 
@@ -171,7 +185,7 @@ public class LocalContainerMeta implements ContainerMeta {
         @Override
         public LocalContainerMeta build() {
             return new LocalContainerMeta(
-                    locator, serial,
+                    locator, id, serial,
                     version, blockSize, usedBlock,
                     blockCapacity,
                     checksum, blockFileMetas);

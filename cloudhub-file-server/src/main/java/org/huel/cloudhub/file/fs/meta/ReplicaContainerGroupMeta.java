@@ -56,6 +56,7 @@ public class ReplicaContainerGroupMeta implements ContainerGroupMeta {
                     ReplicaContainerNameMeta.parse(serializedContainerMeta.getLocator());
             ContainerLocatorInfo containerLocatorInfo = new ContainerLocatorInfo(
                     ContainerFinder.LOCAL,
+                    containerNameMeta.getId(),
                     containerNameMeta.getSerial(),
                     serializedContainerMeta.getVersion(),
                     serializedContainerMeta.getLocator()

@@ -14,7 +14,7 @@ import java.util.Objects;
  */
 public class ContainerLocation implements RepresentFile {
     public static final String META_SUFFIX = ".meta";
-    public static final String REPLICA_META_SUFFIX = ".rmeta";
+    public static final String REPLICA_META_SUFFIX = ".meta";
 
     private final String childPath;
     private final String dirPath;

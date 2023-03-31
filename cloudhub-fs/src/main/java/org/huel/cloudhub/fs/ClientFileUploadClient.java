@@ -73,6 +73,7 @@ public class ClientFileUploadClient {
 
     private static class ClientFileUploadResponseObserver implements StreamObserver<ClientFileUploadResponse> {
         private StreamObserverWrapper<ClientFileUploadRequest> requestStreamObserver;
+
         private final ClientFileUploadCallback callback;
         private final String fileId;
         private final long fileSize;
@@ -131,7 +132,6 @@ public class ClientFileUploadClient {
             if (requestStreamObserver.isClose()) {
                 return false;
             }
-
             List<ClientFileUploadData> blocks = new ArrayList<>();
             boolean isLast = false;
             for (int i = 0; i < maxUploadBlockCount; i++) {
@@ -147,13 +147,17 @@ public class ClientFileUploadClient {
                     break;
                 }
             }
-
             ClientFileUploadDataSegment segment = ClientFileUploadDataSegment.newBuilder()
                     .addAllData(blocks)
                     .build();
             ClientFileUploadRequest request = ClientFileUploadRequest.newBuilder()
                     .setDataSegment(segment)
                     .build();
+            while (!requestStreamObserver.isReady()) {
+                if (requestStreamObserver.isClose()) {
+                    return false;
+                }
+            }
             requestStreamObserver.onNext(request);
             if (isLast) {
                 requestStreamObserver.onCompleted();

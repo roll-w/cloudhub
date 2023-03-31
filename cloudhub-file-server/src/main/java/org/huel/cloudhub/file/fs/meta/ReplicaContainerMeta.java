@@ -11,6 +11,7 @@ import java.util.List;
  */
 public class ReplicaContainerMeta implements ContainerMeta {
     private final String locator;
+    private final String id;
     private final long version;
     private final long serial;
     private final String source;
@@ -22,12 +23,12 @@ public class ReplicaContainerMeta implements ContainerMeta {
 
     private final SerializedContainerBlockMeta serializedContainerMeta;
 
-    public ReplicaContainerMeta(String locator, long serial,
+    public ReplicaContainerMeta(String locator, String id, long serial,
                                 long version, String source,
                                 int blockSize, int usedBlock,
                                 int blockCapacity,
                                 String checksum, List<? extends BlockFileMeta> blockFileMetas) {
-        this(locator, serial, version, source, blockSize, usedBlock,
+        this(locator, id, serial, version, source, blockSize, usedBlock,
                 blockCapacity, checksum,
                 Helper.buildSerializedContainerMeta(
                         blockSize, usedBlock,
@@ -37,11 +38,11 @@ public class ReplicaContainerMeta implements ContainerMeta {
     }
 
     public ReplicaContainerMeta(String locator,
-                                long serial,
+                                String id, long serial,
                                 long version,
                                 String source,
                                 SerializedContainerBlockMeta serializedContainerMeta) {
-        this(locator, serial, version,
+        this(locator, id, serial, version,
                 source,
                 serializedContainerMeta.getBlockSize(),
                 serializedContainerMeta.getUsedBlock(),
@@ -50,12 +51,13 @@ public class ReplicaContainerMeta implements ContainerMeta {
                 Helper.extractBlockFileMetas(serial, serializedContainerMeta));
     }
 
-    protected ReplicaContainerMeta(String locator, long serial,
+    protected ReplicaContainerMeta(String locator, String id, long serial,
                                    long version, String source, int blockSize,
                                    int usedBlock, int blockCapacity,
                                    String checksum,
                                    SerializedContainerBlockMeta serializedContainerMeta) {
         this.locator = locator;
+        this.id = id;
         this.version = version;
         this.serial = serial;
         this.source = source;
@@ -75,6 +77,11 @@ public class ReplicaContainerMeta implements ContainerMeta {
     @Override
     public long getVersion() {
         return version;
+    }
+
+    @Override
+    public String getId() {
+        return id;
     }
 
     @Override
@@ -124,6 +131,7 @@ public class ReplicaContainerMeta implements ContainerMeta {
 
     public static final class Builder implements ContainerMetaBuilder {
         private String locator;
+        private String id;
         private long version;
         private String source;
         private long serial;
@@ -139,6 +147,12 @@ public class ReplicaContainerMeta implements ContainerMeta {
         @Override
         public Builder setLocator(String locator) {
             this.locator = locator;
+            return this;
+        }
+
+        @Override
+        public Builder setId(String id) {
+            this.id = id;
             return this;
         }
 
@@ -193,7 +207,7 @@ public class ReplicaContainerMeta implements ContainerMeta {
         @Override
         public ReplicaContainerMeta build() {
             return new ReplicaContainerMeta(
-                    locator, serial, version,
+                    locator, id, serial, version,
                     source, blockSize,
                     usedBlock, blockCapacity,
                     checksum, blockFileMetas

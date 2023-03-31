@@ -8,6 +8,8 @@ import java.util.List;
 public interface ContainerMetaBuilder {
     ContainerMetaBuilder setLocator(String locator);
 
+    ContainerMetaBuilder setId(String id);
+
     ContainerMetaBuilder setVersion(long version);
 
     ContainerMetaBuilder setSerial(long serial);

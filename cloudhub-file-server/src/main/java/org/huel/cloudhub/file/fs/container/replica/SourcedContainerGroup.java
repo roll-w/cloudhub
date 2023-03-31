@@ -49,6 +49,15 @@ public class SourcedContainerGroup {
         return containerGroupMap.getOrDefault(containerId, null);
     }
 
+    public ContainerGroup getOrCreateGroup(String containerId) {
+        ContainerGroup group = getGroup(containerId);
+        if (group == null) {
+            group = newGroup(containerId);
+            containerGroupMap.put(containerId, group);
+        }
+        return group;
+    }
+
     public String getSourceId() {
         return sourceId;
     }
