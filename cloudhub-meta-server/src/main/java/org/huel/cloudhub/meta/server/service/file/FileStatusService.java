@@ -1,6 +1,8 @@
 package org.huel.cloudhub.meta.server.service.file;
 
 import io.grpc.stub.StreamObserver;
+import org.huel.cloudhub.client.rpc.file.FileAllocateRequest;
+import org.huel.cloudhub.client.rpc.file.FileAllocateResponse;
 import org.huel.cloudhub.client.rpc.file.FileStatusRequest;
 import org.huel.cloudhub.client.rpc.file.FileStatusResponse;
 import org.huel.cloudhub.client.rpc.file.FileStatusServiceGrpc;
@@ -32,6 +34,7 @@ public class FileStatusService extends FileStatusServiceGrpc.FileStatusServiceIm
         this.nodeAllocator = heartbeatService.getNodeAllocator();
     }
 
+
     @Override
     public void checkFileStatus(FileStatusRequest request, StreamObserver<FileStatusResponse> responseObserver) {
         String fileId = request.getFileId();
@@ -53,6 +56,11 @@ public class FileStatusService extends FileStatusServiceGrpc.FileStatusServiceIm
                 .build());
         responseObserver.onCompleted();
         // TODO: get active servers
+    }
+
+    @Override
+    public void allocateFileServers(FileAllocateRequest request,
+                                    StreamObserver<FileAllocateResponse> responseObserver) {
     }
 
     private record ActiveServers(

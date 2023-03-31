@@ -55,5 +55,4 @@ public class RegisterNodeAllocator implements
         int weight = nodeWeightProvider.getWeightOf(nodeServer);
         serverConsistentHashMap.addServer(nodeServer, weight);
     }
-
 }

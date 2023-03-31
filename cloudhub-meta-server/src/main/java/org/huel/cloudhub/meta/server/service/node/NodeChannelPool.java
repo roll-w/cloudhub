@@ -9,6 +9,8 @@ import org.huel.cloudhub.rpc.GrpcProperties;
 import java.util.concurrent.TimeUnit;
 
 /**
+ * Manage gRPC channels through {@link NodeServer}.
+ *
  * @author RollW
  */
 public class NodeChannelPool extends GrpcChannelPool<NodeServer>
@@ -24,7 +26,7 @@ public class NodeChannelPool extends GrpcChannelPool<NodeServer>
     protected ManagedChannel buildChannel(NodeServer server) {
         return ManagedChannelBuilder.forAddress(server.host(), server.port())
                 .usePlaintext()
-                .keepAliveTime(5, TimeUnit.HOURS)
+                .keepAliveTime(300, TimeUnit.DAYS)
                 .keepAliveTimeout(30, TimeUnit.MINUTES)
                 .maxInboundMessageSize((int) grpcProperties.getMaxRequestSizeBytes() * 2)
                 .build();

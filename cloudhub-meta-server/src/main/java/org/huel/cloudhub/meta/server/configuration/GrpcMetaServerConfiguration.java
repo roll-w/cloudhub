@@ -3,6 +3,7 @@ package org.huel.cloudhub.meta.server.configuration;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import org.apache.commons.lang3.concurrent.BasicThreadFactory;
+import org.huel.cloudhub.meta.server.service.file.ClientFileDeleteDispatchService;
 import org.huel.cloudhub.meta.server.service.file.ClientFileUploadDispatchService;
 import org.huel.cloudhub.meta.server.service.file.FileStatusService;
 import org.huel.cloudhub.meta.server.service.node.HeartbeatService;
@@ -29,19 +30,22 @@ public class GrpcMetaServerConfiguration {
     private final ClientFileUploadDispatchService clientFileUploadDispatchService;
     private final MetaServerStatusService metaServerStatusService;
     private final NodeServerStatusService nodeServerStatusService;
+    private final ClientFileDeleteDispatchService clientFileDeleteDispatchService;
 
     public GrpcMetaServerConfiguration(GrpcProperties grpcProperties,
                                        HeartbeatService heartbeatService,
                                        FileStatusService fileStatusService,
                                        ClientFileUploadDispatchService clientFileUploadDispatchService,
                                        MetaServerStatusService metaServerStatusService,
-                                       NodeServerStatusService nodeServerStatusService) {
+                                       NodeServerStatusService nodeServerStatusService,
+                                       ClientFileDeleteDispatchService clientFileDeleteDispatchService) {
         this.grpcProperties = grpcProperties;
         this.heartbeatService = heartbeatService;
         this.fileStatusService = fileStatusService;
         this.clientFileUploadDispatchService = clientFileUploadDispatchService;
         this.metaServerStatusService = metaServerStatusService;
         this.nodeServerStatusService = nodeServerStatusService;
+        this.clientFileDeleteDispatchService = clientFileDeleteDispatchService;
     }
 
     @Bean
@@ -55,6 +59,7 @@ public class GrpcMetaServerConfiguration {
                 .addService(clientFileUploadDispatchService)
                 .addService(metaServerStatusService)
                 .addService(nodeServerStatusService)
+                .addService(clientFileDeleteDispatchService)
                 .executor(threadPoolExecutor)
                 .build();
     }

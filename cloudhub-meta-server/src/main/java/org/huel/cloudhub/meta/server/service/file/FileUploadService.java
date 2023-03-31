@@ -49,6 +49,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 @Service
 public class FileUploadService {
+    private static final Logger logger = LoggerFactory.getLogger(FileUploadService.class);
+
     private final NodeAllocator nodeAllocator;
     private final FileProperties fileProperties;
     private final GrpcProperties grpcProperties;
@@ -74,8 +76,6 @@ public class FileUploadService {
         this.blockUploadServiceStubPool = new GrpcServiceStubPool<>();
         initial();
     }
-
-    private final Logger logger = LoggerFactory.getLogger(FileUploadService.class);
 
     public boolean checkFileExists(String hash) {
         List<FileStorageLocation> locations =
@@ -216,8 +216,8 @@ public class FileUploadService {
 
     @Async
     void updatesFileObjectLocation(String hash,
-                                           String master,
-                                           List<String> replicas) {
+                                   String master,
+                                   List<String> replicas) {
         saveReplicaLocation(hash, master, replicas);
         FileStorageLocation location = storageLocationRepository.getByFileId(hash);
         if (location == null) {
@@ -379,7 +379,11 @@ public class FileUploadService {
                     break;
                 }
             }
-
+            while (!requestStreamObserver.isReady()) {
+                if (requestStreamObserver.isClose()) {
+                    return;
+                }
+            }
             UploadBlocksRequest request = buildUploadBlocksRequest(fileId, blocks,
                     requestIndex.get());
             requestStreamObserver.onNext(request);
