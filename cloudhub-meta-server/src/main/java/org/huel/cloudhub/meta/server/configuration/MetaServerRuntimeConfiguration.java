@@ -2,6 +2,7 @@ package org.huel.cloudhub.meta.server.configuration;
 
 import org.huel.cloudhub.meta.conf.MetaConfigLoader;
 import org.huel.cloudhub.meta.server.service.node.HeartbeatServerProperties;
+import org.huel.cloudhub.meta.server.service.node.NodeChannelPool;
 import org.huel.cloudhub.rpc.GrpcProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -55,5 +56,11 @@ public class MetaServerRuntimeConfiguration {
                 "jdbc:sqlite:" + dbPath,
                 "org.sqlite.JDBC",
                 null, null);
+    }
+
+
+    @Bean
+    public NodeChannelPool nodeChannelPool(GrpcProperties grpcProperties) {
+        return new NodeChannelPool(grpcProperties);
     }
 }

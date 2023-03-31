@@ -2,7 +2,6 @@ package org.huel.cloudhub.file.server.service.file;
 
 import io.grpc.Context;
 import io.grpc.Status;
-import io.grpc.stub.ServerCallStreamObserver;
 import io.grpc.stub.StreamObserver;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.huel.cloudhub.file.fs.LocalFileServer;
@@ -11,11 +10,21 @@ import org.huel.cloudhub.file.fs.ServerFile;
 import org.huel.cloudhub.file.fs.block.Block;
 import org.huel.cloudhub.file.fs.block.BlockMetaInfo;
 import org.huel.cloudhub.file.fs.block.FileBlockMetaInfo;
-import org.huel.cloudhub.file.fs.container.*;
+import org.huel.cloudhub.file.fs.container.Container;
+import org.huel.cloudhub.file.fs.container.ContainerAllocator;
+import org.huel.cloudhub.file.fs.container.ContainerChecker;
+import org.huel.cloudhub.file.fs.container.ContainerFinder;
+import org.huel.cloudhub.file.fs.container.ContainerGroup;
+import org.huel.cloudhub.file.fs.container.ContainerProperties;
+import org.huel.cloudhub.file.fs.container.ContainerWriterOpener;
 import org.huel.cloudhub.file.fs.container.file.ContainerFileWriter;
 import org.huel.cloudhub.file.fs.container.file.FileWriteStrategy;
 import org.huel.cloudhub.file.fs.meta.MetadataException;
-import org.huel.cloudhub.file.rpc.block.*;
+import org.huel.cloudhub.file.rpc.block.BlockUploadServiceGrpc;
+import org.huel.cloudhub.file.rpc.block.UploadBlockData;
+import org.huel.cloudhub.file.rpc.block.UploadBlocksInfo;
+import org.huel.cloudhub.file.rpc.block.UploadBlocksRequest;
+import org.huel.cloudhub.file.rpc.block.UploadBlocksResponse;
 import org.huel.cloudhub.file.server.service.replica.ReplicaService;
 import org.huel.cloudhub.file.server.service.replica.ReplicaSynchroPart;
 import org.huel.cloudhub.rpc.StreamObserverWrapper;
@@ -97,7 +106,6 @@ public class BlockReceiveService extends BlockUploadServiceGrpc.BlockUploadServi
 
     private class UploadBlocksRequestObserver implements StreamObserver<UploadBlocksRequest> {
         private final StreamObserverWrapper<UploadBlocksResponse> responseObserver;
-        private final ServerCallStreamObserver<UploadBlocksResponse> callStreamObserver;
         private final ServerFile stagingFile;
         private final AtomicInteger received = new AtomicInteger(0);
         private OutputStream stagingOut;
@@ -115,7 +123,6 @@ public class BlockReceiveService extends BlockUploadServiceGrpc.BlockUploadServi
 
         UploadBlocksRequestObserver(StreamObserver<UploadBlocksResponse> responseObserver) throws IOException {
             this.responseObserver = new StreamObserverWrapper<>(responseObserver);
-            this.callStreamObserver = (ServerCallStreamObserver<UploadBlocksResponse>) responseObserver;
             this.stagingFile = openNewStagingFile();
         }
 

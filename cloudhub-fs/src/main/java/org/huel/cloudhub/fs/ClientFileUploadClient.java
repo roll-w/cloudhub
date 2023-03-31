@@ -153,11 +153,16 @@ public class ClientFileUploadClient {
             ClientFileUploadRequest request = ClientFileUploadRequest.newBuilder()
                     .setDataSegment(segment)
                     .build();
-            while (!requestStreamObserver.isReady()) {
-                if (requestStreamObserver.isClose()) {
-                    return false;
-                }
+
+            if (requestStreamObserver.isClose()) {
+                return false;
             }
+            try {
+                requestStreamObserver.waitForReady();
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+
             requestStreamObserver.onNext(request);
             if (isLast) {
                 requestStreamObserver.onCompleted();

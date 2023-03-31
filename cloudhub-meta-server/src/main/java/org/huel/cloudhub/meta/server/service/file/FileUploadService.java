@@ -379,10 +379,14 @@ public class FileUploadService {
                     break;
                 }
             }
-            while (!requestStreamObserver.isReady()) {
                 if (requestStreamObserver.isClose()) {
                     return;
                 }
+            try {
+                requestStreamObserver.waitForReady();
+            } catch (InterruptedException e) {
+                logger.error("Interrupted while waiting for request stream observer ready", e);
+                return;
             }
             UploadBlocksRequest request = buildUploadBlocksRequest(fileId, blocks,
                     requestIndex.get());

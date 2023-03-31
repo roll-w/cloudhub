@@ -34,7 +34,8 @@ import java.util.List;
  */
 @Service
 public class BlockDownloadService extends BlockDownloadServiceGrpc.BlockDownloadServiceImplBase {
-    private final Logger logger = LoggerFactory.getLogger(BlockDownloadService.class);
+    private static final Logger logger = LoggerFactory.getLogger(BlockDownloadService.class);
+
     private final ContainerReadOpener containerReadOpener;
     private final ContainerFinder containerFinder;
     private final ContainerProperties containerProperties;
@@ -59,7 +60,7 @@ public class BlockDownloadService extends BlockDownloadServiceGrpc.BlockDownload
         final String fileId = request.getFileId();
         final String source = getId(request);
         StreamObserverWrapper<DownloadBlockResponse> responseObserver =
-                new StreamObserverWrapper<>(observer) ;
+                new StreamObserverWrapper<>(observer);
         ContainerGroup containerGroup =
                 containerFinder.findContainerGroupByFile(fileId, source);
         if (containerGroup == null) {
@@ -81,10 +82,14 @@ public class BlockDownloadService extends BlockDownloadServiceGrpc.BlockDownload
         final int responseCount = Maths.ceilDivideReturnsInt(length, responseSize);
         final int maxBlocksInResponse = (int) (responseSize / containerProperties.getBlockSizeInBytes());
 
-        DownloadBlockResponse firstResponse = buildFirstResponse(fileBlockMetaInfo,
+        DownloadBlockResponse firstResponse = buildFirstResponse(
+                fileBlockMetaInfo,
                 responseCount,
-                "0");
+                "0"
+        );
         responseObserver.onNext(firstResponse);
+        logger.debug("Send first response, responseCount: {}, fileId: {}, source: {}",
+                responseCount, fileId, source);
 
         readSendResponse(fileId, containerGroup, fileBlockMetaInfo,
                 responseObserver, bytesInfo, maxBlocksInResponse, responseCount, 0);
@@ -154,9 +159,16 @@ public class BlockDownloadService extends BlockDownloadServiceGrpc.BlockDownload
         if (retry != 0) {
             logger.debug("Retry send download response for file '{}'.", fileId);
         }
+        responseObserver.setOnCancelHandler(() -> {
+            logger.debug("Client cancel download file '{}'.", fileId);
+            responseObserver.onError(Status.CANCELLED.asException());
+        });
         try (ContainerFileReader containerFileReader = new ContainerFileReader(
                 containerReadOpener, containerFinder, fileId, containerGroup, fileBlockMetaInfo)) {
-            sendUtilEnd(bytesInfo, responseObserver, containerFileReader, maxBlocksInResponse, responseCount);
+            sendUtilEnd(
+                    bytesInfo, responseObserver, containerFileReader,
+                    maxBlocksInResponse, responseCount
+            );
             responseObserver.onCompleted();
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -191,8 +203,11 @@ public class BlockDownloadService extends BlockDownloadServiceGrpc.BlockDownload
             if (responseObserver.isClose()) {
                 return;
             }
-            if (!responseObserver.isReady()) {
-                continue;
+            try {
+                responseObserver.waitForReady();
+            } catch (InterruptedException e) {
+                logger.error("Interrupted when waiting for client ready.", e);
+                return;
             }
 
             List<ContainerBlock> read = fileReader.read(readSize);
@@ -230,15 +245,19 @@ public class BlockDownloadService extends BlockDownloadServiceGrpc.BlockDownload
             if (responseObserver.isClose()) {
                 return;
             }
-            if (!responseObserver.isReady()) {
-                continue;
+            try {
+                responseObserver.waitForReady();
+            } catch (InterruptedException e) {
+                logger.error("Interrupted when waiting for client ready.", e);
+                return;
             }
+
             List<ContainerBlock> read = fileReader.read(readSize);
             if (read == null) {
                 return;
             }
             DownloadBlockResponse response = buildBlockDataResponse(read, index, -1, -1);
-            logger.debug("Send download response. block size ={}", read.size());
+            logger.debug("Send download response. block size = {}", read.size());
             responseObserver.onNext(response);
             index++;
         }

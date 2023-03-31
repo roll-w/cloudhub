@@ -30,6 +30,9 @@ public class ClientFileDownloadClient {
             blockDownloadServiceStubPool;
     private final MetaFileStatusClient metaFileStatusClient;
 
+    private static final String APACHE_ABORT_EXCEPTION =
+            "org.apache.catalina.connector.ClientAbortException";
+
     public ClientFileDownloadClient(FileServerChannelPool fileServerChannelPool,
                                     MetaFileStatusClient metaFileStatusClient) {
         this.fileServerChannelPool = fileServerChannelPool;
@@ -161,8 +164,10 @@ public class ClientFileDownloadClient {
             }
             if (receiveCount.get() > responseCount) {
                 try {
-                    throw new FileDownloadingException(FileDownloadingException.Type.DATA_LOSS,
-                            "Illegal receive count.");
+                    throw new FileDownloadingException(
+                            FileDownloadingException.Type.DATA_LOSS,
+                            "Illegal receive count."
+                    );
                 } catch (FileDownloadingException e) {
                     throw new RuntimeException(e);
                 }
@@ -175,7 +180,10 @@ public class ClientFileDownloadClient {
             try {
                 writeTo(dataList, outputStream, -1);
             } catch (IOException e) {
-                callback.onComplete(false);
+                String className = e.getClass().getCanonicalName();
+                if (className.equals(APACHE_ABORT_EXCEPTION)) {
+                   return;
+                }
                 logger.debug("Download error, may the writing problem.", e);
             }
         }
@@ -189,14 +197,14 @@ public class ClientFileDownloadClient {
 
         @Override
         public void onError(Throwable t) {
-            logger.error("download file error.", t);
+            logger.error("Download file error.", t);
             if (callback != null) {
                 callback.onComplete(false);
             }
             try {
                 outputStream.close();
             } catch (IOException e) {
-                logger.debug("close error.", e);
+                logger.debug("Close error.", e);
             }
         }
 
@@ -209,7 +217,7 @@ public class ClientFileDownloadClient {
             try {
                 outputStream.close();
             } catch (IOException e) {
-                logger.debug("close error.", e);
+                logger.debug("Close error.", e);
             }
         }
 

@@ -1,6 +1,9 @@
 package org.huel.cloudhub.rpc;
 
+import io.grpc.stub.ServerCallStreamObserver;
 import io.grpc.stub.StreamObserver;
+
+import java.util.concurrent.CountDownLatch;
 
 /**
  * @author RollW
@@ -8,9 +11,15 @@ import io.grpc.stub.StreamObserver;
 public class StreamObserverWrapper<V> implements StreamObserver<V> {
     private boolean close = false;
     private final StreamObserver<V> streamObserver;
+    private final ServerCallStreamObserver<V> callStreamObserver;
 
     public StreamObserverWrapper(StreamObserver<V> streamObserver) {
         this.streamObserver = streamObserver;
+        if (streamObserver instanceof ServerCallStreamObserver) {
+            this.callStreamObserver = (ServerCallStreamObserver<V>) streamObserver;
+        } else {
+            this.callStreamObserver = null;
+        }
     }
 
     private void close() {
@@ -43,12 +52,79 @@ public class StreamObserverWrapper<V> implements StreamObserver<V> {
         close();
     }
 
+    public boolean isReady() {
+        if (callStreamObserver == null) {
+            return true;
+        }
+        return callStreamObserver.isReady();
+    }
+
+    public void setOnReadyHandler(Runnable runnable) {
+        if (callStreamObserver == null) {
+            return;
+        }
+        callStreamObserver.setOnReadyHandler(runnable);
+    }
+
+    public void waitForReady() throws InterruptedException {
+        if (isClose()) {
+            return;
+        }
+        if (callStreamObserver == null) {
+            return;
+        }
+        CountDownLatch countDownLatch = new CountDownLatch(1);
+        callStreamObserver.setOnReadyHandler(countDownLatch::countDown);
+        countDownLatch.await();
+    }
+
+    public void setOnCancelHandler(Runnable runnable) {
+        if (callStreamObserver == null) {
+            return;
+        }
+        callStreamObserver.setOnCancelHandler(runnable);
+    }
+
+    public void disableAutoInboundFlowControl() {
+        if (callStreamObserver == null) {
+            return;
+        }
+        callStreamObserver.disableAutoInboundFlowControl();
+    }
+
+    public void request(int numMessages) {
+        if (callStreamObserver == null) {
+            return;
+        }
+        callStreamObserver.request(numMessages);
+    }
+
+    public void setMessageCompression(boolean enable) {
+        if (callStreamObserver == null) {
+            return;
+        }
+        callStreamObserver.setMessageCompression(enable);
+    }
+
+    public boolean isCancelled() {
+        if (callStreamObserver == null) {
+            return false;
+        }
+        return callStreamObserver.isCancelled();
+    }
+
     public boolean isClose() {
-        return close;
+        if (close) {
+            return true;
+        }
+        return isCancelled();
     }
 
     public boolean isOpen() {
-        return !close;
+        if (close) {
+            return false;
+        }
+        return !isCancelled();
     }
 
     public StreamObserver<V> getStreamObserver() {

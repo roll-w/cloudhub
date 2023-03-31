@@ -7,7 +7,6 @@ import org.huel.cloudhub.meta.server.service.file.ClientFileDeleteDispatchServic
 import org.huel.cloudhub.meta.server.service.file.ClientFileUploadDispatchService;
 import org.huel.cloudhub.meta.server.service.file.FileStatusService;
 import org.huel.cloudhub.meta.server.service.node.HeartbeatService;
-import org.huel.cloudhub.meta.server.service.node.NodeChannelPool;
 import org.huel.cloudhub.meta.server.service.server.MetaServerStatusService;
 import org.huel.cloudhub.meta.server.service.server.NodeServerStatusService;
 import org.huel.cloudhub.rpc.GrpcProperties;
@@ -79,9 +78,4 @@ public class GrpcMetaServerConfiguration {
                     .priority(Thread.MAX_PRIORITY)
                     .build()
     );
-
-    @Bean
-    public NodeChannelPool nodeChannelPool() {
-        return new NodeChannelPool(grpcProperties);
-    }
 }
