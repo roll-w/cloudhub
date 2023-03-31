@@ -45,5 +45,7 @@ public class FileStorageLocationRepository {
         return dao.getLocationsByFileId(fileId);
     }
 
-
+    public List<FileStorageLocation> getLocationsByServerId(String serverId) {
+        return dao.getLocationsByServerId(serverId);
+    }
 }

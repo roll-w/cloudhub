@@ -1,5 +1,6 @@
 package org.huel.cloudhub.file.fs.meta;
 
+import com.google.protobuf.InvalidProtocolBufferException;
 import org.huel.cloudhub.file.fs.ServerFile;
 import org.huel.cloudhub.file.fs.container.ContainerNameMeta;
 import org.huel.cloudhub.file.fs.container.ContainerType;
@@ -33,7 +34,7 @@ public class ContainerMetaFactory {
     }
 
     public ContainerGroupMeta loadContainerGroupMeta(ServerFile metaFile)
-            throws IOException {
+            throws IOException, MetadataException {
         boolean isReplica = ContainerMetaKeys.isReplicaMetaFile(metaFile.getName());
         try (InputStream inputStream = metaFile.openInput()) {
             if (isReplica) {
@@ -44,13 +45,15 @@ public class ContainerMetaFactory {
             return new LocalContainerGroupMeta(
                     SerializedContainerGroupMeta.parseFrom(inputStream)
             );
+        } catch (InvalidProtocolBufferException e) {
+            throw new MetadataException(e);
         }
     }
 
     public ContainerMeta loadContainerMeta(ServerFile metaFile,
-                                           ContainerLocator containerLocator) throws IOException, MetadataLostException {
+                                           ContainerLocator containerLocator) throws IOException, MetadataException {
         if (!metaFile.exists()) {
-            throw new MetadataLostException("Container meta file lost: " + metaFile.getPath());
+            throw new MetadataLostException(containerLocator.getLocator());
         }
 
         String locator = removeSuffix(metaFile.getName());
@@ -78,27 +81,37 @@ public class ContainerMetaFactory {
                     containerLocator.getVersion(),
                     serializedContainerBlockMeta
             );
+        } catch (InvalidProtocolBufferException e) {
+            throw new MetadataException(e);
         }
     }
 
-    private ContainerNameInfo readNameMeta(String name, boolean replica) {
+    private ContainerNameInfo readNameMeta(String name, boolean replica) throws MetadataException {
         if (replica) {
-            ReplicaContainerNameMeta replicaContainerNameMeta =
-                    ReplicaContainerNameMeta.parse(name);
-            return new ContainerNameInfo(
-                    replicaContainerNameMeta.getName(),
-                    replicaContainerNameMeta.getId(),
-                    replicaContainerNameMeta.getSerial(),
-                    replicaContainerNameMeta.getSourceId()
-            );
+            try {
+                ReplicaContainerNameMeta replicaContainerNameMeta =
+                        ReplicaContainerNameMeta.parse(name);
+                return new ContainerNameInfo(
+                        replicaContainerNameMeta.getName(),
+                        replicaContainerNameMeta.getId(),
+                        replicaContainerNameMeta.getSerial(),
+                        replicaContainerNameMeta.getSourceId()
+                );
+            } catch (Exception e) {
+                throw new MetadataException(e);
+            }
         }
-        ContainerNameMeta containerNameMeta = ContainerNameMeta.parse(name);
-        return new ContainerNameInfo(
-                containerNameMeta.getName(),
-                containerNameMeta.getId(),
-                containerNameMeta.getSerial(),
-                null
-        );
+        try {
+            ContainerNameMeta containerNameMeta = ContainerNameMeta.parse(name);
+            return new ContainerNameInfo(
+                    containerNameMeta.getName(),
+                    containerNameMeta.getId(),
+                    containerNameMeta.getSerial(),
+                    null
+            );
+        } catch (Exception e) {
+            throw new MetadataException(e);
+        }
     }
 
 

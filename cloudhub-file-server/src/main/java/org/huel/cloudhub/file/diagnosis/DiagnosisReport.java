@@ -11,8 +11,13 @@ public class DiagnosisReport<D> {
         this.segments = segments;
     }
 
-    // TODO:
+    public void clear() {
+        segments.clear();
+    }
 
+    public void addSegment(DiagnosisReportSegment<D> segment) {
+        segments.add(segment);
+    }
 
     public List<DiagnosisReportSegment<D>> getSegments() {
         return segments;

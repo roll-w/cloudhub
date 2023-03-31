@@ -5,6 +5,8 @@ import org.huel.cloudhub.file.fs.container.ContainerNameMeta;
 import org.huel.cloudhub.file.fs.container.replica.ReplicaContainerNameMeta;
 import org.huel.cloudhub.file.server.service.file.FileUtils;
 
+import java.util.regex.Pattern;
+
 /**
  * @author RollW
  */
@@ -46,7 +48,12 @@ public final class ContainerMetaKeys {
         if (metaFileName == null) {
             throw new NullPointerException();
         }
-        return metaFileName.contains("_");
+        final String extName = FileUtils.getExtensionName(metaFileName);
+        if (REPLICA_CONTAINER_META_SUFFIX_N.equalsIgnoreCase(extName)) {
+            return true;
+        }
+        String[] parts = metaFileName.split(Pattern.quote("_"));
+        return parts.length == 3;
     }
 
     private ContainerMetaKeys() {

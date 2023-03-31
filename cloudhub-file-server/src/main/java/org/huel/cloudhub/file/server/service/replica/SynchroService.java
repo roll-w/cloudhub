@@ -60,15 +60,11 @@ public class SynchroService extends SynchroServiceGrpc.SynchroServiceImplBase {
             ContainerGroup group = containerFinder.findContainerGroupByFile(fileId, source);
             servers.forEach(server ->
                     checkServerAndBuildReplica(group, fileId, server));
-
         }
-
-    }
-
-    @Override
-    public void deleteContainers(DeleteContainerRequest request,
-                                 StreamObserver<DeleteContainerResponse> responseObserver) {
-        super.deleteContainers(request, responseObserver);
+        SynchroResponse synchroResponse = SynchroResponse.newBuilder()
+                .build();
+        responseObserver.onNext(synchroResponse);
+        responseObserver.onCompleted();
     }
 
     private void checkServerAndBuildReplica(ContainerGroup group, String fileId,
@@ -123,4 +119,11 @@ public class SynchroService extends SynchroServiceGrpc.SynchroServiceImplBase {
         // if there's no source, then the current server must be the master.
         return ContainerFinder.LOCAL;
     }
+
+
+    @Override
+    public void deleteContainers(DeleteContainerRequest request,
+                                 StreamObserver<DeleteContainerResponse> responseObserver) {
+    }
+
 }

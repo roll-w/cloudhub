@@ -21,10 +21,12 @@ message SerializedDamagedContainerReport {
   // all files starting with this id are considered damaged.
   string container_id = 1;
   SerializedContainerType type = 2;
+  optional string source = 3;
   // damaged file ids.
-  repeated string dam_file_id = 3;
+  repeated string dam_file_id = 4;
   // available file ids.
-  repeated string ava_file_id = 4;
+  repeated string ava_file_id = 5;
+  optional bool all_files_damaged = 6;
 }
 
 message SerializedServerStatusReport {

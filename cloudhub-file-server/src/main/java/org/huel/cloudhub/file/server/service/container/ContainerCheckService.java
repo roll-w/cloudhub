@@ -14,6 +14,7 @@ import org.huel.cloudhub.file.fs.container.validate.ContainerValidator;
 import org.huel.cloudhub.file.fs.meta.ContainerGroupMeta;
 import org.huel.cloudhub.file.fs.meta.ContainerMetaFactory;
 import org.huel.cloudhub.file.fs.meta.ContainerMetaKeys;
+import org.huel.cloudhub.file.fs.meta.MetadataException;
 import org.huel.cloudhub.file.fs.meta.MetadataLoader;
 import org.huel.cloudhub.file.io.HasherInputStream;
 import org.huel.cloudhub.file.io.SeekableInputStream;
@@ -52,7 +53,8 @@ public class ContainerCheckService implements ContainerChecker {
     }
 
     @Override
-    public ContainerStatues checkContainer(String containerLocator) throws IOException {
+    public ContainerStatues checkContainer(String containerLocator)
+            throws IOException, MetadataException {
         ServerFile groupMetaFile = localFileServer.getServerFileProvider()
                 .openFile(metaDir, ContainerMetaKeys.toMetaFileName(containerLocator));
         ContainerGroupMeta containerGroupMeta = containerMetaFactory

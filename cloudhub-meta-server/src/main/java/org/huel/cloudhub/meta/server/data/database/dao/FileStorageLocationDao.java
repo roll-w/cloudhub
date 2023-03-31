@@ -43,4 +43,7 @@ public abstract class FileStorageLocationDao {
 
     @Query("SELECT * FROM file_storage_location_table WHERE file_id = {fileId} ORDER BY file_backup DESC")
     public abstract List<FileStorageLocation> getLocationsByFileId(String fileId);
+
+    @Query("SELECT * FROM file_storage_location_table WHERE master_server_id = {serverId} OR replica_server_id LIKE '%'|| {serverId} || '%' ")
+    public abstract List<FileStorageLocation> getLocationsByServerId(String serverId);
 }

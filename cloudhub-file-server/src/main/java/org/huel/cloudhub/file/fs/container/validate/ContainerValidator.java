@@ -54,6 +54,7 @@ public class ContainerValidator {
                 containerStatuses.add(ContainerStatus.META_LOST);
             }
         } catch (MetadataException e) {
+            e.printStackTrace();
             containerStatuses.add(ContainerStatus.META_FAILED);
         }
 

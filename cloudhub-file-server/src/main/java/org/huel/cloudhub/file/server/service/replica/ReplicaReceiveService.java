@@ -29,7 +29,8 @@ import java.util.List;
  */
 @Service
 public class ReplicaReceiveService extends ReplicaServiceGrpc.ReplicaServiceImplBase {
-    private final Logger logger = LoggerFactory.getLogger(ReplicaReceiveService.class);
+    private static final Logger logger = LoggerFactory.getLogger(ReplicaReceiveService.class);
+
     private final ReplicaContainerCreator replicaContainerCreator;
     private final ReplicaContainerDeleter replicaContainerDeleter;
     private final ContainerWriterOpener containerWriterOpener;
@@ -118,7 +119,8 @@ public class ReplicaReceiveService extends ReplicaServiceGrpc.ReplicaServiceImpl
                 return;
             }
             if (value.getReplicaMessageCase() == ReplicaRequest.ReplicaMessageCase.CHECK_MESSAGE) {
-                sendCheckValue(replicaContainer);// TODO: check value
+                sendCheckValue(replicaContainer);
+
                 if (checkLastCheckMessage(value)) {
                     logger.debug("Last replica request, close observer.");
                     responseObserver.onCompleted();
@@ -157,7 +159,7 @@ public class ReplicaReceiveService extends ReplicaServiceGrpc.ReplicaServiceImpl
 
         @Override
         public void onCompleted() {
-            logger.info("On completed.");
+            logger.debug("Replica receive completed.");
             IoUtils.closeQuietly(containerWriter);
         }
 
@@ -168,8 +170,11 @@ public class ReplicaReceiveService extends ReplicaServiceGrpc.ReplicaServiceImpl
             logger.debug("Send check value: cont={}.", container.getLocator());
             try {
                 String value = containerChecker.calculateChecksum(container);
-                responseObserver.onNext(ReplicaResponse.newBuilder()
-                        .setCheckValue(value).build());
+                responseObserver.onNext(
+                        ReplicaResponse.newBuilder()
+                                .setCheckValue(value)
+                                .build()
+                );
             } catch (LockException | IOException e) {
                 logger.error("Container crc32 calc failed.", e);
                 responseObserver.onError(e);

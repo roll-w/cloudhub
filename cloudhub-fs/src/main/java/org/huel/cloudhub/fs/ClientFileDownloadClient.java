@@ -24,7 +24,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @author RollW
  */
 public class ClientFileDownloadClient {
-    private final Logger logger = LoggerFactory.getLogger(ClientFileDownloadClient.class);
+    private static final Logger logger = LoggerFactory.getLogger(ClientFileDownloadClient.class);
     private final FileServerChannelPool fileServerChannelPool;
     private final GrpcServiceStubPool<BlockDownloadServiceGrpc.BlockDownloadServiceStub>
             blockDownloadServiceStubPool;
@@ -137,7 +137,6 @@ public class ClientFileDownloadClient {
         }
 
         private void saveCheckMessage(DownloadBlockResponse.CheckMessage checkMessage) {
-            // TODO:
             logger.debug("receive first download response, request count: {}", checkMessage.getResponseCount());
             responseCount = checkMessage.getResponseCount();
             fileLength = checkMessage.getFileLength();

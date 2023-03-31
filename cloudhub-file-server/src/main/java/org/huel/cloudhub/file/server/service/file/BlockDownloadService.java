@@ -85,7 +85,7 @@ public class BlockDownloadService extends BlockDownloadServiceGrpc.BlockDownload
         DownloadBlockResponse firstResponse = buildFirstResponse(
                 fileBlockMetaInfo,
                 responseCount,
-                "0"
+                fileBlockMetaInfo.getFileId()
         );
         responseObserver.onNext(firstResponse);
         logger.debug("Send first response, responseCount: {}, fileId: {}, source: {}",
@@ -220,7 +220,10 @@ public class BlockDownloadService extends BlockDownloadServiceGrpc.BlockDownload
                         index == 1 ? startOff : 0,
                         endLen);
                 logger.debug("Send download response in the end. block size = {}", read.size());
-                responseObserver.onNext(response);
+                try {
+                    responseObserver.onNext(response);
+                } finally {
+                }
                 return;
             }
             if (index == 1) {
