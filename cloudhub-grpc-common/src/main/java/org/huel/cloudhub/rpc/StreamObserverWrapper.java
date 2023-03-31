@@ -4,6 +4,7 @@ import io.grpc.stub.ServerCallStreamObserver;
 import io.grpc.stub.StreamObserver;
 
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author RollW
@@ -73,9 +74,17 @@ public class StreamObserverWrapper<V> implements StreamObserver<V> {
         if (callStreamObserver == null) {
             return;
         }
+        if (callStreamObserver.isReady()) {
+            return;
+        }
         CountDownLatch countDownLatch = new CountDownLatch(1);
         callStreamObserver.setOnReadyHandler(countDownLatch::countDown);
-        countDownLatch.await();
+        boolean state = countDownLatch.await(500, TimeUnit.MILLISECONDS);
+        if (state) {
+            return;
+        }
+        while (!callStreamObserver.isReady()) {
+        }
     }
 
     public void setOnCancelHandler(Runnable runnable) {
