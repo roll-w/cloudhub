@@ -23,9 +23,9 @@ import space.lingu.light.LightDatabase;
         tables = {User.class, Bucket.class,
                 FileObjectStorage.class, FileReference.class,
                 ObjectMetadata.class, VersionedObject.class,
-                RegisterVerificationToken.class, SettingItem.class},
-        configuration = @LightConfiguration(key = LightConfiguration.KEY_VARCHAR_LENGTH, value = "255"))
+                RegisterVerificationToken.class, SettingItem.class})
 @DataConverters({CloudhubConverter.class})
+@LightConfiguration(key = LightConfiguration.KEY_VARCHAR_LENGTH, value = "255")
 public abstract class CloudhubDatabase extends LightDatabase {
     public abstract FileObjectStorageDao getFileObjectStorageDao();
 

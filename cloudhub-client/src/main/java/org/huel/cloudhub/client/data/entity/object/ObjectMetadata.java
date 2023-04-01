@@ -14,23 +14,23 @@ import java.util.Map;
 /**
  * @author RollW
  */
-@DataTable(tableName = "object_metadata_table")
+@DataTable(name = "object_metadata_table")
 public class ObjectMetadata {
-    @DataColumn(name = "bucket_name", configuration =
-    @LightConfiguration(key = LightConfiguration.KEY_VARCHAR_LENGTH, value = "200"))
+    @DataColumn(name = "bucket_name")
+    @LightConfiguration(key = LightConfiguration.KEY_VARCHAR_LENGTH, value = "200")
     @PrimaryKey
     private String bucketName;
 
-    @DataColumn(name = "object_name", configuration =
-    @LightConfiguration(key = LightConfiguration.KEY_VARCHAR_LENGTH, value = "256"))
+    @DataColumn(name = "object_name")
+    @LightConfiguration(key = LightConfiguration.KEY_VARCHAR_LENGTH, value = "256")
     @PrimaryKey
     private String objectName;
 
     /**
      * Metadata of the object.
      */
-    @DataColumn(name = "object_metadata", configuration =
-    @LightConfiguration(key = LightConfiguration.KEY_VARCHAR_LENGTH, value = "2000"))
+    @DataColumn(name = "object_metadata")
+    @LightConfiguration(key = LightConfiguration.KEY_VARCHAR_LENGTH, value = "2000")
     private Map<String, String> metadata;
 
     public ObjectMetadata(String bucketName, String objectName, Map<String, String> metadata) {

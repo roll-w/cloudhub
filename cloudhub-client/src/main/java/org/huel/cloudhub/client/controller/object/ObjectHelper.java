@@ -92,15 +92,23 @@ public final class ObjectHelper {
                 throw new ObjectRuntimeException(ObjectErrorCode.ERROR_OBJECT_NOT_EXIST);
             }
             long len = objectInfoDto.objectSize();
+            long start = range.getRangeStart(len);
+            long end = range.getRangeEnd(len);
+
+            long contentLength = end - start + 1;
+
             response.setStatus(HttpServletResponse.SC_PARTIAL_CONTENT);
-            response.setHeader("Content-Disposition", "inline;filename=" + objectName);
+            response.setHeader("Content-Disposition", "inline;filename=" + removeSlash(objectName));
             response.setHeader("Content-Range",
-                    "bytes " + range.getRangeStart(len) + "-" + range.getRangeEnd(len) + "/" +
-                            objectInfoDto.objectSize());
+                    "bytes " + start + "-" + end + "/" + objectInfoDto.objectSize());
+//            response.setHeader("Content-Length", String.valueOf(contentLength));
+
             objectService.getObjectData(objectInfo, response.getOutputStream(),
                     range.getRangeStart(len), range.getRangeEnd(len));
             return null;
         }
+        response.setHeader("Content-Length",
+                metadata.get(ObjectMetadataHeaders.OBJECT_LENGTH));
         objectService.getObjectData(objectInfo, response.getOutputStream());
         return null;
     }
@@ -122,6 +130,13 @@ public final class ObjectHelper {
         return HttpResponseEntity.success(ObjectInfoVo.from(res));
     }
 
+
+    private static String removeSlash(String path) {
+        if (path.startsWith("/")) {
+            return path.substring(1);
+        }
+        return path;
+    }
 
     private ObjectHelper() {
     }

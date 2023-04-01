@@ -10,10 +10,9 @@ import space.lingu.light.PrimaryKey;
  *
  * @author RollW
  */
-@DataTable(tableName = "file_reference_table", configuration =
-@LightConfiguration(key = LightConfiguration.KEY_VARCHAR_LENGTH, value = "120"))
+@DataTable(name = "file_reference_table")
+@LightConfiguration(key = LightConfiguration.KEY_VARCHAR_LENGTH, value = "120")
 public class FileReference {
-    // TODO: file reference
     @DataColumn(name = "file_id")
     @PrimaryKey
     private String fileId;

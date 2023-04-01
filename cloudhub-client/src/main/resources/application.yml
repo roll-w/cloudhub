@@ -4,7 +4,15 @@ server:
       cookie:
         name: cloudhub_session
   tomcat:
-    connection-timeout: -1
+    accept-count: 1000
+    max-connections: 2000
+    uri-encoding: UTF-8
+    threads:
+      max: 300
+    max-http-form-post-size: 2048MB
+    connection-timeout: 30000
+    max-keep-alive-requests: 100
+    keep-alive-timeout: 30000
 
 logging:
   charset:
