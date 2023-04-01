@@ -3,6 +3,7 @@ package org.huel.cloudhub.file.fs.container.validate;
 import org.huel.cloudhub.server.rpc.status.SerializedContainerStatusCode;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -37,4 +38,26 @@ public class ContainerStatues {
     public boolean isValid() {
         return valid;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof ContainerStatues that)) return false;
+        return valid == that.valid && Objects.equals(containerStatusCodes, that.containerStatusCodes);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(containerStatusCodes, valid);
+    }
+
+    @Override
+    public String toString() {
+        return "ContainerStatues{" +
+                "containerStatusCodes=" + containerStatusCodes +
+                ", valid=" + valid +
+                '}';
+    }
+
+
 }
