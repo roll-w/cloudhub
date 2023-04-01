@@ -8,15 +8,57 @@
         创建桶
       </button>
       <div class="d-flex flex-fill justify-content-end">
-        <form @submit.prevent="getBucketByName">
-          <div class="input-group">
-            <input v-model="name" type="text" class="form-control"
-                   placeholder="搜索桶......">
-            <button class="btn btn-outline-primary" type="submit">查询</button>
-          </div>
-        </form>
+              <button type="button" class="btn btn-outline-primary"
+                      data-bs-toggle="modal"
+                      data-bs-target="#BucketSingleMessage">
+                  查询
+              </button>
       </div>
     </div>
+
+      <div class="modal fade" ref="UserSingleMessage" id="BucketSingleMessage">
+          <div class="modal-dialog">
+              <div class="modal-content">
+                  <div class="modal-header">
+                      <h5 class="modal-title">查询桶信息</h5>
+                  </div>
+                  <div class="modal-body">
+                      <form @submit.prevent="getBucketByName">
+                          <div class="input-group">
+                              <input v-model="name" type="text" class="form-control"
+                                     placeholder="请输入查询桶的名称">
+                              <button class="btn btn-outline-primary" type="submit">查询</button>
+                          </div>
+                      </form>
+                  </div>
+                  <hr>
+                  <div class="modal-body" v-if="SingleBucket.name!=null">
+                      <h5 style="text-align: center">
+                          桶信息如下
+                      </h5>
+                      <h6> 桶名称:{{SingleBucket.name}}</h6>
+                      <br>
+                      <h6>桶权限:{{SingleBucket.visibility}}</h6>
+                  </div>
+                  <div v-else>
+                      <h5 style="text-align: center">
+                          桶信息如下
+                      </h5>
+                     <h6 style="text-align: center">
+                         待查询....
+                     </h6>
+                  </div>
+                  <div class="modal-footer">
+                      <div class="btn-group">
+                          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                              关闭
+                          </button>
+                      </div>
+                  </div>
+              </div>
+          </div>
+      </div>
+
     <hr>
     <table class="table table-hover text-center">
       <thead class="table-light">
@@ -36,6 +78,7 @@
           <div class="btn-group" role="group">
             <button type="button" class="btn btn-link" @click="checkFile(bucket)">查看</button>
           </div>
+
         </td>
         <td>
           <div class="btn-group" role="group">
@@ -155,7 +198,7 @@
 
 <script setup>
 import ContentBase from "@/components/common/ContentBase";
-import {onMounted, ref} from "vue";
+import {onMounted, reactive, ref} from "vue";
 import {useRouter} from "vue-router";
 import $ from "jquery";
 import url from "@/store/api";
@@ -165,8 +208,13 @@ const bucketName = ref([]);
 const visibility = ref([]);
 const name = ref([]);
 const router = useRouter();
-const bucketVisibilityModel = ref(null)
-const bucketDeleteConfirm = ref(null)
+const bucketVisibilityModel = ref(null);
+const bucketDeleteConfirm = ref(null);
+
+const SingleBucket = reactive({
+    name:null,
+    visibility:null,
+})
 
 const ifAdmin = () => {
   return router.currentRoute.value.name === "bucket_admin_index";
@@ -371,7 +419,8 @@ const getBucketByName = () => {
     success(resp) {
       if (resp.errorCode === "00000") {
         name.value = null;
-        alert("Name: " + resp.data.name + " Email: " + resp.data.bucketVisibility)
+        SingleBucket.name = resp.data.name;
+        SingleBucket.visibility = resp.data.bucketVisibility;
       }
     },
     error(resp) {
