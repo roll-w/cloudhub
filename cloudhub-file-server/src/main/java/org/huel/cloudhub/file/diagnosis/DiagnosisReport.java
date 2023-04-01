@@ -7,6 +7,7 @@ import java.util.List;
  */
 public class DiagnosisReport<D> {
     private final List<DiagnosisReportSegment<D>> segments;
+
     public DiagnosisReport(List<DiagnosisReportSegment<D>> segments) {
         this.segments = segments;
     }
