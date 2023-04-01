@@ -2,17 +2,53 @@
   <ContentBase>
     <h3 class="mb-4">用户信息</h3>
     <div class="d-flex flex-xl-row flex-grow-1">
-      <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#addUser">
-        创建用户
-      </button>
+
       <div class="d-flex flex-fill justify-content-end">
-        <form @submit.prevent="getUserByName">
-          <div class="input-group">
-            <input v-model="name" type="text" class="form-control"
-                   placeholder="搜索用户......">
-            <button class="btn btn-outline-primary" type="submit">查询</button>
+          <button type="button" class="btn btn-outline-primary"
+                  data-bs-toggle="modal"
+                  data-bs-target="#UserSingleMessage">
+              查询用户
+          </button>
+
+          <div class="modal fade" ref="UserSingleMessage" id="UserSingleMessage">
+              <div class="modal-dialog">
+                  <div class="modal-content">
+                      <div class="modal-header">
+                          <h5 class="modal-title">查询用户</h5>
+                      </div>
+                      <div class="modal-body">
+                                  <form @submit.prevent="getUserByName">
+                                    <div class="input-group">
+                                      <input v-model="name" type="text" class="form-control"
+                                             placeholder="搜索用户......">
+                                      <button class="btn btn-outline-primary" type="submit">查询</button>
+                                    </div>
+                                  </form>
+                      </div>
+                      <hr>
+                      <div class="modal-body">
+                          <h5 style="text-align: center">
+                              用户信息如下
+                          </h5>
+                          <h6> id:{{SingleUser.id}}</h6>
+                          <br>
+                          <h6>email:{{SingleUser.email}}</h6>
+                          <br>
+                          <h6>role:{{SingleUser.role}}</h6>
+
+                      </div>
+                      <div class="modal-footer">
+                          <div class="btn-group">
+                              <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                                  关闭
+                              </button>
+                          </div>
+                      </div>
+                  </div>
+              </div>
           </div>
-        </form>
+
+
       </div>
     </div>
 
@@ -38,33 +74,74 @@
 
         <td>
           <div class="btn-group" role="group" aria-label="Basic outlined example">
-            <button type="button"  class="btn btn-link" @click="deleteUserById(user)">删除</button>
-            <button type="button"  class="btn btn-link">修改</button>
+            <button type="button" class="btn btn-link" data-bs-toggle="modal"
+                    :data-cfs-user-id="user.id"
+                    :data-cfs-user-name="user.username"
+                     data-bs-target="#UserDeleteConfirm">
+                  删除
+            </button>
+
+<!--TODO:未置留后端接口-->
+
+<!--            <button type="button"  class="btn btn-link">修改</button>-->
           </div>
         </td>
       </tr>
+
+
+      <div class="modal fade" ref="UserDeleteConfirm" id="UserDeleteConfirm">
+          <div class="modal-dialog">
+              <div class="modal-content">
+                  <div class="modal-header">
+                      <h5 class="modal-title">是否确认删除</h5>
+                  </div>
+                  <div class="modal-body">
+                      <div>是否确认删除用户：{{ username }}</div>
+                  </div>
+                  <div class="modal-footer">
+                      <div class="btn-group">
+                          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                              取消
+                          </button>
+                          <button type="submit" class="btn btn-outline-danger" data-bs-dismiss="modal" @click="deleteUserByID">
+                              确认
+                          </button>
+                      </div>
+                  </div>
+              </div>
+          </div>
+      </div>
       </tbody>
     </table>
   </ContentBase>
 </template>
 
-<script>
+<script setup>
 import ContentBase from "@/components/common/ContentBase";
 // import { Modal } from 'bootstrap/dist/js/bootstrap'
-import {ref} from "vue";
+import {onMounted, reactive, ref} from "vue";
 import $ from 'jquery'
 import url from "@/store/api";
-export default {
-  name: "UserList",
-  components: {
-    ContentBase,
-  },
-  setup() {
-    let username = ref('');
-    let users = ref([]);
-    const addUser = () => {
 
-    }
+
+    let name = ref('')
+    let username = ref('');
+    let userId = ref([]);
+    let users = ref([]);
+    let SingleUser = reactive({
+        id:'',
+        email:"",
+        role:"",
+    });
+    let UserDeleteConfirm = ref(null)
+
+    onMounted(() => {
+        UserDeleteConfirm.value.addEventListener("show.bs.modal", (event) => {
+              const button = event.relatedTarget
+              userId.value = button.getAttribute("data-cfs-user-id")
+              username.value = button.getAttribute("data-cfs-user-name")
+          })
+      });
 
     const getUser = () => {
       $.ajax({
@@ -86,28 +163,44 @@ export default {
 
     getUser();
 
-    const deleteUserById = (user) =>{
-      // $.ajax({
-      //   url: url.url_deleteUserById,
-      //   xhrFields: {
-      //     withCredentials: true
-      //   },
-      //   crossDomain:true,
-      //   type: "POST",
-      //   contentType: "application/x-www-form-urlencoded",
-      //   data: {
-      //     userId: user.id,
-      //   },
-      //   success(resp) {
-      //     if (resp.errorCode === "00000"){
-      //         getUser()
-      //     }
-      //   },
-      //   error(resp){
-      //     console.log(resp);
-      //   }
-      // });
-    };
+    const deleteUserByID = ()=>{
+        deleteUser(userId.value)
+    }
+
+      const deleteUser = (userId) => {
+          $.ajax({
+              url: url.url_deleteUserById,
+              xhrFields: {
+                  withCredentials: true
+              },
+              crossDomain: true,
+              type: "POST",
+              contentType: "application/x-www-form-urlencoded",
+              data: {
+                  userId: userId,
+              },
+              success(resp) {
+                  if (resp.errorCode === "00000") {
+                      getUser()
+                  }
+                  window.$message({
+                      type: "danger",
+                      content: resp.message
+                  })
+                  userId.value = null
+              },
+              error(resp) {
+                  console.log(resp);
+                  window.$message({
+                      type: "danger",
+                      content: resp.responseJSON.message
+                  })
+                  userId.value = null
+              }
+          })
+      };
+
+
 
     const getUserByName = () =>{
       $.ajax({
@@ -116,15 +209,17 @@ export default {
           withCredentials: true
         },
         crossDomain:true,
-        // jsonp: "callback",
         type: "GET",
         data: {
-          username:username.value,
+          username:name.value,
         },
         success(resp) {
           if (resp.errorCode === "00000"){
             // Modal.getInstance("#SearchUser").show();
-            alert("ID: "+resp.data.id+" Email: "+resp.data.email+" Role: "+resp.data.role)
+            // alert("ID: "+resp.data.id+" Email: "+resp.data.email+" Role: "+resp.data.role)
+            SingleUser.id = resp.data.id;
+            SingleUser.email = resp.data.id;
+            SingleUser.role  = resp.data.role;
           }
         },
         error(resp){
@@ -132,17 +227,6 @@ export default {
         }
       });
     }
-
-    return {
-      username,
-      users,
-      addUser,
-      deleteUserById,
-      getUserByName
-    }
-  }
-
-}
 </script>
 
 <style scoped>
