@@ -4,7 +4,9 @@ export function convertTimestamp(timestamp) {
     let M = (date.getMonth() + 1 < 10
         ? '0' + (date.getMonth() + 1)
         : date.getMonth() + 1) + '-'
-    let D = date.getDate() + ' '
+    let D = (date.getDate() < 10
+        ? '0' + date.getDate()
+        : date.getDate()) + ' '
     let h = date.getHours() + ':'
     let mm = date.getMinutes() < 10
         ? '0' + date.getMinutes()
