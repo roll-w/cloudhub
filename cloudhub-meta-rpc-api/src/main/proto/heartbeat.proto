@@ -11,6 +11,11 @@ message BlockProperties {
   int32 block_limit = 2;
 }
 
+message StatusControl {
+  bool stat_next = 1;
+  bool recheck = 2;
+}
+
 message Heartbeat {
   string host = 1;
   int32 port = 2;
@@ -29,6 +34,8 @@ message HeartbeatResponse {
   optional int32 period = 3;
   optional BlockProperties block_properties = 4;
   optional bool contains_stat_next = 5;
+  // force file-server recheck all containers status.
+  optional bool force_recheck = 6;
 }
 
 service HeartbeatService {

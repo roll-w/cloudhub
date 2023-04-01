@@ -1,11 +1,13 @@
 package org.huel.cloudhub.file.server.service.container;
 
+import org.huel.cloudhub.file.diagnosis.Diagnosable;
 import org.huel.cloudhub.file.diagnosis.DiagnosisRecorder;
 import org.huel.cloudhub.file.diagnosis.DiagnosisReportSegment;
 import org.huel.cloudhub.file.diagnosis.SimpleDiagnosisRecorder;
 import org.huel.cloudhub.file.fs.LocalFileServer;
 import org.huel.cloudhub.file.fs.ServerFile;
 import org.huel.cloudhub.file.fs.block.BlockMetaInfo;
+import org.huel.cloudhub.file.fs.block.FileBlockMetaInfo;
 import org.huel.cloudhub.file.fs.container.ChecksumCalculator;
 import org.huel.cloudhub.file.fs.container.Container;
 import org.huel.cloudhub.file.fs.container.ContainerFinder;
@@ -23,6 +25,8 @@ import org.huel.cloudhub.file.fs.meta.ContainerMetaFactory;
 import org.huel.cloudhub.file.fs.meta.ContainerMetaKeys;
 import org.huel.cloudhub.file.fs.meta.MetadataException;
 import org.huel.cloudhub.file.fs.meta.MetadataLoader;
+import org.huel.cloudhub.file.server.service.ContainerDiagnosable;
+import org.huel.cloudhub.server.rpc.status.SerializedContainerStatus;
 import org.huel.cloudhub.server.rpc.status.SerializedContainerType;
 import org.huel.cloudhub.server.rpc.status.SerializedDamagedContainerReport;
 import org.slf4j.Logger;
@@ -40,7 +44,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @SuppressWarnings("all")
 @Service
-public class MetaContainerService {
+public class MetaContainerService implements ContainerDiagnosable {
     private static final Logger logger = LoggerFactory.getLogger(MetaContainerService.class);
 
     private final Map<String, SourcedContainerGroup> sourcedContainerGroupMap =
@@ -82,7 +86,7 @@ public class MetaContainerService {
     private void loadContainers(ServerFile metaDirectory)
             throws IOException, MetadataException {
         List<ServerFile> metaFiles = metaDirectory.listFiles();
-        List<ContainerLocator> allBrokenLocators = new ArrayList<>();
+        List<BrokenContainer> allBrokenLocators = new ArrayList<>();
 
         for (ServerFile metaFile : metaFiles) {
             final String fileName = metaFile.getName();
@@ -91,7 +95,7 @@ public class MetaContainerService {
             }
             ContainerGroupMeta containerGroupMeta =
                     containerMetaFactory.loadContainerGroupMeta(metaFile);
-            List<ContainerLocator> brokenLocators =
+            List<BrokenContainer> brokenLocators =
                     checkChildContainers(containerGroupMeta);
             if (!brokenLocators.isEmpty()) {
                 allBrokenLocators.addAll(brokenLocators);
@@ -113,16 +117,33 @@ public class MetaContainerService {
         }
     }
 
-    private void recordDiagnosisReport(List<ContainerLocator> damagedContainers) {
-        damagedContainers.forEach(containerLocator -> {
+    private void recordDiagnosisReport(List<BrokenContainer> brokenContainers) {
+        List<SerializedContainerStatus> serializedContainerStatuses = new ArrayList<>();
+
+        brokenContainers.forEach(brokenContainer -> {
             SerializedContainerType containerType = ContainerFinder.isLocal(
-                    containerLocator.getLocator()
+                    brokenContainer.containerLocator().getSource()
             ) ? SerializedContainerType.CONTAINER : SerializedContainerType.REPLICA;
+            SerializedContainerStatus serializedContainerStatus =
+                    SerializedContainerStatus.newBuilder()
+                            .setContainerId(brokenContainer.containerLocator().getId())
+                            .setType(containerType)
+                            .setSerial(brokenContainer.containerLocator().getSerial())
+                            .addAllCodes(brokenContainer.containerStatues().serialized())
+                            .setSource(brokenContainer.containerLocator().getSource())
+                            .build();
+            FileCheck fileCheck = checkFile(
+                    brokenContainer.containerLocator().getId(),
+                    brokenContainer.containerLocator().getSerial(),
+                    brokenContainer.containerLocator().getSource(),
+                    brokenContainer.containerStatues()
+            );
             SerializedDamagedContainerReport report = SerializedDamagedContainerReport
                     .newBuilder()
-                    .setContainerId(containerLocator.getId())
-                    .setType(containerType)
-                    .setSource(containerLocator.getSource())
+                    .setStatus(serializedContainerStatus)
+                    .addAllAvaFileId(fileCheck.availableFiles())
+                    .addAllDamFileId(fileCheck.damagedFiles())
+                    .setAllFilesDamaged(fileCheck.isDamaged())
                     .build();
             diagnosisRecorder.record(
                     new DiagnosisReportSegment<>(DiagnosisReportSegment.Type.DAMAGED, report)
@@ -130,10 +151,60 @@ public class MetaContainerService {
         });
     }
 
-    private List<ContainerLocator> checkChildContainers(ContainerGroupMeta containerGroupMeta) throws IOException {
+    private FileCheck checkFile(String containerId,
+                                long serial,
+                                String source,
+                                ContainerStatues containerStatues) {
+        if (!containerStatues.hasContainerBroken()) {
+            return FileCheck.OK;
+        }
+        SourcedContainerGroup sourcedContainerGroup = loadOrCreateGroup(source);
+        if (sourcedContainerGroup == null) {
+            return FileCheck.UNAVALIABLE;
+        }
+        ContainerGroup containerGroup = sourcedContainerGroup.getGroup(containerId);
+        if (containerGroup == null) {
+            return FileCheck.UNAVALIABLE;
+        }
+        List<FileBlockMetaInfo> fileBlockMetaInfos =
+                containerGroup.listFileBlockMetaInfos();
+        List<String> damagedFiles = new ArrayList<>();
+        List<String> availableFiles = new ArrayList<>();
+        for (FileBlockMetaInfo fileBlockMetaInfo : fileBlockMetaInfos) {
+            if (checkIfDamagedFile(fileBlockMetaInfo, serial)) {
+                damagedFiles.add(fileBlockMetaInfo.getFileId());
+            } else {
+                availableFiles.add(fileBlockMetaInfo.getFileId());
+            }
+        }
+
+        return damagedFiles.isEmpty()
+                ? FileCheck.UNAVALIABLE
+                : new FileCheck(availableFiles, damagedFiles, true);
+    }
+
+
+    private boolean checkIfDamagedFile(FileBlockMetaInfo fileBlockMetaInfo,
+                                       long serial) {
+        for (BlockMetaInfo blockMetaInfo : fileBlockMetaInfo.getBlockMetaInfos()) {
+            if (blockMetaInfo.getNextContainerSerial() == serial ||
+                    blockMetaInfo.getContainerSerial() == serial) {
+                return true;
+            }
+            // TODO: check length
+        }
+        return false;
+    }
+
+
+    public SourcedContainerGroup findGroup(String source) {
+        return sourcedContainerGroupMap.get(source);
+    }
+
+    private List<BrokenContainer> checkChildContainers(ContainerGroupMeta containerGroupMeta) throws IOException {
         List<? extends ContainerLocator> containerLocators =
                 containerGroupMeta.getChildLocators();
-        List<ContainerLocator> brokenLocators = new ArrayList<>();
+        List<BrokenContainer> brokenLocators = new ArrayList<>();
         for (ContainerLocator containerLocator : containerLocators) {
             ContainerValidator containerValidator = new ContainerValidator(
                     dataDirectory,
@@ -148,7 +219,12 @@ public class MetaContainerService {
             }
             logger.warn("Broken container: {}, statues: {}.",
                     containerLocator, containerStatues.getContainerStatuses());
-            brokenLocators.add(containerLocator);
+            BrokenContainer brokenContainer = new BrokenContainer(
+                    containerStatues,
+                    containerLocator
+            );
+
+            brokenLocators.add(brokenContainer);
         }
         return brokenLocators;
     }
@@ -198,5 +274,23 @@ public class MetaContainerService {
             sourcedContainerGroupMap.put(source, sourcedContainerGroup);
         }
         return sourcedContainerGroup;
+    }
+
+    @Override
+    public Diagnosable<SerializedDamagedContainerReport> getDiagnosable() {
+        return diagnosisRecorder;
+    }
+
+    private record BrokenContainer(
+            ContainerStatues containerStatues,
+            ContainerLocator containerLocator) {
+    }
+
+    private record FileCheck(
+            List<String> availableFiles,
+            List<String> damagedFiles,
+            boolean isDamaged) {
+        static final FileCheck OK = new FileCheck(List.of(), List.of(), false);
+        static final FileCheck UNAVALIABLE = new FileCheck(List.of(), List.of(), true);
     }
 }

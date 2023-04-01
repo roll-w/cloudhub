@@ -24,7 +24,7 @@ public class CheckService {
         this.checkServiceStubPool = new GrpcServiceStubPool<>();
     }
 
-    public List<SerializedContainerStatus> sendContainerCheckRequest(String id, String source,
+    public List<SerializedContainerCheckStatus> sendContainerCheckRequest(String id, String source,
                                                                      List<Long> serials,
                                                                      SerializedFileServer dest) {
         CheckServiceGrpc.CheckServiceBlockingStub stub =

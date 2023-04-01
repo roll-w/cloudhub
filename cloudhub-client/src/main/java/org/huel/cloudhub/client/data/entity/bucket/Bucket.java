@@ -13,8 +13,8 @@ import space.lingu.light.PrimaryKey;
  * @author RollW
  */
 // TODO:
-@DataTable(tableName = "user_buckets_table", configuration =
-@LightConfiguration(key = LightConfiguration.KEY_VARCHAR_LENGTH, value = "200"))
+@DataTable(name = "user_buckets_table")
+@LightConfiguration(key = LightConfiguration.KEY_VARCHAR_LENGTH, value = "200")
 public class Bucket {
     /**
      * 桶名称由用户指定。
@@ -32,8 +32,8 @@ public class Bucket {
     @DataColumn(name = "bucket_create_time")
     private long createTime;
 
-    @DataColumn(name = "bucket_visibility", configuration =
-    @LightConfiguration(key = LightConfiguration.KEY_VARCHAR_LENGTH, value = "20"))
+    @DataColumn(name = "bucket_visibility")
+    @LightConfiguration(key = LightConfiguration.KEY_VARCHAR_LENGTH, value = "20")
     private BucketVisibility bucketVisibility;
 
     public Bucket(String name, Long userId,

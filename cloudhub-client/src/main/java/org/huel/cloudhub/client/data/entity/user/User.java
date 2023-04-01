@@ -11,11 +11,11 @@ import java.util.Objects;
 /**
  * @author RollW
  */
-@DataTable(tableName = "user_table", configuration =
-@LightConfiguration(key = LightConfiguration.KEY_VARCHAR_LENGTH, value = "120"), indices = {
+@DataTable(name = "user_table", indices = {
         @Index(value = "user_name", unique = true),
         @Index(value = "user_email")
 })
+@LightConfiguration(key = LightConfiguration.KEY_VARCHAR_LENGTH, value = "120")
 @SuppressWarnings({"unused", "UnusedReturnValue"})
 public class User implements UserDetails {
     @PrimaryKey(autoGenerate = true)
@@ -25,8 +25,8 @@ public class User implements UserDetails {
     @DataColumn(name = "user_name", nullable = false)
     private String username;
 
-    @DataColumn(name = "user_role", configuration =
-    @LightConfiguration(key = LightConfiguration.KEY_VARCHAR_LENGTH, value = "20"))
+    @DataColumn(name = "user_role")
+    @LightConfiguration(key = LightConfiguration.KEY_VARCHAR_LENGTH, value = "20")
     private Role role;
 
     @DataColumn(name = "user_password", nullable = false)

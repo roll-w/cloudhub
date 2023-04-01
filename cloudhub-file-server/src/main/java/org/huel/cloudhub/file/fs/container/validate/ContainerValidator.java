@@ -38,44 +38,44 @@ public class ContainerValidator {
 
     public ContainerStatues validate(ChecksumCalculator checksumCalculator)
             throws IOException {
-        Set<ContainerStatus> containerStatuses = check(checksumCalculator);
-        boolean valid = containerStatuses.contains(ContainerStatus.VALID);
-        return new ContainerStatues(containerStatuses, valid);
+        Set<ContainerStatusCode> containerStatusCodes = check(checksumCalculator);
+        boolean valid = containerStatusCodes.contains(ContainerStatusCode.VALID);
+        return new ContainerStatues(containerStatusCodes, valid);
     }
 
-    private Set<ContainerStatus> check(ChecksumCalculator checksumCalculator) throws IOException {
-        Set<ContainerStatus> containerStatuses = new HashSet<>();
+    private Set<ContainerStatusCode> check(ChecksumCalculator checksumCalculator) throws IOException {
+        Set<ContainerStatusCode> containerStatusCodes = new HashSet<>();
         ServerFile containerFile = fileServer.getServerFileProvider()
                 .openFile(dataDirectory, locator);
         ContainerMeta containerMeta = null;
         try {
             containerMeta = tryLoadContainerMeta();
             if (containerMeta == null) {
-                containerStatuses.add(ContainerStatus.META_LOST);
+                containerStatusCodes.add(ContainerStatusCode.META_LOST);
             }
         } catch (MetadataException e) {
             e.printStackTrace();
-            containerStatuses.add(ContainerStatus.META_FAILED);
+            containerStatusCodes.add(ContainerStatusCode.META_FAILED);
         }
 
         boolean containerExists  = containerFile.exists();
         if (!containerExists) {
-            containerStatuses.add(ContainerStatus.CONTAINER_LOST);
+            containerStatusCodes.add(ContainerStatusCode.CONTAINER_LOST);
         }
         if (containerMeta == null) {
             // unable to check checksum
-            return containerStatuses;
+            return containerStatusCodes;
         }
         String containerChecksum = containerMeta.getChecksum();
         String calcedChecksum = checksumCalculator.calculateChecksum(containerFile);
 
         if (!containerChecksum.equals(calcedChecksum)) {
-            containerStatuses.add(ContainerStatus.CONTAINER_LOST);
+            containerStatusCodes.add(ContainerStatusCode.CONTAINER_LOST);
         }
-        if (containerStatuses.isEmpty()) {
-            containerStatuses.add(ContainerStatus.VALID);
+        if (containerStatusCodes.isEmpty()) {
+            containerStatusCodes.add(ContainerStatusCode.VALID);
         }
-        return containerStatuses;
+        return containerStatusCodes;
     }
 
     private ContainerMeta tryLoadContainerMeta() throws IOException, MetadataException {

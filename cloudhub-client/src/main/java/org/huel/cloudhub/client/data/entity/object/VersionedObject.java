@@ -8,14 +8,13 @@ import space.lingu.light.PrimaryKey;
 /**
  * @author RollW
  */
-@DataTable(name = "object_versioned_table", configuration =
-@LightConfiguration(key = LightConfiguration.KEY_VARCHAR_LENGTH, value = "120"))
+@DataTable(name = "object_versioned_table")
+@LightConfiguration(key = LightConfiguration.KEY_VARCHAR_LENGTH, value = "120")
 public class VersionedObject {
-    // TODO: Versioned Object
     public static final long INVALID_VERSION = -1L;
 
-    @DataColumn(name = "bucket_name", configuration =
-    @LightConfiguration(key = LightConfiguration.KEY_VARCHAR_LENGTH, value = "200"))
+    @DataColumn(name = "bucket_name")
+    @LightConfiguration(key = LightConfiguration.KEY_VARCHAR_LENGTH, value = "200")
     @PrimaryKey
     private String bucketName;
 

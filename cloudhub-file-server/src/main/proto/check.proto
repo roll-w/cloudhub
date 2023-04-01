@@ -10,14 +10,14 @@ message CheckRequest {
   optional string source = 3;
 }
 
-message SerializedContainerStatus {
+message SerializedContainerCheckStatus {
   int64 serial = 1;
   string check_value = 2;
   bool meta_damaged = 3;
 }
 
 message CheckResponse {
-  repeated SerializedContainerStatus status = 1;
+  repeated SerializedContainerCheckStatus status = 1;
 }
 
 service CheckService {

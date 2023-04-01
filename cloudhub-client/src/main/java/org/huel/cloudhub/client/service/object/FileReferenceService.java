@@ -56,6 +56,6 @@ public class FileReferenceService implements
 
     @Override
     public void handleBucketDelete(String bucketName) {
-        // TODO: needs other services' help
+        // TODO:
     }
 }

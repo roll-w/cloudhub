@@ -9,7 +9,7 @@ import space.lingu.light.PrimaryKey;
 /**
  * @author RollW
  */
-@DataTable(tableName = "setting_table")
+@DataTable(name = "setting_table")
 public record SettingItem(
         @NonNull
         @PrimaryKey

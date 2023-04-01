@@ -10,23 +10,40 @@ enum SerializedServerStatusCode {
   DOWN = 2;
 }
 
+enum SerializedContainerStatusCode {
+  META_LOST = 0;
+  META_FAILED = 1;
+  CONTAINER_LOST = 2;
+  CONTAINER_FAILED = 3;
+  VALID = 4;
+}
+
 enum SerializedContainerType {
   CONTAINER = 0;
   REPLICA = 1;
+}
+
+message SerializedContainerStatus {
+  string container_id = 1;
+  int64 serial = 2;
+  SerializedContainerType type = 3;
+  // if only meta is damaged and can infer the file info,
+  // we can still read the data.
+  repeated SerializedContainerStatusCode codes = 4;
+  optional string checksum = 5;
+  optional string source = 6;
 }
 
 // also record the replica error, and
 message SerializedDamagedContainerReport {
   // If the specific damaged file cannot be located,
   // all files starting with this id are considered damaged.
-  string container_id = 1;
-  SerializedContainerType type = 2;
-  optional string source = 3;
+  SerializedContainerStatus status = 1;
   // damaged file ids.
-  repeated string dam_file_id = 4;
+  repeated string dam_file_id = 2;
   // available file ids.
-  repeated string ava_file_id = 5;
-  optional bool all_files_damaged = 6;
+  repeated string ava_file_id = 3;
+  optional bool all_files_damaged = 4;
 }
 
 message SerializedServerStatusReport {

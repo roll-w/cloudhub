@@ -9,15 +9,28 @@ import org.huel.cloudhub.file.fs.FileAllocator;
 import org.huel.cloudhub.file.fs.LocalFileServer;
 import org.huel.cloudhub.file.fs.ServerFile;
 import org.huel.cloudhub.file.fs.block.BlockMetaInfo;
-import org.huel.cloudhub.file.fs.container.*;
+import org.huel.cloudhub.file.fs.container.Container;
+import org.huel.cloudhub.file.fs.container.ContainerAllocator;
+import org.huel.cloudhub.file.fs.container.ContainerChecker;
+import org.huel.cloudhub.file.fs.container.ContainerDeleter;
+import org.huel.cloudhub.file.fs.container.ContainerFinder;
+import org.huel.cloudhub.file.fs.container.ContainerGroup;
+import org.huel.cloudhub.file.fs.container.ContainerIdentity;
+import org.huel.cloudhub.file.fs.container.ContainerLocation;
+import org.huel.cloudhub.file.fs.container.ContainerNameMeta;
+import org.huel.cloudhub.file.fs.container.ContainerProperties;
+import org.huel.cloudhub.file.fs.container.ContainerType;
 import org.huel.cloudhub.file.fs.container.replica.ReplicaContainerDeleter;
 import org.huel.cloudhub.file.fs.container.replica.ReplicaContainerFinder;
 import org.huel.cloudhub.file.fs.container.replica.ReplicaContainerLoader;
-import org.huel.cloudhub.file.fs.container.replica.ReplicaContainerNameMeta;
-import org.huel.cloudhub.file.fs.meta.*;
-import org.huel.cloudhub.file.server.service.container.event.OnCheckContainerFailureEvent;
-import org.huel.cloudhub.server.rpc.status.SerializedContainerType;
-import org.huel.cloudhub.server.rpc.status.SerializedDamagedContainerReport;
+import org.huel.cloudhub.file.fs.meta.ContainerMetaKeys;
+import org.huel.cloudhub.file.fs.meta.MetaReadWriteHelper;
+import org.huel.cloudhub.file.fs.meta.MetadataException;
+import org.huel.cloudhub.file.fs.meta.MetadataLostException;
+import org.huel.cloudhub.file.fs.meta.SerializedContainerBlockMeta;
+import org.huel.cloudhub.file.fs.meta.SerializedContainerGroupMeta;
+import org.huel.cloudhub.file.fs.meta.SerializedContainerMeta;
+import org.huel.cloudhub.file.fs.meta.SerializedReplicaContainerGroupMeta;
 import org.huel.cloudhub.util.math.Maths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,7 +39,10 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * @author RollW
@@ -34,17 +50,16 @@ import java.util.*;
 @Service
 public class ContainerService implements ContainerAllocator,
         ContainerFinder, ContainerDeleter {
+    private static final Logger logger = LoggerFactory.getLogger(ContainerService.class);
+
     private final Cache<String, ContainerGroup> containerCache =
             Caffeine.newBuilder()
                     .build();
     private final ContainerProperties containerProperties;
-    private final ContainerChecker containerChecker;
     private final ReplicaContainerLoader replicaContainerLoader;
     private final ReplicaContainerFinder replicaContainerFinder;
     private final ReplicaContainerDeleter replicaContainerDeleter;
     private final LocalFileServer localFileServer;
-    private final ApplicationEventPublisher eventPublisher;
-    private final Logger logger = LoggerFactory.getLogger(ContainerService.class);
     private final ServerFile containerDir;
 
     public ContainerService(ContainerProperties containerProperties,
@@ -55,12 +70,10 @@ public class ContainerService implements ContainerAllocator,
                             LocalFileServer localFileServer,
                             ApplicationEventPublisher eventPublisher) throws IOException {
         this.containerProperties = containerProperties;
-        this.containerChecker = containerChecker;
         this.replicaContainerLoader = replicaContainerLoader;
         this.replicaContainerFinder = replicaContainerFinder;
         this.replicaContainerDeleter = replicaContainerDeleter;
         this.localFileServer = localFileServer;
-        this.eventPublisher = eventPublisher;
         this.containerDir =
                 localFileServer.getServerFileProvider().openFile(containerProperties.getContainerPath());
         loadContainers();
@@ -71,8 +84,6 @@ public class ContainerService implements ContainerAllocator,
                 localFileServer.getServerFileProvider().openFile(containerProperties.getMetaPath());
         metaDir.mkdirs();
         containerDir.mkdirs();
-        Set<String> damagedContainerLocators = new HashSet<>();
-        Set<String> healthyContainerLocators = new HashSet<>();
 
         List<ServerFile> metaFiles = metaDir.listFiles();
         List<SerializedContainerMeta> serializedContainerMetas = new ArrayList<>();
@@ -96,139 +107,11 @@ public class ContainerService implements ContainerAllocator,
             Container container = null;
             try {
                 container = loadInContainer(serializedContainerMeta);
-                healthyContainerLocators.add(serializedContainerMeta.getLocator());
             } catch (MetadataLostException e) {
-                logger.info("Found meta or container lost of container={}.", e.getContainerLocator());
-                damagedContainerLocators.add(e.getContainerLocator());
+                logger.debug("Found meta or container lost of container={}.", e.getContainerLocator());
             }
             updatesContainerInContainerGroup(container);
         }
-        checkContainerFiles(healthyContainerLocators, damagedContainerLocators);
-    }
-
-    // TODO: move to ContainerChecker
-    @Async
-    void checkContainerFiles(Set<String> healthyLocators,
-                             Set<String> damagedLocators) throws IOException {
-        Set<Container> unindexedContainers = new HashSet<>();
-        // TODO: check containers
-        if (containerDir.exists()) {
-            List<ServerFile> files =
-                    containerDir.listFiles();
-            for (ServerFile file : files) {
-                checkContainerState(file, healthyLocators);
-            }
-        }
-    }
-
-    private void checkContainerState(ServerFile file, Set<String> healthyLocators) throws IOException {
-        String locator = file.getName();
-        if (locator.contains(".")) {
-            return;
-        }
-        if (healthyLocators.contains(locator)) {
-            return;
-        }
-        if (locator.contains("-")) {
-            checkContainerStateIfReplica(file, locator);
-            return;
-        }
-        checkContainerStateIfContainer(file, locator);
-    }
-
-    private void checkContainerStateIfReplica(ServerFile file, String locator) throws IOException {
-        ServerFile metaFile = localFileServer.getServerFileProvider()
-                .openFile(containerDir, locator + ContainerLocation.REPLICA_META_SUFFIX);
-        ReplicaContainerNameMeta meta = ReplicaContainerNameMeta.parse(locator);
-        ContainerGroup group = findGroup(meta.getId(), meta.getSourceId());
-        if (!metaFile.exists()) {
-            OnCheckContainerFailureEvent event = createExistList(
-                    group, meta.getId(), SerializedContainerType.REPLICA);
-            eventPublisher.publishEvent(event);
-            return;
-        }
-        try {
-            SerializedContainerBlockMeta containerBlockMeta =
-                    MetaReadWriteHelper.readContainerBlockMeta(metaFile);
-        } catch (IOException e) {
-            OnCheckContainerFailureEvent event = createExistList(
-                    group, meta.getId(), SerializedContainerType.REPLICA);
-            eventPublisher.publishEvent(event);
-            return;
-        }
-    }
-
-    private void checkContainerStateIfContainer(ServerFile containerFile, String locator) throws IOException {
-        ServerFile metaFile = localFileServer.getServerFileProvider()
-                .openFile(containerDir, locator + ContainerLocation.META_SUFFIX);
-        ContainerNameMeta meta = ContainerNameMeta.parse(locator);
-        ContainerGroup group = findGroup(meta.getId(), ContainerFinder.LOCAL);
-        if (!metaFile.exists()) {
-            // index lost, meta lost. cannot get container info anymore.
-            OnCheckContainerFailureEvent event = createExistList(
-                    group, meta.getId(), SerializedContainerType.CONTAINER);
-            eventPublisher.publishEvent(event);
-            return;
-        }
-        // try parse meta
-        try {
-            SerializedContainerBlockMeta containerBlockMeta =
-                    MetaReadWriteHelper.readContainerBlockMeta(metaFile);
-
-            String crc = containerChecker.calculateChecksum(containerFile);
-            String savedCrc = containerBlockMeta.getCrc();
-            if (!Objects.equals(crc, savedCrc)) {
-                // we don't know which one is damaged, so it's unreliable
-                OnCheckContainerFailureEvent event = createExistList(group, meta.getId(),
-                        SerializedContainerType.CONTAINER);
-                eventPublisher.publishEvent(event);
-                return;
-            }
-        } catch (IOException e) {
-            // meta damaged.
-            OnCheckContainerFailureEvent event = createExistList(group, meta.getId(),
-                    SerializedContainerType.CONTAINER);
-            eventPublisher.publishEvent(event);
-            return;
-        }
-        // healthy container
-        SerializedContainerMeta serializedContainerMeta =
-                SerializedContainerMeta.newBuilder()
-                        .setVersion(0)
-                        .setLocator(locator)
-                        .build();
-        // needs to get version from synchro process
-    }
-
-    private OnCheckContainerFailureEvent createExistList(ContainerGroup containerGroup,
-                                                         String containerId,
-                                                         SerializedContainerType serializedContainerType) {
-        if (containerGroup == null) {
-            SerializedDamagedContainerReport report = SerializedDamagedContainerReport.newBuilder()
-                    .setContainerId(containerId)
-                    .setType(serializedContainerType)
-                    .build();
-            return new OnCheckContainerFailureEvent(report);
-        }
-
-        List<String> avaFiles = new ArrayList<>(containerGroup.getFileIds());
-        SerializedDamagedContainerReport report = SerializedDamagedContainerReport.newBuilder()
-                .addAllAvaFileId(avaFiles)
-                .setType(serializedContainerType)
-                .build();
-        return new OnCheckContainerFailureEvent(report);
-    }
-
-    private OnCheckContainerFailureEvent createDamagedList(ContainerGroup containerGroup,
-                                                           long serial,
-                                                           SerializedContainerType serializedContainerType) {
-        // container missed, but meta info is available.
-        List<String> damFiles = new ArrayList<>();
-        SerializedDamagedContainerReport report = SerializedDamagedContainerReport.newBuilder()
-                .addAllDamFileId(damFiles)
-                .setType(serializedContainerType)
-                .build();
-        return new OnCheckContainerFailureEvent(report);
     }
 
     private Container loadInContainer(SerializedContainerMeta serializedContainerMeta) throws IOException, MetadataLostException {

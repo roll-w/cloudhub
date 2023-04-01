@@ -10,7 +10,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author RollW
  */
 public class RegisterNodeAllocator implements
-        ServerEventRegistry.ServerEventCallback, NodeAllocator {
+        ServerEventRegistry.ServerEventCallback, NodeAllocator, NodeWeightUpdater {
     private final NodeWeightProvider nodeWeightProvider;
     private final Map<String, NodeServer> nodeServers =
             new ConcurrentHashMap<>();
@@ -31,7 +31,17 @@ public class RegisterNodeAllocator implements
 
     @Override
     public NodeServer allocateNode(String fileId) {
-        return serverConsistentHashMap.allocateServer(fileId);
+        if (nodeServers.isEmpty()) {
+            throw new NodeServerException("No file server connected.");
+        }
+
+        NodeServer nodeServer =  serverConsistentHashMap.allocateServer(fileId);
+        if (nodeServer == null) {
+            throw new NodeServerException("No file server available, " +
+                    "probably all servers are down or no storage space available.");
+        }
+
+        return nodeServer;
     }
 
     @Override
@@ -48,11 +58,21 @@ public class RegisterNodeAllocator implements
     @Override
     public void removeActiveServer(NodeServer nodeServer) {
         serverConsistentHashMap.removeServer(nodeServer);
+        // refresh server's weight at a fixed rate
     }
 
     @Override
     public void addActiveServer(NodeServer nodeServer) {
         int weight = nodeWeightProvider.getWeightOf(nodeServer);
         serverConsistentHashMap.addServer(nodeServer, weight);
+    }
+
+    @Override
+    public void onNewNodeWeight(String nodeId, int weight) {
+        NodeServer nodeServer = nodeServers.get(nodeId);
+        if (nodeServer == null) {
+            return;
+        }
+        serverConsistentHashMap.setServerWeight(nodeServer, weight);
     }
 }
