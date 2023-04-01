@@ -62,7 +62,7 @@ public class ContainerValidator {
         if (!containerExists) {
             containerStatusCodes.add(ContainerStatusCode.CONTAINER_LOST);
         }
-        if (containerMeta == null) {
+        if (containerMeta == null || !containerExists) {
             // unable to check checksum
             return containerStatusCodes;
         }

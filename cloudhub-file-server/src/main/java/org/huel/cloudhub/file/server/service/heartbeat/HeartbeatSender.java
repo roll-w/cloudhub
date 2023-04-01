@@ -41,7 +41,7 @@ public class HeartbeatSender {
     private HeartbeatResponse lastResponse;
 
     public HeartbeatResponse sendHeartbeat() {
-        boolean sendStat = lastResponse != null &&
+        boolean sendStat = lastResponse == null ||
                 lastResponse.hasContainsStatNext() && lastResponse.getContainsStatNext();
 
         Heartbeat.Builder heartbeatBuilder = Heartbeat.newBuilder()

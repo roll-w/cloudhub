@@ -15,7 +15,7 @@ import org.huel.cloudhub.file.fs.container.ContainerGroup;
 import org.huel.cloudhub.file.fs.container.ContainerIdentity;
 import org.huel.cloudhub.file.fs.container.ContainerLocation;
 import org.huel.cloudhub.file.fs.container.ContainerProperties;
-import org.huel.cloudhub.file.fs.container.replica.SourcedContainerGroup;
+import org.huel.cloudhub.file.fs.container.SourcedContainerGroup;
 import org.huel.cloudhub.file.fs.container.validate.ContainerStatues;
 import org.huel.cloudhub.file.fs.container.validate.ContainerValidator;
 import org.huel.cloudhub.file.fs.meta.ContainerGroupMeta;
@@ -91,6 +91,8 @@ public class MetaContainerService implements ContainerDiagnosable {
         for (ServerFile metaFile : metaFiles) {
             final String fileName = metaFile.getName();
             if (!ContainerMetaKeys.isMetaFile(fileName)) {
+                logger.debug("Detected non-meta file: {} in the meta directory.",
+                        fileName);
                 continue;
             }
             ContainerGroupMeta containerGroupMeta =
@@ -143,7 +145,7 @@ public class MetaContainerService implements ContainerDiagnosable {
                     .setStatus(serializedContainerStatus)
                     .addAllAvaFileId(fileCheck.availableFiles())
                     .addAllDamFileId(fileCheck.damagedFiles())
-                    .setAllFilesDamaged(fileCheck.isDamaged())
+                    .setAllFilesBroken(fileCheck.isDamaged())
                     .build();
             diagnosisRecorder.record(
                     new DiagnosisReportSegment<>(DiagnosisReportSegment.Type.DAMAGED, report)
@@ -179,7 +181,7 @@ public class MetaContainerService implements ContainerDiagnosable {
         }
 
         return damagedFiles.isEmpty()
-                ? FileCheck.UNAVALIABLE
+                ? new FileCheck(availableFiles, damagedFiles, false)
                 : new FileCheck(availableFiles, damagedFiles, true);
     }
 

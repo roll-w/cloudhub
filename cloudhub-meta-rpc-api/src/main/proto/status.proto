@@ -43,7 +43,7 @@ message SerializedDamagedContainerReport {
   repeated string dam_file_id = 2;
   // available file ids.
   repeated string ava_file_id = 3;
-  optional bool all_files_damaged = 4;
+  optional bool all_files_broken = 4;
 }
 
 message SerializedServerStatusReport {

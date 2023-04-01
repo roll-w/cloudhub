@@ -1,4 +1,4 @@
-package org.huel.cloudhub.file.fs.container.replica;
+package org.huel.cloudhub.file.fs.container;
 
 import org.huel.cloudhub.file.fs.container.Container;
 import org.huel.cloudhub.file.fs.container.ContainerGroup;

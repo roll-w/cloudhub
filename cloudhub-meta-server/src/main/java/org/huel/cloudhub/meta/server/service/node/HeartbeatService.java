@@ -12,9 +12,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -22,7 +22,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 @Service
 public class HeartbeatService extends HeartbeatServiceGrpc.HeartbeatServiceImplBase
-        implements NodeWeightProvider, ServerEventRegistry {
+        implements NodeWeightProvider, ServerEventRegistry, ContainerStatusProvider,
+        ServerEventRegistry.ServerEventCallback {
     private static final Logger logger = LoggerFactory.getLogger(HeartbeatService.class);
 
     private final HeartbeatServerProperties heartbeatServerProperties;
@@ -30,8 +31,11 @@ public class HeartbeatService extends HeartbeatServiceGrpc.HeartbeatServiceImplB
     private final RegisterNodeAllocator registerNodeAllocator;
     private final int timeoutTime;
 
-    private final Map<String, Integer> weightMap = new HashMap<>();
-    private final Map<String, AtomicInteger> counterMap = new HashMap<>();
+    private final Map<String, Integer> weightMap = new ConcurrentHashMap<>();
+    private final Map<String, AtomicInteger> counterMap = new ConcurrentHashMap<>();
+
+    private final Map<String, List<SerializedDamagedContainerReport>> nodeDamagedContainerReports
+            = new ConcurrentHashMap<>();
 
     public HeartbeatService(HeartbeatServerProperties heartbeatServerProperties) {
         this.heartbeatServerProperties = heartbeatServerProperties;
@@ -40,6 +44,7 @@ public class HeartbeatService extends HeartbeatServiceGrpc.HeartbeatServiceImplB
         this.heartbeatWatcherPool = new HeartbeatWatcherPool(
                 heartbeatServerProperties.getStandardPeriod(),
                 heartbeatServerProperties.getTimeoutCycle());
+        heartbeatWatcherPool.registerCallback(this);
         heartbeatWatcherPool.registerCallback(registerNodeAllocator);
         heartbeatWatcherPool.start();
     }
@@ -91,11 +96,15 @@ public class HeartbeatService extends HeartbeatServiceGrpc.HeartbeatServiceImplB
 
         List<SerializedDamagedContainerReport> containerReports =
                 statusReport.getReportList();
+
+        // should not be any other thread to access this map.
+        nodeDamagedContainerReports.put(heartbeat.getId(), containerReports);
+
         if (!containerReports.isEmpty()) {
-            logger.warn("Node '{}' has damaged containers, containers: {}",
-                    heartbeat.getId(),
-                    containerReports
-            );
+            // logger.warn("Node '{}' has damaged containers, containers: {}",
+            //         heartbeat.getId(),
+            //         containerReports
+            // );
         }
 
         Map<String, String> status = statusReport.getStatusMap();
@@ -158,5 +167,35 @@ public class HeartbeatService extends HeartbeatServiceGrpc.HeartbeatServiceImplB
     @Override
     public void registerCallback(ServerEventCallback serverEventCallback) {
         heartbeatWatcherPool.registerCallback(serverEventCallback);
+    }
+
+    @Override
+    public List<SerializedDamagedContainerReport> getDamagedContainerReports(
+            NodeServer nodeServer) {
+        return nodeDamagedContainerReports.get(nodeServer.getId());
+    }
+
+    @Override
+    public List<ServerContainerStatus> getDamagedContainerReports() {
+        return nodeDamagedContainerReports
+                .entrySet()
+                .stream()
+                .map(entry ->
+                        new ServerContainerStatus(entry.getKey(), entry.getValue()))
+                .toList();
+    }
+
+    @Override
+    public void registerServer(NodeServer server) {
+    }
+
+    @Override
+    public void removeActiveServer(NodeServer nodeServer) {
+        nodeDamagedContainerReports.remove(nodeServer.getId());
+        weightMap.put(nodeServer.getId(), 0);
+    }
+
+    @Override
+    public void addActiveServer(NodeServer nodeServer) {
     }
 }

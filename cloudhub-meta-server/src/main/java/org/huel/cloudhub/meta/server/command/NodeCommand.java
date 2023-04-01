@@ -3,6 +3,7 @@ package org.huel.cloudhub.meta.server.command;
 import org.huel.cloudhub.meta.server.service.node.HeartbeatService;
 import org.huel.cloudhub.meta.server.service.node.HeartbeatWatcher;
 import org.huel.cloudhub.meta.server.service.node.NodeServer;
+import org.huel.cloudhub.meta.server.service.node.ServerContainerStatus;
 import org.springframework.shell.standard.AbstractShellComponent;
 import org.springframework.shell.standard.ShellComponent;
 import org.springframework.shell.standard.ShellMethod;
@@ -10,6 +11,7 @@ import org.springframework.shell.standard.ShellOption;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.List;
 
 /**
  * 调试用
@@ -38,6 +40,7 @@ public class NodeCommand extends AbstractShellComponent {
             case "show" -> showActiveNodes();
             case "heartbeat" -> showActiveHeartbeatWatchers();
             case "mapping" -> testMapping(key);
+            case "status" -> containerStatus();
             default -> getTerminal().writer().println("Unknown node command '%s'.".formatted(option));
         }
         getTerminal().writer().flush();
@@ -66,6 +69,17 @@ public class NodeCommand extends AbstractShellComponent {
         NodeServer server = heartbeatService.getNodeAllocator().allocateNode(key);
         getTerminal().writer().printf("test mapping key %s.\nmapping to: %s\n", key,
                 server);
+        getTerminal().writer().flush();
+    }
+
+    private void containerStatus() {
+        List<ServerContainerStatus> statuses =
+                heartbeatService.getDamagedContainerReports();
+        getTerminal().writer().printf("shows all damaged container reports: reports count = [%d]\n",
+                statuses.size());
+        statuses.forEach(status ->
+                getTerminal().writer().printf("server: %s, reports: %s\n",
+                        status.serverId(), status.damagedContainerReports()));
         getTerminal().writer().flush();
     }
 }

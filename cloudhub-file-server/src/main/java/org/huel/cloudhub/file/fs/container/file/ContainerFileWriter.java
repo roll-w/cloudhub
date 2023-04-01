@@ -81,7 +81,7 @@ public class ContainerFileWriter implements Closeable {
                                int endIndex, long validBytes) {
     }
 
-    private final Logger logger = LoggerFactory.getLogger(ContainerFileWriter.class);
+    private static final Logger logger = LoggerFactory.getLogger(ContainerFileWriter.class);
 
     private volatile WriteResult lastResult = null;
 
