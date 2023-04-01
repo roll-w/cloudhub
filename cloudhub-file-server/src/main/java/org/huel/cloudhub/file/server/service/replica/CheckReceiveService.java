@@ -8,7 +8,7 @@ import org.huel.cloudhub.file.fs.container.ContainerGroup;
 import org.huel.cloudhub.file.rpc.replica.CheckRequest;
 import org.huel.cloudhub.file.rpc.replica.CheckResponse;
 import org.huel.cloudhub.file.rpc.replica.CheckServiceGrpc;
-import org.huel.cloudhub.file.rpc.replica.SerializedContainerStatus;
+import org.huel.cloudhub.file.rpc.replica.SerializedContainerCheckStatus;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -44,7 +44,7 @@ public class CheckReceiveService extends CheckServiceGrpc.CheckServiceImplBase {
             responseObserver.onCompleted();
             return;
         }
-        List<SerializedContainerStatus> statuses = new ArrayList<>();
+        List<SerializedContainerCheckStatus> statuses = new ArrayList<>();
         CountDownLatch latch = new CountDownLatch(group.containers().size());
         group.containers().stream()
                 .filter(container -> serials.contains(container.getSerial()))
@@ -59,7 +59,7 @@ public class CheckReceiveService extends CheckServiceGrpc.CheckServiceImplBase {
                         e.printStackTrace();
                         metaDamaged = true;
                     }
-                    SerializedContainerStatus status = SerializedContainerStatus.newBuilder()
+                    SerializedContainerCheckStatus status = SerializedContainerCheckStatus.newBuilder()
                             .setMetaDamaged(metaDamaged)
                             .setSerial(container.getSerial())
                             .setCheckValue(checkValue)

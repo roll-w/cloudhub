@@ -6,7 +6,7 @@ import org.huel.cloudhub.file.fs.block.BlockGroupsInfo;
 import org.huel.cloudhub.file.fs.container.Container;
 import org.huel.cloudhub.file.fs.container.ContainerFinder;
 import org.huel.cloudhub.file.fs.container.ContainerGroup;
-import org.huel.cloudhub.file.rpc.replica.SerializedContainerStatus;
+import org.huel.cloudhub.file.rpc.replica.SerializedContainerCheckStatus;
 import org.huel.cloudhub.file.rpc.synchro.DeleteContainerRequest;
 import org.huel.cloudhub.file.rpc.synchro.DeleteContainerResponse;
 import org.huel.cloudhub.file.rpc.synchro.SynchroRequest;
@@ -74,7 +74,7 @@ public class SynchroService extends SynchroServiceGrpc.SynchroServiceImplBase {
                 .stream().map(Container::getSerial)
                 .toList();
 
-        List<SerializedContainerStatus> statuses = checkService.sendContainerCheckRequest(
+        List<SerializedContainerCheckStatus> statuses = checkService.sendContainerCheckRequest(
                 group.getContainerId(),
                 group.getSourceId(),
                 serials,
@@ -83,9 +83,9 @@ public class SynchroService extends SynchroServiceGrpc.SynchroServiceImplBase {
 
         Set<Long> needSync = new HashSet<>();
         List<Long> recvSerials = statuses.stream()
-                .map(SerializedContainerStatus::getSerial)
+                .map(SerializedContainerCheckStatus::getSerial)
                 .toList();
-        for (SerializedContainerStatus status : statuses) {
+        for (SerializedContainerCheckStatus status : statuses) {
             long serial = status.getSerial();
             String recvCheck = status.getCheckValue();
             Container container = group.getContainer(serial);

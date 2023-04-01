@@ -148,4 +148,13 @@ public class ContainerGroup {
                 last.getValidBytes());
     }
 
+
+    public List<FileBlockMetaInfo> listFileBlockMetaInfos() {
+        List<FileBlockMetaInfo> fileBlockMetaInfos = new ArrayList<>();
+        for (String fileId : fileIds) {
+            FileBlockMetaInfo fileBlockMetaInfo = getFileBlockMetaInfo(fileId);
+            fileBlockMetaInfos.add(fileBlockMetaInfo);
+        }
+        return fileBlockMetaInfos;
+    }
 }

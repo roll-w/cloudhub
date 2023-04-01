@@ -31,6 +31,16 @@ public class ConsistentHashServerMap<S extends ConsistentHashServerMap.Server> {
         }
     }
 
+    public void setServerWeight(S server, int newWeight) {
+        synchronized (mLock) {
+            ServerWeight<S> serverWeight = new ServerWeight<>(server, newWeight);
+            serverWeights.removeIf(sServerWeight ->
+                    Objects.equals(sServerWeight.server.getId(), server.getId()));
+            serverWeights.add(serverWeight);
+            remappingServers();
+        }
+    }
+
     public void setServerWeights(List<ServerWeight<S>> serverWeights) {
         synchronized (mLock) {
             this.serverWeights.clear();
@@ -62,7 +72,7 @@ public class ConsistentHashServerMap<S extends ConsistentHashServerMap.Server> {
         }
         for (ServerWeight<S> server : serverWeights) {
             int weight = 1;
-            if (server.weight >= DISABLE_WEIGHT) {
+            if (server.weight > DISABLE_WEIGHT) {
                 weight = server.weight;
             }
             long nodes = mappingToVirtualNodes(weight, totalWeight, serverWeights.size());

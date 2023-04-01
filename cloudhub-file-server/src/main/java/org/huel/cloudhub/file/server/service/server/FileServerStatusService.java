@@ -4,10 +4,20 @@ import io.grpc.stub.StreamObserver;
 import org.huel.cloudhub.file.fs.LocalFileServer;
 import org.huel.cloudhub.file.fs.ServerFile;
 import org.huel.cloudhub.file.fs.container.ContainerProperties;
+import org.huel.cloudhub.file.server.service.Monitorable;
 import org.huel.cloudhub.server.ServerHostInfo;
 import org.huel.cloudhub.server.ServerInfoSerializeHelper;
 import org.huel.cloudhub.server.ServerStatusMonitor;
-import org.huel.cloudhub.server.rpc.server.*;
+import org.huel.cloudhub.server.rpc.server.SerializedDiskUsageInfo;
+import org.huel.cloudhub.server.rpc.server.SerializedNetworkUsageInfo;
+import org.huel.cloudhub.server.rpc.server.SerializedServerStatus;
+import org.huel.cloudhub.server.rpc.server.ServerDiskRecordResponse;
+import org.huel.cloudhub.server.rpc.server.ServerNetworkRecordResponse;
+import org.huel.cloudhub.server.rpc.server.ServerStatusRecordRequest;
+import org.huel.cloudhub.server.rpc.server.ServerStatusRecordResponse;
+import org.huel.cloudhub.server.rpc.server.ServerStatusRequest;
+import org.huel.cloudhub.server.rpc.server.ServerStatusResponse;
+import org.huel.cloudhub.server.rpc.server.ServerStatusServiceGrpc;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -16,7 +26,9 @@ import java.util.List;
  * @author RollW
  */
 @Service
-public class FileServerStatusService extends ServerStatusServiceGrpc.ServerStatusServiceImplBase {
+public class FileServerStatusService
+        extends ServerStatusServiceGrpc.ServerStatusServiceImplBase
+        implements Monitorable {
     private final ServerStatusMonitor serverStatusMonitor;
 
     public FileServerStatusService(ContainerProperties containerProperties,
@@ -81,5 +93,10 @@ public class FileServerStatusService extends ServerStatusServiceGrpc.ServerStatu
                 .addAllDisks(diskInfos)
                 .build());
         responseObserver.onCompleted();
+    }
+
+    @Override
+    public ServerStatusMonitor getMonitor() {
+        return serverStatusMonitor;
     }
 }

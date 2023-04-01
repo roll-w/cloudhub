@@ -220,10 +220,7 @@ public class BlockDownloadService extends BlockDownloadServiceGrpc.BlockDownload
                         index == 1 ? startOff : 0,
                         endLen);
                 logger.debug("Send download response in the end. block size = {}", read.size());
-                try {
-                    responseObserver.onNext(response);
-                } finally {
-                }
+                responseObserver.onNext(response);
                 return;
             }
             if (index == 1) {
