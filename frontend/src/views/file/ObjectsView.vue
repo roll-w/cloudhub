@@ -153,10 +153,18 @@ export default {
               success(resp) {
                   if (resp.errorCode === "00000") {
                       getObject();
+                      window.$message({
+                          type: "danger",
+                          content: resp.message
+                      })
                   }
               },
               error(resp) {
                   console.log(resp);
+                  window.$message({
+                      type: "danger",
+                      content: resp.message
+                  })
               }
           })
       };
