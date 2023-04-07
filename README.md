@@ -1,6 +1,6 @@
 # Cloudhub
 
-可靠高可用的分布式文件系统。
+可靠高可用的可伸缩分布式文件系统。
 
 ## 运行说明
 
@@ -26,7 +26,6 @@
 
 - [`file-server`工作流程说明](cloudhub-file-server/README.md)
 - [`meta-server`工作流程说明](cloudhub-meta-server/README.md)
-- [`client`（对象存储服务实现）主要功能说明](cloudhub-client/README.md)
 
 ## 文件系统架构设计
 
@@ -132,7 +131,7 @@ CFS始终维持在软状态，即不同的文件服务器的副本同步存在�
 ## 开源许可
 
 ```text
-Cloudhub - A distributed file system.
+Cloudhub - A high available, scalable distributed file system.
 Copyright (C) 2022 HUEL Team.
 
 This program is free software; you can redistribute it and/or modify

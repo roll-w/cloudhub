@@ -77,12 +77,12 @@
 
         <dependency>
             <groupId>org.huel.cloudhub</groupId>
-            <artifactId>cloudhub-client-config-loader</artifactId>
+            <artifactId>cloudhub-service-config-loader</artifactId>
         </dependency>
 
         <dependency>
             <groupId>org.huel.cloudhub</groupId>
-            <artifactId>cloudhub-fs</artifactId>
+            <artifactId>cloudhub-client</artifactId>
         </dependency>
 
         <dependency>

@@ -1,7 +1,7 @@
 package org.huel.cloudhub.web.util;
 
 import com.google.common.base.CaseFormat;
-import org.huel.cloudhub.common.ErrorCode;
+import org.huel.cloudhub.web.ErrorCode;
 
 /**
  * @author RollW

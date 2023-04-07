@@ -1,5 +1,7 @@
 package org.huel.cloudhub.client.disk.domain.user;
 
+import org.huel.cloudhub.client.disk.domain.userstorage.OwnerType;
+import org.huel.cloudhub.client.disk.domain.userstorage.StorageOwner;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import space.lingu.light.Constructor;
@@ -20,13 +22,16 @@ import java.util.Objects;
 })
 @LightConfiguration(key = LightConfiguration.KEY_VARCHAR_LENGTH, value = "120")
 @SuppressWarnings({"ClassCanBeRecord"})
-public class User implements UserDetails, UserIdentity {
+public class User implements UserDetails, UserIdentity, StorageOwner {
     @PrimaryKey(autoGenerate = true)
     @DataColumn(name = "id")
     private final Long id;
 
     @DataColumn(name = "username", nullable = false)
     private final String username;
+
+    @DataColumn(name = "nickname")
+    private final String nickname;
 
     @DataColumn(name = "password", nullable = false)
     private final String password;
@@ -63,7 +68,7 @@ public class User implements UserDetails, UserIdentity {
     private final boolean canceled;
 
     @Constructor
-    public User(Long id, String username, String password,
+    public User(Long id, String username, String nickname, String password,
                 Role role, long registerTime,
                 String email,
                 boolean enabled, boolean locked,
@@ -71,6 +76,7 @@ public class User implements UserDetails, UserIdentity {
                 boolean canceled) {
         this.id = id;
         this.username = username;
+        this.nickname = nickname;
         this.password = password;
         this.role = role;
         this.registerTime = registerTime;
@@ -85,6 +91,16 @@ public class User implements UserDetails, UserIdentity {
         return id;
     }
 
+    @Override
+    public long getOwnerId() {
+        return id;
+    }
+
+    @Override
+    public OwnerType getOwnerType() {
+        return OwnerType.USER;
+    }
+
     public long getUserId() {
         return id;
     }
@@ -92,6 +108,10 @@ public class User implements UserDetails, UserIdentity {
     @Override
     public String getUsername() {
         return username;
+    }
+
+    public String getNickname() {
+        return nickname;
     }
 
     @Override
@@ -205,6 +225,7 @@ public class User implements UserDetails, UserIdentity {
     public static final class Builder {
         private Long id = null;
         private String username;
+        private String nickname;
         private String password;
         private Role role = Role.USER;
         private long registerTime;
@@ -221,6 +242,11 @@ public class User implements UserDetails, UserIdentity {
 
         public Builder setUsername(String username) {
             this.username = username;
+            return this;
+        }
+
+        public Builder setNickname(String nickname) {
+            this.nickname = nickname;
             return this;
         }
 
@@ -265,8 +291,12 @@ public class User implements UserDetails, UserIdentity {
         }
 
         public User build() {
+            if (nickname == null) {
+                nickname = username;
+            }
+
             return new User(
-                    id, username, password,
+                    id, username, nickname, password,
                     role, registerTime,
                     email, enabled, locked, accountExpired, canceled);
         }

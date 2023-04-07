@@ -32,7 +32,6 @@ public class UserFileStorageServiceImpl implements UserFileStorageService, UserS
     private final UserDirectoryRepository userDirectoryRepository;
     private final UserFileStorageRepository userFileStorageRepository;
 
-
     public UserFileStorageServiceImpl(StorageService storageService,
                                       ApplicationEventPublisher eventPublisher,
                                       UserDirectoryRepository userDirectoryRepository,
@@ -45,13 +44,23 @@ public class UserFileStorageServiceImpl implements UserFileStorageService, UserS
 
     @Override
     public Storage createDirectory(String directoryName, long parentId,
-                                long owner, OwnerType ownerType) {
+                                   long owner, OwnerType ownerType) {
         UserDirectory exist = userDirectoryRepository.getByName(
                 directoryName, parentId, owner, ownerType);
-        if (exist != null) {
+        if (exist != null && !exist.isDeleted()) {
             throw new StorageException(StorageErrorCode.ERROR_DIRECTORY_EXISTED);
         }
         long time = System.currentTimeMillis();
+        if (exist != null && exist.isDeleted()) {
+            UserDirectory updated = exist
+                    .toBuilder()
+                    .setUpdateTime(time)
+                    .setDeleted(false)
+                    .build();
+            userDirectoryRepository.update(updated);
+            return updated;
+        }
+
         UserDirectory userDirectory = UserDirectory.builder()
                 .setName(directoryName)
                 .setOwner(owner)
@@ -104,7 +113,8 @@ public class UserFileStorageServiceImpl implements UserFileStorageService, UserS
             return existUserFileStorage;
         }
 
-        UserFileStorage updatedStorage = existUserFileStorage.toBuilder().setUpdateTime(time)
+        UserFileStorage updatedStorage = existUserFileStorage.toBuilder()
+                .setUpdateTime(time)
                 .setDeleted(false)
                 .setFileId(id)
                 .setFileCategory(fileStreamInfo.fileType())
@@ -131,6 +141,9 @@ public class UserFileStorageServiceImpl implements UserFileStorageService, UserS
                 directoryId);
         if (userDirectory.getOwner() != storageOwner.getOwnerId()
                 || userDirectory.getOwnerType() != storageOwner.getOwnerType()) {
+            throw new StorageException(StorageErrorCode.ERROR_DIRECTORY_NOT_EXIST);
+        }
+        if (userDirectory.isDeleted()) {
             throw new StorageException(StorageErrorCode.ERROR_DIRECTORY_NOT_EXIST);
         }
     }
@@ -161,13 +174,33 @@ public class UserFileStorageServiceImpl implements UserFileStorageService, UserS
     @Override
     public void downloadFile(FileStorageInfo fileStorageInfo,
                              OutputStream outputStream) throws IOException {
+        UserFileStorage userFileStorage = findFile(fileStorageInfo);
 
+        if (userFileStorage.getOwner() != fileStorageInfo.storageOwner().getOwnerId()
+                || userFileStorage.getOwnerType() != fileStorageInfo.storageOwner().getOwnerType()) {
+            throw new StorageException(StorageErrorCode.ERROR_FILE_NOT_EXIST);
+        }
+
+        storageService.getFile(userFileStorage.getFileId(), outputStream);
     }
 
     @Override
     public void deleteFile(long fileId, long owner,
                            OwnerType ownerType) {
+        UserFileStorage userFileStorage = findFile(fileId);
 
+        if (userFileStorage.getOwner() != owner
+                || userFileStorage.getOwnerType() != ownerType) {
+            throw new StorageException(StorageErrorCode.ERROR_FILE_NOT_EXIST);
+        }
+
+
+        long time = System.currentTimeMillis();
+        UserFileStorage updatedStorage = userFileStorage.toBuilder()
+                .setDeleted(true)
+                .setUpdateTime(time)
+                .build();
+        userFileStorageRepository.update(updatedStorage);
     }
 
     @Override
@@ -184,6 +217,9 @@ public class UserFileStorageServiceImpl implements UserFileStorageService, UserS
         if (userDirectory == null) {
             throw new StorageException(StorageErrorCode.ERROR_DIRECTORY_NOT_EXIST);
         }
+        if (userDirectory.isDeleted()) {
+            throw new StorageException(StorageErrorCode.ERROR_DIRECTORY_NOT_EXIST);
+        }
         return userDirectory;
     }
 
@@ -195,6 +231,9 @@ public class UserFileStorageServiceImpl implements UserFileStorageService, UserS
                 fileStorageInfo.storageOwner().getOwnerId(),
                 fileStorageInfo.storageOwner().getOwnerType());
         if (userDirectory == null) {
+            throw new StorageException(StorageErrorCode.ERROR_DIRECTORY_NOT_EXIST);
+        }
+        if (userDirectory.isDeleted()) {
             throw new StorageException(StorageErrorCode.ERROR_DIRECTORY_NOT_EXIST);
         }
         return userDirectory;
@@ -212,6 +251,9 @@ public class UserFileStorageServiceImpl implements UserFileStorageService, UserS
         if (userFileStorage == null) {
             throw new StorageException(StorageErrorCode.ERROR_FILE_NOT_EXIST);
         }
+        if (userFileStorage.isDeleted()) {
+            throw new StorageException(StorageErrorCode.ERROR_FILE_NOT_EXIST);
+        }
         return userFileStorage;
     }
 
@@ -224,6 +266,9 @@ public class UserFileStorageServiceImpl implements UserFileStorageService, UserS
                 fileStorageInfo.fileName()
         );
         if (userFileStorage == null) {
+            throw new StorageException(StorageErrorCode.ERROR_FILE_NOT_EXIST);
+        }
+        if (userFileStorage.isDeleted()) {
             throw new StorageException(StorageErrorCode.ERROR_FILE_NOT_EXIST);
         }
         return userFileStorage;

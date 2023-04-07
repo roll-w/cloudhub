@@ -2,7 +2,7 @@ package org.huel.cloudhub.client.disk.configuration;
 
 import org.huel.cloudhub.client.conf.ClientConfigLoader;
 import org.huel.cloudhub.client.disk.DiskClientApplication;
-import org.huel.cloudhub.fs.CFSClient;
+import org.huel.cloudhub.client.CFSClient;
 import org.huel.cloudhub.rpc.GrpcProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
