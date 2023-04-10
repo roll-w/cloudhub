@@ -3,7 +3,7 @@
     <div class="p-5 flex">
       <n-text :depth="1" class="ui-logo flex justify-start" @click="handleLogoClick">
         <img alt="Logo" src="../assets/cloud.svg">
-        <span>数据知识中心库</span>
+        <span>法律案件资料库</span>
       </n-text>
       <div class="flex justify-end justify-items-end flex-grow">
         <n-space>
