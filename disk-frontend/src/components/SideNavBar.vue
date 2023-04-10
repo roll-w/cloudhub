@@ -29,7 +29,7 @@ import {RouterLink, useRouter} from "vue-router";
 import {h, onBeforeMount, ref} from "vue";
 
 import {useMessage, NIcon} from "naive-ui";
-import {driveFilePage} from "@/router";
+import {driveFilePage, index} from "@/router";
 import FileIcon from "@/components/icon/FileIcon.vue";
 
 const message = useMessage()
@@ -55,6 +55,10 @@ router.afterEach(() => {
 })
 
 const menuOptions = [
+    {
+        label: "首页",
+        key: index,
+    },
   {
     label: "文件",
     key: "menu-file",

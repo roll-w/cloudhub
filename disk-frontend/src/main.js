@@ -9,7 +9,11 @@ import './assets/main.css'
 import {useUserStore} from "@/stores/user";
 import {createAxios} from "@/request/axios_config";
 
+import * as echarts from 'echarts'
+
 const app = createApp(App)
+
+app.config.globalProperties.$echarts = echarts
 
 app.use(naive)
 app.use(createPinia())
@@ -34,5 +38,7 @@ const onLoginExpired = () => {
 
 const axios = createAxios(onLoginExpired)
 app.config.globalProperties.$axios = axios
+
+
 
 app.mount('#app')
