@@ -19,14 +19,8 @@ const router = createRouter({
             redirect: '/',
             component: () => import("@/views/Layout.vue"),
             children: [
+
                 {
-                    path: '/',
-                    name: index,
-                    component: () => import("@/views/user/HomeView.vue"),
-                    meta: {
-                        title: "首页"
-                    }
-                },{
                     path: '/drive/files',
                     name: driveFilePage,
                     component: () => import("@/views/file/FileView.vue"),
@@ -43,13 +37,21 @@ const router = createRouter({
             component: () => import("@/views/HeaderLayout.vue"),
             children: [
                 {
+                    path: '/',
+                    name: index,
+                    component: () => import("@/views/user/HomeView.vue"),
+                    meta: {
+                        title: "首页"
+                    }
+                },
+                {
                     path: '/user/login',
                     name: login,
                     component: () => import("@/views/user/LoginView.vue"),
                     meta: {
                         title: "登录"
                     }
-                },{
+                }, {
                     path: '/user/register',
                     name: register,
                     component: () => import("@/views/user/LoginView.vue"),
