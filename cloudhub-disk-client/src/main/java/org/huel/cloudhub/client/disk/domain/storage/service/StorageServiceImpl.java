@@ -4,8 +4,8 @@ import org.huel.cloudhub.client.conf.ClientConfigLoader;
 import org.huel.cloudhub.client.disk.domain.storage.DiskFileStorage;
 import org.huel.cloudhub.client.disk.domain.storage.StorageService;
 import org.huel.cloudhub.client.disk.domain.storage.repository.DiskFileStorageRepository;
-import org.huel.cloudhub.fs.CFSClient;
-import org.huel.cloudhub.fs.FileValidation;
+import org.huel.cloudhub.client.CFSClient;
+import org.huel.cloudhub.client.FileValidation;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;

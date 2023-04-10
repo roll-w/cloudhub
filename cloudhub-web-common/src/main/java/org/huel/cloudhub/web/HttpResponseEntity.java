@@ -1,7 +1,5 @@
 package org.huel.cloudhub.web;
 
-import org.huel.cloudhub.common.ErrorCode;
-import org.huel.cloudhub.common.HttpResponseBody;
 import org.huel.cloudhub.web.data.page.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

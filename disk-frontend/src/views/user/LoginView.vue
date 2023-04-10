@@ -1,10 +1,17 @@
 <template>
-  <div class="center">
-    <n-card>
-      <LoginForm v-if="isLoginPage()"/>
-      <RegisterForm v-else/>
-    </n-card>
-  </div>
+    <div class="bg-img h-100vh w-100 bg-no-repeat bg-cover bg-center">
+        <div class="h-100 w-100 backdrop-saturate-150">
+            <div class="w-100 h-100 px-10 py-5">
+                <div class="pt-16 m-auto justify-items-center" style="max-width: 768px;">
+                    <n-card>
+                        <LoginForm v-if="isLoginPage()"/>
+                        <RegisterForm v-else/>
+                    </n-card>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </template>
 
 <script setup>
@@ -14,37 +21,40 @@ import {useRouter} from "vue-router";
 import {useUserStore} from "@/stores/user";
 import {index, login} from "@/router";
 import {getCurrentInstance} from "vue";
+import Logo from "@/components/icon/Logo.vue";
 
 const router = useRouter()
 const userStore = useUserStore()
 
 const checkLogin = () => {
-  if (userStore.isLogin) {
-    router.push({
-      name: index
-    })
-  }
+    if (userStore.isLogin) {
+        router.push({
+            name: index
+        })
+    }
 }
 
 checkLogin()
 
 const isLoginPage = () => {
-  return router.currentRoute.value.name === login
+    return router.currentRoute.value.name === login
 }
 
-const code = `public class LampBlog {
-  public static void main(String[] args) {
-    System.out.println("Hello, Lamp Blog!");
-  }
-}`
 </script>
 
 <style scoped>
 .center {
-  display: flex;
-  flex-direction: column;
-  height: calc(100vh - 64px);
-  justify-content: center;
-  position: relative;
+    display: flex;
+    padding-right: 16px;
+    padding-left: 16px;
+    flex-direction: column;
+    height: calc(100vh - 64px);
+    justify-content: center;
+    position: relative;
 }
+
+.bg-img {
+    background-image: url('/public/img/open_mind.jpg');
+}
+
 </style>

@@ -1,9 +1,6 @@
 # Cloudhub
 
-> 本项目为[第一届大学生信息存储技术竞赛·自由赛](https://competition.huaweicloud.com/information/1000041752/introduction)
-参赛作品。
-
-一个简单的分布式对象存储系统。
+可靠高可用的可伸缩分布式文件系统。
 
 ## 运行说明
 
@@ -11,7 +8,6 @@
 
 1. 运行`meta-server`；
 2. 运行`file-server`；
-3. 运行`client`。
 
 **一定要保证`meta-server`最先运行**。
 
@@ -30,7 +26,6 @@
 
 - [`file-server`工作流程说明](cloudhub-file-server/README.md)
 - [`meta-server`工作流程说明](cloudhub-meta-server/README.md)
-- [`client`主要功能说明](cloudhub-client/README.md)
 
 ## 文件系统架构设计
 
@@ -110,11 +105,6 @@ CFS始终维持在软状态，即不同的文件服务器的副本同步存在�
 当容器同步之后，文件在此副本中可保持可用状态不变，无论之后的容器是否发生变化，
 因此无需时刻保持一致状态。
 
-## 服务架构设计
-
-在上述文件系统的基础上，将整个CFS抽象为一个文件服务器，隐藏集群细节。
-通过`client`对其请求，实现对象存储服务。
-
 ## 性能测试
 
 简要介绍对此系统的本地读写性能测试。
@@ -141,7 +131,7 @@ CFS始终维持在软状态，即不同的文件服务器的副本同步存在�
 ## 开源许可
 
 ```text
-Cloudhub - A distributed object storage system.
+Cloudhub - A high available, scalable distributed file system.
 Copyright (C) 2022 HUEL Team.
 
 This program is free software; you can redistribute it and/or modify

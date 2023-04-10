@@ -1,7 +1,7 @@
 package org.huel.cloudhub.client.disk.domain.userstorage.common;
 
-import org.huel.cloudhub.common.BusinessRuntimeException;
-import org.huel.cloudhub.common.ErrorCode;
+import org.huel.cloudhub.web.BusinessRuntimeException;
+import org.huel.cloudhub.web.ErrorCode;
 
 /**
  * @author RollW
