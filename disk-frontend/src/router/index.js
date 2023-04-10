@@ -31,19 +31,20 @@ const router = createRouter({
             ]
         },
         {
+            path: '/',
+            name: index,
+            component: () => import("@/views/user/HomeView.vue"),
+            meta: {
+                title: "首页"
+            }
+        },
+        {
             path: '/layout/header',
             name: headerLayout,
             redirect: '/',
             component: () => import("@/views/HeaderLayout.vue"),
             children: [
-                {
-                    path: '/',
-                    name: index,
-                    component: () => import("@/views/user/HomeView.vue"),
-                    meta: {
-                        title: "首页"
-                    }
-                },
+
                 {
                     path: '/user/login',
                     name: login,

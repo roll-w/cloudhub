@@ -1,31 +1,35 @@
 <template>
-  <n-layout
-      :native-scrollbar="false" has-sider
-      position="absolute"
-      style="top: var(--header-height);">
-    <n-layout
-        :native-scrollbar="false"
-        content-style="min-height: calc(100vh - var(--header-height)); display: flex; flex-direction: column;"
-        position="absolute">
-      <router-view v-slot="{ Component }" v-model:name="name">
-        <transition mode="out-in" name="fade">
-          <component :is="Component" :key="$route.fullPath"/>
-        </transition>
-      </router-view>
-      <n-back-top :right="100"/>
-      <Footer/>
+    <n-layout position="absolute">
+        <TopNavBar/>
+        <n-layout
+                :native-scrollbar="false" has-sider
+                position="absolute"
+                style="top: var(--header-height);">
+            <n-layout
+                    :native-scrollbar="false"
+                    content-style="min-height: calc(100vh - var(--header-height)); display: flex; flex-direction: column;"
+                    position="absolute">
+                <router-view v-slot="{ Component }" v-model:name="name">
+                    <transition mode="out-in" name="fade">
+                        <component :is="Component" :key="$route.fullPath"/>
+                    </transition>
+                </router-view>
+                <n-back-top :right="100"/>
+                <Footer/>
+            </n-layout>
+        </n-layout>
     </n-layout>
-  </n-layout>
 </template>
 
 <script setup>
 import Footer from "@/components/Footer.vue";
 import {ref, watch} from "vue";
+import TopNavBar from "@/components/TopNavBar.vue";
 
 const name = ref()
 
 watch(name, (newName) => {
-  console.log(newName)
+    console.log(newName)
 })
 
 </script>

@@ -1,20 +1,17 @@
 <template>
-    <div :style="{'background-image': 'url(https://naive-ui.oss-cn-beijing.aliyuncs.com/carousel-img/carousel4.jpeg)'}"
-         class="bg-no-repeat bg-cover bg-center">
-
-        <div class="backdrop-blur-sm">
-            <div class="bg-gradient-to-b from-transparent to-gray-600">
-                <div class="overscroll-contain container mx-auto my-auto px-10 py-5" style="max-width: 768px;">
-                    <div class="justify-items-center">
-                        <n-card >
-                            <LoginForm v-if="isLoginPage()"/>
-                            <RegisterForm v-else/>
-                        </n-card>
-                    </div>
+    <div class="bg-img h-100vh w-100 bg-no-repeat bg-cover bg-center">
+        <div class="h-100 w-100 backdrop-saturate-150">
+            <div class="w-100 h-100 px-10 py-5">
+                <div class="pt-16 m-auto justify-items-center" style="max-width: 768px;">
+                    <n-card>
+                        <LoginForm v-if="isLoginPage()"/>
+                        <RegisterForm v-else/>
+                    </n-card>
                 </div>
             </div>
         </div>
     </div>
+
 </template>
 
 <script setup>
@@ -55,4 +52,9 @@ const isLoginPage = () => {
     justify-content: center;
     position: relative;
 }
+
+.bg-img {
+    background-image: url('/public/img/open_mind.jpg');
+}
+
 </style>
