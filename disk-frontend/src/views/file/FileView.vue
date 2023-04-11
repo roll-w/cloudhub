@@ -11,23 +11,23 @@
             <div class="text-4xl pb-5">
                 使用指引
             </div>
-            <n-steps >
+            <n-steps>
                 <n-step
-                    description="进入文件资料库，点击右上角的“上传文件”按钮，选择您要上传的文件。"
-                    status="process"
-                    title="上传文件"/>
+                        description="进入文件资料库，点击右上角的“上传文件”按钮，选择您要上传的文件。"
+                        status="process"
+                        title="上传文件"/>
                 <n-step
-                    description="在文件列表中找到您需要下载的文件，点击“下载”按钮，即可下载文件。"
-                    status="process"
-                    title="下载文件"/>
+                        description="在文件列表中找到您需要下载的文件，点击“下载”按钮，即可下载文件。"
+                        status="process"
+                        title="下载文件"/>
                 <n-step
-                    description="在文件列表中找到您需要分享的文件，点击“分享”按钮，即可分享文件。"
-                    status="process"
-                    title="分享文件"/>
+                        description="在文件列表中找到您需要分享的文件，点击“分享”按钮，即可分享文件。"
+                        status="process"
+                        title="分享文件"/>
                 <n-step
-                    description="如果您是文件的所有者，或者您为部门管理员，您可以在文件列表中找到您需要设置的文件，点击“设置权限”按钮，即可管理文件。"
-                    status="process"
-                    title="设置文件权限"/>
+                        description="如果您是文件的所有者，或者您为部门管理员，您可以在文件列表中找到您需要设置的文件，点击“设置权限”按钮，即可管理文件。"
+                        status="process"
+                        title="设置文件权限"/>
             </n-steps>
         </n-card>
     </div>
@@ -99,7 +99,7 @@
                 :y="yRef"
                 placement="bottom-start"
                 trigger="manual"
-                @select="handleSelect"/>
+                @select="handleSelectItem"/>
 
         <n-dropdown
                 :on-clickoutside="onClickOutside"
@@ -110,6 +110,49 @@
                 placement="bottom-start"
                 trigger="manual"
                 @select="handleSelect"/>
+
+        <n-modal v-model:show="showTimelineLog"
+                 :bordered="false"
+                 preset="dialog"
+                 size="large"
+                 title="文件操作日志">
+            <div class="p-4">
+                <div class="pb-3">
+                    <span class="text-amber-500">{{ files[1].name }}</span> 文件操作日志
+                </div>
+                <n-timeline>
+                    <n-timeline-item
+                        time="2023-04-03 20:46"
+                        title="修改权限">
+                        <div>
+                            <span class="text-amber-500">user</span> 修改文件权限为私有
+                        </div>
+                    </n-timeline-item>
+                    <n-timeline-item
+                        time="2023-04-03 16:11"
+                        title="文件重命名">
+                        <div>
+                            <span class="text-amber-500">user</span> 重命名文件为 项目文档.pdf
+                        </div>
+                    </n-timeline-item>
+                    <n-timeline-item
+                        time="2023-03-23 15:26"
+                        title="修改权限">
+                        <div>
+                            <span class="text-amber-500">user</span> 修改文件权限为公开
+                        </div>
+                    </n-timeline-item>
+                    <n-timeline-item
+                        content="user 上传文件"
+                        time="2023-03-23 15:23"
+                        title="文件上传">
+                        <div>
+                            <span class="text-amber-500">user</span> 上传文件
+                        </div>
+                    </n-timeline-item>
+                </n-timeline>
+            </div>
+        </n-modal>
     </div>
 
 
@@ -153,6 +196,8 @@ const files = [
 
 const fileMenuShowState = ref([])
 const checkedState = ref([])
+
+const showTimelineLog = ref(false)
 
 const remappingStates = () => {
     fileMenuShowState.value = []
@@ -204,6 +249,15 @@ const handleClickMoreOptions = (e, target) => {
 
 const handleDblClick = (e, target) => {
     console.log('double', target)
+}
+
+const handleSelect = (key) => {
+    showDropdown.value = false
+    showFileDropdown.value = false
+
+    if (key === 'log') {
+        showTimelineLog.value = true
+    }
 }
 
 const options = [
@@ -337,9 +391,11 @@ const handleContextmenu2 = (e, target) => {
     showFileDropdown.value = true;
 }
 
-const handleSelect = () => {
+const handleSelectItem = (key) => {
     showDropdown.value = false;
     showFileDropdown.value = false;
+
+    console.log(key)
 }
 
 const onClickOutside = () => {
