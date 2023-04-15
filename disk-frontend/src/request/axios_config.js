@@ -1,4 +1,3 @@
-
 import axios from 'axios'
 import {useUserStore} from "@/stores/user";
 import {useRouter} from "vue-router";
@@ -42,7 +41,7 @@ export function createAxios(onLoginExpired = () => {
                 error.response.data.errorCode || '00000')) {
                 onLoginExpired()
                 return Promise.reject({
-                    tip: "登录过期",
+                    tip: '登录过期',
                     message: '登录过期',
                     errorCode: error.response.data.errorCode,
                     status: 401

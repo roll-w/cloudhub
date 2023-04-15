@@ -19,6 +19,8 @@ import {h, onBeforeMount, ref} from "vue";
 import {useMessage, NIcon} from "naive-ui";
 import {driveFilePage} from "@/router";
 import FileIcon from "@/components/icon/FileIcon.vue";
+import {convertsToNMenuOptions, findMenuOptionByKey} from "@/views/menu";
+import {userKey} from "@/stores/user";
 
 const message = useMessage()
 
@@ -83,7 +85,7 @@ const menuOptions = [
     }
 ];
 
-const option = menuOptions;
+const option = convertsToNMenuOptions(findMenuOptionByKey(userKey).menus);
 
 
 </script>

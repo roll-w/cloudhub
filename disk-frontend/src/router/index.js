@@ -9,6 +9,7 @@ export const login = "login-page"
 export const register = "register-page"
 
 export const driveFilePage = "drive-file-page"
+export const driveFileAttrsPage = "drive-file-attrs-page"
 
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
@@ -27,7 +28,15 @@ const router = createRouter({
                     meta: {
                         title: "文件"
                     }
-                }
+                },
+                {
+                    path: '/drive/files/:type/:id/attrs',
+                    name: driveFileAttrsPage,
+                    component: () => import("@/views/file/FileAttrsView.vue"),
+                    meta: {
+                        title: "文件属性"
+                    }
+                },
             ]
         },
         {

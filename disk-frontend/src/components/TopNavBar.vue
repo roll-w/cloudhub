@@ -92,7 +92,7 @@ const userOptions = [
     key: "space",
   },
   {
-    label: "文章管理",
+    label: "文件管理",
     key: "article",
   },
   {
@@ -131,7 +131,7 @@ const adminOptions = [
     key: "space",
   },
   {
-    label: "文章管理",
+    label: "文件管理",
     key: "article",
   },
   {

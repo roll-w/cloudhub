@@ -1,96 +1,97 @@
 <template>
-    <div class="p-5">
-        <div class="pb-5">
-            <n-alert closable type="info">
-                <div class="text-xl">
-                    欢迎使用 Cloudhub 法律文件资料库，您可以在这里上传、下载、分享、管理您的资料文件。
-                </div>
-            </n-alert>
-        </div>
-        <n-card closable>
-            <div class="text-4xl pb-5">
-                使用指引
-            </div>
-            <n-steps>
-                <n-step
-                        description="进入文件资料库，点击右上角的“上传文件”按钮，选择您要上传的文件。"
-                        status="process"
-                        title="上传文件"/>
-                <n-step
-                        description="在文件列表中找到您需要下载的文件，点击“下载”按钮，即可下载文件。"
-                        status="process"
-                        title="下载文件"/>
-                <n-step
-                        description="在文件列表中找到您需要分享的文件，点击“分享”按钮，即可分享文件。"
-                        status="process"
-                        title="分享文件"/>
-                <n-step
-                        description="如果您是文件的所有者，或者您为部门管理员，您可以在文件列表中找到您需要设置的文件，点击“设置权限”按钮，即可管理文件。"
-                        status="process"
-                        title="设置文件权限"/>
-            </n-steps>
-        </n-card>
-    </div>
-
-    <div class="flex-fill" @contextmenu="handleContextmenu">
+    <div>
         <div class="p-5">
-            <div class="text-2xl py-2">
-                文件
+            <div class="pb-5">
+                <n-alert closable type="info">
+                    <div class="text-xl">
+                        欢迎使用 Cloudhub 法律文件资料库，您可以在这里上传、下载、分享、管理您的资料文件。
+                    </div>
+                </n-alert>
             </div>
-            <div>
-                Selected file: {{ getCheckedList() }}
-            </div>
-            <div class="flex flex-fill flex-wrap transition-all duration-300">
-                <div v-for="(file, i) in files"
-                     class="flex h-58 flex-col items-center p-6 cursor-pointer
+            <n-card closable>
+                <div class="text-4xl pb-5">
+                    使用指引
+                </div>
+                <n-steps>
+                    <n-step
+                            description="进入文件资料库，点击右上角的“上传文件”按钮，选择您要上传的文件。"
+                            status="process"
+                            title="上传文件"/>
+                    <n-step
+                            description="在文件列表中找到您需要下载的文件，点击“下载”按钮，即可下载文件。"
+                            status="process"
+                            title="下载文件"/>
+                    <n-step
+                            description="在文件列表中找到您需要分享的文件，点击“分享”按钮，即可分享文件。"
+                            status="process"
+                            title="分享文件"/>
+                    <n-step
+                            description="如果您是文件的所有者，或者您为部门管理员，您可以在文件列表中找到您需要设置的文件，点击“设置权限”按钮，即可管理文件。"
+                            status="process"
+                            title="设置文件权限"/>
+                </n-steps>
+            </n-card>
+        </div>
+
+        <div class="flex-fill" @contextmenu="handleContextmenu">
+            <div class="p-5">
+                <div class="text-2xl py-2">
+                    文件
+                </div>
+                <div>
+                    Selected file: {{ getCheckedList() }}
+                </div>
+                <div class="flex flex-fill flex-wrap transition-all duration-300">
+                    <div v-for="(file, i) in files"
+                         class="flex h-58 flex-col items-center p-6 cursor-pointer
              rounded-2xl transition-all duration-300
              ease-in-out w-[220px]
              hover:bg-gray-100 hover:bg-opacity-50 m-2"
-                     @contextmenu="handleContextmenu2($event, file)"
-                     @dblclick="handleDblClick($event, file)"
-                     @mouseenter="fileMenuShowState[i] = true"
-                     @mouseleave="fileMenuShowState[i] = false"
-                >
-                    <div :class="['w-100 block flex justify-start transition-all duration-300 items-start align-baseline ',
+                         @contextmenu="handleFileOptionContextMenu($event, file)"
+                         @dblclick="handleDblClick($event, file)"
+                         @mouseenter="fileMenuShowState[i] = true"
+                         @mouseleave="fileMenuShowState[i] = false"
+                    >
+                        <div :class="['w-100 flex justify-start transition-all duration-300 items-start align-baseline ',
           fileMenuShowState[i] || checkedState[i] ? 'opacity-100' : 'opacity-0']">
-                        <n-checkbox v-model:checked="checkedState[i]"/>
-                        <div class="pl-3 flex flex-fill justify-end">
-                            <n-button circle
-                                      @click="handleClickMoreOptions($event, file)">
-                                <template #icon>
-                                    <n-icon size="20">
-                                        <MoreHorizonal20Regular/>
-                                    </n-icon>
-                                </template>
-                            </n-button>
+                            <n-checkbox v-model:checked="checkedState[i]"/>
+                            <div class="pl-3 flex flex-fill justify-end">
+                                <n-button circle
+                                          @click="handleClickMoreOptions($event, file)">
+                                    <template #icon>
+                                        <n-icon size="20">
+                                            <MoreHorizonal20Regular/>
+                                        </n-icon>
+                                    </template>
+                                </n-button>
+                            </div>
                         </div>
-                    </div>
 
-                    <div class="px-5 pb-3">
-                        <n-icon v-if="file.type === 'folder' " size="80">
-                            <Folder24Regular/>
-                        </n-icon>
-                        <n-icon v-else size="80">
-                            <FileIcon/>
-                        </n-icon>
-                    </div>
-                    <div class="w-100 text-center truncate">
-                        <n-tooltip placement="bottom" trigger="hover">
-                            <template #trigger>
-                                <div class="truncate select-none">
-                                    {{ file.name }}
-                                </div>
-                            </template>
-                            {{ file.name }}
-                        </n-tooltip>
-                    </div>
-                    <div class="text-gray-400 select-none">
-                        {{ file.time }}
+                        <div class="px-5 pb-3">
+                            <n-icon v-if="file.type === 'folder' " size="80">
+                                <Folder24Regular/>
+                            </n-icon>
+                            <n-icon v-else size="80">
+                                <FileIcon/>
+                            </n-icon>
+                        </div>
+                        <div class="w-100 text-center truncate">
+                            <n-tooltip placement="bottom" trigger="hover">
+                                <template #trigger>
+                                    <div class="truncate select-none">
+                                        {{ file.name }}
+                                    </div>
+                                </template>
+                                {{ file.name }}
+                            </n-tooltip>
+                        </div>
+                        <div class="text-gray-400 select-none">
+                            {{ file.time }}
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-
         <n-dropdown
                 :on-clickoutside="onClickOutside"
                 :options="options"
@@ -111,88 +112,39 @@
                 trigger="manual"
                 @select="handleSelect"/>
 
+        <n-modal :bordered="false"
+                 preset="dialog"
+                 size="large"
+                 title="文件权限">
+
+        </n-modal>
+
         <n-modal v-model:show="showTimelineLog"
                  :bordered="false"
                  preset="dialog"
                  size="large"
-                 title="文件操作日志">
-            <div class="p-4">
-                <div class="pb-3">
-                    <span class="text-amber-500">{{ files[1].name }}</span> 文件操作日志
-                </div>
-                <n-timeline>
-                    <n-timeline-item
-                        time="2023-04-03 20:46"
-                        title="修改权限">
-                        <div>
-                            <span class="text-amber-500">user</span> 修改文件权限为私有
-                        </div>
-                    </n-timeline-item>
-                    <n-timeline-item
-                        time="2023-04-03 16:11"
-                        title="文件重命名">
-                        <div>
-                            <span class="text-amber-500">user</span> 重命名文件为 项目文档.pdf
-                        </div>
-                    </n-timeline-item>
-                    <n-timeline-item
-                        time="2023-03-23 15:26"
-                        title="修改权限">
-                        <div>
-                            <span class="text-amber-500">user</span> 修改文件权限为公开
-                        </div>
-                    </n-timeline-item>
-                    <n-timeline-item
-                        content="user 上传文件"
-                        time="2023-03-23 15:23"
-                        title="文件上传">
-                        <div>
-                            <span class="text-amber-500">user</span> 上传文件
-                        </div>
-                    </n-timeline-item>
-                </n-timeline>
-            </div>
+                 title="文件属性与操作日志">
+
         </n-modal>
+
     </div>
-
-
 </template>
 
 <script setup>
 import {h, ref} from "vue";
+import {RouterLink} from "vue-router";
 import {NIcon} from "naive-ui";
 import Folder24Regular from "@/components/icon/Folder24Regular.vue";
 import FileIcon from "@/components/icon/FileIcon.vue";
 import RefreshRound from "@/components/icon/RefreshRound.vue";
 import MoreHorizonal20Regular from "@/components/icon/MoreHorizonal20Regular.vue";
+import {useRouter} from "vue-router";
+import {driveFileAttrsPage} from "@/router";
+import {requestFiles} from "@/views/temp/files";
 
-const files = [
-    {
-        name: "测试文件.txt",
-        type: "file",
-        time: "2023/03/22 14:12",
-    },
-    {
-        name: "项目文档.pdf",
-        type: "file",
-        time: "2023/03/23 15:23",
-    },
-    {
-        name: "测试文件夹",
-        type: "folder",
-        time: "2023/03/22 14:11",
-    },
-    {
-        name: "长沙米拓信息技术有限公司河南天一航天科技有限公司民事一审民事判决书.doc",
-        type: "file",
-        time: "2023/04/02 12:46",
-    },
-    {
-        name: "河南省优悠商贸有限公司河南福汇泽置业有限公司等民事二审民事判决书.doc",
-        type: "file",
-        time: "2023/04/02 12:47",
-    }
-]
+const router = useRouter()
+
+const files = requestFiles()
 
 const fileMenuShowState = ref([])
 const checkedState = ref([])
@@ -226,39 +178,6 @@ const showDropdown = ref(false)
 const showFileDropdown = ref(false)
 let showFileDropdownState = false
 let lastTarget = null
-
-const handleClickMoreOptions = (e, target) => {
-    e.preventDefault();
-    showDropdown.value = false
-    if (lastTarget === target) {
-        showFileDropdownState = !showFileDropdownState
-    } else {
-        showFileDropdownState = true
-    }
-    lastTarget = target
-    showFileDropdown.value = showFileDropdownState
-
-    console.log('click', target)
-    if (!showFileDropdownState) {
-        return
-    }
-
-    xRef.value = e.clientX
-    yRef.value = e.clientY
-}
-
-const handleDblClick = (e, target) => {
-    console.log('double', target)
-}
-
-const handleSelect = (key) => {
-    showDropdown.value = false
-    showFileDropdown.value = false
-
-    if (key === 'log') {
-        showTimelineLog.value = true
-    }
-}
 
 const options = [
     {
@@ -369,6 +288,30 @@ const fileOptions = [
     },
 ]
 
+const hackFileOptions = (file) => {
+    fileOptions.find(option => option.key === 'log').label = () => {
+        return h(RouterLink, {
+            to: {
+                name: driveFileAttrsPage,
+                params: {
+                    id: file.id,
+                    type: file.type
+                },
+            },
+        }, {
+            default: () => '文件属性与日志'
+        });
+    }
+}
+
+const handleDblClick = (e, target) => {
+}
+
+const handleSelect = (key) => {
+    showDropdown.value = false
+    showFileDropdown.value = false
+}
+
 const handleContextmenu = (e) => {
     e.preventDefault();
     xRef.value = e.clientX;
@@ -379,14 +322,15 @@ const handleContextmenu = (e) => {
     showDropdown.value = true;
 }
 
-const handleContextmenu2 = (e, target) => {
+const handleFileOptionContextMenu = (e, target) => {
     e.preventDefault();
-    console.log('context', target)
-
     showFileDropdownState = false
 
     xRef.value = e.clientX;
     yRef.value = e.clientY;
+
+    hackFileOptions(target)
+
     showDropdown.value = false;
     showFileDropdown.value = true;
 }
@@ -401,6 +345,26 @@ const handleSelectItem = (key) => {
 const onClickOutside = () => {
     showDropdown.value = false;
     showFileDropdown.value = false;
+}
+
+const handleClickMoreOptions = (e, target) => {
+    e.preventDefault();
+    showDropdown.value = false
+    if (lastTarget === target) {
+        showFileDropdownState = !showFileDropdownState
+    } else {
+        showFileDropdownState = true
+    }
+    lastTarget = target
+    showFileDropdown.value = showFileDropdownState
+
+    if (!showFileDropdownState) {
+        return
+    }
+    hackFileOptions(target)
+
+    xRef.value = e.clientX
+    yRef.value = e.clientY
 }
 
 </script>

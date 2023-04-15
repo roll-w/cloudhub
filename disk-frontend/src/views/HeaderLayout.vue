@@ -9,7 +9,7 @@
                     :native-scrollbar="false"
                     content-style="min-height: calc(100vh - var(--header-height)); display: flex; flex-direction: column;"
                     position="absolute">
-                <router-view v-slot="{ Component }" v-model:name="name">
+                <router-view v-slot="{ Component }">
                     <transition mode="out-in" name="fade">
                         <component :is="Component" :key="$route.fullPath"/>
                     </transition>
@@ -23,14 +23,7 @@
 
 <script setup>
 import Footer from "@/components/Footer.vue";
-import {ref, watch} from "vue";
 import TopNavBar from "@/components/TopNavBar.vue";
-
-const name = ref()
-
-watch(name, (newName) => {
-    console.log(newName)
-})
 
 </script>
 
