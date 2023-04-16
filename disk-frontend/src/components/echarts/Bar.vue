@@ -1,87 +1,63 @@
 <template>
     <div>
-        <div id="main" style="width: 100%; height: 450px"></div>
+        <div id="mainBar" style="width: 100%; height: 450px"></div>
     </div>
 </template>
 
 <script setup>
-import { onMounted } from "vue";
 import * as echarts from "echarts";
-
-const data = [];
-for (let i = 0; i < 5; ++i) {
-    data.push(Math.round(Math.random() * 200));
-}
-
+//引入onMounted钩子
+import { onMounted } from "vue";
+// echarts标准格式
 const Init = () => {
 
-    let myChart = echarts.init(document.getElementById("main"));
+    let myChart = echarts.init(document.getElementById("mainBar"));
 
     let option = {
+        title: {
+            text: '系统使用前后对比'
+        },
+        tooltip: {
+            trigger: 'axis',
+            axisPointer: {
+                type: 'shadow'
+            }
+        },
+        legend: {},
+        grid: {
+            left: '3%',
+            right: '4%',
+            bottom: '3%',
+            containLabel: true
+        },
         xAxis: {
-            max: 'dataMax'
+            type: 'value',
+            boundaryGap: [0, 0.01]
         },
         yAxis: {
             type: 'category',
-            data: ['公证书', '证据材料', '律师函', '调解协议书', '申诉材料'],
-            inverse: true,
-            animationDuration: 300,
-            animationDurationUpdate: 300,
-            max: 5 // only the largest 3 bars will be displayed
+            data: [ '下载速度', '上传速度',  '存储效率']
         },
         series: [
             {
-                realtimeSort: true,
-                name: '各类型案件数量分析',
+                name: '使用前',
                 type: 'bar',
-                data: data,
-                label: {
-                    show: true,
-                    position: 'right',
-                    valueAnimation: true
-                }
+                data: [  229034, 104970,  530230]
+            },
+            {
+                name: '使用后',
+                type: 'bar',
+                data: [ 331000, 221594,  681807]
             }
-        ],
-        legend: {
-            show: true
-        },
-        animationDuration: 0,
-        animationDurationUpdate: 3000,
-        animationEasing: 'linear',
-        animationEasingUpdate: 'linear'
+        ]
     };
+
     myChart.setOption(option);
-
-    function run() {
-        for (var i = 0; i < data.length; ++i) {
-            if (Math.random() > 0.9) {
-                data[i] += Math.round(Math.random() * 2000);
-            } else {
-                data[i] += Math.round(Math.random() * 200);
-            }
-        }
-        myChart.setOption({
-            series: [
-                {
-                    type: 'bar',
-                    data
-                }
-            ]
-        });
-    }
-    setTimeout(function () {
-        run();
-    }, 0);
-    setInterval(function () {
-        run();
-    }, 3000);
-
 };
 
 onMounted(() => {
     Init();
 });
-
 </script>
 
 <style scoped>
