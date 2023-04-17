@@ -24,6 +24,10 @@ const files = [
         name: "测试文件夹",
         type: "folder",
         time: "2023/03/22 14:11",
+        tags: [{
+            name: "类型",
+            value: "文件夹"
+        }]
     },
     {
         id: 4,

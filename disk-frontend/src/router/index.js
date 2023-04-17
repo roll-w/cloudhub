@@ -5,10 +5,15 @@ const layout = "layout"
 const headerLayout = "header-layout"
 
 export const index = "index"
+export const productHomePage = "productHomePage"
 export const login = "login-page"
 export const register = "register-page"
 
 export const driveFilePage = "drive-file-page"
+export const driveFileAttrsPage = "drive-file-attrs-page"
+export const driveFilePermissionPage = "drive-file-permission-page"
+
+export const driveTagPage = "drive-tag-page"
 
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
@@ -19,7 +24,6 @@ const router = createRouter({
             redirect: '/',
             component: () => import("@/views/Layout.vue"),
             children: [
-
                 {
                     path: '/drive/files',
                     name: driveFilePage,
@@ -27,7 +31,31 @@ const router = createRouter({
                     meta: {
                         title: "文件"
                     }
-                }
+                },
+                {
+                    path: '/drive/files/:type/:id/attrs',
+                    name: driveFileAttrsPage,
+                    component: () => import("@/views/file/FileAttrsView.vue"),
+                    meta: {
+                        title: "文件属性"
+                    }
+                },
+                {
+                    path: '/drive/files/:type/:id/permission',
+                    name: driveFilePermissionPage,
+                    component: () => import("@/views/file/FilePermissionPage.vue"),
+                    meta: {
+                        title: "文件权限"
+                    }
+                },
+                {
+                    path: '/drive/tags',
+                    name: driveTagPage,
+                    component: () => import("@/views/tag/FileTagsView.vue"),
+                    meta: {
+                        title: "标签"
+                    }
+                },
             ]
         },
         {

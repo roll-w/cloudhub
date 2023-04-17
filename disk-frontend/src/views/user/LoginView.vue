@@ -19,7 +19,7 @@ import RegisterForm from "@/components/user/login/RegisterForm.vue";
 import LoginForm from "@/components/user/login/LoginForm.vue";
 import {useRouter} from "vue-router";
 import {useUserStore} from "@/stores/user";
-import {index, login} from "@/router";
+import {driveFilePage, index, login} from "@/router";
 import {getCurrentInstance} from "vue";
 import Logo from "@/components/icon/Logo.vue";
 
@@ -29,7 +29,7 @@ const userStore = useUserStore()
 const checkLogin = () => {
     if (userStore.isLogin) {
         router.push({
-            name: index
+            name: driveFilePage
         })
     }
 }

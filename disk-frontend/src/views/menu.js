@@ -1,7 +1,7 @@
 import {h} from "vue";
 import {RouterLink} from "vue-router";
 import {
-    driveFilePage,
+    driveFilePage, driveTagPage,
 } from "@/router";
 
 import {NIcon} from "naive-ui";
@@ -34,7 +34,8 @@ const menuOptions = [
                     },
                     {
                         name: "标签",
-                        key: "Tag",
+                        key: driveTagPage,
+                        linked: true
                     },
                     {
                         name: "组织文件",

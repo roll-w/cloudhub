@@ -1,7 +1,7 @@
 <template>
     <div class="p-5 flex flex-col items-stretch">
         <n-h2 class="mb-5">
-            文件信息
+           <span class="text-amber-500">{{ file.name }}</span> 文件信息
         </n-h2>
         <div class="flex items-stretch">
             <div class="w-2/5 max-w-[40%] min-w-[40%] mr-4">
@@ -9,7 +9,7 @@
                     属性
                 </div>
                 <div class="h-100 flex flex-col items-stretch place-items-stretch">
-                    <div class=" ">
+                    <div>
                         <n-table :bordered="false">
                             <thead>
                             <tr>
@@ -95,27 +95,15 @@
                     </tr>
                     </thead>
                     <tbody>
-                    <tr>
-                        <td>2</td>
-                        <td>2023-04-03 16:11</td>
-                        <td>user</td>
+                    <tr v-for="version in versionInfos">
+                        <td>{{ version.version }}</td>
+                        <td>{{ version.createTime }}</td>
+                        <td>{{ version.creator }}</td>
                         <td>
                             <n-button-group>
                                 <n-button secondary type="primary">查看</n-button>
                                 <n-button secondary type="default">回退</n-button>
-                                <n-button secondary type="error">删除</n-button>
-                            </n-button-group>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>1</td>
-                        <td>2023-03-23 15:23</td>
-                        <td>user</td>
-                        <td>
-                            <n-button-group>
-                                <n-button secondary type="primary">查看</n-button>
-                                <n-button secondary type="default">回退</n-button>
-                                <n-button secondary type="error">删除</n-button>
+                                <n-button secondary type="error" @click="onDeleteVersion(version)">删除</n-button>
                             </n-button-group>
                         </td>
                     </tr>
@@ -130,6 +118,7 @@
 <script setup>
 
 import {useRouter} from "vue-router";
+import {useDialog} from "naive-ui";
 import {requestFile} from "@/views/temp/files";
 import {ref} from "vue";
 
@@ -138,6 +127,34 @@ const router = useRouter();
 const id = router.currentRoute.value.params.id;
 const file = ref(requestFile(id))
 
+const dialog = useDialog()
+
+
 console.log(id, requestFile(id))
+
+const versionInfos = ref([
+    {
+        version: 2,
+        createTime: '2023-04-03 16:11',
+        creator: 'user',
+    },
+    {
+        version: 1,
+        createTime: '2023-03-23 15:23',
+        creator: 'user',
+    }
+])
+
+const onDeleteVersion = (versionInfo) => {
+    dialog.error({
+        title: '删除版本',
+        content: '确定删除版本 ' + versionInfo.version + ' 吗？',
+        positiveText: '删除',
+        negativeText: '取消',
+        onPositiveClick: () => {
+            versionInfos.value = versionInfos.value.filter(v => v.version !== versionInfo.version)
+        }
+    })
+}
 
 </script>

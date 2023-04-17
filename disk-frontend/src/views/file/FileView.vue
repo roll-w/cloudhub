@@ -38,8 +38,8 @@
                 <div class="text-2xl py-2">
                     文件
                 </div>
-                <div>
-                    Selected file: {{ getCheckedList() }}
+                <div v-if="getCheckedList().length">
+                    已选择共 {{ getCheckedList().length }} 个文件
                 </div>
                 <div class="flex flex-fill flex-wrap transition-all duration-300">
                     <div v-for="(file, i) in files"
@@ -139,7 +139,7 @@ import FileIcon from "@/components/icon/FileIcon.vue";
 import RefreshRound from "@/components/icon/RefreshRound.vue";
 import MoreHorizonal20Regular from "@/components/icon/MoreHorizonal20Regular.vue";
 import {useRouter} from "vue-router";
-import {driveFileAttrsPage} from "@/router";
+import {driveFileAttrsPage, driveFilePermissionPage} from "@/router";
 import {requestFiles} from "@/views/temp/files";
 
 const router = useRouter()
@@ -256,7 +256,7 @@ const fileOptions = [
         type: 'divider'
     },
     {
-        label: "文件日志",
+        label: "日志",
         key: "log",
     },
     {
@@ -299,7 +299,20 @@ const hackFileOptions = (file) => {
                 },
             },
         }, {
-            default: () => '文件属性与日志'
+            default: () => '属性与日志'
+        });
+    }
+    fileOptions.find(option => option.key === 'permission').label = () => {
+        return h(RouterLink, {
+            to: {
+                name: driveFilePermissionPage,
+                params: {
+                    id: file.id,
+                    type: file.type
+                },
+            },
+        }, {
+            default: () => '权限'
         });
     }
 }

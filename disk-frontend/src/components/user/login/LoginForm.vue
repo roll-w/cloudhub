@@ -47,6 +47,7 @@ import {useNotification} from "naive-ui";
 import {useRouter} from "vue-router";
 import {useUserStore} from "@/stores/user";
 import {driveFilePage, index, register} from "@/router";
+import {popUserErrorTemplate} from "@/views/util/error";
 
 const userStore = useUserStore()
 const loginForm = ref(null)
@@ -101,36 +102,11 @@ const onLoginClick = (e) => {
             }, 'none', false)
             return
         }
-        return
+        popUserErrorTemplate(notification, {
+            tip: "用户名或密码错误",
+            message: "登录错误"
+        }, "登录错误", "登录错误")
 
-        proxy.$axios.post(api.passwordLogin, formValue.value).then(res => {
-            /**
-             * @type {{ user: {
-             * username: string, id: number,
-             * role: string, email: string },
-             * token: string
-             * }}
-             */
-            const recvData = res.data
-            let user = {
-                id: recvData.user.id,
-                username: recvData.user.username,
-                role: recvData.user.role,
-            }
-            userStore.loginUser(user, recvData.token, formValue.value.rememberMe)
-            router.push({
-                name: index
-            })
-        }).catch(err => {
-            const msg = err.tip
-            notification.error({
-                title: "请求错误",
-                content: msg,
-                meta: "登录错误",
-                duration: 3000,
-                keepAliveOnHover: true
-            })
-        })
     })
 }
 
