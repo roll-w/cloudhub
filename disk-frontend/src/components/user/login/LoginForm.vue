@@ -99,7 +99,7 @@ const onLoginClick = (e) => {
                 username: 'user',
                 id: 1,
                 role: 'ADMIN'
-            }, 'none', false)
+            }, 'none', formValue.value.rememberMe)
             return
         }
         popUserErrorTemplate(notification, {

@@ -39,19 +39,21 @@
                         </tr>
                         </thead>
                         <tbody>
-                        <tr>
-                            <td>user</td>
-                            <td>读取、写入</td>
+                        <tr v-for="permission in userPermissions">
+                            <td>{{ permission.username }}</td>
+                            <td>{{ permission.permission }}</td>
                             <td>
                                 <n-button-group>
                                     <n-button secondary type="primary">修改</n-button>
-                                    <n-button secondary type="error">删除</n-button>
+                                    <n-button secondary type="error" @click="handleDeleteUserPermission(permission.id)">
+                                        删除
+                                    </n-button>
                                 </n-button-group>
                             </td>
                         </tr>
                         <tr>
                             <td class="text-center" colspan="3">
-                                <n-button>添加用户</n-button>
+                                <n-button @click="showUserPermissionModal = true">添加用户</n-button>
                             </td>
                         </tr>
                         </tbody>
@@ -62,8 +64,33 @@
 
 
         <div class="py-4">
-            <n-button class="mt-5" type="primary">保存</n-button>
+            <n-button class="mt-5" type="primary" @click="message.success('保存成功')">保存</n-button>
         </div>
+
+        <n-modal v-model:show="showUserPermissionModal"
+                 :show-icon="false"
+                 preset="dialog"
+                 title="用户权限"
+                 transform-origin="center">
+            <div>
+                <n-form-item label="用户名">
+                    <n-input v-model:value="usernameValue" placeholder="输入用户名" type="text"/>
+                </n-form-item>
+                <n-form-item label="权限">
+                    <n-checkbox-group v-model:value="userPermissionCheckValue">
+                        <n-checkbox label="读取" value="read"/>
+                        <n-checkbox label="写入" value="write"/>
+                    </n-checkbox-group>
+                </n-form-item>
+                <n-button-group>
+                    <n-button type="primary" @click="handleAddUserPermission(usernameValue, userPermissionCheckValue)">
+                        添加
+                    </n-button>
+                    <n-button secondary type="default" @click="showUserPermissionModal = false">取消</n-button>
+                </n-button-group>
+            </div>
+
+        </n-modal>
     </div>
 
 </template>
@@ -73,7 +100,7 @@
 import {ref} from "vue";
 import {useRouter} from "vue-router";
 import {requestFile} from "@/views/temp/files";
-import {useDialog} from "naive-ui";
+import {useDialog, useMessage} from "naive-ui";
 
 const router = useRouter();
 
@@ -81,7 +108,20 @@ const id = router.currentRoute.value.params.id;
 const file = ref(requestFile(id))
 
 const dialog = useDialog()
+const message = useMessage()
 
+const userPermissionCheckValue = ref([])
+const usernameValue = ref()
+
+const showUserPermissionModal = ref(false)
+
+const userPermissions = ref([
+    {
+        id: 1,
+        username: 'user',
+        permission: '读取、写入',
+    }
+])
 
 const permit = ref(1)
 
@@ -102,6 +142,51 @@ const permissions = ref([
         info: '只有你可以读取和修改文件',
     },
 ])
+
+const handleDeleteUserPermission = (id) => {
+    dialog.warning({
+        title: '删除用户权限',
+        content: '确定删除该用户权限吗？',
+        positiveText: '确定',
+        negativeText: '取消',
+        onPositiveClick: () => {
+            userPermissions.value = userPermissions.value.filter(userPermission => userPermission.id !== id)
+        }
+    })
+}
+
+const mappingPermission = (permissions) => {
+    return permissions.map(permission => {
+        if (permission === 'read') {
+            return '读取'
+        } else if (permission === 'write') {
+            return '写入'
+        }
+    })
+}
+
+const handleAddUserPermission = (username, permissions = []) => {
+    showUserPermissionModal.value = false
+
+    const latestId = (
+        userPermissions.value[userPermissions.value.length - 1] || {id: 0}
+    ).id
+
+    userPermissions.value.push({
+        id: latestId + 1,
+        username,
+        permission: mappingPermission(permissions).join('、')
+    })
+    resetInput()
+    console.log(userPermissions.value)
+
+    message.success('添加成功')
+}
+
+const resetInput = () => {
+    usernameValue.value = ''
+    userPermissionCheckValue.value = []
+}
 
 
 </script>

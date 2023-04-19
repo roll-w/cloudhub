@@ -1,8 +1,14 @@
 <template>
     <div class="p-5 flex flex-col items-stretch">
-        <n-h2 class="mb-5">
-           <span class="text-amber-500">{{ file.name }}</span> 文件信息
-        </n-h2>
+        <div class="flex flex-grow-1 flex-fill mb-5 mr-5">
+            <n-h2>
+                <span class="text-amber-500">{{ file.name }}</span> 文件信息
+            </n-h2>
+            <div class="flex flex-fill justify-end">
+                <n-button secondary type="primary" @click="handleBack">返回</n-button>
+            </div>
+        </div>
+
         <div class="flex items-stretch">
             <div class="w-2/5 max-w-[40%] min-w-[40%] mr-4">
                 <div class="mb-4 text-xl">
@@ -121,6 +127,7 @@ import {useRouter} from "vue-router";
 import {useDialog} from "naive-ui";
 import {requestFile} from "@/views/temp/files";
 import {ref} from "vue";
+import {driveFilePage} from "@/router";
 
 const router = useRouter();
 
@@ -128,7 +135,6 @@ const id = router.currentRoute.value.params.id;
 const file = ref(requestFile(id))
 
 const dialog = useDialog()
-
 
 console.log(id, requestFile(id))
 
@@ -154,6 +160,12 @@ const onDeleteVersion = (versionInfo) => {
         onPositiveClick: () => {
             versionInfos.value = versionInfos.value.filter(v => v.version !== versionInfo.version)
         }
+    })
+}
+
+const handleBack = () => {
+    router.push({
+        name: driveFilePage
     })
 }
 

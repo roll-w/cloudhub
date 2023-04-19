@@ -42,53 +42,12 @@
                     已选择共 {{ getCheckedList().length }} 个文件
                 </div>
                 <div class="flex flex-fill flex-wrap transition-all duration-300">
-                    <div v-for="(file, i) in files"
-                         class="flex h-58 flex-col items-center p-6 cursor-pointer
-             rounded-2xl transition-all duration-300
-             ease-in-out w-[220px]
-             hover:bg-gray-100 hover:bg-opacity-50 m-2"
-                         @contextmenu="handleFileOptionContextMenu($event, file)"
-                         @dblclick="handleDblClick($event, file)"
-                         @mouseenter="fileMenuShowState[i] = true"
-                         @mouseleave="fileMenuShowState[i] = false"
-                    >
-                        <div :class="['w-100 flex justify-start transition-all duration-300 items-start align-baseline ',
-          fileMenuShowState[i] || checkedState[i] ? 'opacity-100' : 'opacity-0']">
-                            <n-checkbox v-model:checked="checkedState[i]"/>
-                            <div class="pl-3 flex flex-fill justify-end">
-                                <n-button circle
-                                          @click="handleClickMoreOptions($event, file)">
-                                    <template #icon>
-                                        <n-icon size="20">
-                                            <MoreHorizonal20Regular/>
-                                        </n-icon>
-                                    </template>
-                                </n-button>
-                            </div>
-                        </div>
-
-                        <div class="px-5 pb-3">
-                            <n-icon v-if="file.type === 'folder' " size="80">
-                                <Folder24Regular/>
-                            </n-icon>
-                            <n-icon v-else size="80">
-                                <FileIcon/>
-                            </n-icon>
-                        </div>
-                        <div class="w-100 text-center truncate">
-                            <n-tooltip placement="bottom" trigger="hover">
-                                <template #trigger>
-                                    <div class="truncate select-none">
-                                        {{ file.name }}
-                                    </div>
-                                </template>
-                                {{ file.name }}
-                            </n-tooltip>
-                        </div>
-                        <div class="text-gray-400 select-none">
-                            {{ file.time }}
-                        </div>
-                    </div>
+                    <FileComponent v-for="(file, i) in files"
+                                   v-model:checked="checkedState[i]"
+                                   :file="file"
+                                   :onClickMoreOptions="handleClickMoreOptions"
+                                   @contextmenu="handleFileOptionContextMenu($event, file)"
+                                   @dblclick="handleDblClick($event, file)"/>
                 </div>
             </div>
         </div>
@@ -132,13 +91,12 @@
 
 <script setup>
 import {h, ref} from "vue";
-import {RouterLink} from "vue-router";
+import {RouterLink, useRouter} from "vue-router";
 import {NIcon} from "naive-ui";
 import Folder24Regular from "@/components/icon/Folder24Regular.vue";
 import FileIcon from "@/components/icon/FileIcon.vue";
 import RefreshRound from "@/components/icon/RefreshRound.vue";
-import MoreHorizonal20Regular from "@/components/icon/MoreHorizonal20Regular.vue";
-import {useRouter} from "vue-router";
+import FileComponent from "@/components/file/FileComponent.vue";
 import {driveFileAttrsPage, driveFilePermissionPage} from "@/router";
 import {requestFiles} from "@/views/temp/files";
 
