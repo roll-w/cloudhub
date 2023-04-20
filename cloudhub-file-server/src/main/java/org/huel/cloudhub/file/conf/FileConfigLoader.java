@@ -13,8 +13,6 @@ public class FileConfigLoader extends AbstractConfigLoader {
     public static final String RPC_PORT_DEFAULT = "7021";
     public static final String RPC_MAX_INBOUND_SIZE_DEFAULT = "40";
 
-    public static final String WEB_PORT_DEFAULT = "7020";
-
     public static final String CONTAINER_BLOCK_SIZE_DEFAULT = "64";
     public static final String CONTAINER_BLOCK_NUM_DEFAULT = "1024";
 
@@ -27,10 +25,6 @@ public class FileConfigLoader extends AbstractConfigLoader {
 
     public int getRpcPort() {
         return getInt(FileConfigKeys.RPC_PORT, RPC_PORT_DEFAULT);
-    }
-
-    public int getWebPort() {
-        return getInt(FileConfigKeys.WEB_PORT, WEB_PORT_DEFAULT);
     }
 
     public String getStagingFilePath() {

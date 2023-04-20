@@ -13,8 +13,6 @@ public class MetaConfigLoader extends AbstractConfigLoader {
     public static final String RPC_PORT_DEFAULT = "7031";
     public static final String RPC_MAX_INBOUND_SIZE_DEFAULT = "40";
 
-    public static final String WEB_PORT_DEFAULT = "7030";
-
     public static final String FILE_DATA_PATH_DEFAULT = "data";
     public static final String FILE_TEMP_PATH_DEFAULT = "tmp";
     public static final String FILE_UPLOAD_BLOCK_SIZE_DEFAULT = "64";
@@ -28,10 +26,6 @@ public class MetaConfigLoader extends AbstractConfigLoader {
 
     public int getRpcPort() {
         return getInt(MetaConfigKeys.RPC_PORT, RPC_PORT_DEFAULT);
-    }
-
-    public int getWebPort() {
-        return getInt(MetaConfigKeys.WEB_PORT, WEB_PORT_DEFAULT);
     }
 
     public String getFileDataPath() {

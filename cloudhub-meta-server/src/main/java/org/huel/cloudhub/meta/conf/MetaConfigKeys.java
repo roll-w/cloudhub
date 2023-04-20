@@ -16,12 +16,6 @@ public class MetaConfigKeys {
     public static final String RPC_MAX_INBOUND_SIZE = "cloudhub.rpc.max_inbound_size";
 
     /**
-     * Cloudhub web port.
-     * Access meta-server in web through the port.
-     */
-    public static final String WEB_PORT = "cloudhub.web.port";
-
-    /**
      * Cloudhub meta-server file data directory.
      */
     public static final String FILE_DATA_PATH = "cloudhub.file.data_dir";

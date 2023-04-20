@@ -17,12 +17,6 @@ public class FileConfigKeys {
     public static final String RPC_MAX_INBOUND_SIZE = "cloudhub.rpc.max_inbound_size";
 
     /**
-     * Cloudhub web port.
-     * Access file-server in web through the port.
-     */
-    public static final String WEB_PORT = "cloudhub.web.port";
-
-    /**
      * Meta-server address.
      * Format: host:port.
      */
