@@ -6,7 +6,7 @@
     <parent>
         <groupId>org.huel.cloudhub</groupId>
         <artifactId>cloudhub-parent</artifactId>
-        <version>1.0-SNAPSHOT</version>
+        <version>0.1.3</version>
         <relativePath>../cloudhub-parent/pom.xml</relativePath>
     </parent>
 
@@ -32,6 +32,11 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-mail</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-aop</artifactId>
         </dependency>
 
         <dependency>
@@ -115,6 +120,12 @@
         <dependency>
             <groupId>space.lingu.light</groupId>
             <artifactId>light-core-connection-hikari</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
         </dependency>
 
     </dependencies>

@@ -12,13 +12,12 @@
     </parent>
     <groupId>org.huel.cloudhub</groupId>
     <artifactId>cloudhub-parent</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>0.1.3</version>
     <packaging>pom</packaging>
 
     <modules>
         <module>../cloudhub-meta-server</module>
         <module>../cloudhub-file-server</module>
-        <module>../cloudhub-object-storage-service</module>
         <module>../cloudhub-common</module>
         <module>../cloudhub-grpc-parent</module>
         <module>../cloudhub-client</module>
