@@ -1,11 +1,11 @@
 package org.huel.cloudhub.file.server;
 
 import io.grpc.Server;
-import org.huel.cloudhub.file.conf.FileConfigLoader;
 import org.huel.cloudhub.file.server.service.heartbeat.HeartbeatTask;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.SpringApplication;
+import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -13,8 +13,6 @@ import org.springframework.context.ConfigurableApplicationContext;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * File server start class.
@@ -37,12 +35,7 @@ public class FileServerApplication implements ApplicationRunner {
     public static void main(String[] args) throws Exception {
         SpringApplication application =
                 new SpringApplication(FileServerApplication.class);
-        FileConfigLoader loader = FileConfigLoader.tryOpenDefault();
-
-        Map<String, Object> overrideProperties = new HashMap<>();
-        overrideProperties.put("server.port", loader.getWebPort());
-
-        application.setDefaultProperties(overrideProperties);
+        application.setWebApplicationType(WebApplicationType.NONE);
         sContext = application.run();
     }
 
