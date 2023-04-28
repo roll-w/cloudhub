@@ -47,7 +47,10 @@ public class DiskRuntimeConfiguration {
     public CFSClient cfsClient() {
         return new CFSClient(
                 clientConfigLoader.getMetaServerAddress(),
-                clientConfigLoader.getRpcMaxInboundSize()
+                new GrpcProperties(
+                        0,
+                        clientConfigLoader.getRpcMaxInboundSize()
+                )
         );
     }
 

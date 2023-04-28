@@ -40,7 +40,8 @@ public final class ApiContextHolder {
             Locale locale,
             HttpMethod method,
             @Nullable
-            UserInfo userInfo
+            UserInfo userInfo,
+            long timestamp
     ) {
         public long id() {
             Preconditions.checkNotNull(userInfo, "userInfo cannot be null");

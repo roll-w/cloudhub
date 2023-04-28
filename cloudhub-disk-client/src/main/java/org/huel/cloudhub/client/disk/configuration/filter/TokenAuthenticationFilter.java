@@ -47,29 +47,34 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
         HttpMethod method = HttpMethod.resolve(request.getMethod());
         boolean isAdminApi = isAdminApi(requestUri);
         String remoteIp = RequestUtils.getRemoteIpAddress(request);
+        long timestamp = System.currentTimeMillis();
 
         try {
             if (SecurityContextHolder.getContext().getAuthentication() != null) {
-                nullNextFilter(isAdminApi, remoteIp, method, request, response, filterChain);
+                nullNextFilter(isAdminApi, remoteIp, method, timestamp,
+                        request, response, filterChain);
                 return;
             }
 
             String token = loadToken(request);
 
             if (token == null || token.isEmpty()) {
-                nullNextFilter(isAdminApi, remoteIp, method, request, response, filterChain);
+                nullNextFilter(isAdminApi, remoteIp, method, timestamp,
+                        request, response, filterChain);
                 return;
             }
 
             Long userId = authenticationTokenService.getUserId(token);
             if (userId == null) {
-                nullNextFilter(isAdminApi, remoteIp, method, request, response, filterChain);
+                nullNextFilter(isAdminApi, remoteIp, method, timestamp,
+                        request, response, filterChain);
                 return;
             }
             UserDetails userDetails =
                     userDetailsService.loadUserByUserId(userId);
             if (userDetails == null) {
-                nullNextFilter(isAdminApi, remoteIp, method, request, response, filterChain);
+                nullNextFilter(isAdminApi, remoteIp, method, timestamp,
+                        request, response, filterChain);
                 return;
             }
             TokenAuthResult result = authenticationTokenService.verifyToken(token,
@@ -88,7 +93,7 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
                     userDetails.getAuthorities()
             );
             SecurityContextHolder.getContext().setAuthentication(authentication);
-            setApiContext(isAdminApi, remoteIp, method, userInfo);
+            setApiContext(isAdminApi, remoteIp, method, userInfo, timestamp);
             filterChain.doFilter(request, response);
         } finally {
             ApiContextHolder.clearContext();
@@ -96,9 +101,11 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
     }
 
     private static void setApiContext(boolean isAdminApi, String remoteIp,
-                                      HttpMethod method, UserInfo userInfo) {
+                                      HttpMethod method, UserInfo userInfo,
+                                      long timestamp) {
         ApiContextHolder.ApiContext apiContext = new ApiContextHolder.ApiContext(
-                isAdminApi, remoteIp, LocaleContextHolder.getLocale(), method, userInfo);
+                isAdminApi, remoteIp, LocaleContextHolder.getLocale(),
+                method, userInfo, timestamp);
         ApiContextHolder.setContext(apiContext);
     }
 
@@ -110,10 +117,10 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
         return antPathMatcher.match("/api/{version}/admin/**", requestUri);
     }
 
-    private void nullNextFilter(boolean isAdminApi, String remoteIp, HttpMethod method,
+    private void nullNextFilter(boolean isAdminApi, String remoteIp, HttpMethod method, long timestamp,
                                 HttpServletRequest request, HttpServletResponse response,
                                 FilterChain filterChain) throws IOException, ServletException {
-        setApiContext(isAdminApi, remoteIp, method, null);
+        setApiContext(isAdminApi, remoteIp, method, null, timestamp);
         filterChain.doFilter(request, response);
     }
 
