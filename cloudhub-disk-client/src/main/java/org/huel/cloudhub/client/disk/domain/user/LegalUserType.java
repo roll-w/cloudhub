@@ -1,9 +1,11 @@
-package org.huel.cloudhub.client.disk.domain.userstorage;
+package org.huel.cloudhub.client.disk.domain.user;
 
 /**
+ * 合法的用户类型
+ *
  * @author RollW
  */
-public enum OwnerType {
+public enum LegalUserType {
     USER,
     /**
      * 代表用户的组/空间
@@ -14,8 +16,8 @@ public enum OwnerType {
     ;
 
 
-    public static OwnerType from(String name) {
-        for (OwnerType value : values()) {
+    public static LegalUserType from(String name) {
+        for (LegalUserType value : values()) {
             if (value.name().equalsIgnoreCase(name)) {
                 return value;
             }

@@ -1,6 +1,5 @@
 package org.huel.cloudhub.client.disk.domain.user;
 
-import org.huel.cloudhub.client.disk.domain.userstorage.OwnerType;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageOwner;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -93,16 +92,17 @@ public class User implements UserDetails, UserIdentity, StorageOwner {
 
     @Override
     public long getOwnerId() {
-        return id;
+        return getUserId();
     }
 
     @Override
-    public OwnerType getOwnerType() {
-        return OwnerType.USER;
+    public LegalUserType getOwnerType() {
+        return LegalUserType.USER;
     }
 
+    @Override
     public long getUserId() {
-        return id;
+        return getId();
     }
 
     @Override

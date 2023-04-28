@@ -1,6 +1,6 @@
 package org.huel.cloudhub.client.disk.domain.userstorage.dto;
 
-import org.huel.cloudhub.client.disk.domain.userstorage.OwnerType;
+import org.huel.cloudhub.client.disk.domain.user.LegalUserType;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageOwner;
 
 /**
@@ -8,7 +8,7 @@ import org.huel.cloudhub.client.disk.domain.userstorage.StorageOwner;
  */
 public record StorageOwnerInfo(
         long ownerId,
-        OwnerType ownerType
+        LegalUserType legalUserType
 ) implements StorageOwner {
     @Override
     public long getOwnerId() {
@@ -16,7 +16,7 @@ public record StorageOwnerInfo(
     }
 
     @Override
-    public OwnerType getOwnerType() {
-        return ownerType;
+    public LegalUserType getOwnerType() {
+        return legalUserType;
     }
 }

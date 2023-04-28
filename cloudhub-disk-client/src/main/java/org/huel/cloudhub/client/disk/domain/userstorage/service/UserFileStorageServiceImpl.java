@@ -1,10 +1,11 @@
 package org.huel.cloudhub.client.disk.domain.userstorage.service;
 
 import org.huel.cloudhub.client.disk.domain.storage.StorageService;
+import org.huel.cloudhub.client.disk.domain.user.LegalUserType;
 import org.huel.cloudhub.client.disk.domain.userstorage.FileStreamInfo;
-import org.huel.cloudhub.client.disk.domain.userstorage.OwnerType;
 import org.huel.cloudhub.client.disk.domain.userstorage.Storage;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageOwner;
+import org.huel.cloudhub.client.disk.domain.userstorage.StorageProcessor;
 import org.huel.cloudhub.client.disk.domain.userstorage.UserDirectory;
 import org.huel.cloudhub.client.disk.domain.userstorage.UserFileStorage;
 import org.huel.cloudhub.client.disk.domain.userstorage.UserFileStorageService;
@@ -12,7 +13,7 @@ import org.huel.cloudhub.client.disk.domain.userstorage.UserStorageSearchService
 import org.huel.cloudhub.client.disk.domain.userstorage.common.StorageErrorCode;
 import org.huel.cloudhub.client.disk.domain.userstorage.common.StorageException;
 import org.huel.cloudhub.client.disk.domain.userstorage.dto.FileStorageInfo;
-import org.huel.cloudhub.client.disk.domain.userstorage.event.OnFileCreateEvent;
+import org.huel.cloudhub.client.disk.domain.userstorage.dto.StorageAttr;
 import org.huel.cloudhub.client.disk.domain.userstorage.repository.UserDirectoryRepository;
 import org.huel.cloudhub.client.disk.domain.userstorage.repository.UserFileStorageRepository;
 import org.springframework.context.ApplicationEventPublisher;
@@ -29,24 +30,27 @@ import java.util.List;
 public class UserFileStorageServiceImpl implements UserFileStorageService, UserStorageSearchService {
     private final StorageService storageService;
     private final ApplicationEventPublisher eventPublisher;
+    private final List<StorageProcessor> storageProcessors;
     private final UserDirectoryRepository userDirectoryRepository;
     private final UserFileStorageRepository userFileStorageRepository;
 
     public UserFileStorageServiceImpl(StorageService storageService,
                                       ApplicationEventPublisher eventPublisher,
+                                      List<StorageProcessor> storageProcessors,
                                       UserDirectoryRepository userDirectoryRepository,
                                       UserFileStorageRepository userFileStorageRepository) {
         this.storageService = storageService;
         this.eventPublisher = eventPublisher;
+        this.storageProcessors = storageProcessors;
         this.userDirectoryRepository = userDirectoryRepository;
         this.userFileStorageRepository = userFileStorageRepository;
     }
 
     @Override
     public Storage createDirectory(String directoryName, long parentId,
-                                   long owner, OwnerType ownerType) {
+                                   long owner, LegalUserType legalUserType) {
         UserDirectory exist = userDirectoryRepository.getByName(
-                directoryName, parentId, owner, ownerType);
+                directoryName, parentId, owner, legalUserType);
         if (exist != null && !exist.isDeleted()) {
             throw new StorageException(StorageErrorCode.ERROR_DIRECTORY_EXISTED);
         }
@@ -64,7 +68,7 @@ public class UserFileStorageServiceImpl implements UserFileStorageService, UserS
         UserDirectory userDirectory = UserDirectory.builder()
                 .setName(directoryName)
                 .setOwner(owner)
-                .setOwnerType(ownerType)
+                .setOwnerType(legalUserType)
                 .setParentId(parentId)
                 .setCreateTime(time)
                 .setUpdateTime(time)
@@ -103,9 +107,15 @@ public class UserFileStorageServiceImpl implements UserFileStorageService, UserS
                     .setUpdateTime(time)
                     .build();
             userFileStorageRepository.insert(userFileStorage);
-            OnFileCreateEvent onFileCreateEvent = new OnFileCreateEvent(
-                    userFileStorage);
-            eventPublisher.publishEvent(onFileCreateEvent);
+
+            StorageAttr storageAttr = new StorageAttr(
+                    userFileStorage.getName(),
+                    null,
+                    null,
+                    fileStreamInfo.fileType()
+            );
+            dispatchFileOnCreate(userFileStorage, storageAttr);
+
             return userFileStorage;
         }
 
@@ -122,9 +132,7 @@ public class UserFileStorageServiceImpl implements UserFileStorageService, UserS
                 .setName(fileStorageInfo.fileName())
                 .build();
         userFileStorageRepository.update(updatedStorage);
-        OnFileCreateEvent onFileCreateEvent = new OnFileCreateEvent(
-                updatedStorage);
-        eventPublisher.publishEvent(onFileCreateEvent);
+
 
         return updatedStorage;
     }
@@ -159,11 +167,11 @@ public class UserFileStorageServiceImpl implements UserFileStorageService, UserS
 
     @Override
     public void downloadFile(long fileId, long owner,
-                             OwnerType ownerType,
+                             LegalUserType legalUserType,
                              OutputStream outputStream) throws IOException {
         UserFileStorage userFileStorage = findFile(fileId);
         if (userFileStorage.getOwner() != owner
-                || userFileStorage.getOwnerType() != ownerType) {
+                || userFileStorage.getOwnerType() != legalUserType) {
             throw new StorageException(StorageErrorCode.ERROR_FILE_NOT_EXIST);
         }
 
@@ -186,11 +194,11 @@ public class UserFileStorageServiceImpl implements UserFileStorageService, UserS
 
     @Override
     public void deleteFile(long fileId, long owner,
-                           OwnerType ownerType) {
+                           LegalUserType legalUserType) {
         UserFileStorage userFileStorage = findFile(fileId);
 
         if (userFileStorage.getOwner() != owner
-                || userFileStorage.getOwnerType() != ownerType) {
+                || userFileStorage.getOwnerType() != legalUserType) {
             throw new StorageException(StorageErrorCode.ERROR_FILE_NOT_EXIST);
         }
 
@@ -272,5 +280,10 @@ public class UserFileStorageServiceImpl implements UserFileStorageService, UserS
             throw new StorageException(StorageErrorCode.ERROR_FILE_NOT_EXIST);
         }
         return userFileStorage;
+    }
+
+    private void dispatchFileOnCreate(Storage storage, StorageAttr storageAttr) {
+        storageProcessors.forEach(storageProcessor ->
+                storageProcessor.onStorageCreated(storage, storageAttr));
     }
 }

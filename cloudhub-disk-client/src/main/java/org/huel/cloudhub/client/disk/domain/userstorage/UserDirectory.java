@@ -1,5 +1,7 @@
 package org.huel.cloudhub.client.disk.domain.userstorage;
 
+import org.huel.cloudhub.client.disk.domain.user.LegalUserType;
+import space.lingu.NonNull;
 import space.lingu.light.DataColumn;
 import space.lingu.light.DataTable;
 import space.lingu.light.PrimaryKey;
@@ -11,13 +13,13 @@ import space.lingu.light.SQLDataType;
  * @author RollW
  */
 @DataTable(name = "user_directory")
-public class UserDirectory implements Storage {
+public class UserDirectory implements AttributedStorage {
     public static final long ROOT = 0;
 
     public static final UserDirectory ROOT_DIRECTORY = new UserDirectory(
             ROOT,
             ROOT,
-            ROOT, OwnerType.USER,
+            ROOT, LegalUserType.USER,
             "root",
             0, 0, false
     );
@@ -33,7 +35,7 @@ public class UserDirectory implements Storage {
     private final long owner;
 
     @DataColumn(name = "owner_type")
-    private final OwnerType ownerType;
+    private final LegalUserType ownerType;
 
     @DataColumn(name = "name")
     private final String name;
@@ -48,7 +50,7 @@ public class UserDirectory implements Storage {
     private final boolean deleted;
 
     public UserDirectory(Long id, Long parentId,
-                         long owner, OwnerType ownerType,
+                         long owner, LegalUserType ownerType,
                          String name,
                          long createTime,
                          long updateTime, boolean deleted) {
@@ -68,9 +70,10 @@ public class UserDirectory implements Storage {
 
     @Override
     public long getStorageId() {
-        return id;
+        return getId();
     }
 
+    @NonNull
     @Override
     public StorageType getStorageType() {
         return StorageType.FOLDER;
@@ -82,25 +85,29 @@ public class UserDirectory implements Storage {
 
     @Override
     public long getOwnerId() {
-        return 0;
+        return getOwner();
     }
 
     public long getOwner() {
         return owner;
     }
 
-    public OwnerType getOwnerType() {
+    @NonNull
+    public LegalUserType getOwnerType() {
         return ownerType;
     }
 
+    @Override
     public String getName() {
         return name;
     }
 
+    @Override
     public long getCreateTime() {
         return createTime;
     }
 
+    @Override
     public long getUpdateTime() {
         return updateTime;
     }
@@ -121,7 +128,7 @@ public class UserDirectory implements Storage {
         private Long id;
         private Long parentId;
         private long owner;
-        private OwnerType ownerType;
+        private LegalUserType ownerType;
         private String name;
         private long createTime;
         private long updateTime;
@@ -156,7 +163,7 @@ public class UserDirectory implements Storage {
             return this;
         }
 
-        public Builder setOwnerType(OwnerType ownerType) {
+        public Builder setOwnerType(LegalUserType ownerType) {
             this.ownerType = ownerType;
             return this;
         }

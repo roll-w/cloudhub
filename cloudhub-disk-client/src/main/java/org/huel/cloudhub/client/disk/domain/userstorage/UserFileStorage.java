@@ -1,5 +1,7 @@
 package org.huel.cloudhub.client.disk.domain.userstorage;
 
+import org.huel.cloudhub.client.disk.domain.user.LegalUserType;
+import space.lingu.NonNull;
 import space.lingu.light.DataColumn;
 import space.lingu.light.DataTable;
 import space.lingu.light.Index;
@@ -14,7 +16,7 @@ import space.lingu.light.PrimaryKey;
 @DataTable(name = "user_file_storage", indices = {
         @Index(value = {"name", "directory_id"}, unique = true)
 })
-public class UserFileStorage implements Storage {
+public class UserFileStorage implements AttributedStorage {
     @DataColumn(name = "id")
     @PrimaryKey(autoGenerate = true)
     private final Long id;
@@ -27,7 +29,7 @@ public class UserFileStorage implements Storage {
     private final long owner;
 
     @DataColumn(name = "owner_type")
-    private final OwnerType ownerType;
+    private final LegalUserType ownerType;
 
     @DataColumn(name = "file_id")
     private final String fileId;
@@ -51,7 +53,7 @@ public class UserFileStorage implements Storage {
     private final boolean deleted;
 
     public UserFileStorage(Long id, String name,
-                           long owner, OwnerType ownerType,
+                           long owner, LegalUserType ownerType,
                            String fileId,
                            long directoryId,
                            String mimeType, FileType fileCategory,
@@ -74,6 +76,7 @@ public class UserFileStorage implements Storage {
         return id;
     }
 
+    @Override
     public String getName() {
         return name;
     }
@@ -87,6 +90,7 @@ public class UserFileStorage implements Storage {
         return id;
     }
 
+    @NonNull
     @Override
     public StorageType getStorageType() {
         return StorageType.FILE;
@@ -102,8 +106,9 @@ public class UserFileStorage implements Storage {
         return owner;
     }
 
+    @NonNull
     @Override
-    public OwnerType getOwnerType() {
+    public LegalUserType getOwnerType() {
         return ownerType;
     }
 
@@ -147,7 +152,7 @@ public class UserFileStorage implements Storage {
         private Long id;
         private String name;
         private long owner;
-        private OwnerType ownerType;
+        private LegalUserType ownerType;
         private String fileId;
         private long directoryId;
         private String mimeType;
@@ -188,7 +193,7 @@ public class UserFileStorage implements Storage {
             return this;
         }
 
-        public Builder setOwnerType(OwnerType ownerType) {
+        public Builder setOwnerType(LegalUserType ownerType) {
             this.ownerType = ownerType;
             return this;
         }
