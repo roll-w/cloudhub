@@ -71,8 +71,11 @@ public class HeartbeatSender {
     private Map<String, String> buildStatus() {
         Map<String, String> status = new HashMap<>();
         ServerHostInfo serverHostInfo = monitorable.getMonitor().getLatest();
-        DiskUsageInfo diskUsageInfo = serverHostInfo.getDiskUsageInfo();
+        if (serverHostInfo == null) {
+            return status;
+        }
 
+        DiskUsageInfo diskUsageInfo = serverHostInfo.getDiskUsageInfo();
         status.put(StatusKeys.STORAGE_REMAINING, String.valueOf(diskUsageInfo.getFree()));
 
         return status;
