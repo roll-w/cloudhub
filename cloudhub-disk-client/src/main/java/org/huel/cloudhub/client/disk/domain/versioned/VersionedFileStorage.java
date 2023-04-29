@@ -35,16 +35,21 @@ public class VersionedFileStorage {
     @DataColumn(name = "create_time", dataType = SQLDataType.TIMESTAMP)
     private final long createTime;
 
+    @DataColumn(name = "deleted")
+    private final boolean deleted;
+
     public VersionedFileStorage(Long id, long storageId,
                                 StorageType storageType,
                                 long version,
-                                long operator, long createTime) {
+                                long operator, long createTime,
+                                boolean deleted) {
         this.id = id;
         this.storageId = storageId;
         this.storageType = storageType;
         this.version = version;
         this.operator = operator;
         this.createTime = createTime;
+        this.deleted = deleted;
     }
 
     public Long getId() {
@@ -71,6 +76,10 @@ public class VersionedFileStorage {
         return createTime;
     }
 
+    public boolean isDeleted() {
+        return deleted;
+    }
+
     public Builder toBuilder() {
         return new Builder(this);
     }
@@ -86,6 +95,7 @@ public class VersionedFileStorage {
         private long version;
         private long operator;
         private long createTime;
+        private boolean deleted;
 
         public Builder() {
         }
@@ -97,6 +107,7 @@ public class VersionedFileStorage {
             this.version = versionedFileStorage.version;
             this.operator = versionedFileStorage.operator;
             this.createTime = versionedFileStorage.createTime;
+            this.deleted = versionedFileStorage.deleted;
         }
 
         public Builder setId(Long id) {
@@ -129,8 +140,14 @@ public class VersionedFileStorage {
             return this;
         }
 
+        public Builder setDeleted(boolean deleted) {
+            this.deleted = deleted;
+            return this;
+        }
+
         public VersionedFileStorage build() {
-            return new VersionedFileStorage(id, storageId, storageType, version, operator, createTime);
+            return new VersionedFileStorage(id, storageId, storageType,
+                    version, operator, createTime, deleted);
         }
     }
 }
