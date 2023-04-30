@@ -8,8 +8,6 @@ import org.springframework.util.MultiValueMap;
 import java.util.List;
 
 /**
- * Http响应实体。携带Http状态码及Header。
- *
  * @author RollW
  */
 public class HttpResponseEntity<D> extends ResponseEntity<HttpResponseBody<D>> {

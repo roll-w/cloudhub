@@ -1,10 +1,12 @@
 package org.huel.cloudhub.web;
 
+import org.huel.cloudhub.web.data.page.Page;
+
 /**
  * @author RollW
  */
 @SuppressWarnings("unchecked")
-public class HttpResponseBody<D> {
+public sealed class HttpResponseBody<D> permits PageableHttpResponseBody {
     private static final HttpResponseBody<?> SUCCESS = new HttpResponseBody<>(
             CommonErrorCode.SUCCESS, 200, "OK");
 
@@ -14,22 +16,13 @@ public class HttpResponseBody<D> {
     protected String tip;
     protected D data;
 
-    private HttpResponseBody() {
-        this.status = 200;
-    }
-
     public HttpResponseBody(ErrorCode errorCode, int status, String message) {
-        this.status = status;
-        this.message = message;
-        this.errorCode = errorCode;
+        this(errorCode, status, message, null);
     }
 
     public HttpResponseBody(ErrorCode errorCode, int status,
                             String message, D data) {
-        this.status = status;
-        this.message = message;
-        this.errorCode = errorCode;
-        this.data = data;
+        this(errorCode, status, message, null, data);
     }
 
     public HttpResponseBody(ErrorCode errorCode, int status,
@@ -52,6 +45,10 @@ public class HttpResponseBody<D> {
         if (message == null) {
             return tip;
         }
+        return message;
+    }
+
+    public String rawMessage() {
         return message;
     }
 
@@ -186,6 +183,10 @@ public class HttpResponseBody<D> {
         return HttpResponseBody.<D>success()
                 .fork()
                 .setData(data);
+    }
+
+    public static <D> PageableHttpResponseBody<D> success(Page<D> page) {
+        return PageableHttpResponseBody.success(page);
     }
 
     public static <D> HttpResponseBody<D> of(ErrorCode errorCode,

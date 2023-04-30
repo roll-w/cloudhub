@@ -1,5 +1,8 @@
-package org.huel.cloudhub.web;
+package org.huel.cloudhub.client.disk.controller;
 
+import org.huel.cloudhub.web.ErrorCodeMessageProvider;
+import org.huel.cloudhub.web.HttpResponseBody;
+import org.huel.cloudhub.web.HttpResponseEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.MessageSource;
@@ -101,10 +104,18 @@ public class ControllerResponseBodyAdvice implements ResponseBodyAdvice<Object> 
         if (message != null) {
             return tryMessageSource(message);
         }
-        return errorCodeMessageProvider.getMessage(
+        String errorMessage = errorCodeMessageProvider.getMessage(
                 responseBody.getErrorCode(),
                 LocaleContextHolder.getLocale()
         );
+        if (errorMessage != null) {
+            return errorMessage;
+        }
+        String bodyMessage = responseBody.rawMessage();
+        if (bodyMessage != null) {
+            return null;
+        }
+        return responseBody.getErrorCode().toString();
     }
 
     private String tryMessageSource(String probablyKey) {
