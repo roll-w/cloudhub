@@ -1,6 +1,5 @@
 package org.huel.cloudhub.client.disk.configuration.filter;
 
-import org.huel.cloudhub.web.BusinessRuntimeException;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 
@@ -52,7 +51,7 @@ public class CorsConfigFilter implements Filter {
         response.setHeader("Access-Control-Allow-Credentials", "true");
         try {
             chain.doFilter(request, response);
-        } catch (BusinessRuntimeException e) {
+        } catch (Exception e) {
             resolver.resolveException(request, response, null, e);
         }
     }

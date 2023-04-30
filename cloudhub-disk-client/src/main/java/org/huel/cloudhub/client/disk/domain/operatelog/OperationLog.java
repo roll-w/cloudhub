@@ -7,6 +7,8 @@ import space.lingu.light.LightConfiguration;
 import space.lingu.light.PrimaryKey;
 import space.lingu.light.SQLDataType;
 
+import java.util.Objects;
+
 /**
  * @author RollW
  */
@@ -103,6 +105,35 @@ public class OperationLog {
         return changedContent;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof OperationLog that)) return false;
+        return operator == that.operator && operateResourceId == that.operateResourceId && operateType == that.operateType && operateTime == that.operateTime && Objects.equals(id, that.id) && systemResourceKind == that.systemResourceKind && action == that.action && Objects.equals(address, that.address) && Objects.equals(originContent, that.originContent) && Objects.equals(changedContent, that.changedContent);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, operator, operateResourceId, systemResourceKind, action, operateType, operateTime, address, originContent, changedContent);
+    }
+
+    @Override
+    public String toString() {
+        return "OperationLog{" +
+                "id=" + id +
+                ", operator=" + operator +
+                ", operateResourceId=" + operateResourceId +
+                ", systemResourceKind=" + systemResourceKind +
+                ", action=" + action +
+                ", operateType=" + operateType +
+                ", operateTime=" + operateTime +
+                ", address='" + address + '\'' +
+                ", originContent='" + originContent + '\'' +
+                ", changedContent='" + changedContent + '\'' +
+                '}';
+    }
+
+
     public Builder toBuilder() {
         return new Builder(this);
     }
@@ -152,6 +183,11 @@ public class OperationLog {
 
         public Builder setOperator(long operator) {
             this.operator = operator;
+            return this;
+        }
+
+        public Builder setOperateType(long operateType) {
+            this.operateType = operateType;
             return this;
         }
 

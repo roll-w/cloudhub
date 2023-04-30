@@ -50,14 +50,18 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
         long timestamp = System.currentTimeMillis();
 
         try {
-            if (SecurityContextHolder.getContext().getAuthentication() != null) {
-                nullNextFilter(isAdminApi, remoteIp, method, timestamp,
-                        request, response, filterChain);
+            Authentication existAuthentication =
+                    SecurityContextHolder.getContext().getAuthentication();
+            if (existAuthentication != null) {
+                UserDetails userDetails = (UserDetails)
+                        existAuthentication.getPrincipal();
+                UserInfo userInfo = UserInfo.from(userDetails);
+                setApiContext(isAdminApi, remoteIp, method, userInfo, timestamp);
+                filterChain.doFilter(request, response);
                 return;
             }
 
             String token = loadToken(request);
-
             if (token == null || token.isEmpty()) {
                 nullNextFilter(isAdminApi, remoteIp, method, timestamp,
                         request, response, filterChain);

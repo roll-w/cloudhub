@@ -2,6 +2,7 @@ package org.huel.cloudhub.client.disk.configuration;
 
 import org.huel.cloudhub.client.disk.configuration.compenent.WebDelegateSecurityHandler;
 import org.huel.cloudhub.client.disk.configuration.filter.CorsConfigFilter;
+import org.huel.cloudhub.client.disk.configuration.filter.OperateLogFilter;
 import org.huel.cloudhub.client.disk.configuration.filter.TokenAuthenticationFilter;
 import org.huel.cloudhub.client.disk.domain.authentication.token.AuthenticationTokenService;
 import org.huel.cloudhub.client.disk.domain.user.UserDetailsService;
@@ -42,6 +43,7 @@ public class WebSecurityConfiguration {
     public SecurityFilterChain securityFilterChain(HttpSecurity security,
                                                    CorsConfigFilter corsConfigFilter,
                                                    TokenAuthenticationFilter tokenAuthenticationFilter,
+                                                   OperateLogFilter operateLogFilter,
                                                    AuthenticationEntryPoint authenticationEntryPoint,
                                                    AccessDeniedHandler accessDeniedHandler) throws Exception {
 
@@ -73,20 +75,15 @@ public class WebSecurityConfiguration {
                 UsernamePasswordAuthenticationFilter.class);
         security.addFilterBefore(corsConfigFilter,
                 TokenAuthenticationFilter.class);
+        security.addFilterAfter(operateLogFilter,
+                TokenAuthenticationFilter.class);
         return security.build();
     }
 
     @Bean
     public WebSecurityCustomizer webSecurityCustomizer() {
-        return web -> web.ignoring().antMatchers("/css/**")
-                .antMatchers("/404.html")
-                .antMatchers("/500.html")
-                .antMatchers("/error.html")
-                .antMatchers("/static/img/**")
-                .antMatchers("/img/**")
-                .antMatchers("/html/**")
-                .antMatchers("/js/**")
-                ;
+        return web -> web.ignoring()
+                .antMatchers("/static/img/**");
     }
 
     @Bean
