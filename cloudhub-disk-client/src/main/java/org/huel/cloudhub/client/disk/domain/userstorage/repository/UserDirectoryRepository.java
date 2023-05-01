@@ -2,7 +2,7 @@ package org.huel.cloudhub.client.disk.domain.userstorage.repository;
 
 import org.huel.cloudhub.client.disk.database.DiskDatabase;
 import org.huel.cloudhub.client.disk.database.dao.UserDirectoryDao;
-import org.huel.cloudhub.client.disk.domain.userstorage.OwnerType;
+import org.huel.cloudhub.client.disk.domain.user.LegalUserType;
 import org.huel.cloudhub.client.disk.domain.userstorage.UserDirectory;
 import org.huel.cloudhub.web.data.page.Offset;
 import org.springframework.stereotype.Repository;
@@ -20,8 +20,8 @@ public class UserDirectoryRepository {
         this.userDirectoryDao = diskDatabase.getUserDirectoryDao();
     }
 
-    public void insert(UserDirectory userDirectories) {
-        userDirectoryDao.insert(userDirectories);
+    public long insert(UserDirectory userDirectories) {
+        return userDirectoryDao.insertReturns(userDirectories);
     }
 
     public void update(UserDirectory userDirectories) {
@@ -49,12 +49,12 @@ public class UserDirectoryRepository {
     }
 
     public List<UserDirectory> getByParentId(long parentId, long owner,
-                                             OwnerType ownerType) {
-        return userDirectoryDao.getByParentId(parentId, owner, ownerType);
+                                             LegalUserType legalUserType) {
+        return userDirectoryDao.getByParentId(parentId, owner, legalUserType);
     }
 
     public UserDirectory getByName(String name, long parentId,
-                                   long owner, OwnerType ownerType) {
-        return userDirectoryDao.getByName(name, parentId, owner, ownerType);
+                                   long owner, LegalUserType legalUserType) {
+        return userDirectoryDao.getByName(name, parentId, owner, legalUserType);
     }
 }

@@ -23,6 +23,10 @@ public enum StorageErrorCode implements ErrorCode, ErrorCodeFinder, ErrorCodeMes
     ERROR_FILE_EXISTED("B3152", 400),
     ERROR_FILE_EMPTY("B3153", 400),
     ERROR_FILE_NOT_EMPTY("B3154", 400),
+    ERROR_SAME_FILE("B3155", 400),
+    ERROR_TARGET_DIRECTORY_NOT_EXIST("B3156", 400),
+    ERROR_SAME_DIRECTORY("B3157", 400),
+
 
     ;
 

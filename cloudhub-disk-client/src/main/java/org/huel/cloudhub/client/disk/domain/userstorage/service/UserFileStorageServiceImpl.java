@@ -1,7 +1,9 @@
 package org.huel.cloudhub.client.disk.domain.userstorage.service;
 
+import org.huel.cloudhub.client.disk.domain.operatelog.context.OperationContextHolder;
 import org.huel.cloudhub.client.disk.domain.storage.StorageService;
 import org.huel.cloudhub.client.disk.domain.user.LegalUserType;
+import org.huel.cloudhub.client.disk.domain.userstorage.AttributedStorage;
 import org.huel.cloudhub.client.disk.domain.userstorage.FileStreamInfo;
 import org.huel.cloudhub.client.disk.domain.userstorage.Storage;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageOwner;
@@ -16,11 +18,15 @@ import org.huel.cloudhub.client.disk.domain.userstorage.dto.FileStorageInfo;
 import org.huel.cloudhub.client.disk.domain.userstorage.dto.StorageAttr;
 import org.huel.cloudhub.client.disk.domain.userstorage.repository.UserDirectoryRepository;
 import org.huel.cloudhub.client.disk.domain.userstorage.repository.UserFileStorageRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import space.lingu.NonNull;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -28,6 +34,8 @@ import java.util.List;
  */
 @Service
 public class UserFileStorageServiceImpl implements UserFileStorageService, UserStorageSearchService {
+    private static final Logger logger = LoggerFactory.getLogger(UserFileStorageServiceImpl.class);
+
     private final StorageService storageService;
     private final ApplicationEventPublisher eventPublisher;
     private final List<StorageProcessor> storageProcessors;
@@ -47,8 +55,8 @@ public class UserFileStorageServiceImpl implements UserFileStorageService, UserS
     }
 
     @Override
-    public Storage createDirectory(String directoryName, long parentId,
-                                   long owner, LegalUserType legalUserType) {
+    public AttributedStorage createDirectory(String directoryName, long parentId,
+                                             long owner, LegalUserType legalUserType) throws StorageException {
         UserDirectory exist = userDirectoryRepository.getByName(
                 directoryName, parentId, owner, legalUserType);
         if (exist != null && !exist.isDeleted()) {
@@ -62,6 +70,9 @@ public class UserFileStorageServiceImpl implements UserFileStorageService, UserS
                     .setDeleted(false)
                     .build();
             userDirectoryRepository.update(updated);
+            OperationContextHolder.getContext()
+                    .addSystemResource(updated)
+                    .setChangedContent(updated.getName());
             return updated;
         }
 
@@ -74,13 +85,39 @@ public class UserFileStorageServiceImpl implements UserFileStorageService, UserS
                 .setUpdateTime(time)
                 .setDeleted(false)
                 .build();
-        userDirectoryRepository.insert(userDirectory);
-        return userDirectory;
+        long id = userDirectoryRepository.insert(userDirectory);
+        UserDirectory inserted = userDirectory.toBuilder()
+                .setId(id)
+                .build();
+        logger.debug("create directory: {}", inserted);
+        OperationContextHolder.getContext()
+                .addSystemResource(inserted)
+                .setChangedContent(inserted.getName());
+
+        return inserted;
     }
 
     @Override
-    public Storage uploadFile(FileStorageInfo fileStorageInfo,
-                              FileStreamInfo fileStreamInfo) throws IOException {
+    public void deleteDirectory(long directoryId, long owner,
+                                LegalUserType legalUserType) {
+
+    }
+
+    @Override
+    public void renameDirectory(long directoryId, String newName,
+                                long owner, LegalUserType legalUserType) {
+
+    }
+
+    @Override
+    public void moveDirectory(long directoryId, long newParentId,
+                              long owner, LegalUserType legalUserType) {
+
+    }
+
+    @Override
+    public AttributedStorage uploadFile(FileStorageInfo fileStorageInfo,
+                                        FileStreamInfo fileStreamInfo) throws IOException {
         String id = storageService.saveFile(fileStreamInfo.inputStream());
 
         checkDirectoryState(fileStorageInfo.directoryId(), fileStorageInfo.storageOwner());
@@ -106,17 +143,23 @@ public class UserFileStorageServiceImpl implements UserFileStorageService, UserS
                     .setCreateTime(time)
                     .setUpdateTime(time)
                     .build();
-            userFileStorageRepository.insert(userFileStorage);
+            long storageId = userFileStorageRepository.insert(userFileStorage);
+            UserFileStorage updatedStorage = userFileStorage.toBuilder()
+                    .setId(storageId)
+                    .build();
+            OperationContextHolder.getContext()
+                    .addSystemResource(updatedStorage)
+                    .setChangedContent(updatedStorage.getName());
 
             StorageAttr storageAttr = new StorageAttr(
-                    userFileStorage.getName(),
+                    updatedStorage.getName(),
                     null,
                     null,
                     fileStreamInfo.fileType()
             );
-            dispatchFileOnCreate(userFileStorage, storageAttr);
+            dispatchFileOnCreate(updatedStorage, storageAttr);
 
-            return userFileStorage;
+            return updatedStorage;
         }
 
         if (existUserFileStorage.getFileId().equals(id)) {
@@ -132,7 +175,9 @@ public class UserFileStorageServiceImpl implements UserFileStorageService, UserS
                 .setName(fileStorageInfo.fileName())
                 .build();
         userFileStorageRepository.update(updatedStorage);
-
+        OperationContextHolder.getContext()
+                .addSystemResource(updatedStorage)
+                .setChangedContent(updatedStorage.getName());
 
         return updatedStorage;
     }
@@ -208,14 +253,29 @@ public class UserFileStorageServiceImpl implements UserFileStorageService, UserS
                 .setDeleted(true)
                 .setUpdateTime(time)
                 .build();
+        OperationContextHolder.getContext()
+                .addSystemResource(updatedStorage)
+                .setChangedContent(updatedStorage.getName());
+
         userFileStorageRepository.update(updatedStorage);
     }
 
     @Override
     public void deleteFile(FileStorageInfo fileStorageInfo) {
+        UserFileStorage userFileStorage = findFile(fileStorageInfo);
+        long time = System.currentTimeMillis();
+        UserFileStorage updatedStorage = userFileStorage.toBuilder()
+                .setDeleted(true)
+                .setUpdateTime(time)
+                .build();
+        OperationContextHolder.getContext()
+                .addSystemResource(updatedStorage)
+                .setChangedContent(updatedStorage.getName());
 
+        userFileStorageRepository.update(updatedStorage);
     }
 
+    @NonNull
     @Override
     public UserDirectory findDirectory(long directoryId) throws StorageException {
         if (directoryId == UserDirectory.ROOT) {
@@ -231,6 +291,7 @@ public class UserFileStorageServiceImpl implements UserFileStorageService, UserS
         return userDirectory;
     }
 
+    @NonNull
     @Override
     public UserDirectory findDirectory(FileStorageInfo fileStorageInfo) throws StorageException {
         UserDirectory userDirectory = userDirectoryRepository.getByName(
@@ -247,12 +308,23 @@ public class UserFileStorageServiceImpl implements UserFileStorageService, UserS
         return userDirectory;
     }
 
-    @Override
-    public List<UserDirectory> listDirectories(long directoryId, StorageOwner storageOwner) {
+    @NonNull
+    private List<UserDirectory> listDirectories(long directoryId, StorageOwner storageOwner) {
         return userDirectoryRepository.getByParentId(
-                directoryId, storageOwner.getOwnerId(), storageOwner.getOwnerType());
+                directoryId,
+                storageOwner.getOwnerId(),
+                storageOwner.getOwnerType());
     }
 
+    private List<UserFileStorage> listOnlyFiles(long directoryId, StorageOwner storageOwner) {
+        return userFileStorageRepository.getByDirectoryId(
+                directoryId,
+                storageOwner.getOwnerId(),
+                storageOwner.getOwnerType()
+        );
+    }
+
+    @NonNull
     @Override
     public UserFileStorage findFile(long fileId) throws StorageException {
         UserFileStorage userFileStorage = userFileStorageRepository.getById(fileId);
@@ -265,6 +337,7 @@ public class UserFileStorageServiceImpl implements UserFileStorageService, UserS
         return userFileStorage;
     }
 
+    @NonNull
     @Override
     public UserFileStorage findFile(FileStorageInfo fileStorageInfo) throws StorageException {
         UserFileStorage userFileStorage = userFileStorageRepository.getById(
@@ -280,6 +353,18 @@ public class UserFileStorageServiceImpl implements UserFileStorageService, UserS
             throw new StorageException(StorageErrorCode.ERROR_FILE_NOT_EXIST);
         }
         return userFileStorage;
+    }
+
+    @Override
+    public List<AttributedStorage> listFiles(long directoryId,
+                                             StorageOwner storageOwner) {
+        List<UserFileStorage> userFileStorages = listOnlyFiles(directoryId, storageOwner);
+        List<UserDirectory> userDirectories = listDirectories(directoryId, storageOwner);
+
+        List<AttributedStorage> attributedStorages = new ArrayList<>(userDirectories);
+        attributedStorages.addAll(userFileStorages);
+
+        return attributedStorages;
     }
 
     private void dispatchFileOnCreate(Storage storage, StorageAttr storageAttr) {

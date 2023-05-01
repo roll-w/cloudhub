@@ -28,7 +28,7 @@ public class UserDirectory implements AttributedStorage {
     @PrimaryKey(autoGenerate = true)
     private final Long id;
 
-    @DataColumn(name = "parent_id")
+    @DataColumn(name = "parent_id", defaultValue = "0")
     private final Long parentId;
 
     @DataColumn(name = "owner")

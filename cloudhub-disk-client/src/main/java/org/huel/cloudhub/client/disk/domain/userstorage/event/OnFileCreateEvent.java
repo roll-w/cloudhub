@@ -1,13 +1,13 @@
 package org.huel.cloudhub.client.disk.domain.userstorage.event;
 
 import org.huel.cloudhub.client.disk.domain.operatelog.dto.Operation;
-import org.huel.cloudhub.client.disk.domain.operatelog.event.OperationEvent;
+import org.huel.cloudhub.client.disk.domain.operatelog.event.DefaultOperationEvent;
 import org.huel.cloudhub.client.disk.domain.userstorage.UserFileStorage;
 
 /**
  * @author RollW
  */
-public class OnFileCreateEvent extends OperationEvent {
+public class OnFileCreateEvent extends DefaultOperationEvent {
     private final UserFileStorage userFileStorage;
 
     public OnFileCreateEvent(UserFileStorage userFileStorage) {
@@ -19,7 +19,10 @@ public class OnFileCreateEvent extends OperationEvent {
         return userFileStorage;
     }
 
-    private static Operation buildOperation(UserFileStorage userFileStorage) {
-        return null;
+    private static Operation buildOperation(
+            UserFileStorage userFileStorage) {
+        return Operation.builder()
+                .setOperator(userFileStorage.getOwnerId())
+                .build();
     }
 }

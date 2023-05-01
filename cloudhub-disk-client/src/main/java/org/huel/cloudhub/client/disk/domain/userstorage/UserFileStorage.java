@@ -87,7 +87,7 @@ public class UserFileStorage implements AttributedStorage {
 
     @Override
     public long getStorageId() {
-        return id;
+        return getId();
     }
 
     @NonNull
@@ -98,12 +98,12 @@ public class UserFileStorage implements AttributedStorage {
 
     @Override
     public Long getParentId() {
-        return directoryId;
+        return getDirectoryId();
     }
 
     @Override
     public long getOwnerId() {
-        return owner;
+        return getOwner();
     }
 
     @NonNull
