@@ -6,6 +6,7 @@ import org.huel.cloudhub.client.disk.database.dao.OperationLogAssociationDao;
 import org.huel.cloudhub.client.disk.database.dao.OperationLogDao;
 import org.huel.cloudhub.client.disk.database.dao.StorageMetadataDao;
 import org.huel.cloudhub.client.disk.database.dao.StoragePermissionDao;
+import org.huel.cloudhub.client.disk.database.dao.StorageUserPermissionDao;
 import org.huel.cloudhub.client.disk.database.dao.TagGroupDao;
 import org.huel.cloudhub.client.disk.database.dao.UserDao;
 import org.huel.cloudhub.client.disk.database.dao.UserDirectoryDao;
@@ -15,6 +16,7 @@ import org.huel.cloudhub.client.disk.domain.operatelog.OperationLog;
 import org.huel.cloudhub.client.disk.domain.operatelog.OperationLogAssociation;
 import org.huel.cloudhub.client.disk.domain.storage.DiskFileStorage;
 import org.huel.cloudhub.client.disk.domain.storagepermission.StoragePermission;
+import org.huel.cloudhub.client.disk.domain.storagepermission.StorageUserPermission;
 import org.huel.cloudhub.client.disk.domain.tag.ContentTag;
 import org.huel.cloudhub.client.disk.domain.tag.TagGroup;
 import org.huel.cloudhub.client.disk.domain.user.User;
@@ -33,7 +35,8 @@ import space.lingu.light.LightDatabase;
 @Database(name = "cloudhub_disk_database", version = 1, tables = {
         User.class,
         DiskFileStorage.class, UserFileStorage.class, UserDirectory.class,
-        StorageMetadata.class, StoragePermission.class, VersionedFileStorage.class,
+        StorageMetadata.class, VersionedFileStorage.class,
+        StoragePermission.class, StorageUserPermission.class,
         OperationLog.class, OperationLogAssociation.class,
         ContentTag.class, TagGroup.class,
 })
@@ -51,6 +54,8 @@ public abstract class DiskDatabase extends LightDatabase {
     public abstract StorageMetadataDao getStorageMetadataDao();
 
     public abstract StoragePermissionDao getStoragePermissionDao();
+
+    public abstract StorageUserPermissionDao getStorageUserPermissionDao();
 
     public abstract VersionedFileStorageDao getVersionedFileStorageDao();
 

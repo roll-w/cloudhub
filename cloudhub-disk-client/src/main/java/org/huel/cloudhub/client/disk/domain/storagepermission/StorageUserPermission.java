@@ -12,10 +12,10 @@ import space.lingu.light.SQLDataType;
 /**
  * @author RollW
  */
-@DataTable(name = "storage_permission", indices = {
-        @Index(value = {"storage_id", "storage_type"}, unique = true)
+@DataTable(name = "storage_user_permission", indices = {
+        @Index(value = {"storage_id", "storage_type"})
 })
-public class StoragePermission implements SystemResource {
+public class StorageUserPermission implements SystemResource {
     @DataColumn(name = "id")
     @PrimaryKey(autoGenerate = true)
     private final Long id;
@@ -27,7 +27,10 @@ public class StoragePermission implements SystemResource {
     private final StorageType storageType;
 
     @DataColumn(name = "permission_type")
-    private final PublicPermissionType permissionType;
+    private final PermissionType permissionType;
+
+    @DataColumn(name = "user_id")
+    private final long userId;
 
     @DataColumn(name = "deleted")
     private final boolean deleted;
@@ -38,15 +41,16 @@ public class StoragePermission implements SystemResource {
     @DataColumn(name = "update_time", dataType = SQLDataType.TIMESTAMP)
     private final long updateTime;
 
-    public StoragePermission(Long id, long storageId,
-                             StorageType storageType,
-                             PublicPermissionType permissionType,
-                             long createTime, long updateTime,
-                             boolean deleted) {
+    public StorageUserPermission(Long id, long storageId,
+                                 StorageType storageType,
+                                 PermissionType permissionType,
+                                 long userId, long createTime, long updateTime,
+                                 boolean deleted) {
         this.id = id;
         this.storageId = storageId;
         this.storageType = storageType;
         this.permissionType = permissionType;
+        this.userId = userId;
         this.createTime = createTime;
         this.updateTime = updateTime;
         this.deleted = deleted;
@@ -64,7 +68,11 @@ public class StoragePermission implements SystemResource {
         return storageType;
     }
 
-    public PublicPermissionType getPermissionType() {
+    public long getUserId() {
+        return userId;
+    }
+
+    public PermissionType getPermissionType() {
         return permissionType;
     }
 
@@ -102,7 +110,8 @@ public class StoragePermission implements SystemResource {
         private Long id;
         private long storageId;
         private StorageType storageType;
-        private PublicPermissionType permissionType;
+        private PermissionType permissionType;
+        private long userId;
         private long createTime;
         private long updateTime;
         private boolean deleted;
@@ -111,11 +120,12 @@ public class StoragePermission implements SystemResource {
         public Builder() {
         }
 
-        public Builder(StoragePermission storagePermission) {
+        public Builder(StorageUserPermission storagePermission) {
             this.id = storagePermission.id;
             this.storageId = storagePermission.storageId;
             this.storageType = storagePermission.storageType;
             this.permissionType = storagePermission.permissionType;
+            this.userId = storagePermission.userId;
             this.createTime = storagePermission.createTime;
             this.updateTime = storagePermission.updateTime;
             this.deleted = storagePermission.deleted;
@@ -136,8 +146,13 @@ public class StoragePermission implements SystemResource {
             return this;
         }
 
-        public Builder setPermissionType(PublicPermissionType permissionType) {
+        public Builder setPermissionType(PermissionType permissionType) {
             this.permissionType = permissionType;
+            return this;
+        }
+
+        public Builder setUserId(long userId) {
+            this.userId = userId;
             return this;
         }
 
@@ -156,10 +171,10 @@ public class StoragePermission implements SystemResource {
             return this;
         }
 
-        public StoragePermission build() {
-            return new StoragePermission(id,
-                    storageId, storageType,
-                    permissionType, createTime, updateTime, deleted);
+        public StorageUserPermission build() {
+            return new StorageUserPermission(id, storageId, storageType,
+                    permissionType, userId,
+                    createTime, updateTime, deleted);
         }
     }
 

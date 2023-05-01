@@ -3,6 +3,7 @@ package org.huel.cloudhub.client.disk.domain.storage.repository;
 import org.huel.cloudhub.client.disk.database.DiskDatabase;
 import org.huel.cloudhub.client.disk.database.dao.DiskFileStorageDao;
 import org.huel.cloudhub.client.disk.domain.storage.DiskFileStorage;
+import org.huel.cloudhub.client.disk.domain.storage.dto.StorageAsSize;
 import org.huel.cloudhub.web.data.page.Offset;
 import org.springframework.stereotype.Repository;
 
@@ -41,5 +42,13 @@ public class DiskFileStorageRepository {
 
     public DiskFileStorage getById(String fileId) {
         return diskFileStorageDao.getById(fileId);
+    }
+
+    public List<StorageAsSize> getSizesByIds(List<String> fileIds) {
+        return diskFileStorageDao.getSizesByIds(fileIds);
+    }
+
+    public long getSizeById(String fileId) {
+        return diskFileStorageDao.getSizeById(fileId);
     }
 }
