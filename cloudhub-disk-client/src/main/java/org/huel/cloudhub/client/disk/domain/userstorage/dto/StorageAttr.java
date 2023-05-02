@@ -12,19 +12,19 @@ public record StorageAttr(
         String fileName,
         byte[] content,
         String suffix,
-        FileType parsedFileType
+        FileType parsedFileType,
+        String fileId
 ) {
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof StorageAttr that)) return false;
-        return Objects.equals(fileName, that.fileName) && Arrays.equals(content, that.content) && Objects.equals(suffix, that.suffix) && parsedFileType == that.parsedFileType;
+        return Objects.equals(fileName, that.fileName) && Arrays.equals(content, that.content) && Objects.equals(suffix, that.suffix) && parsedFileType == that.parsedFileType && Objects.equals(fileId, that.fileId);
     }
 
     @Override
     public int hashCode() {
-        int result = Objects.hash(fileName, suffix, parsedFileType);
+        int result = Objects.hash(fileName, suffix, parsedFileType, fileId);
         result = 31 * result + Arrays.hashCode(content);
         return result;
     }
@@ -36,6 +36,9 @@ public record StorageAttr(
                 ", content=" + Arrays.toString(content) +
                 ", suffix='" + suffix + '\'' +
                 ", parsedFileType=" + parsedFileType +
+                ", fileId='" + fileId + '\'' +
                 '}';
     }
+
+
 }

@@ -118,7 +118,7 @@ public class UserFileStorageServiceImpl implements UserFileStorageService, UserS
     @Override
     public AttributedStorage uploadFile(FileStorageInfo fileStorageInfo,
                                         FileStreamInfo fileStreamInfo) throws IOException {
-        String id = storageService.saveFile(fileStreamInfo.inputStream());
+        String cfsFileId = storageService.saveFile(fileStreamInfo.inputStream());
 
         checkDirectoryState(fileStorageInfo.directoryId(), fileStorageInfo.storageOwner());
 
@@ -132,7 +132,7 @@ public class UserFileStorageServiceImpl implements UserFileStorageService, UserS
         long time = System.currentTimeMillis();
         if (existUserFileStorage == null) {
             UserFileStorage userFileStorage = UserFileStorage.builder()
-                    .setFileId(id)
+                    .setFileId(cfsFileId)
                     .setFileCategory(fileStreamInfo.fileType())
                     .setMimeType(fileStreamInfo.mimeType())
                     .setName(fileStorageInfo.fileName())
@@ -151,25 +151,18 @@ public class UserFileStorageServiceImpl implements UserFileStorageService, UserS
                     .addSystemResource(updatedStorage)
                     .setChangedContent(updatedStorage.getName());
 
-            StorageAttr storageAttr = new StorageAttr(
-                    updatedStorage.getName(),
-                    null,
-                    null,
-                    fileStreamInfo.fileType()
-            );
-            dispatchFileOnCreate(updatedStorage, storageAttr);
-
+            dispatchFileOnCreate(updatedStorage, fileStreamInfo);
             return updatedStorage;
         }
 
-        if (existUserFileStorage.getFileId().equals(id)) {
+        if (existUserFileStorage.getFileId().equals(cfsFileId)) {
             return existUserFileStorage;
         }
 
         UserFileStorage updatedStorage = existUserFileStorage.toBuilder()
                 .setUpdateTime(time)
                 .setDeleted(false)
-                .setFileId(id)
+                .setFileId(cfsFileId)
                 .setFileCategory(fileStreamInfo.fileType())
                 .setMimeType(fileStreamInfo.mimeType())
                 .setName(fileStorageInfo.fileName())
@@ -179,7 +172,21 @@ public class UserFileStorageServiceImpl implements UserFileStorageService, UserS
                 .addSystemResource(updatedStorage)
                 .setChangedContent(updatedStorage.getName());
 
+        dispatchFileOnCreate(updatedStorage, fileStreamInfo);
+
         return updatedStorage;
+    }
+
+    private void dispatchFileOnCreate(UserFileStorage userFileStorage,
+                                      FileStreamInfo fileStreamInfo) {
+        StorageAttr storageAttr = new StorageAttr(
+                userFileStorage.getName(),
+                null,
+                null,
+                fileStreamInfo.fileType(),
+                userFileStorage.getFileId()
+        );
+        dispatchFileOnCreate(userFileStorage, storageAttr);
     }
 
     private void checkDirectoryState(long directoryId, StorageOwner storageOwner) {

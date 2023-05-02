@@ -1,6 +1,5 @@
 package org.huel.cloudhub.client.disk.domain.user.dto;
 
-import org.huel.cloudhub.client.disk.domain.user.LegalUserType;
 import org.huel.cloudhub.client.disk.domain.user.Role;
 import org.huel.cloudhub.client.disk.domain.user.User;
 import org.huel.cloudhub.client.disk.domain.user.UserIdentity;
@@ -66,15 +65,5 @@ public record UserInfo(
     @Override
     public Role getRole() {
         return role;
-    }
-
-    @Override
-    public long getOwnerId() {
-        return id;
-    }
-
-    @Override
-    public LegalUserType getOwnerType() {
-        return LegalUserType.USER;
     }
 }

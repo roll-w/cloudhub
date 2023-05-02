@@ -91,16 +91,6 @@ public class User implements UserDetails, UserIdentity, StorageOwner {
     }
 
     @Override
-    public long getOwnerId() {
-        return getUserId();
-    }
-
-    @Override
-    public LegalUserType getOwnerType() {
-        return LegalUserType.USER;
-    }
-
-    @Override
     public long getUserId() {
         return getId();
     }
