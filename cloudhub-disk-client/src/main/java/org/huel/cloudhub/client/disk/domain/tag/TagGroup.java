@@ -1,5 +1,7 @@
 package org.huel.cloudhub.client.disk.domain.tag;
 
+import org.huel.cloudhub.client.disk.domain.systembased.SystemResource;
+import org.huel.cloudhub.client.disk.domain.systembased.SystemResourceKind;
 import space.lingu.Nullable;
 import space.lingu.light.DataColumn;
 import space.lingu.light.DataTable;
@@ -10,7 +12,7 @@ import space.lingu.light.SQLDataType;
  * @author RollW
  */
 @DataTable(name = "tag_group")
-public class TagGroup {
+public class TagGroup implements SystemResource {
     @DataColumn(name = "id")
     @PrimaryKey(autoGenerate = true)
     private final Long id;
@@ -100,6 +102,16 @@ public class TagGroup {
 
     public static Builder builder() {
         return new Builder();
+    }
+
+    @Override
+    public long getResourceId() {
+        return getId();
+    }
+
+    @Override
+    public SystemResourceKind getSystemResourceKind() {
+        return SystemResourceKind.TAG_GROUP;
     }
 
     public static final class Builder {

@@ -1,5 +1,7 @@
 package org.huel.cloudhub.client.disk.domain.tag;
 
+import org.huel.cloudhub.client.disk.domain.systembased.SystemResource;
+import org.huel.cloudhub.client.disk.domain.systembased.SystemResourceKind;
 import space.lingu.light.DataColumn;
 import space.lingu.light.DataTable;
 import space.lingu.light.PrimaryKey;
@@ -9,7 +11,7 @@ import space.lingu.light.SQLDataType;
  * @author RollW
  */
 @DataTable(name = "content_tag")
-public class ContentTag {
+public class ContentTag implements SystemResource {
     @DataColumn(name = "id")
     @PrimaryKey(autoGenerate = true)
     private final Long id;
@@ -64,5 +66,15 @@ public class ContentTag {
 
     public boolean isDeleted() {
         return deleted;
+    }
+
+    @Override
+    public long getResourceId() {
+        return getId();
+    }
+
+    @Override
+    public SystemResourceKind getSystemResourceKind() {
+        return SystemResourceKind.TAG;
     }
 }
