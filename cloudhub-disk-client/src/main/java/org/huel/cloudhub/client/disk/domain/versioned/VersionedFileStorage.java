@@ -1,5 +1,7 @@
 package org.huel.cloudhub.client.disk.domain.versioned;
 
+import org.huel.cloudhub.client.disk.domain.systembased.SystemResource;
+import org.huel.cloudhub.client.disk.domain.systembased.SystemResourceKind;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageType;
 import space.lingu.light.DataColumn;
 import space.lingu.light.DataTable;
@@ -13,7 +15,7 @@ import space.lingu.light.SQLDataType;
 @DataTable(name = "versioned_file_storage", indices = {
         @Index(value = {"storage_id", "version"}, unique = true)
 })
-public class VersionedFileStorage {
+public class VersionedFileStorage implements SystemResource {
     private static final long INVALID_VERSION = 0;
 
     @DataColumn(name = "id")
@@ -29,6 +31,9 @@ public class VersionedFileStorage {
     @DataColumn(name = "version")
     private final long version;
 
+    @DataColumn(name = "file_id")
+    private final String fileId;
+
     @DataColumn(name = "operator")
     private final long operator;
 
@@ -41,12 +46,15 @@ public class VersionedFileStorage {
     public VersionedFileStorage(Long id, long storageId,
                                 StorageType storageType,
                                 long version,
-                                long operator, long createTime,
+                                String fileId,
+                                long operator,
+                                long createTime,
                                 boolean deleted) {
         this.id = id;
         this.storageId = storageId;
         this.storageType = storageType;
         this.version = version;
+        this.fileId = fileId;
         this.operator = operator;
         this.createTime = createTime;
         this.deleted = deleted;
@@ -66,6 +74,10 @@ public class VersionedFileStorage {
 
     public long getVersion() {
         return version;
+    }
+
+    public String getFileId() {
+        return fileId;
     }
 
     public long getOperator() {
@@ -88,11 +100,22 @@ public class VersionedFileStorage {
         return new Builder();
     }
 
+    @Override
+    public long getResourceId() {
+        return getId();
+    }
+
+    @Override
+    public SystemResourceKind getSystemResourceKind() {
+        return SystemResourceKind.VERSIONED_FILE;
+    }
+
     public static final class Builder {
         private Long id;
         private long storageId;
         private StorageType storageType;
         private long version;
+        private String fileId;
         private long operator;
         private long createTime;
         private boolean deleted;
@@ -105,6 +128,7 @@ public class VersionedFileStorage {
             this.storageId = versionedFileStorage.storageId;
             this.storageType = versionedFileStorage.storageType;
             this.version = versionedFileStorage.version;
+            this.fileId = versionedFileStorage.fileId;
             this.operator = versionedFileStorage.operator;
             this.createTime = versionedFileStorage.createTime;
             this.deleted = versionedFileStorage.deleted;
@@ -130,6 +154,11 @@ public class VersionedFileStorage {
             return this;
         }
 
+        public Builder setFileId(String fileId) {
+            this.fileId = fileId;
+            return this;
+        }
+
         public Builder setOperator(long operator) {
             this.operator = operator;
             return this;
@@ -147,7 +176,7 @@ public class VersionedFileStorage {
 
         public VersionedFileStorage build() {
             return new VersionedFileStorage(id, storageId, storageType,
-                    version, operator, createTime, deleted);
+                    version, fileId, operator, createTime, deleted);
         }
     }
 }
