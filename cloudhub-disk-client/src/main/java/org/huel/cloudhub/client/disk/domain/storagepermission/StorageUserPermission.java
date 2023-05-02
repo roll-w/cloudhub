@@ -9,11 +9,13 @@ import space.lingu.light.Index;
 import space.lingu.light.PrimaryKey;
 import space.lingu.light.SQLDataType;
 
+import java.util.List;
+
 /**
  * @author RollW
  */
 @DataTable(name = "storage_user_permission", indices = {
-        @Index(value = {"storage_id", "storage_type"})
+        @Index(value = {"storage_id", "storage_type", "user_id"}, unique = true),
 })
 public class StorageUserPermission implements SystemResource {
     @DataColumn(name = "id")
@@ -26,8 +28,8 @@ public class StorageUserPermission implements SystemResource {
     @DataColumn(name = "storage_type")
     private final StorageType storageType;
 
-    @DataColumn(name = "permission_type")
-    private final PermissionType permissionType;
+    @DataColumn(name = "permission_types")
+    private final List<PermissionType> permissionTypes;
 
     @DataColumn(name = "user_id")
     private final long userId;
@@ -43,13 +45,13 @@ public class StorageUserPermission implements SystemResource {
 
     public StorageUserPermission(Long id, long storageId,
                                  StorageType storageType,
-                                 PermissionType permissionType,
+                                 List<PermissionType> permissionTypes,
                                  long userId, long createTime, long updateTime,
                                  boolean deleted) {
         this.id = id;
         this.storageId = storageId;
         this.storageType = storageType;
-        this.permissionType = permissionType;
+        this.permissionTypes = permissionTypes;
         this.userId = userId;
         this.createTime = createTime;
         this.updateTime = updateTime;
@@ -72,8 +74,8 @@ public class StorageUserPermission implements SystemResource {
         return userId;
     }
 
-    public PermissionType getPermissionType() {
-        return permissionType;
+    public List<PermissionType> getPermissionTypes() {
+        return permissionTypes;
     }
 
     public boolean isDeleted() {
@@ -110,7 +112,7 @@ public class StorageUserPermission implements SystemResource {
         private Long id;
         private long storageId;
         private StorageType storageType;
-        private PermissionType permissionType;
+        private List<PermissionType> permissionTypes;
         private long userId;
         private long createTime;
         private long updateTime;
@@ -124,7 +126,7 @@ public class StorageUserPermission implements SystemResource {
             this.id = storagePermission.id;
             this.storageId = storagePermission.storageId;
             this.storageType = storagePermission.storageType;
-            this.permissionType = storagePermission.permissionType;
+            this.permissionTypes = storagePermission.permissionTypes;
             this.userId = storagePermission.userId;
             this.createTime = storagePermission.createTime;
             this.updateTime = storagePermission.updateTime;
@@ -146,8 +148,8 @@ public class StorageUserPermission implements SystemResource {
             return this;
         }
 
-        public Builder setPermissionType(PermissionType permissionType) {
-            this.permissionType = permissionType;
+        public Builder setPermissionTypes(List<PermissionType> permissionTypes) {
+            this.permissionTypes = permissionTypes;
             return this;
         }
 
@@ -173,7 +175,7 @@ public class StorageUserPermission implements SystemResource {
 
         public StorageUserPermission build() {
             return new StorageUserPermission(id, storageId, storageType,
-                    permissionType, userId,
+                    permissionTypes, userId,
                     createTime, updateTime, deleted);
         }
     }

@@ -20,5 +20,5 @@ public interface StorageUserPermissionDao extends AutoPrimaryBaseDao<StorageUser
     StorageUserPermission getById(long id);
 
     @Query("SELECT * FROM storage_user_permission WHERE storage_id = {storageId} AND storage_type = {storageType} AND user_id = {userId}")
-    List<StorageUserPermission> getByStorageIdAndUserId(long storageId, StorageType storageType, long userId);
+    StorageUserPermission getByStorageIdAndUserId(long storageId, StorageType storageType, long userId);
 }
