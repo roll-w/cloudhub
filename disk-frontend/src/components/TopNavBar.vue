@@ -32,7 +32,7 @@ import {useUserStore} from "@/stores/user";
 import {getCurrentInstance, h, onMounted, ref} from "vue";
 import {NAvatar, NText} from "naive-ui";
 import {useSiteStore} from "@/stores/site";
-import {index, login} from "@/router";
+import {adminIndex, index, login} from "@/router";
 
 const router = useRouter();
 const {proxy} = getCurrentInstance()
@@ -135,16 +135,15 @@ const adminOptions = [
     key: "article",
   },
   {
-    label: "系统管理",
-    // label: () => h(
-    //     RouterLink,
-    //     {
-    //       to: {
-    //         name: admin
-    //       }
-    //     },
-    //     {default: () => "系统管理"}
-    // ),
+    label: () => h(
+        RouterLink,
+        {
+          to: {
+            name: adminIndex
+          }
+        },
+        {default: () => "系统管理"}
+    ),
     key: "system",
   },
   {

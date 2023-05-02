@@ -2,10 +2,10 @@ import {createRouter, createWebHistory} from 'vue-router'
 import {useUserStore} from "@/stores/user";
 
 const layout = "layout"
+const adminLayout = "admin-layout"
 const headerLayout = "header-layout"
 
 export const index = "index"
-export const productHomePage = "productHomePage"
 export const login = "login-page"
 export const register = "register-page"
 
@@ -13,7 +13,10 @@ export const driveFilePage = "drive-file-page"
 export const driveFileAttrsPage = "drive-file-attrs-page"
 export const driveFilePermissionPage = "drive-file-permission-page"
 
+export const page404 = "page-404"
 export const driveTagPage = "drive-tag-page"
+
+export const adminIndex = "admin-index"
 
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
@@ -56,6 +59,30 @@ const router = createRouter({
                         title: "标签"
                     }
                 },
+                {
+                    path: '/data',
+                    name: "echarts",
+                    component: () => import("@/views/EchartsIndexView.vue"),
+                    meta: {
+                        title: "数据分析"
+                    }
+                },
+            ]
+        },
+        {
+            path: '/layout/admin',
+            name: adminLayout,
+            redirect: '/admin',
+            component: () => import("@/views/AdminLayout.vue"),
+            children: [
+                {
+                    path: '/admin',
+                    name: adminIndex,
+                    component: () => import("@/views/admin/AdminIndex.vue"),
+                    meta: {
+                        title: "管理首页"
+                    }
+                },
             ]
         },
         {
@@ -66,21 +93,14 @@ const router = createRouter({
                 title: "首页"
             }
         },
-        {
-            path: '/data',
-            name: "echarts",
-            component: () => import("@/views/EchartsIndexView.vue"),
-            meta: {
-                title: "数据分析"
-            }
-        },
+
+
         {
             path: '/layout/header',
             name: headerLayout,
             redirect: '/',
             component: () => import("@/views/HeaderLayout.vue"),
             children: [
-
                 {
                     path: '/user/login',
                     name: login,
@@ -88,23 +108,36 @@ const router = createRouter({
                     meta: {
                         title: "登录"
                     }
-                }, {
+                },
+                {
                     path: '/user/register',
                     name: register,
                     component: () => import("@/views/user/LoginView.vue"),
                     meta: {
                         title: "注册"
                     }
-                }
+                },
+                {
+                    path: '/error/404',
+                    name: page404,
+                    component: () => import('@/views/NotFound.vue'),
+                    meta: {
+                        title: "404"
+                    }
+                },
+                {
+                    path: '/:path(.*)*',
+                    redirect: '/error/404'
+                },
             ]
         }
     ]
 })
 
-const defaultTitle = "档案数据中心";
+const defaultTitle = "Cloudhub 法律案件资料库";
 
 export const getTitleSuffix = () => {
-    return " | 档案数据中心 "
+    return " | Cloudhub 法律案件资料库 "
 }
 
 router.afterEach((to, from) => {
@@ -112,26 +145,26 @@ router.afterEach((to, from) => {
 })
 
 
-// router.beforeEach((to, from, next) => {
-//     const userStore = useUserStore()
-//
-//     if (to.meta.requireLogin && !userStore.isLogin) {
-//         return next({
-//             name: login,
-//         })
-//     }
-//
-//     if (!to.name.startsWith("admin")) {
-//         return next()
-//     }
-//     const role = userStore.user.role
-//     if (!userStore.isLogin || !role || role.value === "USER") {
-//         return next({
-//             name: page404
-//         })
-//     }
-//     return next()
-// })
+router.beforeEach((to, from, next) => {
+    const userStore = useUserStore()
+
+    if (to.meta.requireLogin && !userStore.isLogin) {
+        return next({
+            name: login,
+        })
+    }
+
+    if (!to.name.startsWith("admin")) {
+        return next()
+    }
+    const role = userStore.user.role
+    if (!userStore.isLogin || !role || role.value === "USER") {
+        return next({
+            name: page404
+        })
+    }
+    return next()
+})
 
 
 export default router

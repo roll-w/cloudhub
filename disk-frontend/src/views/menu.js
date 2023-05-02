@@ -1,6 +1,7 @@
 import {h} from "vue";
 import {RouterLink} from "vue-router";
 import {
+    adminIndex,
     driveFilePage, driveTagPage,
 } from "@/router";
 
@@ -60,7 +61,64 @@ const menuOptions = [
     },
     {
         key: keyAdmin,
-        menus: []
+        menus: [
+            {
+                name: "系统首页",
+                key: adminIndex,
+                linked: true
+            },
+            {
+                linked: true,
+                name: "返回资料库",
+                key: driveFilePage
+            },
+            {
+                name: "用户管理",
+                key: "user-management",
+            },
+            {
+                name: "文件管理",
+                key: "file-management",
+                children: [
+                    {
+                        name: "文件列表",
+                        key: "file-management-list"
+                    },
+                ]
+            },
+            {
+                name: "标签管理",
+                key: "file-tag",
+
+            },
+            {
+                name: "可视化数据",
+                key: "visual-data",
+            },
+            {
+                name: "系统管理",
+                key: 'menuSystem',
+                children: [
+                    {
+                        name: "系统设置",
+                        key: 'systemSettings'
+                    },
+                    {
+                        name: "系统日志",
+                        key: 'systemLog'
+                    },
+                    {
+                        name: "集群监控",
+                        key: 'system-cluster-monitor'
+                    },
+                    {
+                        name: "系统监控",
+                        key: "system-management-monitor"
+                    },
+                ]
+            },
+
+        ]
     }
 ]
 

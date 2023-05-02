@@ -24,8 +24,13 @@
                             立即登录
                         </a>
                     </div>
-                    <div class="text-gray-500 opacity-70 transition-all hover:text-gray-800 hover:opacity-100">
+                    <div class="text-gray-500 opacity-70
+                    transition-all hover:text-gray-800 hover:opacity-100 hover:drop-shadow hover:shadow-white">
                         ©2023 Cloudhub. All rights reserved. 版权所有
+                        <br>
+                        <a v-if="icp" href="https://beian.miit.gov.cn/" target="_blank">
+                            {{ icp }}
+                        </a>
                     </div>
                 </div>
             </div>
@@ -37,14 +42,23 @@
 <script setup>
 import {ref} from "vue";
 import {useUserStore} from "@/stores/user";
+import {useRouter} from "vue-router";
+import {driveFilePage} from "@/router";
 
 const current = ref(null)
 const userStore = useUserStore()
 
+const router = useRouter()
+
 const checkLogin = () => {
     if (userStore.isLogin) {
+        router.push({
+            name: driveFilePage
+        })
     }
 }
+
+const icp = ((window.cloudhub || {}).server || {}).icp
 
 </script>
 

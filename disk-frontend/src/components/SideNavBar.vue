@@ -13,14 +13,18 @@
 
 <script setup>
 
-import {RouterLink, useRouter} from "vue-router";
-import {h, onBeforeMount, ref} from "vue";
+import {useRouter} from "vue-router";
+import {onBeforeMount, ref} from "vue";
 
-import {useMessage, NIcon} from "naive-ui";
-import {driveFilePage} from "@/router";
-import FileIcon from "@/components/icon/FileIcon.vue";
-import {convertsToNMenuOptions, findMenuOptionByKey} from "@/views/menu";
-import {userKey} from "@/stores/user";
+import {useMessage} from "naive-ui";
+import {convertsToNMenuOptions, findMenuOptionByKey, keyUser} from "@/views/menu";
+
+const props = defineProps({
+    optionKey: {
+        type: String,
+        default: keyUser
+    }
+})
 
 const message = useMessage()
 
@@ -44,50 +48,7 @@ router.afterEach(() => {
     chooseOn.value = calcChooseOption()
 })
 
-const menuOptions = [
-    {
-        label: "文件",
-        key: "menu-file",
-        children: [
-            {
-                key: driveFilePage,
-                label: () => h(
-                    RouterLink,
-                    {
-                        to: {
-                            name: driveFilePage,
-                        }
-                    },
-                    {default: () => "个人主页"}
-                ),
-
-                icon() {
-                    return h(NIcon, {
-                        class: "text-2xl"
-                    }, {
-                        default: () => h(FileIcon)
-                    })
-                },
-            }
-        ]
-    },
-    {
-        label: "收藏夹",
-        key: "2",
-    },
-    {
-        label: "订阅",
-        key: "3",
-    },
-    {
-        label: "回收站",
-        key: "4",
-    }
-];
-
-const option = convertsToNMenuOptions(findMenuOptionByKey(userKey).menus);
-
-
+const option = convertsToNMenuOptions(findMenuOptionByKey(props.optionKey).menus);
 </script>
 
 <style scoped>
