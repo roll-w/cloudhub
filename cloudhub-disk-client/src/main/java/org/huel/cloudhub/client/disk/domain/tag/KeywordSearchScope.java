@@ -6,6 +6,7 @@ package org.huel.cloudhub.client.disk.domain.tag;
 public enum KeywordSearchScope {
     NAME,
     DESCRIPTION,
+    CONTENT,
     ALL
     ;
 }

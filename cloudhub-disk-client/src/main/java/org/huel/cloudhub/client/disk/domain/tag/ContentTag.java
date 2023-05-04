@@ -7,6 +7,8 @@ import space.lingu.light.DataTable;
 import space.lingu.light.PrimaryKey;
 import space.lingu.light.SQLDataType;
 
+import java.util.List;
+
 /**
  * @author RollW
  */
@@ -18,6 +20,9 @@ public class ContentTag implements SystemResource {
 
     @DataColumn(name = "name")
     private final String name;
+
+    @DataColumn(name = "keywords")
+    private final List<TagKeyword> keywords;
 
     @DataColumn(name = "description")
     private final String description;
@@ -32,12 +37,14 @@ public class ContentTag implements SystemResource {
     private final boolean deleted;
 
     public ContentTag(Long id, String name,
+                      List<TagKeyword> keywords,
                       String description,
                       long createTime,
                       long updateTime,
                       boolean deleted) {
         this.id = id;
         this.name = name;
+        this.keywords = keywords;
         this.description = description;
         this.createTime = createTime;
         this.updateTime = updateTime;
@@ -50,6 +57,10 @@ public class ContentTag implements SystemResource {
 
     public String getName() {
         return name;
+    }
+
+    public List<TagKeyword> getKeywords() {
+        return keywords;
     }
 
     public String getDescription() {
@@ -76,5 +87,80 @@ public class ContentTag implements SystemResource {
     @Override
     public SystemResourceKind getSystemResourceKind() {
         return SystemResourceKind.TAG;
+    }
+
+    public Builder toBuilder() {
+        return new Builder(this);
+    }
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public static class Builder {
+        private Long id;
+        private String name;
+        private List<TagKeyword> keywords;
+        private String description;
+        private long createTime;
+        private long updateTime;
+        private boolean deleted;
+
+        public Builder() {
+        }
+
+        public Builder(ContentTag contentTag) {
+            this.id = contentTag.id;
+            this.name = contentTag.name;
+            this.keywords = contentTag.keywords;
+            this.description = contentTag.description;
+            this.createTime = contentTag.createTime;
+            this.updateTime = contentTag.updateTime;
+            this.deleted = contentTag.deleted;
+        }
+
+        public Builder setId(Long id) {
+            this.id = id;
+            return this;
+        }
+
+        public Builder setName(String name) {
+            if (name == null || name.isBlank()) {
+                throw new IllegalArgumentException("name is null or blank");
+            }
+            this.name = name;
+            return this;
+        }
+
+        public Builder setKeywords(List<TagKeyword> keywords) {
+            this.keywords = keywords;
+            return this;
+        }
+
+        public Builder setDescription(String description) {
+            this.description = description;
+            return this;
+        }
+
+        public Builder setCreateTime(long createTime) {
+            this.createTime = createTime;
+            return this;
+        }
+
+        public Builder setUpdateTime(long updateTime) {
+            this.updateTime = updateTime;
+            return this;
+        }
+
+        public Builder setDeleted(boolean deleted) {
+            this.deleted = deleted;
+            return this;
+        }
+
+        public ContentTag build() {
+            return new ContentTag(id, name, keywords,
+                    description, createTime,
+                    updateTime, deleted);
+        }
     }
 }
