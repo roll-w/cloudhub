@@ -10,6 +10,7 @@ public enum SystemResourceKind {
     STORAGE_PERMISSION,
     VERSIONED_FILE,
     VERSIONED_FOLDER,
+    STORAGE_SHARE,
     TAG,
     TAG_GROUP,
     USER_SETTING,
