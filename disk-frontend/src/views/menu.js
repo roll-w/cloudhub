@@ -1,7 +1,7 @@
 import {h} from "vue";
 import {RouterLink} from "vue-router";
 import {
-    adminIndex,
+    adminIndex, adminUserLists,
     driveFilePage, driveTagPage,
 } from "@/router";
 
@@ -12,6 +12,10 @@ export const keyUser = "user"
 export const keyAdmin = "admin"
 
 export const menuFile = "File"
+export const adminMenuFile = "AdminFile"
+
+export const adminMenuUser = "AdminUser"
+
 
 const menuOptions = [
     {
@@ -74,7 +78,14 @@ const menuOptions = [
             },
             {
                 name: "用户管理",
-                key: "user-management",
+                key: adminMenuUser,
+                children: [
+                    {
+                        name: "用户列表",
+                        key: adminUserLists,
+                        linked: true
+                    }
+                ]
             },
             {
                 name: "文件管理",
@@ -126,16 +137,16 @@ export const findMenuOptionByKey = (key) => {
     return menuOptions.find(menuOption => menuOption.key === key)
 }
 
-export const requestChildrenMenus = (menuKey, key) => {
-    return requestMenusByName(menuKey, key).children | []
-}
-
 export const requestMenusByName = (menuKey, key) => {
     const menuOption = findMenuOptionByKey(menuKey)
     if (!menuOption) {
         return []
     }
-    return menuOption.menus.find(menu => menu.key === key) | {}
+    return menuOption.menus.find(menu => menu.key === key) || {}
+}
+
+export const requestChildrenMenus = (menuKey, key) => {
+    return requestMenusByName(menuKey, key).children || []
 }
 
 export const convertsToNMenuOptions = (menus) => {

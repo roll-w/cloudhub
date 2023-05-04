@@ -13,7 +13,7 @@
                     position="absolute"
                     style="left: var(--sidebar-width);">
                 <router-view v-slot="{ Component }">
-                    <transition mode="out-in" name="fade">
+                    <transition mode="out-in" name="slide-fade">
                         <component :is="Component" :key="$route.fullPath"/>
                     </transition>
                 </router-view>
