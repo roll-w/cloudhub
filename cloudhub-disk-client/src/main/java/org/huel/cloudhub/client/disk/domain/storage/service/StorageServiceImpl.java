@@ -3,6 +3,7 @@ package org.huel.cloudhub.client.disk.domain.storage.service;
 import org.huel.cloudhub.client.conf.ClientConfigLoader;
 import org.huel.cloudhub.client.disk.domain.storage.DiskFileStorage;
 import org.huel.cloudhub.client.disk.domain.storage.StorageService;
+import org.huel.cloudhub.client.disk.domain.storage.dto.StorageAsSize;
 import org.huel.cloudhub.client.disk.domain.storage.repository.DiskFileStorageRepository;
 import org.huel.cloudhub.client.CFSClient;
 import org.huel.cloudhub.client.FileValidation;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.List;
 
 /**
  * @author RollW
@@ -59,4 +61,15 @@ public class StorageServiceImpl implements StorageService {
                         long startBytes, long endBytes) throws IOException {
         cfsClient.downloadFile(outputStream, fileId, startBytes, endBytes);
     }
+
+    @Override
+    public List<StorageAsSize> getFileSizes(List<String> fileIds) {
+        return diskFileStorageRepository.getSizesByIds(fileIds);
+    }
+
+    @Override
+    public long getFileSize(String fileId) {
+        return diskFileStorageRepository.getSizeById(fileId);
+    }
+
 }
