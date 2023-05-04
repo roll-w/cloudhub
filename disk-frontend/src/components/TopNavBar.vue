@@ -1,28 +1,32 @@
 <template>
-  <n-layout-header bordered style="height: var(--header-height)">
-    <div class="p-5 flex">
-      <n-text :depth="1" class="ui-logo flex justify-start" @click="handleLogoClick">
-        <img alt="Logo" src="../assets/cloud.svg">
-        <span>法律案件资料库</span>
-      </n-text>
-      <div class="flex justify-end justify-items-end flex-grow">
-        <n-space>
-          <n-button @click="handleThemeClick">切换主题</n-button>
-          <div>
-            <n-button v-if="!userStore.isLogin" @click="handleLoginClick">登录</n-button>
-            <n-dropdown v-else :options="options" trigger="hover" @select="handleSelect">
-              <n-avatar v-if="userStore.userData.setup"
-                        class="border"
-                        :src="userStore.userData.avatar" />
-              <n-avatar v-else>
-                {{ username }}
-              </n-avatar>
-            </n-dropdown>
-          </div>
-        </n-space>
-      </div>
-    </div>
-  </n-layout-header>
+    <n-layout-header bordered style="height: var(--header-height)">
+        <div class="p-5 flex">
+            <n-text :depth="1" class="ui-logo flex justify-start" @click="handleLogoClick">
+                <img alt="Logo" src="../assets/cloud.svg">
+                <span>法律案件资料库</span>
+            </n-text>
+            <div class="flex justify-end justify-items-end flex-grow">
+                <n-space>
+                    <n-button @click="handleThemeClick">切换主题</n-button>
+                    <div>
+                        <n-button v-if="!userStore.isLogin" @click="handleLoginClick">登录</n-button>
+                        <n-dropdown v-else :options="options" trigger="hover" @select="handleSelect">
+                            <n-avatar v-if="userStore.userData.setup"
+                                      :src="userStore.userData.avatar"
+                                      class="border"/>
+                            <n-avatar v-else
+                                      :style="{
+                                        backgroundColor: hexUserColor,
+                                      }"
+                            >
+                                {{ username }}
+                            </n-avatar>
+                        </n-dropdown>
+                    </div>
+                </n-space>
+            </div>
+        </div>
+    </n-layout-header>
 </template>
 
 
@@ -32,7 +36,9 @@ import {useUserStore} from "@/stores/user";
 import {getCurrentInstance, h, onMounted, ref} from "vue";
 import {NAvatar, NText} from "naive-ui";
 import {useSiteStore} from "@/stores/site";
-import {adminIndex, index, login} from "@/router";
+import {adminIndex, driveFilePage, index, login} from "@/router";
+import {MD5} from "@/util/crypto";
+
 
 const router = useRouter();
 const {proxy} = getCurrentInstance()
@@ -42,6 +48,9 @@ const userStore = useUserStore()
 
 const username = ref('')
 const role = ref(userStore.user.role)
+
+const hexUserColor = ref('#2876c7')
+
 //
 // const requestPersonalData = () => {
 //   const config = createConfig()
@@ -58,219 +67,214 @@ const role = ref(userStore.user.role)
 // }
 //
 const loadUsername = (newUsername, newRole) => {
-  username.value = newUsername
-  role.value = newRole
+    username.value = newUsername
+    const high6 = MD5(newUsername).substring(0, 6)
+    const originalColor = `#${high6}`
+    hexUserColor.value = originalColor
+    role.value = newRole
 }
 
 onMounted(() => {
-  if (!userStore.userData.setup) {
-    // requestPersonalData()
-  }
+    if (!userStore.userData.setup) {
+        // requestPersonalData()
+    }
 })
 
 loadUsername(userStore.userData.nickname || userStore.user.username, userStore.user.role)
 
 const userOptions = [
-  {
-    label: `${userStore.user.username}`,
-    key: "username",
-  },
-  {
-    label: "个人主页",
-    // label: () => h(
-    //     RouterLink,
-    //     {
-    //       to: {
-    //         name: userPage,
-    //         params: {
-    //           userId: userStore.user.id
-    //         }
-    //       }
-    //     },
-    //     {default: () => "个人主页"}
-    // ),
-    key: "space",
-  },
-  {
-    label: "文件管理",
-    key: "article",
-  },
-  {
-    key: 'header-divider',
-    type: 'divider'
-  },
-  {
-    label: "个人设置",
-    key: "settings",
-  },
-  {
-    label: "退出",
-    key: "logout",
-  }
+    {
+        label: `${userStore.user.username}`,
+        key: "username",
+    },
+    {
+        label: () => h(
+            RouterLink,
+            {
+                to: {
+                    name: driveFilePage,
+                }
+            },
+            {default: () => "个人主页"}
+        ),
+        key: "space",
+    },
+    {
+        label: "文件管理",
+        key: "article",
+    },
+    {
+        key: 'header-divider',
+        type: 'divider'
+    },
+    {
+        label: "个人设置",
+        key: "settings",
+    },
+    {
+        label: "退出",
+        key: "logout",
+    }
 ]
 
 const adminOptions = [
-  {
-    label: `${userStore.user.username}`,
-    key: "username",
-  },
-  {
-    label: "个人主页",
-    // label: () => h(
-    //     RouterLink,
-    //     {
-    //       to: {
-    //         name: userPage,
-    //         params: {
-    //           userId: userStore.user.id
-    //         }
-    //       }
-    //     },
-    //     {default: () => "个人主页"}
-    // ),
-    key: "space",
-  },
-  {
-    label: "文件管理",
-    key: "article",
-  },
-  {
-    label: () => h(
-        RouterLink,
-        {
-          to: {
-            name: adminIndex
-          }
-        },
-        {default: () => "系统管理"}
-    ),
-    key: "system",
-  },
-  {
-    key: 'header-divider',
-    type: 'divider'
-  },
-  {
-    label: "个人设置",
-    key: "settings",
-  },
-  {
-    label: "退出",
-    key: "logout",
-  }
+    {
+        label: `${userStore.user.username}`,
+        key: "username",
+    },
+    {
+        label: () => h(
+            RouterLink,
+            {
+              to: {
+                name: driveFilePage,
+              }
+            },
+            {default: () => "个人主页"}
+        ),
+        key: "space",
+    },
+    {
+        label: "文件管理",
+        key: "article",
+    },
+    {
+        label: () => h(
+            RouterLink,
+            {
+                to: {
+                    name: adminIndex
+                }
+            },
+            {default: () => "系统管理"}
+        ),
+        key: "system",
+    },
+    {
+        key: 'header-divider',
+        type: 'divider'
+    },
+    {
+        label: "个人设置",
+        key: "settings",
+    },
+    {
+        label: "退出",
+        key: "logout",
+    }
 ]
 
 const options = ref(userOptions)
 
 const updatesOption = (options, username, id) => {
-  options[0].label = username
-  // options[1].label = () => h(
-  //     RouterLink,
-  //     {
-  //       to: {
-  //         name: userPage,
-  //         params: {
-  //           userId: id
-  //         }
-  //       }
-  //     },
-  //     {default: () => "个人主页"}
-  // )
-  return options
+    options[0].label = username
+    // options[1].label = () => h(
+    //     RouterLink,
+    //     {
+    //       to: {
+    //         name: userPage,
+    //         params: {
+    //           userId: id
+    //         }
+    //       }
+    //     },
+    //     {default: () => "个人主页"}
+    // )
+    return options
 }
 
 const chooseOptions = (username, role, id) => {
-  if (!role) {
-    options.value = null
-    return
-  }
-  if (role !== "USER") {
-    options.value = updatesOption(adminOptions, username, id)
-  } else {
-    options.value = updatesOption(userOptions, username, id)
-  }
+    if (!role) {
+        options.value = null
+        return
+    }
+    if (role !== "USER") {
+        options.value = updatesOption(adminOptions, username, id)
+    } else {
+        options.value = updatesOption(userOptions, username, id)
+    }
 }
 
 chooseOptions(userStore.user.username, userStore.user.role, userStore.user.id)
 
 userStore.$subscribe((mutation, state) => {
-  if (!state.user) {
-    loadUsername(null, 'USER')
-    chooseOptions(null, null, 0)
-    return
-  }
-  loadUsername(state.userData.nickname || state.user.username, state.user.role)
-  chooseOptions(state.user.username, state.user.role, state.user.id)
+    if (!state.user) {
+        loadUsername(null, 'USER')
+        chooseOptions(null, null, 0)
+        return
+    }
+    loadUsername(state.userData.nickname || state.user.username, state.user.role)
+    chooseOptions(state.user.username, state.user.role, state.user.id)
 })
 
 
 const handleLogoClick = () => {
-  router.push({
-    name: index
-  });
+    router.push({
+        name: index
+    });
 };
 
 const handleLoginClick = () => {
-  router.push({
-    name: login
-  });
+    router.push({
+        name: login
+    });
 };
 
 const handleSelect = (key) => {
-  switch (key) {
-    case "logout":
-      userStore.logout();
-      router.push({
-        name: index
-      })
-      break;
-  }
+    switch (key) {
+        case "logout":
+            userStore.logout();
+            router.push({
+                name: index
+            })
+            break;
+    }
 }
 
 const handleThemeClick = () => {
-  siteStore.toggleTheme()
+    siteStore.toggleTheme()
 }
 
 </script>
 
 <style scoped>
 .nav {
-  display: grid;
-  align-items: center;
+    display: grid;
+    align-items: center;
 }
 
 .ui-logo {
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    font-size: 18px;
 }
 
 .ui-logo > img {
-  margin-right: 12px;
-  height: 32px;
-  width: 32px;
+    margin-right: 12px;
+    height: 32px;
+    width: 32px;
 }
 
 .nav-menu {
-  padding-left: 36px;
+    padding-left: 36px;
 }
 
 .nav-picker {
-  margin-right: 4px;
+    margin-right: 4px;
 }
 
 .nav-picker.padded {
-  padding: 0 10px;
+    padding: 0 10px;
 }
 
 .nav-picker:last-child {
-  margin-right: 0;
+    margin-right: 0;
 }
 
 .nav-end {
-  display: flex;
-  align-items: center;
+    display: flex;
+    align-items: center;
 }
 </style>
 

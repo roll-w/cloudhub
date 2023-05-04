@@ -14,14 +14,11 @@
 
                 <div class="flex flex-fill flex-col px-5">
                     <div class="flex flex-fill align-bottom">
-                        <a class="text-xl transition-all bg-amber-500 hover:bg-amber-600
-                    focus:outline-none focus:ring-2 focus:ring-amber-400
-                    focus:ring-offset-2 focus:ring-offset-amber-50
-                    text-white font-semibold h-14 px-6 rounded-xl
-                    cursor-pointer
-                    w-full flex items-center justify-center sm:w-auto "
-                           href="/user/login">
+                        <a v-if="!userStore.isLogin" class="link-btn" href="/user/login">
                             立即登录
+                        </a>
+                        <a v-else class="link-btn" href="/drive">
+                            立即进入
                         </a>
                     </div>
                     <div class="text-gray-500 opacity-70
@@ -66,6 +63,15 @@ const icp = ((window.cloudhub || {}).server || {}).icp
 .bg {
     /*background-image: url('https://img.alicdn.com/imgextra/i1/O1CN010wJ9Hw21g0Hlwo9RT_!!6000000007013-2-tps-2880-1412.png');*/
     background-image: url('/public/img/mind.jpg');
+}
+
+.link-btn {
+    @apply text-xl transition-all bg-amber-500 hover:bg-amber-600
+    focus:outline-none focus:ring-2 focus:ring-amber-400
+    focus:ring-offset-2 focus:ring-offset-amber-50
+    text-white font-semibold h-14 px-6 rounded-xl
+    cursor-pointer
+    w-full flex items-center justify-center sm:w-auto;
 }
 
 </style>
