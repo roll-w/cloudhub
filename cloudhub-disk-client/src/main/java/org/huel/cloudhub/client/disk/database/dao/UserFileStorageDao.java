@@ -46,12 +46,17 @@ public interface UserFileStorageDao extends AutoPrimaryBaseDao<UserFileStorage> 
     @Query("SELECT * FROM user_file_storage WHERE id IN {storageIds}")
     List<UserFileStorage> getByIds(List<Long> storageIds);
 
-    @Query("SELECT * FROM user_file_storage WHERE id IN {storageIds} AND owner = {storageOwner.getOwnerId()} AND owner_type = {storageOwner.getOwnerType}")
+    @Query("SELECT * FROM user_file_storage WHERE id IN {storageIds} AND owner = {storageOwner.getOwnerId()} AND owner_type = {storageOwner.getOwnerType()}")
     List<UserFileStorage> getByIds(List<Long> storageIds, StorageOwner storageOwner);
 
     @Query("SELECT * FROM user_file_storage WHERE id IN {storageIds} AND file_type = {fileType}")
     List<UserFileStorage> getByIdsAndType(List<Long> storageIds, FileType fileType);
 
-    @Query("SELECT * FROM user_file_storage WHERE id IN {storageIds} AND file_type = {fileType} AND owner = {storageOwner.getOwnerId()} AND owner_type = {storageOwner.getOwnerType}")
+    @Query("SELECT * FROM user_file_storage WHERE id IN {storageIds} AND file_type = {fileType} AND owner = {storageOwner.getOwnerId()} AND owner_type = {storageOwner.getOwnerType()}")
     List<UserFileStorage> getByIdsAndType(List<Long> storageIds, FileType fileType, StorageOwner storageOwner);
+
+    @Override
+    default String getTableName() {
+        return "user_file_storage";
+    }
 }

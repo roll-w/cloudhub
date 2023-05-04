@@ -2,7 +2,6 @@ package org.huel.cloudhub.client.disk.database.dao;
 
 import org.huel.cloudhub.client.disk.domain.user.User;
 import org.huel.cloudhub.client.disk.domain.user.dto.UserInfo;
-import space.lingu.Dangerous;
 import space.lingu.light.Dao;
 import space.lingu.light.Delete;
 import space.lingu.light.Insert;
@@ -36,10 +35,6 @@ public abstract class UserDao {
 
     @Query("SELECT * FROM user WHERE id = {id}")
     public abstract User selectById(long id);
-
-    @Delete("DELETE FROM user WHERE id = {id}")
-    @Dangerous(message = "Will complete delete the user from database. This operation is dangerous.")
-    protected abstract void deleteById(long id);
 
     // TODO: replace SELECT * with SELECT columns
     @Query("SELECT * FROM user")

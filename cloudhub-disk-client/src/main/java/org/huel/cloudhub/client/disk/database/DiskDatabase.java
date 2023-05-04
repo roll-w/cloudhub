@@ -11,9 +11,11 @@ import org.huel.cloudhub.client.disk.database.dao.TagGroupDao;
 import org.huel.cloudhub.client.disk.database.dao.UserDao;
 import org.huel.cloudhub.client.disk.database.dao.UserDirectoryDao;
 import org.huel.cloudhub.client.disk.database.dao.UserFileStorageDao;
+import org.huel.cloudhub.client.disk.database.dao.UserShareDao;
 import org.huel.cloudhub.client.disk.database.dao.VersionedFileStorageDao;
 import org.huel.cloudhub.client.disk.domain.operatelog.OperationLog;
 import org.huel.cloudhub.client.disk.domain.operatelog.OperationLogAssociation;
+import org.huel.cloudhub.client.disk.domain.share.UserShare;
 import org.huel.cloudhub.client.disk.domain.storage.DiskFileStorage;
 import org.huel.cloudhub.client.disk.domain.storagepermission.StoragePermission;
 import org.huel.cloudhub.client.disk.domain.storagepermission.StorageUserPermission;
@@ -35,6 +37,7 @@ import space.lingu.light.LightDatabase;
 @Database(name = "cloudhub_disk_database", version = 1, tables = {
         User.class,
         DiskFileStorage.class, UserFileStorage.class, UserDirectory.class,
+        UserShare.class,
         StorageMetadata.class, VersionedFileStorage.class,
         StoragePermission.class, StorageUserPermission.class,
         OperationLog.class, OperationLogAssociation.class,
@@ -50,6 +53,8 @@ public abstract class DiskDatabase extends LightDatabase {
     public abstract UserFileStorageDao getUserFileStorageDao();
 
     public abstract UserDirectoryDao getUserDirectoryDao();
+
+    public abstract UserShareDao getUserShareDao();
 
     public abstract StorageMetadataDao getStorageMetadataDao();
 

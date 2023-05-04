@@ -4,7 +4,6 @@ import org.huel.cloudhub.client.disk.domain.user.LegalUserType;
 import org.huel.cloudhub.client.disk.domain.userstorage.UserDirectory;
 import org.huel.cloudhub.web.data.page.Offset;
 import space.lingu.light.Dao;
-import space.lingu.light.Delete;
 import space.lingu.light.Query;
 
 import java.util.List;
@@ -14,9 +13,6 @@ import java.util.List;
  */
 @Dao
 public interface UserDirectoryDao extends AutoPrimaryBaseDao<UserDirectory> {
-    @Delete("DELETE FROM user_directory")
-    void clearTable();
-
     @Query("SELECT * FROM user_directory")
     List<UserDirectory> get();
 
@@ -39,4 +35,9 @@ public interface UserDirectoryDao extends AutoPrimaryBaseDao<UserDirectory> {
 
     @Query("SELECT * FROM user_directory WHERE name = {name} AND parent_id = {parentId} AND owner = {owner} AND owner_type = {ownerType}")
     UserDirectory getByName(String name, long parentId, long owner, LegalUserType ownerType);
+
+    @Override
+    default String getTableName() {
+        return "user_directory";
+    }
 }

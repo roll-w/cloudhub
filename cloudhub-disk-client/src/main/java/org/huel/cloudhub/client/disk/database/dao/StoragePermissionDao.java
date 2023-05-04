@@ -16,4 +16,8 @@ public interface StoragePermissionDao extends AutoPrimaryBaseDao<StoragePermissi
     @Query("SELECT * FROM storage_permission WHERE id = {id}")
     StoragePermission getById(long id);
 
+    @Override
+    default String getTableName() {
+        return "storage_permission";
+    }
 }

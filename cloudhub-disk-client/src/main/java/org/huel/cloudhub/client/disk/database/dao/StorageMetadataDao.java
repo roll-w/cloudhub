@@ -63,13 +63,13 @@ public interface StorageMetadataDao
         try (ResultSet resultSet = statement.executeQuery()) {
             while (resultSet.next()) {
                 storageMetadata.add(new StorageMetadata(
-                        resultSet.getLong("id"),
-                        resultSet.getLong("storage_id"),
-                        resultSet.getString("name"),
-                        resultSet.getString("value"),
-                        resultSet.getLong("tag_group_id"),
-                        resultSet.getLong("tag_id"),
-                        resultSet.getBoolean("deleted"),
+                        resultSet.getLong(1),
+                        resultSet.getLong(2),
+                        resultSet.getString(3),
+                        resultSet.getString(4),
+                        resultSet.getLong(5),
+                        resultSet.getLong(6),
+                        resultSet.getBoolean(7),
                         0, 0
                 ));
             }
@@ -78,5 +78,10 @@ public interface StorageMetadataDao
         }
         connection.close();
         return storageMetadata;
+    }
+
+    @Override
+    default String getTableName() {
+        return "storage_metadata";
     }
 }

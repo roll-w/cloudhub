@@ -31,4 +31,7 @@ public interface DiskFileStorageDao extends BaseDao<DiskFileStorage> {
 
     @Query("SELECT `size` FROM disk_file_storage WHERE file_id = {fileId}")
     long getSizeById(String fileId);
+
+    @Query("SELECT COUNT(*) FROM disk_file_storage")
+    int count();
 }

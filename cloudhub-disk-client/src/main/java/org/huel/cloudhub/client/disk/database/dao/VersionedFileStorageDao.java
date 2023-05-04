@@ -26,4 +26,9 @@ public interface VersionedFileStorageDao extends AutoPrimaryBaseDao<VersionedFil
 
     @Query("SELECT * FROM versioned_file_storage WHERE id = {id}")
     VersionedFileStorage getById(long id);
+
+    @Override
+    default String getTableName() {
+        return "versioned_file_storage";
+    }
 }

@@ -4,6 +4,7 @@ import org.huel.cloudhub.client.disk.database.DiskDatabase;
 import org.huel.cloudhub.client.disk.database.dao.UserFileStorageDao;
 import org.huel.cloudhub.client.disk.domain.user.LegalUserType;
 import org.huel.cloudhub.client.disk.domain.userstorage.FileType;
+import org.huel.cloudhub.client.disk.domain.userstorage.StorageOwner;
 import org.huel.cloudhub.client.disk.domain.userstorage.UserFileStorage;
 import org.huel.cloudhub.web.data.page.Offset;
 import org.springframework.stereotype.Service;
@@ -50,7 +51,8 @@ public class UserFileStorageRepository {
         return fileStorageDao.getByDirectoryId(directoryId);
     }
 
-    public List<UserFileStorage> getByType(long owner, LegalUserType legalUserType,
+    public List<UserFileStorage> getByType(long owner,
+                                           LegalUserType legalUserType,
                                            FileType fileType) {
         return fileStorageDao.getByType(owner, legalUserType, fileType);
     }
@@ -62,5 +64,26 @@ public class UserFileStorageRepository {
     public UserFileStorage getById(long owner, LegalUserType legalUserType,
                                    long directoryId, String name) {
         return fileStorageDao.getById(owner, legalUserType, directoryId, name);
+    }
+
+    public List<UserFileStorage> getByIds(List<Long> storageIds) {
+       return fileStorageDao.getByIds(storageIds);
+    }
+
+    public List<UserFileStorage> getByIdsAndType(List<Long> storageIds,
+                                                 FileType fileType) {
+        return fileStorageDao.getByIdsAndType(storageIds, fileType);
+    }
+
+    public List<UserFileStorage> getByIds(
+            List<Long> storageIds,
+            StorageOwner storageOwner) {
+       return fileStorageDao.getByIds(storageIds, storageOwner);
+    }
+
+    public List<UserFileStorage> getByIdsAndType(List<Long> storageIds,
+                                                 FileType fileType,
+                                                 StorageOwner storageOwner) {
+        return fileStorageDao.getByIdsAndType(storageIds, fileType, storageOwner);
     }
 }

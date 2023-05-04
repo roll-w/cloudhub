@@ -18,4 +18,9 @@ public interface OperationLogAssociationDao extends AutoPrimaryBaseDao<Operation
 
     @Query("SELECT * FROM operation_log_association WHERE resource_id = {resourceId} AND resource_kind = {resourceKind}")
     List<OperationLogAssociation> getByResourceId(long resourceId, SystemResourceKind resourceKind);
+
+    @Override
+    default String getTableName() {
+        return "operation_log_association";
+    }
 }

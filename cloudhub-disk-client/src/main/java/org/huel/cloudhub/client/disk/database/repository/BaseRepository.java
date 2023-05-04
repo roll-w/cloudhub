@@ -1,6 +1,7 @@
 package org.huel.cloudhub.client.disk.database.repository;
 
 import org.huel.cloudhub.client.disk.database.dao.AutoPrimaryBaseDao;
+import org.huel.cloudhub.web.data.page.Offset;
 
 import java.util.List;
 
@@ -28,5 +29,41 @@ public abstract class BaseRepository<T> {
 
     public void update(List<T> ts) {
         primaryBaseDao.update(ts);
+    }
+
+    public List<T> getActives() {
+        return primaryBaseDao.getActives();
+    }
+
+    public List<T> getInactives() {
+        return primaryBaseDao.getInactives();
+    }
+
+    public T getById(long id) {
+        return primaryBaseDao.getById(id);
+    }
+
+    public List<T> getByIds(List<Long> ids) {
+        return primaryBaseDao.getByIds(ids);
+    }
+
+    public int countActive() {
+        return primaryBaseDao.countActive();
+    }
+
+    public int countInactive() {
+        return primaryBaseDao.countInactive();
+    }
+
+    public int count() {
+        return primaryBaseDao.count();
+    }
+
+    public List<T> get() {
+        return primaryBaseDao.get();
+    }
+
+    public List<T> get(Offset offset) {
+        return primaryBaseDao.get(offset);
     }
 }

@@ -17,4 +17,9 @@ public interface OperationLogDao extends AutoPrimaryBaseDao<OperationLog> {
 
     @Query("SELECT * FROM operation_log WHERE operator = {operator}")
     List<OperationLog> getByOperator(long operator);
+
+    @Override
+    default String getTableName() {
+        return "operation_log";
+    }
 }

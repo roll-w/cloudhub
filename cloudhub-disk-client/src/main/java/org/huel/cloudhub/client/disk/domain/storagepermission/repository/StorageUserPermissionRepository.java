@@ -25,9 +25,6 @@ public class StorageUserPermissionRepository extends BaseRepository<StorageUserP
         return storageUserPermissionDao.getStorageUserPermissions(storageId, storageType);
     }
 
-    public StorageUserPermission getById(long id) {
-        return storageUserPermissionDao.getById(id);
-    }
 
     public StorageUserPermission getByStorageIdAndUserId(long storageId, StorageType storageType,
                                                          long userId) {
