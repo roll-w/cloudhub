@@ -2,6 +2,7 @@ package org.huel.cloudhub.client.disk.database.dao;
 
 import org.huel.cloudhub.client.disk.domain.tag.dto.TagValue;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageMetadata;
+import org.huel.cloudhub.web.data.page.Offset;
 import space.lingu.light.Dao;
 import space.lingu.light.DaoConnectionGetter;
 import space.lingu.light.LightRuntimeException;
@@ -20,9 +21,6 @@ import java.util.List;
 public interface StorageMetadataDao
         extends AutoPrimaryBaseDao<StorageMetadata>, DaoConnectionGetter {
 
-    @Query("SELECT * FROM storage_metadata WHERE id = {id}")
-    StorageMetadata getById(long id);
-
     @Query("SELECT * FROM storage_metadata WHERE storage_id = {storageId}")
     List<StorageMetadata> getByStorageId(long storageId);
 
@@ -31,6 +29,9 @@ public interface StorageMetadataDao
 
     @Query("SELECT * FROM storage_metadata WHERE tag_id = {tagId}")
     List<StorageMetadata> getByTagId(long tagId);
+
+    @Query("SELECT * FROM storage_metadata WHERE storage_id = {storageId} AND name = {name}")
+    StorageMetadata getByStorageIdAndName(long storageId, String name);
 
     default List<StorageMetadata> getByTagValues(List<TagValue> tagValues) {
         if (tagValues.isEmpty()) {
@@ -79,6 +80,42 @@ public interface StorageMetadataDao
         connection.close();
         return storageMetadata;
     }
+
+    @Override
+    @Query("SELECT * FROM storage_metadata WHERE deleted = 0")
+    List<StorageMetadata> getActives();
+
+    @Override
+    @Query("SELECT * FROM storage_metadata WHERE deleted = 1")
+    List<StorageMetadata> getInactives();
+
+    @Override
+    @Query("SELECT * FROM storage_metadata WHERE id = {id}")
+    StorageMetadata getById(long id);
+
+    @Override
+    @Query("SELECT * FROM storage_metadata WHERE id IN {ids}")
+    List<StorageMetadata> getByIds(List<Long> ids);
+
+    @Override
+    @Query("SELECT COUNT(*) FROM storage_metadata WHERE deleted = 0")
+    int countActive();
+
+    @Override
+    @Query("SELECT COUNT(*) FROM storage_metadata WHERE deleted = 1")
+    int countInactive();
+
+    @Override
+    @Query("SELECT * FROM storage_metadata")
+    List<StorageMetadata> get();
+
+    @Override
+    @Query("SELECT COUNT(*) FROM storage_metadata")
+    int count();
+
+    @Override
+    @Query("SELECT * FROM storage_metadata LIMIT {offset.limit()} OFFSET {offset.offset()}")
+    List<StorageMetadata> get(Offset offset);
 
     @Override
     default String getTableName() {

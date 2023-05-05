@@ -4,7 +4,6 @@ import org.huel.cloudhub.web.data.page.Offset;
 import space.lingu.light.Delete;
 import space.lingu.light.Insert;
 import space.lingu.light.OnConflictStrategy;
-import space.lingu.light.Query;
 import space.lingu.light.Update;
 
 import java.util.List;
@@ -31,25 +30,16 @@ public interface BaseDao<T> {
     @Delete
     void delete(List<T> ts);
 
-    @Query("SELECT * FROM {table}")
-    List<T> get(String table);
-
-    @Query("SELECT COUNT(*) FROM {table}")
-    int count(String table);
-
-    @Query("SELECT * FROM {table} LIMIT {offset.limit()} OFFSET {offset.offset()}")
-    List<T> get(String table, Offset offset);
-
     default List<T> get() {
-        return get(getTableName());
+        return List.of();
     }
 
     default int count() {
-        return count(getTableName());
+        return 0;
     }
 
     default List<T> get(Offset offset) {
-        return get(getTableName(), offset);
+        return List.of();
     }
 
     default String getTableName() {

@@ -1,5 +1,6 @@
 package org.huel.cloudhub.client.disk.domain.user;
 
+import org.huel.cloudhub.client.disk.database.DataItem;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageOwner;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -21,7 +22,7 @@ import java.util.Objects;
 })
 @LightConfiguration(key = LightConfiguration.KEY_VARCHAR_LENGTH, value = "120")
 @SuppressWarnings({"ClassCanBeRecord"})
-public class User implements UserDetails, UserIdentity, StorageOwner {
+public class User implements UserDetails, UserIdentity, StorageOwner, DataItem {
     @PrimaryKey(autoGenerate = true)
     @DataColumn(name = "id")
     private final Long id;
@@ -86,6 +87,7 @@ public class User implements UserDetails, UserIdentity, StorageOwner {
         this.canceled = canceled;
     }
 
+    @Override
     public Long getId() {
         return id;
     }

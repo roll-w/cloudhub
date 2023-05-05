@@ -5,6 +5,7 @@ import org.huel.cloudhub.client.disk.database.dao.TagGroupDao;
 import org.huel.cloudhub.client.disk.database.repository.BaseRepository;
 import org.huel.cloudhub.client.disk.domain.tag.TagGroup;
 import org.huel.cloudhub.web.data.page.Offset;
+import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -16,8 +17,9 @@ import java.util.List;
 public class TagGroupRepository extends BaseRepository<TagGroup> {
     private final TagGroupDao tagGroupDao;
 
-    public TagGroupRepository(DiskDatabase database) {
-        super(database.getTagGroupDao());
+    public TagGroupRepository(DiskDatabase database,
+                              CacheManager cacheManager) {
+        super(database.getTagGroupDao(), cacheManager);
         tagGroupDao = database.getTagGroupDao();
     }
 

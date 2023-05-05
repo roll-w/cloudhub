@@ -4,6 +4,7 @@ import org.huel.cloudhub.client.disk.database.DiskDatabase;
 import org.huel.cloudhub.client.disk.database.dao.VersionedFileStorageDao;
 import org.huel.cloudhub.client.disk.database.repository.BaseRepository;
 import org.huel.cloudhub.client.disk.domain.versioned.VersionedFileStorage;
+import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -15,8 +16,9 @@ import java.util.List;
 public class VersionedFileRepository extends BaseRepository<VersionedFileStorage> {
     private final VersionedFileStorageDao versionedFileStorageDao;
 
-    public VersionedFileRepository(DiskDatabase database) {
-        super(database.getVersionedFileStorageDao());
+    public VersionedFileRepository(DiskDatabase database,
+                                   CacheManager cacheManager) {
+        super(database.getVersionedFileStorageDao(), cacheManager);
         versionedFileStorageDao = database.getVersionedFileStorageDao();
     }
 

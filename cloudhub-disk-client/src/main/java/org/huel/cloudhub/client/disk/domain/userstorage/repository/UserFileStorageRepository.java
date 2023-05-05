@@ -2,11 +2,11 @@ package org.huel.cloudhub.client.disk.domain.userstorage.repository;
 
 import org.huel.cloudhub.client.disk.database.DiskDatabase;
 import org.huel.cloudhub.client.disk.database.dao.UserFileStorageDao;
+import org.huel.cloudhub.client.disk.database.repository.BaseRepository;
 import org.huel.cloudhub.client.disk.domain.user.LegalUserType;
 import org.huel.cloudhub.client.disk.domain.userstorage.FileType;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageOwner;
 import org.huel.cloudhub.client.disk.domain.userstorage.UserFileStorage;
-import org.huel.cloudhub.web.data.page.Offset;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -15,27 +15,12 @@ import java.util.List;
  * @author RollW
  */
 @Service
-public class UserFileStorageRepository {
+public class UserFileStorageRepository extends BaseRepository<UserFileStorage> {
     private final UserFileStorageDao fileStorageDao;
 
     public UserFileStorageRepository(DiskDatabase diskDatabase) {
+        super(diskDatabase.getUserFileStorageDao());
         this.fileStorageDao = diskDatabase.getUserFileStorageDao();
-    }
-
-    public long insert(UserFileStorage userFileStorage) {
-        return fileStorageDao.insertReturns(userFileStorage);
-    }
-
-    public void update(UserFileStorage userFileStorage) {
-        fileStorageDao.update(userFileStorage);
-    }
-
-    public List<UserFileStorage> get() {
-        return fileStorageDao.get();
-    }
-
-    public List<UserFileStorage> get(Offset offset) {
-        return fileStorageDao.get(offset);
     }
 
     public List<UserFileStorage> get(long owner, LegalUserType legalUserType) {
@@ -57,17 +42,9 @@ public class UserFileStorageRepository {
         return fileStorageDao.getByType(owner, legalUserType, fileType);
     }
 
-    public UserFileStorage getById(long id) {
-        return fileStorageDao.getById(id);
-    }
-
     public UserFileStorage getById(long owner, LegalUserType legalUserType,
                                    long directoryId, String name) {
         return fileStorageDao.getById(owner, legalUserType, directoryId, name);
-    }
-
-    public List<UserFileStorage> getByIds(List<Long> storageIds) {
-       return fileStorageDao.getByIds(storageIds);
     }
 
     public List<UserFileStorage> getByIdsAndType(List<Long> storageIds,
@@ -85,5 +62,9 @@ public class UserFileStorageRepository {
                                                  FileType fileType,
                                                  StorageOwner storageOwner) {
         return fileStorageDao.getByIdsAndType(storageIds, fileType, storageOwner);
+    }
+
+    public List<UserFileStorage> getDeletedByOwner(long owner, LegalUserType legalUserType) {
+        return fileStorageDao.getDeletedByOwner(owner, legalUserType);
     }
 }

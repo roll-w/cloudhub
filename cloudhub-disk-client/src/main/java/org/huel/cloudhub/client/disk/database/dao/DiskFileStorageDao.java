@@ -4,7 +4,6 @@ import org.huel.cloudhub.client.disk.domain.storage.DiskFileStorage;
 import org.huel.cloudhub.client.disk.domain.storage.dto.StorageAsSize;
 import org.huel.cloudhub.web.data.page.Offset;
 import space.lingu.light.Dao;
-import space.lingu.light.Delete;
 import space.lingu.light.Query;
 
 import java.util.List;
@@ -14,12 +13,11 @@ import java.util.List;
  */
 @Dao
 public interface DiskFileStorageDao extends BaseDao<DiskFileStorage> {
-    @Delete("DELETE FROM disk_file_storage")
-    void clearTable();
-
+    @Override
     @Query("SELECT * FROM disk_file_storage")
     List<DiskFileStorage> get();
 
+    @Override
     @Query("SELECT * FROM disk_file_storage LIMIT {offset.limit()} OFFSET {offset.offset()}")
     List<DiskFileStorage> get(Offset offset);
 
@@ -32,6 +30,12 @@ public interface DiskFileStorageDao extends BaseDao<DiskFileStorage> {
     @Query("SELECT `size` FROM disk_file_storage WHERE file_id = {fileId}")
     long getSizeById(String fileId);
 
+    @Override
     @Query("SELECT COUNT(*) FROM disk_file_storage")
     int count();
+
+    @Override
+    default String getTableName() {
+        return "disk_file_storage";
+    }
 }

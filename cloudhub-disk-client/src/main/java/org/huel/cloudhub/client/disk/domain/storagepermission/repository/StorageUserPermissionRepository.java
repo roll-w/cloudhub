@@ -5,6 +5,7 @@ import org.huel.cloudhub.client.disk.database.dao.StorageUserPermissionDao;
 import org.huel.cloudhub.client.disk.database.repository.BaseRepository;
 import org.huel.cloudhub.client.disk.domain.storagepermission.StorageUserPermission;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageType;
+import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -16,8 +17,9 @@ import java.util.List;
 public class StorageUserPermissionRepository extends BaseRepository<StorageUserPermission> {
     private final StorageUserPermissionDao storageUserPermissionDao;
 
-    public StorageUserPermissionRepository(DiskDatabase database) {
-        super(database.getStorageUserPermissionDao());
+    public StorageUserPermissionRepository(DiskDatabase database,
+                                           CacheManager cacheManager) {
+        super(database.getStorageUserPermissionDao(), cacheManager);
         this.storageUserPermissionDao = database.getStorageUserPermissionDao();
     }
 

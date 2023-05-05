@@ -1,62 +1,60 @@
 package org.huel.cloudhub.client.disk.database.dao;
 
+import org.huel.cloudhub.client.disk.database.DataItem;
+import org.huel.cloudhub.web.data.page.Offset;
 import space.lingu.light.Insert;
 import space.lingu.light.OnConflictStrategy;
-import space.lingu.light.Query;
 
 import java.util.List;
 
 /**
  * @author RollW
  */
-public interface AutoPrimaryBaseDao<T> extends BaseDao<T> {
+public interface AutoPrimaryBaseDao<T extends DataItem> extends BaseDao<T> {
     @Insert(onConflict = OnConflictStrategy.ABORT)
     long insertReturns(T t);
 
-    @Query("SELECT * FROM {table} WHERE deleted = 0")
-    List<T> getActives(String table);
-
-    @Query("SELECT * FROM {table} WHERE deleted = 1")
-    List<T> getInactives(String table);
-
-    @Query("SELECT * FROM {table} WHERE id = {id}")
-    T getById(String table, long id);
-
-    @Query("SELECT * FROM {table} WHERE id IN {ids}")
-    List<T> getByIds(String table, List<Long> ids);
-
-    @Query("SELECT COUNT(*) FROM {table} WHERE deleted = 0")
-    int countActive(String table);
-
-    @Query("SELECT COUNT(*) FROM {table} WHERE deleted = 1")
-    int countInactive(String table);
-
-    default long insertReturns(T t, String table) {
-        return insertReturns(t);
-    }
-
     default List<T> getActives() {
-        return getActives(getTableName());
+        return List.of();
     }
 
     default List<T> getInactives() {
-        return getInactives(getTableName());
+        return List.of();
     }
 
     default T getById(long id) {
-        return getById(getTableName(), id);
+        return null;
     }
 
     default List<T> getByIds(List<Long> ids) {
-        return getByIds(getTableName(), ids);
+        return List.of();
     }
 
     default int countActive() {
-        return countActive(getTableName());
+        return 0;
     }
 
     default int countInactive() {
-        return countInactive(getTableName());
+        return 0;
     }
 
+    @Override
+    default List<T> get() {
+        return BaseDao.super.get();
+    }
+
+    @Override
+    default int count() {
+        return BaseDao.super.count();
+    }
+
+    @Override
+    default List<T> get(Offset offset) {
+        return BaseDao.super.get(offset);
+    }
+
+    @Override
+    default String getTableName() {
+        return BaseDao.super.getTableName();
+    }
 }

@@ -1,5 +1,6 @@
 package org.huel.cloudhub.client.disk.domain.userstorage;
 
+import org.huel.cloudhub.client.disk.database.DataItem;
 import space.lingu.light.DataColumn;
 import space.lingu.light.DataTable;
 import space.lingu.light.Index;
@@ -12,7 +13,7 @@ import space.lingu.light.SQLDataType;
 @DataTable(name = "storage_metadata", indices = {
         @Index({"storage_id", "tag_group_id", "tag_id"}),
 })
-public class StorageMetadata {
+public class StorageMetadata implements DataItem {
     public static final long INVALID_TAG_ID = -1;
 
     @DataColumn(name = "id")
@@ -58,6 +59,7 @@ public class StorageMetadata {
         this.updateTime = updateTime;
     }
 
+    @Override
     public Long getId() {
         return id;
     }

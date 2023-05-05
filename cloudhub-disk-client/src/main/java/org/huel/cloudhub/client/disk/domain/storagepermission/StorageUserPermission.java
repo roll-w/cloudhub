@@ -1,5 +1,6 @@
 package org.huel.cloudhub.client.disk.domain.storagepermission;
 
+import org.huel.cloudhub.client.disk.database.DataItem;
 import org.huel.cloudhub.client.disk.domain.systembased.SystemResource;
 import org.huel.cloudhub.client.disk.domain.systembased.SystemResourceKind;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageType;
@@ -17,7 +18,7 @@ import java.util.List;
 @DataTable(name = "storage_user_permission", indices = {
         @Index(value = {"storage_id", "storage_type", "user_id"}, unique = true),
 })
-public class StorageUserPermission implements SystemResource {
+public class StorageUserPermission implements SystemResource, DataItem {
     @DataColumn(name = "id")
     @PrimaryKey(autoGenerate = true)
     private final Long id;
@@ -58,6 +59,7 @@ public class StorageUserPermission implements SystemResource {
         this.deleted = deleted;
     }
 
+    @Override
     public Long getId() {
         return id;
     }

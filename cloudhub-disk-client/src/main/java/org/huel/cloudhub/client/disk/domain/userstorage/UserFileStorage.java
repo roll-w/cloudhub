@@ -1,5 +1,6 @@
 package org.huel.cloudhub.client.disk.domain.userstorage;
 
+import org.huel.cloudhub.client.disk.database.DataItem;
 import org.huel.cloudhub.client.disk.domain.user.LegalUserType;
 import space.lingu.NonNull;
 import space.lingu.light.DataColumn;
@@ -16,7 +17,7 @@ import space.lingu.light.PrimaryKey;
 @DataTable(name = "user_file_storage", indices = {
         @Index(value = {"name", "directory_id"}, unique = true)
 })
-public class UserFileStorage implements AttributedStorage {
+public class UserFileStorage implements AttributedStorage, DataItem {
     @DataColumn(name = "id")
     @PrimaryKey(autoGenerate = true)
     private final Long id;
@@ -72,6 +73,7 @@ public class UserFileStorage implements AttributedStorage {
         this.deleted = deleted;
     }
 
+    @Override
     public Long getId() {
         return id;
     }

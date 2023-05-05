@@ -5,6 +5,7 @@ import org.huel.cloudhub.client.disk.database.dao.OperationLogAssociationDao;
 import org.huel.cloudhub.client.disk.database.repository.BaseRepository;
 import org.huel.cloudhub.client.disk.domain.operatelog.OperationLogAssociation;
 import org.huel.cloudhub.client.disk.domain.systembased.SystemResourceKind;
+import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -16,8 +17,9 @@ import java.util.List;
 public class OperationLogAssociationRepository extends BaseRepository<OperationLogAssociation> {
     private final OperationLogAssociationDao operationLogAssociationDao;
 
-    protected OperationLogAssociationRepository(DiskDatabase database) {
-        super(database.getOperationLogAssociationDao());
+    protected OperationLogAssociationRepository(DiskDatabase database,
+                                                CacheManager cacheManager) {
+        super(database.getOperationLogAssociationDao(), cacheManager);
         operationLogAssociationDao = database.getOperationLogAssociationDao();
     }
 

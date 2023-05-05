@@ -36,4 +36,9 @@ public class StorageMetadataRepository extends BaseRepository<StorageMetadata> {
     public List<StorageMetadata> getByTagValues(List<TagValue> tagValues) {
         return storageMetadataDao.getByTagValues(tagValues);
     }
+
+    public StorageMetadata getByStorageIdAndName(long storageId, String name) {
+        return storageMetadataDao.getByStorageIdAndName(storageId, name);
+    }
+
 }

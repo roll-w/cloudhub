@@ -1,5 +1,6 @@
 package org.huel.cloudhub.client.disk.domain.tag;
 
+import org.huel.cloudhub.client.disk.database.DataItem;
 import org.huel.cloudhub.client.disk.domain.systembased.SystemResource;
 import org.huel.cloudhub.client.disk.domain.systembased.SystemResourceKind;
 import space.lingu.Nullable;
@@ -12,7 +13,7 @@ import space.lingu.light.SQLDataType;
  * @author RollW
  */
 @DataTable(name = "tag_group")
-public class TagGroup implements SystemResource {
+public class TagGroup implements SystemResource, DataItem {
     @DataColumn(name = "id")
     @PrimaryKey(autoGenerate = true)
     private final Long id;
@@ -59,6 +60,7 @@ public class TagGroup implements SystemResource {
         this.deleted = deleted;
     }
 
+    @Override
     public Long getId() {
         return id;
     }

@@ -1,5 +1,6 @@
 package org.huel.cloudhub.client.disk.domain.operatelog;
 
+import org.huel.cloudhub.client.disk.database.DataItem;
 import org.huel.cloudhub.client.disk.domain.systembased.SystemResourceKind;
 import space.lingu.light.DataColumn;
 import space.lingu.light.DataTable;
@@ -14,7 +15,7 @@ import space.lingu.light.PrimaryKey;
  * @author RollW
  */
 @DataTable(name = "operation_log_association")
-public class OperationLogAssociation {
+public class OperationLogAssociation implements DataItem {
     @DataColumn(name = "id")
     @PrimaryKey(autoGenerate = true)
     private final Long id;
@@ -39,6 +40,7 @@ public class OperationLogAssociation {
         this.resourceKind = resourceKind;
     }
 
+    @Override
     public Long getId() {
         return id;
     }

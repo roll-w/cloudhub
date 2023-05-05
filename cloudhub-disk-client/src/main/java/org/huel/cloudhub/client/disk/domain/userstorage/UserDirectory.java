@@ -1,5 +1,6 @@
 package org.huel.cloudhub.client.disk.domain.userstorage;
 
+import org.huel.cloudhub.client.disk.database.DataItem;
 import org.huel.cloudhub.client.disk.domain.user.LegalUserType;
 import space.lingu.NonNull;
 import space.lingu.light.DataColumn;
@@ -13,7 +14,7 @@ import space.lingu.light.SQLDataType;
  * @author RollW
  */
 @DataTable(name = "user_directory")
-public class UserDirectory implements AttributedStorage {
+public class UserDirectory implements AttributedStorage, DataItem {
     public static final long ROOT = 0;
 
     public static final UserDirectory ROOT_DIRECTORY = new UserDirectory(
@@ -64,6 +65,7 @@ public class UserDirectory implements AttributedStorage {
         this.deleted = deleted;
     }
 
+    @Override
     public Long getId() {
         return id;
     }

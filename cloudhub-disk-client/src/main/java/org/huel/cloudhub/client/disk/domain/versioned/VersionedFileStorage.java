@@ -1,5 +1,6 @@
 package org.huel.cloudhub.client.disk.domain.versioned;
 
+import org.huel.cloudhub.client.disk.database.DataItem;
 import org.huel.cloudhub.client.disk.domain.systembased.SystemResource;
 import org.huel.cloudhub.client.disk.domain.systembased.SystemResourceKind;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageType;
@@ -15,7 +16,7 @@ import space.lingu.light.SQLDataType;
 @DataTable(name = "versioned_file_storage", indices = {
         @Index(value = {"storage_id", "version"}, unique = true)
 })
-public class VersionedFileStorage implements SystemResource {
+public class VersionedFileStorage implements SystemResource, DataItem {
     private static final long INVALID_VERSION = 0;
 
     @DataColumn(name = "id")
@@ -60,6 +61,7 @@ public class VersionedFileStorage implements SystemResource {
         this.deleted = deleted;
     }
 
+    @Override
     public Long getId() {
         return id;
     }

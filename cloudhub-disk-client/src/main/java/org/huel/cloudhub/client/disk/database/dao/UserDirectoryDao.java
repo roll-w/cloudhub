@@ -13,14 +13,6 @@ import java.util.List;
  */
 @Dao
 public interface UserDirectoryDao extends AutoPrimaryBaseDao<UserDirectory> {
-    @Query("SELECT * FROM user_directory")
-    List<UserDirectory> get();
-
-    @Query("SELECT * FROM user_directory LIMIT {offset.limit()} OFFSET {offset.offset()}")
-    List<UserDirectory> get(Offset offset);
-
-    @Query("SELECT * FROM user_directory WHERE id = {id}")
-    UserDirectory getById(long id);
 
     @Query("SELECT * FROM user_directory WHERE parent_id = {parentId}")
     List<UserDirectory> getByParentId(long parentId);
@@ -35,6 +27,42 @@ public interface UserDirectoryDao extends AutoPrimaryBaseDao<UserDirectory> {
 
     @Query("SELECT * FROM user_directory WHERE name = {name} AND parent_id = {parentId} AND owner = {owner} AND owner_type = {ownerType}")
     UserDirectory getByName(String name, long parentId, long owner, LegalUserType ownerType);
+
+    @Override
+    @Query("SELECT * FROM user_directory WHERE deleted = 0")
+    List<UserDirectory> getActives();
+
+    @Override
+    @Query("SELECT * FROM user_directory WHERE deleted = 1")
+    List<UserDirectory> getInactives();
+
+    @Override
+    @Query("SELECT * FROM user_directory WHERE id = {id}")
+    UserDirectory getById(long id);
+
+    @Override
+    @Query("SELECT * FROM user_directory WHERE id IN {ids}")
+    List<UserDirectory> getByIds(List<Long> ids);
+
+    @Override
+    @Query("SELECT COUNT(*) FROM user_directory WHERE deleted = 0")
+    int countActive();
+
+    @Override
+    @Query("SELECT COUNT(*) FROM user_directory WHERE deleted = 1")
+    int countInactive();
+
+    @Override
+    @Query("SELECT * FROM user_directory")
+    List<UserDirectory> get();
+
+    @Override
+    @Query("SELECT COUNT(*) FROM user_directory")
+    int count();
+
+    @Override
+    @Query("SELECT * FROM user_directory LIMIT {offset.limit()} OFFSET {offset.offset()}")
+    List<UserDirectory> get(Offset offset);
 
     @Override
     default String getTableName() {

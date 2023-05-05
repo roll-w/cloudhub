@@ -1,6 +1,7 @@
 package org.huel.cloudhub.client.disk.database;
 
 import org.huel.cloudhub.client.disk.domain.storagepermission.PermissionType;
+import org.huel.cloudhub.client.disk.domain.tag.TagKeyword;
 import space.lingu.light.DataConverter;
 
 import java.util.ArrayList;
@@ -48,6 +49,44 @@ public class DiskConverter {
             permissionTypes.add(PermissionType.valueOf(s1));
         }
         return permissionTypes;
+    }
+
+    @DataConverter
+    public static String[] convertToArray(String s) {
+        return s.split(",");
+    }
+
+    @DataConverter
+    public static String convertToString(String[] array) {
+        StringJoiner joiner = new StringJoiner(",");
+        for (String s : array) {
+            joiner.add(s);
+        }
+        return joiner.toString();
+    }
+
+    @DataConverter
+    public static List<TagKeyword> convertToKeywords(String s) {
+        // name^value#name^value
+        List<TagKeyword> keywords = new ArrayList<>();
+        String[] split = s.split("#");
+        for (String s1 : split) {
+            String[] split1 = s1.split("\\^");
+            keywords.add(new TagKeyword(split1[0], Integer.parseInt(split1[1])));
+        }
+        return keywords;
+    }
+
+    @DataConverter
+    public static String convertFromKeywords(List<TagKeyword> keywords) {
+        // name^value#name^value
+        StringBuilder builder = new StringBuilder();
+        for (TagKeyword keyword : keywords) {
+            builder.append(keyword.name()).append("^")
+                    .append(keyword.weight())
+                    .append("#");
+        }
+        return builder.toString();
     }
 
     private DiskConverter() {

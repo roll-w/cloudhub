@@ -1,5 +1,6 @@
 package org.huel.cloudhub.client.disk.domain.share;
 
+import org.huel.cloudhub.client.disk.database.DataItem;
 import org.huel.cloudhub.client.disk.domain.systembased.SystemResource;
 import org.huel.cloudhub.client.disk.domain.systembased.SystemResourceKind;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageType;
@@ -12,7 +13,7 @@ import space.lingu.light.SQLDataType;
  * @author RollW
  */
 @DataTable(name = "user_share")
-public class UserShare implements SystemResource {
+public class UserShare implements SystemResource, DataItem {
     @DataColumn(name = "id")
     @PrimaryKey(autoGenerate = true)
     private final Long id;
@@ -57,6 +58,7 @@ public class UserShare implements SystemResource {
         this.updateTime = updateTime;
     }
 
+    @Override
     public Long getId() {
         return id;
     }
