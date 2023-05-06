@@ -27,4 +27,8 @@ public class ContentTagRepository extends BaseRepository<ContentTag> {
     }
 
 
+    @Override
+    protected Class<ContentTag> getEntityClass() {
+        return ContentTag.class;
+    }
 }
