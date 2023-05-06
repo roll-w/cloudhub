@@ -1,5 +1,6 @@
 package org.huel.cloudhub.client.disk.domain.userstorage;
 
+import org.huel.cloudhub.client.disk.BaseAbility;
 import org.huel.cloudhub.client.disk.domain.userstorage.common.StorageException;
 
 /**
@@ -7,8 +8,11 @@ import org.huel.cloudhub.client.disk.domain.userstorage.common.StorageException;
  *
  * @author RollW
  */
+@BaseAbility
 public interface StorageAction extends AttributedStorage {
     void delete() throws StorageException;
+
+    void restore() throws StorageException;
 
     void create() throws StorageException;
 

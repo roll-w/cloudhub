@@ -5,6 +5,7 @@ import org.huel.cloudhub.client.disk.domain.userstorage.AttributedStorage;
 import org.huel.cloudhub.client.disk.domain.userstorage.Storage;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageAction;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageActionService;
+import org.huel.cloudhub.client.disk.domain.userstorage.StorageOwner;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageType;
 import org.huel.cloudhub.client.disk.domain.userstorage.UserDirectory;
 import org.huel.cloudhub.client.disk.domain.userstorage.UserFileStorage;
@@ -51,14 +52,15 @@ public class UserStorageActionServiceImpl implements StorageActionService,
 
     @Override
     public StorageAction openStorageAction(long storageId, StorageType storageType,
-                                           long ownerId, LegalUserType userType)
+                                           StorageOwner storageOwner)
             throws StorageException {
         AttributedStorage storage = switch (storageType) {
             case FOLDER -> findDirectory(storageId);
             case FILE -> findFile(storageId);
             case LINK -> null;
         };
-        if (storage == null || !checkStorageOwner(storage, ownerId, userType)) {
+        if (storage == null || !checkStorageOwner(storage,
+                storageOwner.getOwnerId(), storageOwner.getOwnerType())) {
             throw new StorageException(StorageErrorCode.ERROR_FILE_NOT_EXIST);
         }
         return createStorageAction(storage);

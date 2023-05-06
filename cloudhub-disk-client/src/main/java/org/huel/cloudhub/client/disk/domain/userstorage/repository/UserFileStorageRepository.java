@@ -76,4 +76,8 @@ public class UserFileStorageRepository extends BaseRepository<UserFileStorage> {
     protected Class<UserFileStorage> getEntityClass() {
         return UserFileStorage.class;
     }
+
+    public UserFileStorage getById(long fileId, long ownerId, LegalUserType ownerType) {
+        return fileStorageDao.getById(fileId, ownerId, ownerType);
+    }
 }

@@ -7,4 +7,6 @@ public interface AttributedStorage extends Storage {
     long getCreateTime();
 
     long getUpdateTime();
+
+    boolean isDeleted();
 }

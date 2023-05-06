@@ -130,14 +130,17 @@ public class UserFileStorage implements AttributedStorage, DataItem {
         return fileCategory;
     }
 
+    @Override
     public long getCreateTime() {
         return createTime;
     }
 
+    @Override
     public long getUpdateTime() {
         return updateTime;
     }
 
+    @Override
     public boolean isDeleted() {
         return deleted;
     }

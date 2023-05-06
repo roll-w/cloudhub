@@ -59,4 +59,13 @@ public enum FileType {
         }
         return OTHER;
     }
+
+    public static FileType from(String nameIgnoreCase) {
+        for (FileType value : values()) {
+            if (value.name().equalsIgnoreCase(nameIgnoreCase)) {
+                return value;
+            }
+        }
+        return null;
+    }
 }

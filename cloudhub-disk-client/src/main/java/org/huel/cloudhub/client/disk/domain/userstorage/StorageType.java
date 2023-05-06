@@ -16,6 +16,15 @@ public enum StorageType implements SystemResourceKind.Kind {
         this.systemResourceKind = systemResourceKind;
     }
 
+    public static StorageType from(String nameIgnoreCase) {
+        for (StorageType value : values()) {
+            if (value.name().equalsIgnoreCase(nameIgnoreCase)) {
+                return value;
+            }
+        }
+        return null;
+    }
+
     @Override
     public SystemResourceKind getSystemResourceKind() {
         return systemResourceKind;

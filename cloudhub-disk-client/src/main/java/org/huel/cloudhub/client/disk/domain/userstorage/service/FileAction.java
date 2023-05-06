@@ -67,8 +67,27 @@ public class FileAction implements StorageAction {
     }
 
     @Override
+    public boolean isDeleted() {
+        return file.isDeleted();
+    }
+
+    @Override
     public void delete() throws StorageException {
+        if (file.isDeleted()) {
+            throw new StorageException(StorageErrorCode.ERROR_FILE_ALREADY_DELETED);
+        }
+
         fileBuilder.setDeleted(true);
+        update();
+    }
+
+    @Override
+    public void restore() throws StorageException {
+        if (!file.isDeleted()) {
+            throw new StorageException(StorageErrorCode.ERROR_FILE_NOT_DELETED);
+        }
+
+        fileBuilder.setDeleted(false);
         update();
     }
 

@@ -57,4 +57,8 @@ public class UserDirectoryRepository {
                                    long owner, LegalUserType legalUserType) {
         return userDirectoryDao.getByName(name, parentId, owner, legalUserType);
     }
+
+    public UserDirectory getById(long directoryId, long ownerId, LegalUserType ownerType) {
+        return userDirectoryDao.getById(directoryId, ownerId, ownerType);
+    }
 }

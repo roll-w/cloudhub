@@ -2,10 +2,10 @@ package org.huel.cloudhub.client.disk.domain.userstorage.service;
 
 import org.huel.cloudhub.client.disk.domain.operatelog.context.OperationContextHolder;
 import org.huel.cloudhub.client.disk.domain.storage.StorageService;
-import org.huel.cloudhub.client.disk.domain.user.LegalUserType;
 import org.huel.cloudhub.client.disk.domain.userstorage.AttributedStorage;
 import org.huel.cloudhub.client.disk.domain.userstorage.FileStreamInfo;
 import org.huel.cloudhub.client.disk.domain.userstorage.Storage;
+import org.huel.cloudhub.client.disk.domain.userstorage.StorageIdentity;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageOwner;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageProcessor;
 import org.huel.cloudhub.client.disk.domain.userstorage.UserDirectory;
@@ -20,7 +20,6 @@ import org.huel.cloudhub.client.disk.domain.userstorage.repository.UserDirectory
 import org.huel.cloudhub.client.disk.domain.userstorage.repository.UserFileStorageRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import space.lingu.NonNull;
 
@@ -37,18 +36,15 @@ public class UserFileStorageServiceImpl implements UserFileStorageService, UserS
     private static final Logger logger = LoggerFactory.getLogger(UserFileStorageServiceImpl.class);
 
     private final StorageService storageService;
-    private final ApplicationEventPublisher eventPublisher;
     private final List<StorageProcessor> storageProcessors;
     private final UserDirectoryRepository userDirectoryRepository;
     private final UserFileStorageRepository userFileStorageRepository;
 
     public UserFileStorageServiceImpl(StorageService storageService,
-                                      ApplicationEventPublisher eventPublisher,
                                       List<StorageProcessor> storageProcessors,
                                       UserDirectoryRepository userDirectoryRepository,
                                       UserFileStorageRepository userFileStorageRepository) {
         this.storageService = storageService;
-        this.eventPublisher = eventPublisher;
         this.storageProcessors = storageProcessors;
         this.userDirectoryRepository = userDirectoryRepository;
         this.userFileStorageRepository = userFileStorageRepository;
@@ -56,9 +52,11 @@ public class UserFileStorageServiceImpl implements UserFileStorageService, UserS
 
     @Override
     public AttributedStorage createDirectory(String directoryName, long parentId,
-                                             long owner, LegalUserType legalUserType) throws StorageException {
+                                             StorageOwner storageOwner) throws StorageException {
         UserDirectory exist = userDirectoryRepository.getByName(
-                directoryName, parentId, owner, legalUserType);
+                directoryName, parentId,
+                storageOwner.getOwnerId(),
+                storageOwner.getOwnerType());
         if (exist != null && !exist.isDeleted()) {
             throw new StorageException(StorageErrorCode.ERROR_DIRECTORY_EXISTED);
         }
@@ -78,8 +76,8 @@ public class UserFileStorageServiceImpl implements UserFileStorageService, UserS
 
         UserDirectory userDirectory = UserDirectory.builder()
                 .setName(directoryName)
-                .setOwner(owner)
-                .setOwnerType(legalUserType)
+                .setOwner(storageOwner.getOwnerId())
+                .setOwnerType(storageOwner.getOwnerType())
                 .setParentId(parentId)
                 .setCreateTime(time)
                 .setUpdateTime(time)
@@ -95,24 +93,6 @@ public class UserFileStorageServiceImpl implements UserFileStorageService, UserS
                 .setChangedContent(inserted.getName());
 
         return inserted;
-    }
-
-    @Override
-    public void deleteDirectory(long directoryId, long owner,
-                                LegalUserType legalUserType) {
-
-    }
-
-    @Override
-    public void renameDirectory(long directoryId, String newName,
-                                long owner, LegalUserType legalUserType) {
-
-    }
-
-    @Override
-    public void moveDirectory(long directoryId, long newParentId,
-                              long owner, LegalUserType legalUserType) {
-
     }
 
     @Override
@@ -218,12 +198,12 @@ public class UserFileStorageServiceImpl implements UserFileStorageService, UserS
     }
 
     @Override
-    public void downloadFile(long fileId, long owner,
-                             LegalUserType legalUserType,
+    public void downloadFile(long fileId,
+                             StorageOwner storageOwner,
                              OutputStream outputStream) throws IOException {
         UserFileStorage userFileStorage = findFile(fileId);
-        if (userFileStorage.getOwner() != owner
-                || userFileStorage.getOwnerType() != legalUserType) {
+        if (userFileStorage.getOwner() != storageOwner.getOwnerId()
+                || userFileStorage.getOwnerType() != storageOwner.getOwnerType()) {
             throw new StorageException(StorageErrorCode.ERROR_FILE_NOT_EXIST);
         }
 
@@ -245,12 +225,11 @@ public class UserFileStorageServiceImpl implements UserFileStorageService, UserS
     }
 
     @Override
-    public void deleteFile(long fileId, long owner,
-                           LegalUserType legalUserType) {
+    public void deleteFile(long fileId, StorageOwner storageOwner) {
         UserFileStorage userFileStorage = findFile(fileId);
 
-        if (userFileStorage.getOwner() != owner
-                || userFileStorage.getOwnerType() != legalUserType) {
+        if (userFileStorage.getOwner() != storageOwner.getOwnerId()
+                || userFileStorage.getOwnerType() != storageOwner.getOwnerType()) {
             throw new StorageException(StorageErrorCode.ERROR_FILE_NOT_EXIST);
         }
 
@@ -282,6 +261,25 @@ public class UserFileStorageServiceImpl implements UserFileStorageService, UserS
         userFileStorageRepository.update(updatedStorage);
     }
 
+    @Override
+    public AttributedStorage findStorage(StorageIdentity storageIdentity) throws StorageException {
+        return switch (storageIdentity.getStorageType()) {
+            case FILE -> findFile(storageIdentity.getStorageId());
+            case FOLDER -> findDirectory(storageIdentity.getStorageId());
+            default -> throw new StorageException(StorageErrorCode.ERROR_FILE_NOT_EXIST);
+        };
+    }
+
+    @Override
+    public AttributedStorage findStorage(StorageIdentity storageIdentity,
+                                         StorageOwner storageOwner) throws StorageException {
+        return switch (storageIdentity.getStorageType()) {
+            case FILE -> findFile(storageIdentity.getStorageId(), storageOwner);
+            case FOLDER -> findDirectory(storageIdentity.getStorageId(), storageOwner);
+            default -> throw new StorageException(StorageErrorCode.ERROR_FILE_NOT_EXIST);
+        };
+    }
+
     @NonNull
     @Override
     public UserDirectory findDirectory(long directoryId) throws StorageException {
@@ -293,6 +291,18 @@ public class UserFileStorageServiceImpl implements UserFileStorageService, UserS
             throw new StorageException(StorageErrorCode.ERROR_DIRECTORY_NOT_EXIST);
         }
         if (userDirectory.isDeleted()) {
+            throw new StorageException(StorageErrorCode.ERROR_DIRECTORY_NOT_EXIST);
+        }
+        return userDirectory;
+    }
+
+    @Override
+    public AttributedStorage findDirectory(long directoryId, StorageOwner storageOwner) throws StorageException {
+        UserDirectory userDirectory = userDirectoryRepository.getById(
+                directoryId,
+                storageOwner.getOwnerId(),
+                storageOwner.getOwnerType());
+        if (userDirectory == null) {
             throw new StorageException(StorageErrorCode.ERROR_DIRECTORY_NOT_EXIST);
         }
         return userDirectory;
@@ -344,6 +354,19 @@ public class UserFileStorageServiceImpl implements UserFileStorageService, UserS
         return userFileStorage;
     }
 
+    @Override
+    public AttributedStorage findFile(long fileId, StorageOwner storageOwner) throws StorageException {
+        UserFileStorage userFileStorage = userFileStorageRepository.getById(
+                fileId,
+                storageOwner.getOwnerId(),
+                storageOwner.getOwnerType()
+        );
+        if (userFileStorage == null) {
+            throw new StorageException(StorageErrorCode.ERROR_FILE_NOT_EXIST);
+        }
+        return userFileStorage;
+    }
+
     @NonNull
     @Override
     public UserFileStorage findFile(FileStorageInfo fileStorageInfo) throws StorageException {
@@ -368,6 +391,18 @@ public class UserFileStorageServiceImpl implements UserFileStorageService, UserS
         List<UserFileStorage> userFileStorages = listOnlyFiles(directoryId, storageOwner);
         List<UserDirectory> userDirectories = listDirectories(directoryId, storageOwner);
 
+        List<AttributedStorage> attributedStorages = new ArrayList<>(userDirectories);
+        attributedStorages.addAll(userFileStorages);
+
+        return attributedStorages;
+    }
+
+    @Override
+    public List<AttributedStorage> listFiles(long directoryId) {
+        List<UserFileStorage> userFileStorages =
+                userFileStorageRepository.getByDirectoryId(directoryId);
+        List<UserDirectory> userDirectories =
+                userDirectoryRepository.getByParentId(directoryId);
         List<AttributedStorage> attributedStorages = new ArrayList<>(userDirectories);
         attributedStorages.addAll(userFileStorages);
 

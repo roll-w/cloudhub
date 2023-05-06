@@ -68,9 +68,23 @@ public class DirectoryAction implements StorageAction {
     }
 
     @Override
+    public boolean isDeleted() {
+        return directory.isDeleted();
+    }
+
+    @Override
     public void delete() throws StorageException {
+        if (directory.isDeleted()) {
+            throw new StorageException(StorageErrorCode.ERROR_DIRECTORY_ALREADY_DELETED);
+        }
+
         directoryBuilder.setDeleted(true);
         update();
+    }
+
+    @Override
+    public void restore() throws StorageException {
+        // not support restore of directory
     }
 
     @Override

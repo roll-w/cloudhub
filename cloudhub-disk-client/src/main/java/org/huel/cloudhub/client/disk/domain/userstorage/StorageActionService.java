@@ -1,11 +1,12 @@
 package org.huel.cloudhub.client.disk.domain.userstorage;
 
-import org.huel.cloudhub.client.disk.domain.user.LegalUserType;
+import org.huel.cloudhub.client.disk.BaseAbility;
 import org.huel.cloudhub.client.disk.domain.userstorage.common.StorageException;
 
 /**
  * @author RollW
  */
+@BaseAbility
 public interface StorageActionService {
     StorageAction openStorageAction(Storage storage);
 
@@ -14,6 +15,6 @@ public interface StorageActionService {
             throws StorageException;
 
     StorageAction openStorageAction(long storageId, StorageType storageType,
-                                    long ownerId, LegalUserType userType)
+                                    StorageOwner storageOwner)
             throws StorageException;
 }

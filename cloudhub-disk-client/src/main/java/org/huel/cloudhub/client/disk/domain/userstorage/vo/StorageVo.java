@@ -19,6 +19,10 @@ public record StorageVo(
         long createTime,
         long updateTime
 ) {
+    public static StorageVo from(Storage storage) {
+        return from(storage, 0);
+    }
+
     public static StorageVo from(Storage storage, long size) {
         if (!(storage instanceof AttributedStorage attributedStorage)) {
             return new StorageVo(

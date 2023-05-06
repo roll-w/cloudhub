@@ -114,6 +114,7 @@ public class UserDirectory implements AttributedStorage, DataItem {
         return updateTime;
     }
 
+    @Override
     public boolean isDeleted() {
         return deleted;
     }
