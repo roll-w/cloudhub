@@ -4,11 +4,14 @@ import org.huel.cloudhub.client.disk.common.ApiContextHolder;
 import org.huel.cloudhub.client.disk.domain.operatelog.Action;
 import org.huel.cloudhub.client.disk.domain.operatelog.OperateLogger;
 import org.huel.cloudhub.client.disk.domain.operatelog.OperateType;
+import org.huel.cloudhub.client.disk.domain.operatelog.OperateTypeFinder;
+import org.huel.cloudhub.client.disk.domain.operatelog.OperateTypeFinderFactory;
 import org.huel.cloudhub.client.disk.domain.operatelog.OperationLog;
 import org.huel.cloudhub.client.disk.domain.operatelog.OperationLogAssociation;
 import org.huel.cloudhub.client.disk.domain.operatelog.OperationService;
 import org.huel.cloudhub.client.disk.domain.operatelog.Operator;
 import org.huel.cloudhub.client.disk.domain.operatelog.dto.Operation;
+import org.huel.cloudhub.client.disk.domain.operatelog.dto.OperationLogDto;
 import org.huel.cloudhub.client.disk.domain.operatelog.repository.OperationLogAssociationRepository;
 import org.huel.cloudhub.client.disk.domain.operatelog.repository.OperationLogRepository;
 import org.huel.cloudhub.client.disk.domain.systembased.SystemResource;
@@ -18,6 +21,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @author RollW
@@ -29,10 +33,14 @@ public class OperateLogServiceImpl implements OperateLogger, OperationService {
     private final OperationLogRepository operationLogRepository;
     private final OperationLogAssociationRepository operationLogAssociationRepository;
 
+    private final OperateTypeFinder operateTypeFinder;
+
     public OperateLogServiceImpl(OperationLogRepository operationLogRepository,
-                                 OperationLogAssociationRepository operationLogAssociationRepository) {
+                                 OperationLogAssociationRepository operationLogAssociationRepository,
+                                 OperateTypeFinderFactory operateTypeFinderFactory) {
         this.operationLogRepository = operationLogRepository;
         this.operationLogAssociationRepository = operationLogAssociationRepository;
+        this.operateTypeFinder = operateTypeFinderFactory.getOperateTypeFinder();
     }
 
     @Override
@@ -93,6 +101,50 @@ public class OperateLogServiceImpl implements OperateLogger, OperationService {
         logger.debug("Log operation: {}", operationLog);
         long id = operationLogRepository.insert(operationLog);
         buildAssociation(operation, id);
+    }
+
+    @Override
+    public List<OperationLogDto> getOperationsByUserId(long userId) {
+        List<OperationLog> operationLogs =
+                operationLogRepository.getByOperator(userId);
+        return operationLogs.stream().map(operationLog -> {
+            OperateType operateType = operateTypeFinder
+                    .getOperateType(operationLog.getOperateType());
+            return OperationLogDto.from(operationLog, operateType);
+        }).toList();
+    }
+
+    @Override
+    public List<OperationLogDto> getOperationsByResource(SystemResource systemResource) {
+        List<OperationLog> operationLogs = operationLogRepository.getOperationLogsByResourceId(
+                systemResource.getResourceId(),
+                systemResource.getSystemResourceKind()
+        );
+        if (operationLogs == null || operationLogs.isEmpty()) {
+            return List.of();
+        }
+
+        List<Long> ids = operationLogs.stream().map(OperationLog::getId).toList();
+        List<OperationLogAssociation> associations =
+                operationLogAssociationRepository.getByOperationIds(ids);
+        List<OperationLogDto> operationLogDtos = operationLogs.stream().map(operationLog -> {
+            OperateType operateType = operateTypeFinder
+                    .getOperateType(operationLog.getOperateType());
+            return OperationLogDto.from(operationLog, operateType);
+        }).toList();
+        List<OperationLogDto> result = new ArrayList<>(operationLogDtos);
+        associations.stream().map(association -> {
+            OperationLog operationLog = operationLogs.stream()
+                    .filter(log -> log.getId().equals(association.getOperationId()))
+                    .findFirst().orElse(null);
+            if (operationLog == null) {
+                return null;
+            }
+            OperateType operateType = operateTypeFinder
+                    .getOperateType(operationLog.getOperateType());
+            return OperationLogDto.from(operationLog, association, operateType);
+        }).filter(Objects::nonNull).forEach(result::add);
+        return result;
     }
 
     private void buildAssociation(Operation operation, long id) {

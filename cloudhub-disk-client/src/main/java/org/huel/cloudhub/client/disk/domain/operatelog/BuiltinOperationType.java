@@ -16,11 +16,18 @@ public enum BuiltinOperationType implements OperateType, OperateTypeFinder {
     CREATE_STORAGE_PERMISSION(-6L, Action.CREATE, "创建存储权限", "创建存储权限", SystemResourceKind.STORAGE_PERMISSION),
     CREATE_TAG(-7L, Action.CREATE, "创建标签", "创建标签", SystemResourceKind.TAG),
     CREATE_TAG_GROUP(-8L, Action.CREATE, "创建标签组", "创建标签组", SystemResourceKind.TAG_GROUP),
-    CREATE_USER_SETTING(-9L, Action.CREATE, "创建用户设置", "创建用户设置", SystemResourceKind.USER_SETTING),
-    CREATE_GROUP_SETTING(-10L, Action.CREATE, "创建群组设置", "创建群组设置", SystemResourceKind.GROUP_SETTING),
-    CREATE_ORGANIZATION_SETTING(-11L, Action.CREATE, "创建组织设置", "创建组织设置", SystemResourceKind.ORGANIZATION_SETTING),
+    CREATE_STORAGE_SHARE(-9L, Action.CREATE, "创建存储分享", "创建存储分享", SystemResourceKind.STORAGE_SHARE),
+
     UPDATE_FILE(-12L, Action.UPDATE, "更新文件", "更新文件", SystemResourceKind.FILE),
     UPDATE_FOLDER(-13L, Action.UPDATE, "更新文件夹", "更新文件夹", SystemResourceKind.FOLDER),
+    UPDATE_STORAGE_PERMISSION(-14L, Action.UPDATE, "更新存储权限", "更新存储权限", SystemResourceKind.STORAGE_PERMISSION),
+    UPDATE_TAG(-15L, Action.UPDATE, "更新标签", "更新标签", SystemResourceKind.TAG),
+    UPDATE_TAG_GROUP(-16L, Action.UPDATE, "更新标签组", "更新标签组", SystemResourceKind.TAG_GROUP),
+    UPDATE_STORAGE_SHARE(-17L, Action.UPDATE, "更新存储分享", "更新存储分享", SystemResourceKind.STORAGE_SHARE),
+
+
+
+    DELETE_FILE(-20L, Action.DELETE, "删除文件", "删除了{1}文件", SystemResourceKind.FILE),
     ;
     private final long id;
     private final Action action;
