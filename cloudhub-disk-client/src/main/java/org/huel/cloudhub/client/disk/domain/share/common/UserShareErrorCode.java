@@ -19,6 +19,8 @@ public enum UserShareErrorCode implements ErrorCode, ErrorCodeFinder, ErrorCodeM
     ERROR_SHARE_CANCEL("B3403", 403),
     ERROR_PASSWORD("B3404", 403),
     ERROR_PASSWORD_FORMAT("B3405", 400),
+    ERROR_STORAGE_NOT_FOUND("B3406", 404),
+
     ;
 
     private final String value;

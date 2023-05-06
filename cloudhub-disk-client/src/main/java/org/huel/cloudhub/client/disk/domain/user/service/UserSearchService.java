@@ -19,6 +19,11 @@ public interface UserSearchService {
      */
     UserIdentity findUser(long userId) throws UserViewException;
 
+
+    UserIdentity findUser(String username) throws UserViewException;
+
+    List<? extends UserIdentity> findUsers(String username);
+
     /**
      * Get user by id. And enables check if user is deleted or canceled.
      *

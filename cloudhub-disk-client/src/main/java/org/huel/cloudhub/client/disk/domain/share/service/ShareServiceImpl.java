@@ -8,9 +8,13 @@ import org.huel.cloudhub.client.disk.domain.share.ShareService;
 import org.huel.cloudhub.client.disk.domain.share.UserShare;
 import org.huel.cloudhub.client.disk.domain.share.common.UserShareErrorCode;
 import org.huel.cloudhub.client.disk.domain.share.common.UserShareException;
+import org.huel.cloudhub.client.disk.domain.share.dto.SharePasswordInfo;
 import org.huel.cloudhub.client.disk.domain.share.repository.UserShareRepository;
 import org.huel.cloudhub.client.disk.domain.user.LegalUserType;
+import org.huel.cloudhub.client.disk.domain.userstorage.AttributedStorage;
 import org.huel.cloudhub.client.disk.domain.userstorage.Storage;
+import org.huel.cloudhub.client.disk.domain.userstorage.StorageIdentity;
+import org.huel.cloudhub.client.disk.domain.userstorage.UserStorageSearchService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -26,24 +30,27 @@ public class ShareServiceImpl implements ShareService {
     private static final Logger logger = LoggerFactory.getLogger(ShareServiceImpl.class);
 
     private final UserShareRepository userShareRepository;
+    private final UserStorageSearchService userStorageSearchService;
 
-    public static final Duration DAYS_1 = Duration.ofDays(1);
-    public static final Duration DAYS_7 = Duration.ofDays(7);
-    public static final Duration DAYS_30 = Duration.ofDays(30);
-    public static final Duration INFINITE = Duration.ofDays(-1);
-
-    public ShareServiceImpl(UserShareRepository userShareRepository) {
+    public ShareServiceImpl(UserShareRepository userShareRepository,
+                            UserStorageSearchService userStorageSearchService) {
         this.userShareRepository = userShareRepository;
+        this.userStorageSearchService = userStorageSearchService;
     }
 
     @Override
-    public String share(Storage storage,
-                        Duration time,
-                        Operator operator,
-                        String password) {
+    public SharePasswordInfo share(StorageIdentity storageIdentity,
+                                   Duration time,
+                                   Operator operator,
+                                   String password) {
         validatePassword(password);
 
         StringBuilder sb = new StringBuilder();
+        AttributedStorage storage =
+                userStorageSearchService.findStorage(storageIdentity);
+        if (storage.isDeleted()) {
+            throw new UserShareException(UserShareErrorCode.ERROR_STORAGE_NOT_FOUND);
+        }
         String hash = calcHash(storage);
 
         String random = RandomStringUtils.randomAlphanumeric(15);
@@ -71,7 +78,7 @@ public class ShareServiceImpl implements ShareService {
                 .addSystemResource(storage)
                 .setChangedContent(shareId);
         logger.info("shareId: {}", shareId);
-        return shareId;
+        return SharePasswordInfo.from(inserted);
     }
 
     private void validatePassword(String password) {

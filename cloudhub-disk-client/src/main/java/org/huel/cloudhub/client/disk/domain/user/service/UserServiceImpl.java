@@ -48,7 +48,7 @@ public class UserServiceImpl implements  UserSignatureProvider,
         if (user == null) {
             return null;
         }
-        return "LampBlogUserSignature-" + user.getPassword();
+        return "CloudhubUserSignature-" + user.getPassword();
     }
 
     @Override
@@ -130,6 +130,16 @@ public class UserServiceImpl implements  UserSignatureProvider,
             throw new UserViewException(UserErrorCode.ERROR_USER_CANCELED);
         }
         return user;
+    }
+
+    @Override
+    public UserIdentity findUser(String username) throws UserViewException {
+        return null;
+    }
+
+    @Override
+    public List<? extends UserIdentity> findUsers(String username) {
+        return null;
     }
 
     @Override

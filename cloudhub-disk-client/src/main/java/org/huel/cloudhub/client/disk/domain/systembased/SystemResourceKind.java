@@ -22,4 +22,11 @@ public enum SystemResourceKind {
     public interface Kind {
         SystemResourceKind getSystemResourceKind();
     }
+
+    public static SystemResourceKind from(String nameIgnoreCase) {
+        if (nameIgnoreCase == null || nameIgnoreCase.isBlank()) {
+            return null;
+        }
+        return SystemResourceKind.valueOf(nameIgnoreCase.toUpperCase());
+    }
 }
