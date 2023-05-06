@@ -1,5 +1,6 @@
 package org.huel.cloudhub.client.disk.configuration;
 
+import org.huel.cloudhub.client.disk.domain.storagepermission.common.StoragePermissionErrorCode;
 import org.huel.cloudhub.client.disk.domain.userstorage.common.StorageErrorCode;
 import org.huel.cloudhub.web.ErrorCodeFinderChain;
 import org.huel.cloudhub.web.ErrorCodeMessageProvider;
@@ -32,7 +33,8 @@ public class ErrorCodeConfiguration {
                 DataErrorCode.getFinderInstance(),
                 IoErrorCode.getFinderInstance(),
                 UserErrorCode.getFinderInstance(),
-                StorageErrorCode.getFinderInstance()
+                StorageErrorCode.getFinderInstance(),
+                StoragePermissionErrorCode.getFinderInstance()
         );
     }
 

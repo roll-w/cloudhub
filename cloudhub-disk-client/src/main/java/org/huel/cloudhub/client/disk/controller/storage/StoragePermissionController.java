@@ -1,6 +1,8 @@
 package org.huel.cloudhub.client.disk.controller.storage;
 
 import org.huel.cloudhub.client.disk.controller.Api;
+import org.huel.cloudhub.client.disk.domain.operatelog.BuiltinOperationType;
+import org.huel.cloudhub.client.disk.domain.operatelog.context.BuiltinOperate;
 import org.huel.cloudhub.client.disk.domain.storagepermission.StoragePermissionService;
 import org.huel.cloudhub.web.HttpResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -28,6 +30,7 @@ public class StoragePermissionController {
         return HttpResponseEntity.success();
     }
 
+    @BuiltinOperate(BuiltinOperationType.UPDATE_STORAGE_PERMISSION)
     @PutMapping("/{type}/{ownerId}/disk/{storageType}/{storageId}/permission/public")
     public HttpResponseEntity<Void> setPublicPermissionOf(
             @PathVariable("storageType") Long storageType,
@@ -37,6 +40,7 @@ public class StoragePermissionController {
         return HttpResponseEntity.success();
     }
 
+    @BuiltinOperate(BuiltinOperationType.UPDATE_STORAGE_PERMISSION)
     @PutMapping("/{type}/{ownerId}/disk/{storageType}/{storageId}/permission/user/{userId}")
     public HttpResponseEntity<Void> setUserPermissionOf(
             @PathVariable("storageType") Long storageType,
@@ -47,6 +51,7 @@ public class StoragePermissionController {
         return HttpResponseEntity.success();
     }
 
+    @BuiltinOperate(BuiltinOperationType.UPDATE_STORAGE_PERMISSION)
     @DeleteMapping("/{type}/{ownerId}/disk/{storageType}/{storageId}/permission/user/{userId}")
     public HttpResponseEntity<Void> deleteUserPermissionOf(
             @PathVariable("storageType") Long storageType,

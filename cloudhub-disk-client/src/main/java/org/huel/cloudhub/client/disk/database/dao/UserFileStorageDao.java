@@ -86,4 +86,7 @@ public interface UserFileStorageDao extends AutoPrimaryBaseDao<UserFileStorage> 
 
     @Query("SELECT * FROM user_file_storage WHERE name LIKE {name} AND owner = {owner} AND owner_type = {legalUserType} AND deleted = 0")
     List<UserFileStorage> getFilesLike(String name, long owner, LegalUserType legalUserType);
+
+    @Query("SELECT * FROM user_file_storage WHERE name LIKE {name} AND owner = {owner} AND owner_type = {legalUserType}")
+    UserFileStorage getById(long fileId, long ownerId, LegalUserType ownerType);
 }

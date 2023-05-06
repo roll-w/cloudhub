@@ -61,19 +61,4 @@ public class UserManageController {
     public void createUser() {
 
     }
-
-    @PutMapping("/user/{userId}/blocks")
-    public void blockUser(@PathVariable String userId) {
-
-    }
-
-    @DeleteMapping("/user/{userId}/blocks")
-    public void unblockUser(@PathVariable String userId) {
-
-    }
-
-    @GetMapping("/user/{userId}/blocks")
-    public void getBlockedUserList(@PathVariable String userId) {
-
-    }
 }

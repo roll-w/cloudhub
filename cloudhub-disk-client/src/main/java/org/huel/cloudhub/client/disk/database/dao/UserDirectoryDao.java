@@ -68,4 +68,7 @@ public interface UserDirectoryDao extends AutoPrimaryBaseDao<UserDirectory> {
     default String getTableName() {
         return "user_directory";
     }
+
+    @Query("SELECT * FROM user_directory WHERE id = {directoryId} AND owner = {ownerId} AND owner_type = {ownerType}")
+    UserDirectory getById(long directoryId, long ownerId, LegalUserType ownerType);
 }
