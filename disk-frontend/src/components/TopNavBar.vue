@@ -68,7 +68,7 @@ const hexUserColor = ref('#2876c7')
 //
 const loadUsername = (newUsername, newRole) => {
     username.value = newUsername
-    const high6 = MD5(newUsername).substring(0, 6)
+    const high6 = MD5(newUsername || '').substring(0, 6)
     const originalColor = `#${high6}`
     hexUserColor.value = originalColor
     role.value = newRole
