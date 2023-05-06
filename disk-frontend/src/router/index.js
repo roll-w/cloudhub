@@ -10,6 +10,7 @@ export const login = "login-page"
 export const register = "register-page"
 
 export const driveFilePage = "drive-file-page"
+export const driveFileSearchPage = "drive-file-search-page"
 export const driveFileAttrsPage = "drive-file-attrs-page"
 export const driveFilePermissionPage = "drive-file-permission-page"
 
@@ -17,6 +18,7 @@ export const page404 = "page-404"
 export const driveTagPage = "drive-tag-page"
 
 export const adminIndex = "admin-index"
+export const adminUserLists = "admin-user-lists"
 
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
@@ -28,11 +30,23 @@ const router = createRouter({
             component: () => import("@/views/Layout.vue"),
             children: [
                 {
+                    path: '/drive',
+                    redirect: '/drive/files'
+                },
+                {
                     path: '/drive/files',
                     name: driveFilePage,
                     component: () => import("@/views/file/FileView.vue"),
                     meta: {
                         title: "文件"
+                    }
+                },
+                {
+                    path: '/drive/files/search',
+                    name: driveFileSearchPage,
+                    component: () => import("@/views/file/FileSearchView.vue"),
+                    meta: {
+                        title: "文件搜索"
                     }
                 },
                 {
@@ -83,6 +97,14 @@ const router = createRouter({
                         title: "管理首页"
                     }
                 },
+                {
+                    path: '/admin/users',
+                    name: adminUserLists,
+                    component: () => import("@/views/admin/user/UsersList.vue"),
+                    meta: {
+                        title: "用户列表"
+                    }
+                },
             ]
         },
         {
@@ -93,8 +115,6 @@ const router = createRouter({
                 title: "首页"
             }
         },
-
-
         {
             path: '/layout/header',
             name: headerLayout,
