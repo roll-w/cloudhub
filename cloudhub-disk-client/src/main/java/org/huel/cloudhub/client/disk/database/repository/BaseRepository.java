@@ -2,6 +2,7 @@ package org.huel.cloudhub.client.disk.database.repository;
 
 import org.huel.cloudhub.client.disk.database.DataItem;
 import org.huel.cloudhub.client.disk.database.dao.AutoPrimaryBaseDao;
+import org.huel.cloudhub.client.disk.system.CountableDao;
 import org.huel.cloudhub.web.data.page.Offset;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
@@ -12,7 +13,7 @@ import java.util.List;
 /**
  * @author RollW
  */
-public abstract class BaseRepository<T extends DataItem> {
+public abstract class BaseRepository<T extends DataItem> implements CountableDao<T> {
     protected final AutoPrimaryBaseDao<T> primaryBaseDao;
     protected final Cache cache;
 
@@ -150,4 +151,20 @@ public abstract class BaseRepository<T extends DataItem> {
     ) {
     }
 
+    @Override
+    public long getCount() {
+        return count();
+    }
+
+    @Override
+    public long getActiveCount() {
+        return countActive();
+    }
+
+    @Override
+    public Class<T> getCountableType() {
+        return getEntityClass();
+    }
+
+    protected abstract Class<T> getEntityClass();
 }

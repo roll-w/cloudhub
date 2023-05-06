@@ -19,4 +19,9 @@ public class UserShareRepository extends BaseRepository<UserShare> {
         super(database.getUserShareDao(), cacheManager);
         userShareDao = database.getUserShareDao();
     }
+
+    @Override
+    protected Class<UserShare> getEntityClass() {
+        return UserShare.class;
+    }
 }

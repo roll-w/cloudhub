@@ -41,4 +41,8 @@ public class StorageMetadataRepository extends BaseRepository<StorageMetadata> {
         return storageMetadataDao.getByStorageIdAndName(storageId, name);
     }
 
+    @Override
+    protected Class<StorageMetadata> getEntityClass() {
+        return StorageMetadata.class;
+    }
 }

@@ -67,4 +67,13 @@ public class UserFileStorageRepository extends BaseRepository<UserFileStorage> {
     public List<UserFileStorage> getDeletedByOwner(long owner, LegalUserType legalUserType) {
         return fileStorageDao.getDeletedByOwner(owner, legalUserType);
     }
+
+    public List<UserFileStorage> getFilesLike(String name, long owner, LegalUserType legalUserType) {
+        return fileStorageDao.getFilesLike(name, owner, legalUserType);
+    }
+
+    @Override
+    protected Class<UserFileStorage> getEntityClass() {
+        return UserFileStorage.class;
+    }
 }

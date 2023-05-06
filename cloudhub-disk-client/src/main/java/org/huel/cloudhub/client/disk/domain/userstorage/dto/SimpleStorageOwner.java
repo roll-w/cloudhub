@@ -6,7 +6,7 @@ import org.huel.cloudhub.client.disk.domain.userstorage.StorageOwner;
 /**
  * @author RollW
  */
-public record StorageOwnerInfo(
+public record SimpleStorageOwner(
         long ownerId,
         LegalUserType legalUserType
 ) implements StorageOwner {

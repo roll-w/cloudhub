@@ -37,4 +37,9 @@ public class VersionedFileRepository extends BaseRepository<VersionedFileStorage
     public VersionedFileStorage getFileVersion(long storageId, long version) {
         return versionedFileStorageDao.getFileVersion(storageId, version);
     }
+
+    @Override
+    protected Class<VersionedFileStorage> getEntityClass() {
+        return VersionedFileStorage.class;
+    }
 }

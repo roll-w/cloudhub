@@ -31,4 +31,9 @@ public class OperationLogRepository extends BaseRepository<OperationLog> {
     public List<OperationLog> getByOperator(long operator) {
         return operationLogDao.getByOperator(operator);
     }
+
+    @Override
+    protected Class<OperationLog> getEntityClass() {
+        return OperationLog.class;
+    }
 }

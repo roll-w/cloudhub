@@ -27,8 +27,17 @@ public class OperationLogAssociationRepository extends BaseRepository<OperationL
         return operationLogAssociationDao.getByOperationId(operationId);
     }
 
+    public List<OperationLogAssociation> getByOperationIds(List<Long> operationIds) {
+        return operationLogAssociationDao.getByOperationIds(operationIds);
+    }
+
     public List<OperationLogAssociation> getByResourceId(long resourceId,
                                                          SystemResourceKind resourceKind) {
         return operationLogAssociationDao.getByResourceId(resourceId, resourceKind);
+    }
+
+    @Override
+    protected Class<OperationLogAssociation> getEntityClass() {
+        return OperationLogAssociation.class;
     }
 }

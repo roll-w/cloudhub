@@ -32,4 +32,9 @@ public class StorageUserPermissionRepository extends BaseRepository<StorageUserP
                                                          long userId) {
         return storageUserPermissionDao.getByStorageIdAndUserId(storageId, storageType, userId);
     }
+
+    @Override
+    protected Class<StorageUserPermission> getEntityClass() {
+        return StorageUserPermission.class;
+    }
 }
