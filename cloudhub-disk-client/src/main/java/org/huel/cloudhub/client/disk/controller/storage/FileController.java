@@ -82,7 +82,7 @@ public class FileController {
     }
 
     @BuiltinOperate(BuiltinOperationType.CREATE_FILE)
-    @PostMapping("/{type}/{ownerId}/disk/{directory}/")
+    @PostMapping("/{type}/{ownerId}/disk/{directory}")
     public HttpResponseEntity<StorageVo> uploadFile(
             @PathVariable("directory") Long directoryId,
             @PathVariable("ownerId") Long ownerId,

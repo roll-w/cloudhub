@@ -37,7 +37,6 @@ public class FileTagController {
 
     @PostMapping("/{ownerType}/{ownerId}/disk/{storageType}/{storageId}/tags")
     public void createTag() {
-
     }
 
 }

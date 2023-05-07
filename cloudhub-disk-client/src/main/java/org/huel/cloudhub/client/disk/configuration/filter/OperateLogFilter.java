@@ -48,7 +48,6 @@ public class OperateLogFilter extends OncePerRequestFilter {
 
     private void logContext(OperationContext context) {
         Operation operation = context.build();
-        logger.info("Operation context: {}", operation);
         if (operation.operator() == null || operation.systemResource() == null) {
             logger.debug("Operation context not set ready, skip logging.");
             return;
