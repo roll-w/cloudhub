@@ -25,6 +25,7 @@ public class DiskClientApplication {
 
         Map<String, Object> overrideProperties = new HashMap<>();
         overrideProperties.put("server.port", port);
+        overrideProperties.put("spring.mvc.throw-exception-if-no-handler-found", true);
 
         application.setDefaultProperties(overrideProperties);
         sContext = application.run();
