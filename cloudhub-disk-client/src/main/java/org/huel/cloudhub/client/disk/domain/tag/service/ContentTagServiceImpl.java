@@ -1,11 +1,15 @@
 package org.huel.cloudhub.client.disk.domain.tag.service;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.cloudhub.util.Keywords;
+import org.huel.cloudhub.client.disk.common.ParamValidate;
 import org.huel.cloudhub.client.disk.domain.operatelog.context.OperationContextHolder;
 import org.huel.cloudhub.client.disk.domain.tag.ContentTag;
 import org.huel.cloudhub.client.disk.domain.tag.ContentTagService;
 import org.huel.cloudhub.client.disk.domain.tag.TagGroup;
 import org.huel.cloudhub.client.disk.domain.tag.TagKeyword;
+import org.huel.cloudhub.client.disk.domain.tag.common.ContentTagErrorCode;
+import org.huel.cloudhub.client.disk.domain.tag.common.ContentTagException;
 import org.huel.cloudhub.client.disk.domain.tag.dto.ContentTagDto;
 import org.huel.cloudhub.client.disk.domain.tag.dto.ContentTagGroupInfo;
 import org.huel.cloudhub.client.disk.domain.tag.dto.ContentTagInfo;
@@ -16,8 +20,10 @@ import org.huel.cloudhub.web.data.page.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.LongStream;
 
 /**
  * @author RollW
@@ -37,6 +43,10 @@ public class ContentTagServiceImpl implements ContentTagService {
     public ContentTagDto getTagById(long id) {
         ContentTag contentTag =
                 contentTagRepository.getById(id);
+        if (contentTag == null) {
+            throw new ContentTagException(ContentTagErrorCode.ERROR_TAG_NOT_EXIST);
+        }
+
         return ContentTagDto.of(contentTag);
     }
 
@@ -45,7 +55,8 @@ public class ContentTagServiceImpl implements ContentTagService {
         TagGroup tagGroup =
                 tagGroupRepository.getById(id);
         if (tagGroup == null) {
-            return null;
+            throw new ContentTagException(
+                    ContentTagErrorCode.ERROR_TAG_GROUP_NOT_EXIST);
         }
         List<ContentTag> contentTags =
                 contentTagRepository.getTagsBy(tagGroup.getTags());
@@ -102,6 +113,24 @@ public class ContentTagServiceImpl implements ContentTagService {
     }
 
     @Override
+    public List<TagGroupDto> getTagGroups(Pageable pageable) {
+        List<TagGroup> tagGroups = tagGroupRepository.get(pageable.toOffset());
+        if (tagGroups == null || tagGroups.isEmpty()) {
+            return List.of();
+        }
+        List<Long> ids = tagGroups.stream()
+                .map(TagGroup::getTags)
+                .flatMapToLong(LongStream::of)
+                .distinct()
+                .boxed()
+                .toList();
+
+        List<ContentTag> contentTags = contentTagRepository.getByIds(ids);
+
+        return matchWith(tagGroups, contentTags);
+    }
+
+    @Override
     public ContentTagDto getByName(String name) {
         return null;
         // return ContentTagDto.of(contentTagRepository.getByName(name));
@@ -109,6 +138,15 @@ public class ContentTagServiceImpl implements ContentTagService {
 
     @Override
     public void createContentTagGroup(ContentTagGroupInfo tagGroupInfo) {
+        ParamValidate.notEmpty(tagGroupInfo.name(), "name");
+        ParamValidate.notNull(tagGroupInfo.keywordSearchScope(), "keywordSearchScope");
+
+        TagGroup exist = tagGroupRepository.getTagGroupByName(tagGroupInfo.name());
+        if (exist != null) {
+            throw new ContentTagException(
+                    ContentTagErrorCode.ERROR_TAG_GROUP_NAME_EXIST);
+        }
+
         long now = System.currentTimeMillis();
         TagGroup tagGroup = TagGroup.builder()
                 .setTags(new long[0])
@@ -151,6 +189,12 @@ public class ContentTagServiceImpl implements ContentTagService {
 
     @Override
     public void importFromKeywordsFile(InputStream stream, long tagGroupId) {
+        TagGroup tagGroup = tagGroupRepository.getById(tagGroupId);
+        if (tagGroup == null) {
+            throw new ContentTagException(
+                    ContentTagErrorCode.ERROR_TAG_GROUP_NOT_EXIST);
+        }
+
         Keywords keywords = new Keywords(stream);
         List<Keywords.KeywordsGroup> keywordsGroups =
                 keywords.listGroups();
@@ -163,7 +207,38 @@ public class ContentTagServiceImpl implements ContentTagService {
             ContentTag contentTag = createFrom(keywordsGroup, now);
             contentTags.add(contentTag);
         }
-        contentTagRepository.insert(contentTags);
+
+        List<ContentTag> inserted = inserts(contentTags);
+        long[] ids = inserted.stream()
+                .mapToLong(ContentTag::getId)
+                .toArray();
+        long[] nowTags = tagGroup.getTags();
+        long[] newTags = ArrayUtils.addAll(nowTags, ids);
+
+        TagGroup updated = tagGroup.toBuilder().setTags(newTags)
+                .setUpdateTime(now)
+                .build();
+        tagGroupRepository.update(updated);
+        OperationContextHolder.getContext()
+                .addSystemResource(updated)
+                .setChangedContent(updated.getName())
+                .addSystemResources(inserted);
+    }
+
+    private List<ContentTag> inserts(List<ContentTag> contentTags) {
+        long[] ids = contentTagRepository.insert(contentTags);
+        List<ContentTag> inserted = new ArrayList<>();
+        for (int i = 0; i < ids.length; i++) {
+            inserted.add(contentTags.get(i)
+                    .toBuilder()
+                    .setId(ids[i])
+                    .build());
+        }
+        return inserted;
+    }
+
+    @Override
+    public void exportToKeywordsFile(OutputStream stream, long tagGroupId) {
     }
 
     private ContentTag createFrom(Keywords.KeywordsGroup keywordsGroup, long time) {

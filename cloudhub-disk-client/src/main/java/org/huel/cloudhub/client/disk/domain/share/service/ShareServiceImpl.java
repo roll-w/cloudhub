@@ -14,6 +14,7 @@ import org.huel.cloudhub.client.disk.domain.user.LegalUserType;
 import org.huel.cloudhub.client.disk.domain.userstorage.AttributedStorage;
 import org.huel.cloudhub.client.disk.domain.userstorage.Storage;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageIdentity;
+import org.huel.cloudhub.client.disk.domain.userstorage.StorageOwner;
 import org.huel.cloudhub.client.disk.domain.userstorage.UserStorageSearchService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,6 +41,7 @@ public class ShareServiceImpl implements ShareService {
 
     @Override
     public SharePasswordInfo share(StorageIdentity storageIdentity,
+                                   StorageOwner storageOwner,
                                    Duration time,
                                    Operator operator,
                                    String password) {
@@ -47,7 +49,7 @@ public class ShareServiceImpl implements ShareService {
 
         StringBuilder sb = new StringBuilder();
         AttributedStorage storage =
-                userStorageSearchService.findStorage(storageIdentity);
+                userStorageSearchService.findStorage(storageIdentity, storageOwner);
         if (storage.isDeleted()) {
             throw new UserShareException(UserShareErrorCode.ERROR_STORAGE_NOT_FOUND);
         }

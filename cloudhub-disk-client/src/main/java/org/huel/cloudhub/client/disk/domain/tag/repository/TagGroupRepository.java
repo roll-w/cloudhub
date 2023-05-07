@@ -39,6 +39,10 @@ public class TagGroupRepository extends BaseRepository<TagGroup> {
         return tagGroupDao.getTagGroupById(id);
     }
 
+    public TagGroup getTagGroupByName(String name) {
+        return tagGroupDao.getTagGroupByName(name);
+    }
+
     @Override
     protected Class<TagGroup> getEntityClass() {
         return TagGroup.class;

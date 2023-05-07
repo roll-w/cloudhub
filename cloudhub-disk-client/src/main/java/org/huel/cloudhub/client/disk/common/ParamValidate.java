@@ -29,6 +29,16 @@ public class ParamValidate {
         return chars;
     }
 
+
+    public static <T> T notNull(final T obj,
+                                 final String message,
+                                 final Object... values) {
+        if (obj == null) {
+            throw new ParameterMissingException(message, values);
+        }
+        return obj;
+    }
+
     public static <T extends CharSequence, X extends Throwable> T notEmpty(
             final T chars,
             final Supplier<X> throwableSupplier) throws X {
@@ -45,6 +55,15 @@ public class ParamValidate {
             throw throwableSupplier.get();
         }
         return string;
+    }
+
+    public static <T, X extends Throwable> T notNull(
+            final T obj,
+            final Supplier<X> throwableSupplier) throws X {
+        if (obj == null) {
+            throw throwableSupplier.get();
+        }
+        return obj;
     }
 
     private ParamValidate() {

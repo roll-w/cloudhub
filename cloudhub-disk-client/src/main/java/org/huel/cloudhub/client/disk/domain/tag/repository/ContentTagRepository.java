@@ -26,9 +26,12 @@ public class ContentTagRepository extends BaseRepository<ContentTag> {
         return contentTagDao.getTagsBy(ids);
     }
 
-
     @Override
     protected Class<ContentTag> getEntityClass() {
         return ContentTag.class;
+    }
+
+    public ContentTag getByName(String name) {
+        return contentTagDao.getByName(name);
     }
 }

@@ -3,6 +3,7 @@ package org.huel.cloudhub.client.disk.domain.share;
 import org.huel.cloudhub.client.disk.domain.operatelog.Operator;
 import org.huel.cloudhub.client.disk.domain.share.dto.SharePasswordInfo;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageIdentity;
+import org.huel.cloudhub.client.disk.domain.userstorage.StorageOwner;
 
 import java.time.Duration;
 
@@ -15,7 +16,8 @@ public interface ShareService {
     Duration DAYS_30 = Duration.ofDays(30);
     Duration INFINITE = Duration.ofDays(-1);
 
-    SharePasswordInfo share(StorageIdentity storage, Duration time,
+    SharePasswordInfo share(StorageIdentity storage, StorageOwner storageOwner,
+                            Duration time,
                             Operator operator, String password);
 
     void cancelShare(long shareId);
