@@ -94,7 +94,7 @@ public interface StorageMetadataDao
     StorageMetadata getById(long id);
 
     @Override
-    @Query("SELECT * FROM storage_metadata WHERE id IN {ids}")
+    @Query("SELECT * FROM storage_metadata WHERE id IN ({ids})")
     List<StorageMetadata> getByIds(List<Long> ids);
 
     @Override

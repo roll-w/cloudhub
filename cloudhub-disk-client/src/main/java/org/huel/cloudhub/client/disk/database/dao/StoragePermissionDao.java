@@ -29,7 +29,7 @@ public interface StoragePermissionDao extends AutoPrimaryBaseDao<StoragePermissi
     StoragePermission getById(long id);
 
     @Override
-    @Query("SELECT * FROM storage_permission WHERE id IN {ids}")
+    @Query("SELECT * FROM storage_permission WHERE id IN ({ids})")
     List<StoragePermission> getByIds(List<Long> ids);
 
     @Override

@@ -38,7 +38,7 @@ public interface VersionedFileStorageDao extends AutoPrimaryBaseDao<VersionedFil
     VersionedFileStorage getById(long id);
 
     @Override
-    @Query("SELECT * FROM versioned_file_storage WHERE id IN {ids}")
+    @Query("SELECT * FROM versioned_file_storage WHERE id IN ({ids})")
     List<VersionedFileStorage> getByIds(List<Long> ids);
 
     @Override

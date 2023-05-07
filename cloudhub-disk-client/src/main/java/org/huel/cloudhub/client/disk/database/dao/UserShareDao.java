@@ -26,7 +26,7 @@ public interface UserShareDao extends AutoPrimaryBaseDao<UserShare> {
     UserShare getById(long id);
 
     @Override
-    @Query("SELECT * FROM user_share WHERE id IN {ids}")
+    @Query("SELECT * FROM user_share WHERE id IN ({ids})")
     List<UserShare> getByIds(List<Long> ids);
 
     @Override

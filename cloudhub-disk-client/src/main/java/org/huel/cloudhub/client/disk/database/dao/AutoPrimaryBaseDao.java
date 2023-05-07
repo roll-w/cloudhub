@@ -14,6 +14,9 @@ public interface AutoPrimaryBaseDao<T extends DataItem> extends BaseDao<T> {
     @Insert(onConflict = OnConflictStrategy.ABORT)
     long insertReturns(T t);
 
+    @Insert(onConflict = OnConflictStrategy.ABORT)
+    long[] insertReturns(List<T> ts);
+
     default List<T> getActives() {
         return List.of();
     }

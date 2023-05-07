@@ -32,7 +32,7 @@ public interface OperationLogDao extends AutoPrimaryBaseDao<OperationLog> {
     OperationLog getById(long id);
 
     @Override
-    @Query("SELECT * FROM operation_log WHERE id IN {ids}")
+    @Query("SELECT * FROM operation_log WHERE id IN ({ids})")
     List<OperationLog> getByIds(List<Long> ids);
 
     @Override

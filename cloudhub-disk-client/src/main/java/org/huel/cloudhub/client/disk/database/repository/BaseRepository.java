@@ -2,12 +2,13 @@ package org.huel.cloudhub.client.disk.database.repository;
 
 import org.huel.cloudhub.client.disk.database.DataItem;
 import org.huel.cloudhub.client.disk.database.dao.AutoPrimaryBaseDao;
-import org.huel.cloudhub.client.disk.system.CountableDao;
+import org.huel.cloudhub.client.disk.system.pages.CountableDao;
 import org.huel.cloudhub.web.data.page.Offset;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -32,8 +33,8 @@ public abstract class BaseRepository<T extends DataItem> implements CountableDao
         return primaryBaseDao.insertReturns(t);
     }
 
-    public void insert(List<T> ts) {
-        primaryBaseDao.insert(ts);
+    public long[] insert(List<T> ts) {
+        return primaryBaseDao.insertReturns(ts);
     }
 
     public void update(T t) {
@@ -95,7 +96,22 @@ public abstract class BaseRepository<T extends DataItem> implements CountableDao
     }
 
     public List<T> get(Offset offset) {
-        return primaryBaseDao.get(offset);
+        if (offset.getSize() >= 1000) {
+            return primaryBaseDao.get(offset);
+        }
+        long[] ids = calcIds(offset);
+        if (ids.length == 0) {
+            return List.of();
+        }
+        return getByIds(Arrays.stream(ids).boxed().toList());
+    }
+
+    private long[] calcIds(Offset offset) {
+        long[] ids = new long[offset.limit()];
+        for (int i = 0; i < offset.limit(); i++) {
+            ids[i] = offset.offset() + (long) i;
+        }
+        return ids;
     }
 
     public void invalidateCache() {

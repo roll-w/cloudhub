@@ -41,7 +41,7 @@ public interface UserDirectoryDao extends AutoPrimaryBaseDao<UserDirectory> {
     UserDirectory getById(long id);
 
     @Override
-    @Query("SELECT * FROM user_directory WHERE id IN {ids}")
+    @Query("SELECT * FROM user_directory WHERE id IN ({ids})")
     List<UserDirectory> getByIds(List<Long> ids);
 
     @Override

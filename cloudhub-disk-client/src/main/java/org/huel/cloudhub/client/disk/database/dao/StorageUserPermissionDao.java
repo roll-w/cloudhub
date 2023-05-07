@@ -33,7 +33,7 @@ public interface StorageUserPermissionDao extends AutoPrimaryBaseDao<StorageUser
     StorageUserPermission getById(long id);
 
     @Override
-    @Query("SELECT * FROM storage_user_permission WHERE id IN {ids}")
+    @Query("SELECT * FROM storage_user_permission WHERE id IN ({ids})")
     List<StorageUserPermission> getByIds(List<Long> ids);
 
     @Override

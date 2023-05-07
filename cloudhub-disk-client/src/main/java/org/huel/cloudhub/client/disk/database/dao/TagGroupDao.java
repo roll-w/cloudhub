@@ -44,7 +44,7 @@ public interface TagGroupDao extends AutoPrimaryBaseDao<TagGroup> {
     TagGroup getById(long id);
 
     @Override
-    @Query("SELECT * FROM tag_group WHERE id IN {ids}")
+    @Query("SELECT * FROM tag_group WHERE id IN ({ids})")
     List<TagGroup> getByIds(List<Long> ids);
 
     @Override

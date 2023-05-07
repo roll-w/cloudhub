@@ -13,7 +13,7 @@ import java.util.List;
 @Dao
 public interface ContentTagDao extends AutoPrimaryBaseDao<ContentTag> {
 
-    @Query("SELECT * FROM content_tag WHERE id IN {ids}")
+    @Query("SELECT * FROM content_tag WHERE id IN ({ids})")
     List<ContentTag> getTagsBy(long[] ids);
 
     @Query("SELECT * FROM content_tag")
@@ -38,7 +38,7 @@ public interface ContentTagDao extends AutoPrimaryBaseDao<ContentTag> {
     ContentTag getById(long id);
 
     @Override
-    @Query("SELECT * FROM content_tag WHERE id IN {ids}")
+    @Query("SELECT * FROM content_tag WHERE id IN ({ids})")
     List<ContentTag> getByIds(List<Long> ids);
 
     @Override
@@ -65,4 +65,7 @@ public interface ContentTagDao extends AutoPrimaryBaseDao<ContentTag> {
     default String getTableName() {
         return "content_tag";
     }
+
+    @Query("SELECT * FROM content_tag WHERE name = {name}")
+    ContentTag getByName(String name);
 }
