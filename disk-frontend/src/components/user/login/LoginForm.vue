@@ -46,6 +46,7 @@ import {useRouter} from "vue-router";
 import {useUserStore} from "@/stores/user";
 import {driveFilePage, register} from "@/router";
 import {popUserErrorTemplate} from "@/views/util/error";
+import api from "@/request/api";
 
 const userStore = useUserStore()
 const loginForm = ref(null)
@@ -89,22 +90,31 @@ const validateFormValue = (callback) => {
 const onLoginClick = (e) => {
     e.preventDefault()
     validateFormValue(() => {
-        if (formValue.value.identity === 'user' && formValue.value.token === '123456') {
+        proxy.$axios.post(api.passwordLogin, formValue.value).then(res => {
+            /**
+             * @type {{ user: {
+             * username: string, id: number,
+             * role: string, email: string },
+             * token: string
+             * }}
+             */
+            const recvData = res.data
+            let user = {
+                id: recvData.user.id,
+                username: recvData.user.username,
+                role: recvData.user.role,
+            }
+            userStore.loginUser(user, recvData.token, formValue.value.rememberMe)
             router.push({
                 name: driveFilePage
             })
-            userStore.loginUser({
-                username: 'user',
-                id: 1,
-                role: 'ADMIN'
-            }, 'none', formValue.value.rememberMe)
-            return
-        }
-        popUserErrorTemplate(notification, {
-            tip: "用户名或密码错误",
-            message: "登录错误"
-        }, "登录错误", "登录错误")
-
+        }).catch(err => {
+            const msg = err.tip
+            popUserErrorTemplate(notification, {
+                tip: msg,
+                message: "登录错误"
+            }, "登录错误", "登录错误")
+        })
     })
 }
 

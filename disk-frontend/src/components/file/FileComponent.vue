@@ -23,7 +23,7 @@
         </div>
 
         <div class="px-5 pb-3">
-            <n-icon v-if="file.type === 'folder' " size="80">
+            <n-icon v-if="file.storageType === 'FOLDER' " size="80">
                 <Folder24Regular/>
             </n-icon>
             <n-icon v-else size="80">
@@ -41,7 +41,7 @@
             </n-tooltip>
         </div>
         <div class="text-gray-400 select-none">
-            {{ file.createdTime }}
+            {{ formatTimestamp(file.createTime) }}
         </div>
     </div>
 
@@ -57,7 +57,7 @@ import Folder24Regular from "@/components/icon/Folder24Regular.vue";
 import FileIcon from "@/components/icon/FileIcon.vue";
 import MoreHorizonal20Regular from "@/components/icon/MoreHorizonal20Regular.vue";
 import {NIcon} from "naive-ui";
-
+import {formatTimestamp} from "@/util/time";
 
 const props = defineProps({
     file: {

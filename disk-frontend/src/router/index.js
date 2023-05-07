@@ -50,7 +50,7 @@ const router = createRouter({
                     }
                 },
                 {
-                    path: '/drive/files/:type/:id/attrs',
+                    path: '/:ownerType/:ownerId/drive/files/:type/:id/attrs',
                     name: driveFileAttrsPage,
                     component: () => import("@/views/file/FileAttrsView.vue"),
                     meta: {
@@ -58,7 +58,7 @@ const router = createRouter({
                     }
                 },
                 {
-                    path: '/drive/files/:type/:id/permission',
+                    path: '/:ownerType/:ownerId/drive/files/:type/:id/permission',
                     name: driveFilePermissionPage,
                     component: () => import("@/views/file/FilePermissionPage.vue"),
                     meta: {
@@ -73,14 +73,7 @@ const router = createRouter({
                         title: "标签"
                     }
                 },
-                {
-                    path: '/data',
-                    name: "echarts",
-                    component: () => import("@/views/EchartsIndexView.vue"),
-                    meta: {
-                        title: "数据分析"
-                    }
-                },
+
             ]
         },
         {
@@ -105,6 +98,14 @@ const router = createRouter({
                         title: "用户列表"
                     }
                 },
+                {
+                    path: '/data',
+                    name: "echarts",
+                    component: () => import("@/views/EchartsIndexView.vue"),
+                    meta: {
+                        title: "数据分析"
+                    }
+                },
             ]
         },
         {
@@ -112,7 +113,8 @@ const router = createRouter({
             name: index,
             component: () => import("@/views/user/HomeView.vue"),
             meta: {
-                title: "首页"
+                title: "Cloudhub 法律案件资料库 - 可靠、专业的法律案件资料库",
+                originalTitle: true
             }
         },
         {
@@ -161,6 +163,11 @@ export const getTitleSuffix = () => {
 }
 
 router.afterEach((to, from) => {
+    if (to.meta.originalTitle) {
+        document.title = to.meta.title
+        return
+    }
+
     document.title = to.meta.title ? to.meta.title + getTitleSuffix() : defaultTitle
 })
 

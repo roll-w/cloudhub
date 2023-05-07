@@ -104,7 +104,7 @@ const menuOptions = [
             },
             {
                 name: "可视化数据",
-                key: "visual-data",
+                key: "echarts",
             },
             {
                 name: "系统管理",

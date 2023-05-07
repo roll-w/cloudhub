@@ -77,20 +77,11 @@
                  title="文件权限">
 
         </n-modal>
-
-        <n-modal v-model:show="showTimelineLog"
-                 :bordered="false"
-                 preset="dialog"
-                 size="large"
-                 title="文件属性与操作日志">
-
-        </n-modal>
-
     </div>
 </template>
 
 <script setup>
-import {h, ref} from "vue";
+import {h, ref, getCurrentInstance} from "vue";
 import {RouterLink, useRouter} from "vue-router";
 import {NIcon} from "naive-ui";
 import Folder24Regular from "@/components/icon/Folder24Regular.vue";
@@ -98,27 +89,27 @@ import FileIcon from "@/components/icon/FileIcon.vue";
 import RefreshRound from "@/components/icon/RefreshRound.vue";
 import FileComponent from "@/components/file/FileComponent.vue";
 import {driveFileAttrsPage, driveFilePermissionPage} from "@/router";
-import {requestFiles} from "@/views/temp/files";
+import {createConfig} from "@/request/axios_config";
+import {useUserStore} from "@/stores/user";
+import api from "@/request/api";
 
+const {proxy} = getCurrentInstance()
+const userStore = useUserStore()
 const router = useRouter()
 
-const files = requestFiles()
+const files = ref([])
 
 const fileMenuShowState = ref([])
 const checkedState = ref([])
 
-const showTimelineLog = ref(false)
-
 const remappingStates = () => {
     fileMenuShowState.value = []
     checkedState.value = []
-    for (let i = 0; i < files.length; i++) {
+    for (const _ of files.value) {
         fileMenuShowState.value.push(false)
         checkedState.value.push(false)
     }
 }
-
-remappingStates()
 
 const getCheckedList = () => {
     let checkedList = []
@@ -252,8 +243,10 @@ const hackFileOptions = (file) => {
             to: {
                 name: driveFileAttrsPage,
                 params: {
-                    id: file.id,
-                    type: file.type
+                    ownerType: 'user',
+                    ownerId: userStore.user.id,
+                    id: file.storageId,
+                    type: file.storageType.toLowerCase()
                 },
             },
         }, {
@@ -265,8 +258,10 @@ const hackFileOptions = (file) => {
             to: {
                 name: driveFilePermissionPage,
                 params: {
-                    id: file.id,
-                    type: file.type
+                    ownerType: 'user',
+                    ownerId: userStore.user.id,
+                    id: file.storageId,
+                    type: file.storageType.toLowerCase()
                 },
             },
         }, {
@@ -337,5 +332,21 @@ const handleClickMoreOptions = (e, target) => {
     xRef.value = e.clientX
     yRef.value = e.clientY
 }
+
+const requestFilesBy = (directoryId) => {
+    const config = createConfig()
+    proxy.$axios.get(
+        api.getFiles('user', userStore.user.id, directoryId), config)
+        .then(res => {
+            files.value = res.data
+            console.log(res)
+            remappingStates()
+        })
+        .catch(err => {
+            console.log(err)
+        })
+}
+
+requestFilesBy(0)
 
 </script>

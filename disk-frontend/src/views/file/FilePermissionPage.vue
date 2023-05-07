@@ -80,6 +80,7 @@
                     <n-checkbox-group v-model:value="userPermissionCheckValue">
                         <n-checkbox label="读取" value="read"/>
                         <n-checkbox label="写入" value="write"/>
+                        <n-checkbox label="拒绝访问" value="denied"/>
                     </n-checkbox-group>
                 </n-form-item>
                 <n-button-group>

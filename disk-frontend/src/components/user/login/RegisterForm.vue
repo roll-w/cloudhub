@@ -127,7 +127,7 @@ const onRegisterClick = () => {
    proxy.$axios.post(api.register, formValue.value)
        .then((response) => {
          message.success('注册成功')
-         // router.push({name: registerTip})
+         router.push({name: login})
        })
        .catch((error) => {
          message.error(error.tip)
