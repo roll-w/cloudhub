@@ -2,8 +2,7 @@
     <n-layout-header bordered style="height: var(--header-height)">
         <div class="p-5 flex">
             <n-text :depth="1" class="ui-logo flex justify-start" @click="handleLogoClick">
-                <img alt="Logo" src="../assets/cloud.svg">
-                <span>法律案件资料库</span>
+                <Logo/>
             </n-text>
             <div class="flex justify-end justify-items-end flex-grow">
                 <n-space>
@@ -38,6 +37,7 @@ import {NAvatar, NText} from "naive-ui";
 import {useSiteStore} from "@/stores/site";
 import {adminIndex, driveFilePage, index, login} from "@/router";
 import {MD5} from "@/util/crypto";
+import Logo from "@/components/icon/Logo.vue";
 
 
 const router = useRouter();
@@ -51,21 +51,6 @@ const role = ref(userStore.user.role)
 
 const hexUserColor = ref('#2876c7')
 
-//
-// const requestPersonalData = () => {
-//   const config = createConfig()
-//   proxy.$axios.get(api.currentUser, config).then((response) => {
-//     const userData = {
-//       avatar: response.data.avatar,
-//       nickname: response.data.nickname,
-//       setup: true
-//     }
-//     userStore.setUserData(userData)
-//   }).catch((error) => {
-//     console.log(error)
-//   })
-// }
-//
 const loadUsername = (newUsername, newRole) => {
     username.value = newUsername
     const high6 = MD5(newUsername || '').substring(0, 6)
