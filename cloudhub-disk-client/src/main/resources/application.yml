@@ -26,10 +26,6 @@ spring:
     throw-exception-if-no-handler-found: true
   cache:
     type: caffeine
-
-
-web-url:
-  backend-url: http://localhost:${server.port}
-  frontend-url: http://localhost:${server.port}
-  allowed-origins:
-    - http://localhost:${server.port}
+  web:
+    resources:
+      add-mappings: false

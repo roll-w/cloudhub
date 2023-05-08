@@ -98,7 +98,7 @@ public class FileController {
         LegalUserType legalUserType = LegalUserType.from(type);
         StorageOwner storageOwner = new SimpleStorageOwner(ownerId, legalUserType);
         FileStorageInfo fileStorageInfo = new FileStorageInfo(
-                file.getName(), directoryId, storageOwner);
+                file.getOriginalFilename(), directoryId, storageOwner);
         String mimeType = file.getContentType();
 
         FileStreamInfo fileStreamInfo = new FileStreamInfo(
