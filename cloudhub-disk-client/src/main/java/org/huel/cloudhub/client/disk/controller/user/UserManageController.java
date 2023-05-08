@@ -3,7 +3,7 @@ package org.huel.cloudhub.client.disk.controller.user;
 import org.huel.cloudhub.client.disk.controller.AdminApi;
 import org.huel.cloudhub.client.disk.domain.user.User;
 import org.huel.cloudhub.client.disk.domain.user.service.UserManageService;
-import org.huel.cloudhub.client.disk.domain.user.vo.UserCommonDetailsVo;
+import org.huel.cloudhub.client.disk.domain.user.vo.UserDetailsVo;
 import org.huel.cloudhub.web.HttpResponseEntity;
 import org.huel.cloudhub.web.data.page.Pageable;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -26,24 +26,24 @@ public class UserManageController {
     }
 
     @GetMapping("/users")
-    public HttpResponseEntity<List<UserCommonDetailsVo>> getUserList(Pageable pageRequest) {
+    public HttpResponseEntity<List<UserDetailsVo>> getUserList(Pageable pageRequest) {
         List<User> userIdentities = userManageService.getUsers(
                 pageRequest.getPage(),
                 pageRequest.getSize()
         );
         return HttpResponseEntity.success(
                 userIdentities.stream().map(
-                        UserCommonDetailsVo::of
+                        UserDetailsVo::of
                 ).toList()
         );
     }
 
     @GetMapping("/user/{userId}")
-    public HttpResponseEntity<UserCommonDetailsVo> getUserDetails(
+    public HttpResponseEntity<UserDetailsVo> getUserDetails(
             @PathVariable Long userId) {
         User user = userManageService.getUser(userId);
-        UserCommonDetailsVo userDetailsVo =
-                UserCommonDetailsVo.of(user);
+        UserDetailsVo userDetailsVo =
+                UserDetailsVo.of(user);
         return HttpResponseEntity.success(userDetailsVo);
     }
 

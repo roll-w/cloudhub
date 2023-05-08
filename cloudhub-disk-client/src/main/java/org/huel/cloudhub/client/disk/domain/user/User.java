@@ -22,7 +22,7 @@ import java.util.Objects;
 })
 @LightConfiguration(key = LightConfiguration.KEY_VARCHAR_LENGTH, value = "120")
 @SuppressWarnings({"ClassCanBeRecord"})
-public class User implements UserDetails, UserIdentity, StorageOwner, DataItem {
+public class User implements UserDetails, AttributedUser, StorageOwner, DataItem {
     @PrimaryKey(autoGenerate = true)
     @DataColumn(name = "id")
     private final Long id;
@@ -42,6 +42,9 @@ public class User implements UserDetails, UserIdentity, StorageOwner, DataItem {
 
     @DataColumn(name = "register_time")
     private final long registerTime;
+
+    @DataColumn(name = "update_time")
+    private final long updateTime;
 
     @DataColumn(name = "email")
     private final String email;
@@ -68,9 +71,10 @@ public class User implements UserDetails, UserIdentity, StorageOwner, DataItem {
     private final boolean canceled;
 
     @Constructor
-    public User(Long id, String username, String nickname, String password,
+    public User(Long id, String username, String nickname,
+                String password,
                 Role role, long registerTime,
-                String email,
+                long updateTime, String email,
                 boolean enabled, boolean locked,
                 boolean accountExpired,
                 boolean canceled) {
@@ -80,6 +84,7 @@ public class User implements UserDetails, UserIdentity, StorageOwner, DataItem {
         this.password = password;
         this.role = role;
         this.registerTime = registerTime;
+        this.updateTime = updateTime;
         this.email = email;
         this.enabled = enabled;
         this.locked = locked;
@@ -141,6 +146,16 @@ public class User implements UserDetails, UserIdentity, StorageOwner, DataItem {
     }
 
     @Override
+    public long getCreateTime() {
+        return getRegisterTime();
+    }
+
+    @Override
+    public long getUpdateTime() {
+        return updateTime;
+    }
+
+    @Override
     public boolean isAccountNonExpired() {
         return !accountExpired || !canceled;
     }
@@ -171,6 +186,7 @@ public class User implements UserDetails, UserIdentity, StorageOwner, DataItem {
                 .setPassword(password)
                 .setRole(role)
                 .setRegisterTime(registerTime)
+                .setUpdateTime(updateTime)
                 .setEmail(email)
                 .setEnabled(enabled)
                 .setLocked(locked)
@@ -221,6 +237,7 @@ public class User implements UserDetails, UserIdentity, StorageOwner, DataItem {
         private String password;
         private Role role = Role.USER;
         private long registerTime;
+        private long updateTime;
         private String email;
         private boolean enabled;
         private boolean locked = false;
@@ -257,6 +274,11 @@ public class User implements UserDetails, UserIdentity, StorageOwner, DataItem {
             return this;
         }
 
+        public Builder setUpdateTime(long updateTime) {
+            this.updateTime = updateTime;
+            return this;
+        }
+
         public Builder setEmail(String email) {
             this.email = email;
             return this;
@@ -290,7 +312,7 @@ public class User implements UserDetails, UserIdentity, StorageOwner, DataItem {
             return new User(
                     id, username, nickname, password,
                     role, registerTime,
-                    email, enabled, locked, accountExpired, canceled);
+                    updateTime, email, enabled, locked, accountExpired, canceled);
         }
     }
 }

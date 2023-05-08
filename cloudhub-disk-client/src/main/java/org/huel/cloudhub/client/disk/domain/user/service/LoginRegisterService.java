@@ -96,8 +96,7 @@ public class LoginRegisterService  {
         if (!enabled) {
             OnUserRegistrationEvent event = new OnUserRegistrationEvent(
                     userInfoResult.data(), Locale.getDefault(),
-                    "http://localhost:5000/user/register/activate/");
-            // TODO: get url from config
+                    null);
             eventPublisher.publishEvent(event);
         }
 

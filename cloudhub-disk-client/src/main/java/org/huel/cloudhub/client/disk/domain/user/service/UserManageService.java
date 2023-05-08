@@ -25,6 +25,4 @@ public interface UserManageService {
     void deleteUser(long userId);
 
     void setUserEnable(long userId, boolean enable);
-
-    void setBlockUser(long userId, boolean block);
 }

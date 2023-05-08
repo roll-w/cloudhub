@@ -1,5 +1,6 @@
 package org.huel.cloudhub.client.disk.domain.user.service;
 
+import org.huel.cloudhub.client.disk.domain.user.AttributedUser;
 import org.huel.cloudhub.client.disk.domain.user.Role;
 import org.huel.cloudhub.client.disk.domain.user.User;
 import org.huel.cloudhub.client.disk.domain.user.UserIdentity;
@@ -64,13 +65,15 @@ public class UserServiceImpl implements  UserSignatureProvider,
         if (validateUser.failed()) {
             return Result.of(validateUser);
         }
+        long now = System.currentTimeMillis();
         User user = User.builder()
                 .setUsername(username)
                 .setPassword(passwordEncoder.encode(password))
                 .setRole(role)
                 .setEnabled(enable)
                 .setAccountExpired(false)
-                .setRegisterTime(System.currentTimeMillis())
+                .setRegisterTime(now)
+                .setUpdateTime(now)
                 .setEmail(email)
                 .build();
         long id = userRepository.insertUser(user);
@@ -118,7 +121,7 @@ public class UserServiceImpl implements  UserSignatureProvider,
     }
 
     @Override
-    public UserIdentity findUser(long userId) throws UserViewException {
+    public AttributedUser findUser(long userId) throws UserViewException {
         User user = userRepository.getUserById(userId);
         if (user == null) {
             throw new UserViewException(UserErrorCode.ERROR_USER_NOT_EXIST);
@@ -133,17 +136,17 @@ public class UserServiceImpl implements  UserSignatureProvider,
     }
 
     @Override
-    public UserIdentity findUser(String username) throws UserViewException {
+    public AttributedUser findUser(String username) throws UserViewException {
         return null;
     }
 
     @Override
-    public List<? extends UserIdentity> findUsers(String username) {
+    public List<? extends AttributedUser> findUsers(String username) {
         return null;
     }
 
     @Override
-    public UserIdentity findUser(UserIdentity userIdentity) throws UserViewException {
+    public AttributedUser findUser(UserIdentity userIdentity) throws UserViewException {
         if (userIdentity == null) {
             throw new UserViewException(UserErrorCode.ERROR_USER_NOT_EXIST);
         }
@@ -151,19 +154,19 @@ public class UserServiceImpl implements  UserSignatureProvider,
     }
 
     @Override
-    public List<? extends UserIdentity> findUsers(int page, int size) {
+    public List<? extends AttributedUser> findUsers(int page, int size) {
         // TODO: filter canceled user
         return userRepository.getUsers(PageHelper.offset(page, size));
     }
 
     @Override
-    public List<? extends UserIdentity> findUsers() {
+    public List<? extends AttributedUser> findUsers() {
         // TODO: filter canceled user
         return userRepository.getAll();
     }
 
     @Override
-    public List<? extends UserIdentity> findUsers(List<Long> ids) {
+    public List<? extends AttributedUser> findUsers(List<Long> ids) {
         return userRepository.getUsersByIds(ids);
     }
 
@@ -174,11 +177,6 @@ public class UserServiceImpl implements  UserSignatureProvider,
 
     @Override
     public void setUserEnable(long userId, boolean enable) {
-
-    }
-
-    @Override
-    public void setBlockUser(long userId, boolean block) {
 
     }
 }

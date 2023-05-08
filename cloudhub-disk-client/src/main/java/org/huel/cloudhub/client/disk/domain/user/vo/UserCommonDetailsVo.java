@@ -13,15 +13,16 @@ public record UserCommonDetailsVo(
         long userId,
         Role role,
         String username,
+        String nickname,
         String email
 ) {
-    // TODO: add followers/following count
 
     public static UserCommonDetailsVo of(UserIdentity userIdentity) {
         return new UserCommonDetailsVo(
                 userIdentity.getUserId(),
                 userIdentity.getRole(),
                 userIdentity.getUsername(),
+                null,
                 userIdentity.getEmail()
         );
     }
