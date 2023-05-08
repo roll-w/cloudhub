@@ -1,0 +1,97 @@
+### 登录
+
+POST {{url}}/api/v1/user/login/password
+Content-Type: application/json
+
+{
+  "identity": "user",
+  "token": "123456"
+}
+
+
+### 注册
+
+POST {{url}}/api/v1/user/register
+Content-Type: application/json
+
+{
+  "username": "user",
+  "password": "123456",
+  "email": "test@example.com"
+}
+
+### Get Tags
+
+GET {{url}}/api/v1/admin/tags/
+Authorization: {{token}}
+
+### Get Tag Groups
+GET {{url}}/api/v1/admin/tags/groups
+Authorization: {{token}}
+
+### Create Tag Group
+POST {{url}}/api/v1/admin/tags/groups
+Authorization: {{token}}
+Content-Type: application/json
+
+{
+  "name": "案件类型",
+  "description": "描述案件文书的类型，如民事诉讼等",
+  "keywordSearchScope": "ALL"
+}
+
+### Import Tags
+< {%
+    request.variables.set("groupId", "1")
+%}
+POST {{url}}/api/v1/admin/tags/groups/{{groupId}}/infile
+Authorization: {{token}}
+Content-Type: multipart/form-data; boundary=CloudhubClientBoundary
+
+--CloudhubClientBoundary
+Content-Disposition: form-data; name="file"; filename="tags.keywords"
+
+< law.keywords
+--CloudhubClientBoundary--
+
+### Create File
+< {%
+    request.variables.set("ownerId", "1")
+    request.variables.set("type", "user")
+    request.variables.set("directory", "0")
+%}
+POST {{url}}/api/v1/{{type}}/{{ownerId}}/disk/{{directory}}
+Authorization: {{token}}
+Content-Type: multipart/form-data; boundary=CloudhubClientBoundary
+
+--CloudhubClientBoundary
+Content-Disposition: form-data; name="file"; filename="tags.keywords"
+
+< law.keywords
+--CloudhubClientBoundary--
+
+### Create File
+< {%
+    request.variables.set("ownerId", "1")
+    request.variables.set("type", "user")
+    request.variables.set("directory", "0")
+%}
+POST {{url}}/api/v1/{{type}}/{{ownerId}}/disk/{{directory}}
+Authorization: {{token}}
+Content-Type: multipart/form-data; boundary=CloudhubClientBoundary
+
+--CloudhubClientBoundary
+Content-Disposition: form-data; name="file"; filename="河南省优悠商贸有限公司河南福汇泽置业有限公司等民事二审民事判决书.doc"
+
+< law.keywords
+--CloudhubClientBoundary--
+
+
+
+### Test Error
+
+POST {{url}}/api/v1/notfound
+Authorization: {{token}}
+
+# Expect: 404 not found error
+
