@@ -36,7 +36,7 @@ public class UserFileStorage implements AttributedStorage, DataItem {
     private final String fileId;
 
     @DataColumn(name = "directory_id")
-    private final long directoryId;
+    private final long folderId;
 
     @DataColumn(name = "mime_type")
     private final String mimeType;
@@ -56,7 +56,7 @@ public class UserFileStorage implements AttributedStorage, DataItem {
     public UserFileStorage(Long id, String name,
                            long owner, LegalUserType ownerType,
                            String fileId,
-                           long directoryId,
+                           long folderId,
                            String mimeType, FileType fileCategory,
                            long createTime,
                            long updateTime, boolean deleted) {
@@ -65,7 +65,7 @@ public class UserFileStorage implements AttributedStorage, DataItem {
         this.owner = owner;
         this.ownerType = ownerType;
         this.fileId = fileId;
-        this.directoryId = directoryId;
+        this.folderId = folderId;
         this.mimeType = mimeType;
         this.fileCategory = fileCategory;
         this.createTime = createTime;
@@ -100,7 +100,7 @@ public class UserFileStorage implements AttributedStorage, DataItem {
 
     @Override
     public Long getParentId() {
-        return getDirectoryId();
+        return getFolderId();
     }
 
     @Override
@@ -118,8 +118,8 @@ public class UserFileStorage implements AttributedStorage, DataItem {
         return fileId;
     }
 
-    public long getDirectoryId() {
-        return directoryId;
+    public long getFolderId() {
+        return folderId;
     }
 
     public String getMimeType() {
@@ -159,7 +159,7 @@ public class UserFileStorage implements AttributedStorage, DataItem {
         private long owner;
         private LegalUserType ownerType;
         private String fileId;
-        private long directoryId;
+        private long folderId;
         private String mimeType;
         private FileType fileCategory;
         private long createTime;
@@ -175,7 +175,7 @@ public class UserFileStorage implements AttributedStorage, DataItem {
             this.owner = userFileStorage.owner;
             this.ownerType = userFileStorage.ownerType;
             this.fileId = userFileStorage.fileId;
-            this.directoryId = userFileStorage.directoryId;
+            this.folderId = userFileStorage.folderId;
             this.mimeType = userFileStorage.mimeType;
             this.fileCategory = userFileStorage.fileCategory;
             this.createTime = userFileStorage.createTime;
@@ -208,8 +208,8 @@ public class UserFileStorage implements AttributedStorage, DataItem {
             return this;
         }
 
-        public Builder setDirectoryId(long directoryId) {
-            this.directoryId = directoryId;
+        public Builder setFolderId(long folderId) {
+            this.folderId = folderId;
             return this;
         }
 
@@ -240,7 +240,7 @@ public class UserFileStorage implements AttributedStorage, DataItem {
 
         public UserFileStorage build() {
             return new UserFileStorage(id, name, owner, ownerType, fileId,
-                    directoryId, mimeType, fileCategory, createTime, updateTime, deleted);
+                    folderId, mimeType, fileCategory, createTime, updateTime, deleted);
         }
     }
 }

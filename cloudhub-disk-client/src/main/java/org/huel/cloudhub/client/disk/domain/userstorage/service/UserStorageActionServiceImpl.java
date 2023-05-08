@@ -7,11 +7,11 @@ import org.huel.cloudhub.client.disk.domain.userstorage.StorageAction;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageActionService;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageOwner;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageType;
-import org.huel.cloudhub.client.disk.domain.userstorage.UserDirectory;
+import org.huel.cloudhub.client.disk.domain.userstorage.UserFolder;
 import org.huel.cloudhub.client.disk.domain.userstorage.UserFileStorage;
 import org.huel.cloudhub.client.disk.domain.userstorage.common.StorageErrorCode;
 import org.huel.cloudhub.client.disk.domain.userstorage.common.StorageException;
-import org.huel.cloudhub.client.disk.domain.userstorage.repository.UserDirectoryRepository;
+import org.huel.cloudhub.client.disk.domain.userstorage.repository.UserFolderRepository;
 import org.huel.cloudhub.client.disk.domain.userstorage.repository.UserFileStorageRepository;
 import org.springframework.stereotype.Service;
 
@@ -22,12 +22,12 @@ import org.springframework.stereotype.Service;
 public class UserStorageActionServiceImpl implements StorageActionService,
         DirectoryActionDelegate, FileActionDelegate {
     private final UserFileStorageRepository userFileStorageRepository;
-    private final UserDirectoryRepository userDirectoryRepository;
+    private final UserFolderRepository userFolderRepository;
 
     public UserStorageActionServiceImpl(UserFileStorageRepository userFileStorageRepository,
-                                        UserDirectoryRepository userDirectoryRepository) {
+                                        UserFolderRepository userFolderRepository) {
         this.userFileStorageRepository = userFileStorageRepository;
-        this.userDirectoryRepository = userDirectoryRepository;
+        this.userFolderRepository = userFolderRepository;
     }
 
     @Override
@@ -84,13 +84,13 @@ public class UserStorageActionServiceImpl implements StorageActionService,
         if (storage.getStorageType() != StorageType.FOLDER) {
             throw new IllegalArgumentException("storage type must be folder");
         }
-        if (!(storage instanceof UserDirectory userDirectory)) {
+        if (!(storage instanceof UserFolder userFolder)) {
             return createDirectoryAction(
                     findDirectory(storage.getStorageId())
             );
         }
 
-        return new DirectoryAction(userDirectory, this);
+        return new DirectoryAction(userFolder, this);
     }
 
     private StorageAction createFileAction(Storage storage) {
@@ -117,25 +117,25 @@ public class UserStorageActionServiceImpl implements StorageActionService,
         return userFileStorage;
     }
 
-    private UserDirectory findDirectory(long directoryId) throws StorageException {
-        UserDirectory userDirectory = userDirectoryRepository.getById(directoryId);
-        if (userDirectory == null) {
+    private UserFolder findDirectory(long directoryId) throws StorageException {
+        UserFolder userFolder = userFolderRepository.getById(directoryId);
+        if (userFolder == null) {
             throw new StorageException(StorageErrorCode.ERROR_DIRECTORY_NOT_EXIST);
         }
-        if (userDirectory.isDeleted()) {
+        if (userFolder.isDeleted()) {
             throw new StorageException(StorageErrorCode.ERROR_DIRECTORY_NOT_EXIST);
         }
-        return userDirectory;
+        return userFolder;
     }
 
     @Override
-    public Long createDirectory(UserDirectory userDirectory) {
-        return userDirectoryRepository.insert(userDirectory);
+    public Long createDirectory(UserFolder userFolder) {
+        return userFolderRepository.insert(userFolder);
     }
 
     @Override
-    public void updateDirectory(UserDirectory userDirectory) {
-        userDirectoryRepository.update(userDirectory);
+    public void updateDirectory(UserFolder userFolder) {
+        userFolderRepository.update(userFolder);
     }
 
     @Override

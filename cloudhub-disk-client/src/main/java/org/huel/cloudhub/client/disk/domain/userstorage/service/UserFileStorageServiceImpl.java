@@ -9,7 +9,7 @@ import org.huel.cloudhub.client.disk.domain.userstorage.Storage;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageIdentity;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageOwner;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageProcessor;
-import org.huel.cloudhub.client.disk.domain.userstorage.UserDirectory;
+import org.huel.cloudhub.client.disk.domain.userstorage.UserFolder;
 import org.huel.cloudhub.client.disk.domain.userstorage.UserFileStorage;
 import org.huel.cloudhub.client.disk.domain.userstorage.UserFileStorageService;
 import org.huel.cloudhub.client.disk.domain.userstorage.UserStorageSearchService;
@@ -17,7 +17,7 @@ import org.huel.cloudhub.client.disk.domain.userstorage.common.StorageErrorCode;
 import org.huel.cloudhub.client.disk.domain.userstorage.common.StorageException;
 import org.huel.cloudhub.client.disk.domain.userstorage.dto.FileStorageInfo;
 import org.huel.cloudhub.client.disk.domain.userstorage.dto.StorageAttr;
-import org.huel.cloudhub.client.disk.domain.userstorage.repository.UserDirectoryRepository;
+import org.huel.cloudhub.client.disk.domain.userstorage.repository.UserFolderRepository;
 import org.huel.cloudhub.client.disk.domain.userstorage.repository.UserFileStorageRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,24 +38,24 @@ public class UserFileStorageServiceImpl implements UserFileStorageService, UserS
 
     private final StorageService storageService;
     private final List<StorageProcessor> storageProcessors;
-    private final UserDirectoryRepository userDirectoryRepository;
+    private final UserFolderRepository userFolderRepository;
     private final UserFileStorageRepository userFileStorageRepository;
 
     public UserFileStorageServiceImpl(StorageService storageService,
                                       List<StorageProcessor> storageProcessors,
-                                      UserDirectoryRepository userDirectoryRepository,
+                                      UserFolderRepository userFolderRepository,
                                       UserFileStorageRepository userFileStorageRepository) {
         this.storageService = storageService;
         this.storageProcessors = storageProcessors;
-        this.userDirectoryRepository = userDirectoryRepository;
+        this.userFolderRepository = userFolderRepository;
         this.userFileStorageRepository = userFileStorageRepository;
     }
 
     @Override
-    public AttributedStorage createDirectory(String directoryName, long parentId,
-                                             StorageOwner storageOwner) throws StorageException {
-        UserDirectory exist = userDirectoryRepository.getByName(
-                directoryName, parentId,
+    public AttributedStorage createFolder(String folderName, long parentId,
+                                          StorageOwner storageOwner) throws StorageException {
+        UserFolder exist = userFolderRepository.getByName(
+                folderName, parentId,
                 storageOwner.getOwnerId(),
                 storageOwner.getOwnerType());
         if (exist != null && !exist.isDeleted()) {
@@ -63,20 +63,20 @@ public class UserFileStorageServiceImpl implements UserFileStorageService, UserS
         }
         long time = System.currentTimeMillis();
         if (exist != null && exist.isDeleted()) {
-            UserDirectory updated = exist
+            UserFolder updated = exist
                     .toBuilder()
                     .setUpdateTime(time)
                     .setDeleted(false)
                     .build();
-            userDirectoryRepository.update(updated);
+            userFolderRepository.update(updated);
             OperationContextHolder.getContext()
                     .addSystemResource(updated)
                     .setChangedContent(updated.getName());
             return updated;
         }
 
-        UserDirectory userDirectory = UserDirectory.builder()
-                .setName(directoryName)
+        UserFolder userFolder = UserFolder.builder()
+                .setName(folderName)
                 .setOwner(storageOwner.getOwnerId())
                 .setOwnerType(storageOwner.getOwnerType())
                 .setParentId(parentId)
@@ -84,8 +84,8 @@ public class UserFileStorageServiceImpl implements UserFileStorageService, UserS
                 .setUpdateTime(time)
                 .setDeleted(false)
                 .build();
-        long id = userDirectoryRepository.insert(userDirectory);
-        UserDirectory inserted = userDirectory.toBuilder()
+        long id = userFolderRepository.insert(userFolder);
+        UserFolder inserted = userFolder.toBuilder()
                 .setId(id)
                 .build();
         logger.debug("create directory: {}", inserted);
@@ -101,12 +101,12 @@ public class UserFileStorageServiceImpl implements UserFileStorageService, UserS
                                         FileStreamInfo fileStreamInfo) throws IOException {
         String cfsFileId = storageService.saveFile(fileStreamInfo.inputStream());
 
-        checkDirectoryState(fileStorageInfo.directoryId(), fileStorageInfo.storageOwner());
+        checkDirectoryState(fileStorageInfo.folderId(), fileStorageInfo.storageOwner());
 
         UserFileStorage existUserFileStorage = userFileStorageRepository.getById(
                 fileStorageInfo.storageOwner().getOwnerId(),
                 fileStorageInfo.storageOwner().getOwnerType(),
-                fileStorageInfo.directoryId(),
+                fileStorageInfo.folderId(),
                 fileStorageInfo.fileName()
         );
 
@@ -119,7 +119,7 @@ public class UserFileStorageServiceImpl implements UserFileStorageService, UserS
                     .setName(fileStorageInfo.fileName())
                     .setOwner(fileStorageInfo.storageOwner().getOwnerId())
                     .setOwnerType(fileStorageInfo.storageOwner().getOwnerType())
-                    .setDirectoryId(fileStorageInfo.directoryId())
+                    .setFolderId(fileStorageInfo.folderId())
                     .setDeleted(false)
                     .setCreateTime(time)
                     .setUpdateTime(time)
@@ -178,28 +178,28 @@ public class UserFileStorageServiceImpl implements UserFileStorageService, UserS
         if (!isDirectoryExist(directoryId)) {
             throw new StorageException(StorageErrorCode.ERROR_DIRECTORY_NOT_EXIST);
         }
-        if (directoryId == UserDirectory.ROOT) {
+        if (directoryId == UserFolder.ROOT) {
             return;
         }
 
-        UserDirectory userDirectory = userDirectoryRepository.getById(
+        UserFolder userFolder = userFolderRepository.getById(
                 directoryId);
-        if (userDirectory.getOwner() != storageOwner.getOwnerId()
-                || userDirectory.getOwnerType() != storageOwner.getOwnerType()) {
+        if (userFolder.getOwner() != storageOwner.getOwnerId()
+                || userFolder.getOwnerType() != storageOwner.getOwnerType()) {
             throw new StorageException(StorageErrorCode.ERROR_DIRECTORY_NOT_EXIST);
         }
-        if (userDirectory.isDeleted()) {
+        if (userFolder.isDeleted()) {
             throw new StorageException(StorageErrorCode.ERROR_DIRECTORY_NOT_EXIST);
         }
     }
 
     private boolean isDirectoryExist(long directoryId) {
-        if (directoryId == UserDirectory.ROOT) {
+        if (directoryId == UserFolder.ROOT) {
             return true;
         }
-        UserDirectory userDirectory = userDirectoryRepository.getById(
+        UserFolder userFolder = userFolderRepository.getById(
                 directoryId);
-        return userDirectory != null;
+        return userFolder != null;
     }
 
     @Override
@@ -270,7 +270,7 @@ public class UserFileStorageServiceImpl implements UserFileStorageService, UserS
     public AttributedStorage findStorage(StorageIdentity storageIdentity) throws StorageException {
         return switch (storageIdentity.getStorageType()) {
             case FILE -> findFile(storageIdentity.getStorageId());
-            case FOLDER -> findDirectory(storageIdentity.getStorageId());
+            case FOLDER -> findFolder(storageIdentity.getStorageId());
             default -> throw new StorageException(StorageErrorCode.ERROR_FILE_NOT_EXIST);
         };
     }
@@ -280,59 +280,59 @@ public class UserFileStorageServiceImpl implements UserFileStorageService, UserS
                                          StorageOwner storageOwner) throws StorageException {
         return switch (storageIdentity.getStorageType()) {
             case FILE -> findFile(storageIdentity.getStorageId(), storageOwner);
-            case FOLDER -> findDirectory(storageIdentity.getStorageId(), storageOwner);
+            case FOLDER -> findFolder(storageIdentity.getStorageId(), storageOwner);
             default -> throw new StorageException(StorageErrorCode.ERROR_FILE_NOT_EXIST);
         };
     }
 
     @NonNull
     @Override
-    public UserDirectory findDirectory(long directoryId) throws StorageException {
-        if (directoryId == UserDirectory.ROOT) {
-            return UserDirectory.ROOT_DIRECTORY;
+    public UserFolder findFolder(long folderId) throws StorageException {
+        if (folderId == UserFolder.ROOT) {
+            return UserFolder.ROOT_FOLDER;
         }
-        UserDirectory userDirectory = userDirectoryRepository.getById(directoryId);
-        if (userDirectory == null) {
+        UserFolder userFolder = userFolderRepository.getById(folderId);
+        if (userFolder == null) {
             throw new StorageException(StorageErrorCode.ERROR_DIRECTORY_NOT_EXIST);
         }
-        if (userDirectory.isDeleted()) {
+        if (userFolder.isDeleted()) {
             throw new StorageException(StorageErrorCode.ERROR_DIRECTORY_NOT_EXIST);
         }
-        return userDirectory;
+        return userFolder;
     }
 
     @Override
-    public AttributedStorage findDirectory(long directoryId, StorageOwner storageOwner) throws StorageException {
-        UserDirectory userDirectory = userDirectoryRepository.getById(
-                directoryId,
+    public AttributedStorage findFolder(long folderId, StorageOwner storageOwner) throws StorageException {
+        UserFolder userFolder = userFolderRepository.getById(
+                folderId,
                 storageOwner.getOwnerId(),
                 storageOwner.getOwnerType());
-        if (userDirectory == null) {
+        if (userFolder == null) {
             throw new StorageException(StorageErrorCode.ERROR_DIRECTORY_NOT_EXIST);
         }
-        return userDirectory;
+        return userFolder;
     }
 
     @NonNull
     @Override
-    public UserDirectory findDirectory(FileStorageInfo fileStorageInfo) throws StorageException {
-        UserDirectory userDirectory = userDirectoryRepository.getByName(
+    public UserFolder findFolder(FileStorageInfo fileStorageInfo) throws StorageException {
+        UserFolder userFolder = userFolderRepository.getByName(
                 fileStorageInfo.fileName(),
-                fileStorageInfo.directoryId(),
+                fileStorageInfo.folderId(),
                 fileStorageInfo.storageOwner().getOwnerId(),
                 fileStorageInfo.storageOwner().getOwnerType());
-        if (userDirectory == null) {
+        if (userFolder == null) {
             throw new StorageException(StorageErrorCode.ERROR_DIRECTORY_NOT_EXIST);
         }
-        if (userDirectory.isDeleted()) {
+        if (userFolder.isDeleted()) {
             throw new StorageException(StorageErrorCode.ERROR_DIRECTORY_NOT_EXIST);
         }
-        return userDirectory;
+        return userFolder;
     }
 
     @NonNull
-    private List<UserDirectory> listDirectories(long directoryId, StorageOwner storageOwner) {
-        return userDirectoryRepository.getByParentId(
+    private List<UserFolder> listDirectories(long directoryId, StorageOwner storageOwner) {
+        return userFolderRepository.getByParentId(
                 directoryId,
                 storageOwner.getOwnerId(),
                 storageOwner.getOwnerType());
@@ -378,7 +378,7 @@ public class UserFileStorageServiceImpl implements UserFileStorageService, UserS
         UserFileStorage userFileStorage = userFileStorageRepository.getById(
                 fileStorageInfo.storageOwner().getOwnerId(),
                 fileStorageInfo.storageOwner().getOwnerType(),
-                fileStorageInfo.directoryId(),
+                fileStorageInfo.folderId(),
                 fileStorageInfo.fileName()
         );
         if (userFileStorage == null) {
@@ -391,10 +391,10 @@ public class UserFileStorageServiceImpl implements UserFileStorageService, UserS
     }
 
     @Override
-    public List<AttributedStorage> listFiles(long directoryId,
+    public List<AttributedStorage> listFiles(long folderId,
                                              StorageOwner storageOwner) {
-        List<UserFileStorage> userFileStorages = listOnlyFiles(directoryId, storageOwner);
-        List<UserDirectory> userDirectories = listDirectories(directoryId, storageOwner);
+        List<UserFileStorage> userFileStorages = listOnlyFiles(folderId, storageOwner);
+        List<UserFolder> userDirectories = listDirectories(folderId, storageOwner);
 
         List<AttributedStorage> attributedStorages = new ArrayList<>(userDirectories);
         attributedStorages.addAll(userFileStorages);
@@ -403,11 +403,11 @@ public class UserFileStorageServiceImpl implements UserFileStorageService, UserS
     }
 
     @Override
-    public List<AttributedStorage> listFiles(long directoryId) {
+    public List<AttributedStorage> listFiles(long folderId) {
         List<UserFileStorage> userFileStorages =
-                userFileStorageRepository.getByDirectoryId(directoryId);
-        List<UserDirectory> userDirectories =
-                userDirectoryRepository.getByParentId(directoryId);
+                userFileStorageRepository.getByDirectoryId(folderId);
+        List<UserFolder> userDirectories =
+                userFolderRepository.getByParentId(folderId);
         List<AttributedStorage> attributedStorages = new ArrayList<>(userDirectories);
         attributedStorages.addAll(userFileStorages);
 

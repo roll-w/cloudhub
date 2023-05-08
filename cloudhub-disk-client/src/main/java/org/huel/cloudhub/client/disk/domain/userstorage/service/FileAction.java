@@ -107,7 +107,7 @@ public class FileAction implements StorageAction {
         if (file.getParentId() == newParentId) {
             throw new StorageException(StorageErrorCode.ERROR_SAME_DIRECTORY);
         }
-        fileBuilder.setDirectoryId(newParentId);
+        fileBuilder.setFolderId(newParentId);
         update();
     }
 
@@ -117,7 +117,7 @@ public class FileAction implements StorageAction {
             throw new StorageException(StorageErrorCode.ERROR_SAME_DIRECTORY);
         }
         UserFileStorage copiedFile = fileBuilder
-                .setDirectoryId(newParentId)
+                .setFolderId(newParentId)
                 .setCreateTime(System.currentTimeMillis())
                 .setUpdateTime(System.currentTimeMillis())
                 .build();

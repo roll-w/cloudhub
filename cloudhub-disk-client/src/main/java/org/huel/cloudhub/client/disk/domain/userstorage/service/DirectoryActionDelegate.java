@@ -1,12 +1,12 @@
 package org.huel.cloudhub.client.disk.domain.userstorage.service;
 
-import org.huel.cloudhub.client.disk.domain.userstorage.UserDirectory;
+import org.huel.cloudhub.client.disk.domain.userstorage.UserFolder;
 
 /**
  * @author RollW
  */
 public interface DirectoryActionDelegate {
-    Long createDirectory(UserDirectory userDirectory);
+    Long createDirectory(UserFolder userFolder);
 
-    void updateDirectory(UserDirectory userDirectory);
+    void updateDirectory(UserFolder userFolder);
 }

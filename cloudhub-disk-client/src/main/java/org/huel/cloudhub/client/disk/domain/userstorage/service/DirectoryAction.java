@@ -4,7 +4,7 @@ import org.huel.cloudhub.client.disk.domain.operatelog.context.OperationContextH
 import org.huel.cloudhub.client.disk.domain.user.LegalUserType;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageAction;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageType;
-import org.huel.cloudhub.client.disk.domain.userstorage.UserDirectory;
+import org.huel.cloudhub.client.disk.domain.userstorage.UserFolder;
 import org.huel.cloudhub.client.disk.domain.userstorage.common.StorageErrorCode;
 import org.huel.cloudhub.client.disk.domain.userstorage.common.StorageException;
 import space.lingu.NonNull;
@@ -13,12 +13,12 @@ import space.lingu.NonNull;
  * @author RollW
  */
 public class DirectoryAction implements StorageAction {
-    private final UserDirectory.Builder directoryBuilder;
+    private final UserFolder.Builder directoryBuilder;
     private final DirectoryActionDelegate directoryActionDelegate;
 
-    private UserDirectory directory;
+    private UserFolder directory;
 
-    public DirectoryAction(UserDirectory directory,
+    public DirectoryAction(UserFolder directory,
                            DirectoryActionDelegate directoryActionDelegate) {
         this.directoryBuilder = directory.toBuilder();
         this.directory = directory;
@@ -113,7 +113,7 @@ public class DirectoryAction implements StorageAction {
         if (directory.getParentId() == newParentId) {
             throw new StorageException(StorageErrorCode.ERROR_SAME_DIRECTORY);
         }
-        UserDirectory copy = directoryBuilder.build().toBuilder()
+        UserFolder copy = directoryBuilder.build().toBuilder()
                 .setId(null)
                 .setParentId(newParentId)
                 .setCreateTime(System.currentTimeMillis())
@@ -130,7 +130,7 @@ public class DirectoryAction implements StorageAction {
     }
 
     private void insert() {
-        UserDirectory insertedDirectory = directoryBuilder
+        UserFolder insertedDirectory = directoryBuilder
                 .setCreateTime(System.currentTimeMillis())
                 .setUpdateTime(System.currentTimeMillis())
                 .build();
@@ -148,7 +148,7 @@ public class DirectoryAction implements StorageAction {
     }
 
     private void update() {
-        UserDirectory updatedDirectory = directoryBuilder
+        UserFolder updatedDirectory = directoryBuilder
                 .setUpdateTime(System.currentTimeMillis())
                 .build();
         directoryActionDelegate.updateDirectory(updatedDirectory);

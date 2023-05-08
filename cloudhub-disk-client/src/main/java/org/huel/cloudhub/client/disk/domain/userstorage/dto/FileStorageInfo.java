@@ -7,7 +7,7 @@ import org.huel.cloudhub.client.disk.domain.userstorage.StorageOwner;
  */
 public record FileStorageInfo(
         String fileName,
-        long directoryId,
+        long folderId,
         StorageOwner storageOwner
 ) {
 }

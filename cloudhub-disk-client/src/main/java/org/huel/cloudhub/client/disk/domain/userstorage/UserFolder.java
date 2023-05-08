@@ -14,10 +14,10 @@ import space.lingu.light.SQLDataType;
  * @author RollW
  */
 @DataTable(name = "user_directory")
-public class UserDirectory implements AttributedStorage, DataItem {
+public class UserFolder implements AttributedStorage, DataItem {
     public static final long ROOT = 0;
 
-    public static final UserDirectory ROOT_DIRECTORY = new UserDirectory(
+    public static final UserFolder ROOT_FOLDER = new UserFolder(
             ROOT,
             ROOT,
             ROOT, LegalUserType.USER,
@@ -50,11 +50,11 @@ public class UserDirectory implements AttributedStorage, DataItem {
     @DataColumn(name = "deleted")
     private final boolean deleted;
 
-    public UserDirectory(Long id, Long parentId,
-                         long owner, LegalUserType ownerType,
-                         String name,
-                         long createTime,
-                         long updateTime, boolean deleted) {
+    public UserFolder(Long id, Long parentId,
+                      long owner, LegalUserType ownerType,
+                      String name,
+                      long createTime,
+                      long updateTime, boolean deleted) {
         this.id = id;
         this.parentId = parentId;
         this.owner = owner;
@@ -140,15 +140,15 @@ public class UserDirectory implements AttributedStorage, DataItem {
         public Builder() {
         }
 
-        public Builder(UserDirectory userDirectory) {
-            this.id = userDirectory.id;
-            this.parentId = userDirectory.parentId;
-            this.owner = userDirectory.owner;
-            this.ownerType = userDirectory.ownerType;
-            this.name = userDirectory.name;
-            this.createTime = userDirectory.createTime;
-            this.updateTime = userDirectory.updateTime;
-            this.deleted = userDirectory.deleted;
+        public Builder(UserFolder userFolder) {
+            this.id = userFolder.id;
+            this.parentId = userFolder.parentId;
+            this.owner = userFolder.owner;
+            this.ownerType = userFolder.ownerType;
+            this.name = userFolder.name;
+            this.createTime = userFolder.createTime;
+            this.updateTime = userFolder.updateTime;
+            this.deleted = userFolder.deleted;
         }
 
         public Builder setId(Long id) {
@@ -191,8 +191,8 @@ public class UserDirectory implements AttributedStorage, DataItem {
             return this;
         }
 
-        public UserDirectory build() {
-            return new UserDirectory(id, parentId, owner, ownerType,
+        public UserFolder build() {
+            return new UserFolder(id, parentId, owner, ownerType,
                     name, createTime, updateTime, deleted);
         }
     }

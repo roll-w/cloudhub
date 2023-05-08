@@ -2,7 +2,7 @@ package org.huel.cloudhub.client.disk.controller.storage;
 
 import org.huel.cloudhub.client.disk.controller.Api;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageActionService;
-import org.huel.cloudhub.client.disk.domain.userstorage.UserDirectoryService;
+import org.huel.cloudhub.client.disk.domain.userstorage.UserFolderService;
 import org.huel.cloudhub.client.disk.domain.userstorage.UserStorageSearchService;
 import org.huel.cloudhub.web.HttpResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -14,43 +14,43 @@ import org.springframework.web.bind.annotation.PutMapping;
  * @author RollW
  */
 @Api
-public class DirectoryController {
-    private final UserDirectoryService directoryService;
+public class FolderController {
+    private final UserFolderService userFolderService;
     private final StorageActionService storageActionService;
     private final UserStorageSearchService userStorageSearchService;
 
-    public DirectoryController(UserDirectoryService directoryService,
-                               StorageActionService storageActionService,
-                               UserStorageSearchService userStorageSearchService) {
-        this.directoryService = directoryService;
+    public FolderController(UserFolderService userFolderService,
+                            StorageActionService storageActionService,
+                            UserStorageSearchService userStorageSearchService) {
+        this.userFolderService = userFolderService;
         this.storageActionService = storageActionService;
         this.userStorageSearchService = userStorageSearchService;
     }
 
-    // TODO: directory controller
+    // TODO: Folder controller
 
     @GetMapping("/{type}/{ownerId}/disk/folder/{storageId}")
-    public HttpResponseEntity<Void> getDirectory() {
+    public HttpResponseEntity<Void> getFolder() {
         return HttpResponseEntity.success();
     }
 
     @PostMapping("/{type}/{ownerId}/disk/folder/")
-    public HttpResponseEntity<Void> createDirectory() {
+    public HttpResponseEntity<Void> createFolder() {
         return HttpResponseEntity.success();
     }
 
     @PutMapping("/{type}/{ownerId}/disk/folder/{storageId}/name")
-    public HttpResponseEntity<Void> renameDirectory() {
+    public HttpResponseEntity<Void> renameFolder() {
         return HttpResponseEntity.success();
     }
 
     @PutMapping("/{type}/{ownerId}/disk/folder/{storageId}/move")
-    public HttpResponseEntity<Void> moveDirectory() {
+    public HttpResponseEntity<Void> moveFolder() {
         return HttpResponseEntity.success();
     }
 
     @DeleteMapping("/{type}/{ownerId}/disk/folder/{storageId}")
-    public HttpResponseEntity<Void> deleteDirectory() {
+    public HttpResponseEntity<Void> deleteFolder() {
         return HttpResponseEntity.success();
     }
 }

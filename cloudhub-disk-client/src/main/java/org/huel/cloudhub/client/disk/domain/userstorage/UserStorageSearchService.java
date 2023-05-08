@@ -18,12 +18,12 @@ public interface UserStorageSearchService {
                                   StorageOwner storageOwner) throws StorageException;
 
     @NonNull
-    AttributedStorage findDirectory(long directoryId) throws StorageException;
+    AttributedStorage findFolder(long folderId) throws StorageException;
 
-    AttributedStorage findDirectory(long directoryId, StorageOwner storageOwner) throws StorageException;
+    AttributedStorage findFolder(long folderId, StorageOwner storageOwner) throws StorageException;
 
     @NonNull
-    AttributedStorage findDirectory(FileStorageInfo fileStorageInfo) throws StorageException;
+    AttributedStorage findFolder(FileStorageInfo fileStorageInfo) throws StorageException;
 
     @NonNull
     AttributedStorage findFile(long fileId) throws StorageException;
@@ -35,8 +35,8 @@ public interface UserStorageSearchService {
     AttributedStorage findFile(FileStorageInfo fileStorageInfo) throws StorageException;
 
     // include directories
-    List<AttributedStorage> listFiles(long directoryId, StorageOwner storageOwner);
+    List<AttributedStorage> listFiles(long folderId, StorageOwner storageOwner);
 
     // don't care about the owner
-    List<AttributedStorage> listFiles(long directoryId);
+    List<AttributedStorage> listFiles(long folderId);
 }

@@ -9,7 +9,7 @@ import java.io.OutputStream;
 /**
  * @author RollW
  */
-public interface UserFileStorageService extends UserDirectoryService {
+public interface UserFileStorageService extends UserFolderService {
     AttributedStorage uploadFile(FileStorageInfo fileStorageInfo,
                                  FileStreamInfo fileStreamInfo) throws IOException;
 
