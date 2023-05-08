@@ -1,5 +1,6 @@
 package org.huel.cloudhub.client.disk.domain.userstorage.dto;
 
+import org.huel.cloudhub.client.disk.domain.operatelog.Operator;
 import org.huel.cloudhub.client.disk.domain.userstorage.FileType;
 
 import java.util.Arrays;
@@ -13,7 +14,8 @@ public record StorageAttr(
         byte[] content,
         String suffix,
         FileType parsedFileType,
-        String fileId
+        String fileId,
+        Operator operator
 ) {
     @Override
     public boolean equals(Object o) {

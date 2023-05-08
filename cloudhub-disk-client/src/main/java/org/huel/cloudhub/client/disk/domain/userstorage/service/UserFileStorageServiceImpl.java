@@ -1,5 +1,6 @@
 package org.huel.cloudhub.client.disk.domain.userstorage.service;
 
+import org.huel.cloudhub.client.disk.domain.operatelog.Operator;
 import org.huel.cloudhub.client.disk.domain.operatelog.context.OperationContextHolder;
 import org.huel.cloudhub.client.disk.domain.storage.StorageService;
 import org.huel.cloudhub.client.disk.domain.userstorage.AttributedStorage;
@@ -131,7 +132,8 @@ public class UserFileStorageServiceImpl implements UserFileStorageService, UserS
                     .addSystemResource(updatedStorage)
                     .setChangedContent(updatedStorage.getName());
 
-            dispatchFileOnCreate(updatedStorage, fileStreamInfo);
+            dispatchFileOnCreate(updatedStorage, fileStreamInfo,
+                    OperationContextHolder.getContext().getOperator());
             return updatedStorage;
         }
 
@@ -152,19 +154,22 @@ public class UserFileStorageServiceImpl implements UserFileStorageService, UserS
                 .addSystemResource(updatedStorage)
                 .setChangedContent(updatedStorage.getName());
 
-        dispatchFileOnCreate(updatedStorage, fileStreamInfo);
+        dispatchFileOnCreate(updatedStorage, fileStreamInfo,
+                OperationContextHolder.getContext().getOperator());
 
         return updatedStorage;
     }
 
     private void dispatchFileOnCreate(UserFileStorage userFileStorage,
-                                      FileStreamInfo fileStreamInfo) {
+                                      FileStreamInfo fileStreamInfo,
+                                      Operator operator) {
         StorageAttr storageAttr = new StorageAttr(
                 userFileStorage.getName(),
                 null,
                 null,
                 fileStreamInfo.fileType(),
-                userFileStorage.getFileId()
+                userFileStorage.getFileId(),
+                operator
         );
         dispatchFileOnCreate(userFileStorage, storageAttr);
     }

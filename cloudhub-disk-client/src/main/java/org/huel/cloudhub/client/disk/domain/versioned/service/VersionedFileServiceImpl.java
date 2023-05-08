@@ -15,7 +15,8 @@ import java.util.List;
  * @author RollW
  */
 @Service
-public class VersionedFileServiceImpl implements VersionedFileService, StorageProcessor {
+public class VersionedFileServiceImpl implements VersionedFileService,
+        StorageProcessor {
     private final VersionedFileRepository versionedFileRepository;
 
     public VersionedFileServiceImpl(VersionedFileRepository versionedFileRepository) {
@@ -30,6 +31,16 @@ public class VersionedFileServiceImpl implements VersionedFileService, StoragePr
         VersionedFileStorage versionedFileStorage =
                 versionedFileRepository.getLatestFileVersion(storage.getStorageId());
         if (versionedFileStorage == null) {
+            VersionedFileStorage newVersionedFileStorage = VersionedFileStorage.builder()
+                    .setFileId(storageAttr.fileId())
+                    .setVersion(1)
+                    .setOperator(storageAttr.operator().getOperatorId())
+                    .setStorageId(storage.getStorageId())
+                    .setStorageType(storage.getStorageType())
+                    .setCreateTime(System.currentTimeMillis())
+                    .setDeleted(false)
+                    .build();
+            versionedFileRepository.insert(newVersionedFileStorage);
             return;
         }
         long version = versionedFileStorage.getVersion() + 1;
@@ -38,6 +49,7 @@ public class VersionedFileServiceImpl implements VersionedFileService, StoragePr
                 .setVersion(version)
                 .setStorageId(storage.getStorageId())
                 .setStorageType(storage.getStorageType())
+                .setOperator(storageAttr.operator().getOperatorId())
                 .setCreateTime(System.currentTimeMillis())
                 .setDeleted(false)
                 .build();
