@@ -75,17 +75,19 @@ Content-Disposition: form-data; name="file"; filename="tags.keywords"
     request.variables.set("ownerId", "1")
     request.variables.set("type", "user")
     request.variables.set("directory", "0")
+    request.variables.set("name", encodeURI("河南省优悠商贸有限公司河南福汇泽置业有限公司等民事二审民事判决书.doc"))
 %}
 POST {{url}}/api/v1/{{type}}/{{ownerId}}/disk/{{directory}}
 Authorization: {{token}}
 Content-Type: multipart/form-data; boundary=CloudhubClientBoundary
 
 --CloudhubClientBoundary
-Content-Disposition: form-data; name="file"; filename="河南省优悠商贸有限公司河南福汇泽置业有限公司等民事二审民事判决书.doc"
+Content-Disposition: form-data; name="file"; filename*=UTF-8''{{name}}
 
 < law.keywords
 --CloudhubClientBoundary--
 
+# Note: filename should be encoded with UTF-8, otherwise it will be garbled
 
 
 ### Test Error
