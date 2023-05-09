@@ -5,6 +5,7 @@
 #+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 export JAVA_HOME=$JAVA_HOME
 
+PARAM=$1
 
 DIRNAME=$0
 if [ "${DIRNAME:0:1}" = "/" ];then
@@ -22,10 +23,17 @@ fi
 CONF_DIR=$CLOUDHUB_FILE_HOME/conf
 
 cd "$CLOUDHUB_FILE_HOME" || echo "Not found the path $CLOUDHUB_FILE_HOME, program exit with code 3." exit 3
+echo "Configuration directory is in the $CONF_DIR. If you need changes settings, please follow direction to modify files in the folder."
 
-echo "Conf dir is in the $CONF_DIR. If you need changes settings, please follow direction to modify files in the dir."
 printf "Starting cloudhub-file-server......\n"
 
-exec "$JAVA_HOME"/bin/java -jar bin/cloudhub-file-server.jar --conf "$CONF_DIR"
+if [ "$PARAM" = "-daemon" ]; then
+  nohup "$JAVA_HOME"/bin/java -jar bin/cloudhub-file-server.jar --conf conf > /dev/null 2>&1 &
+  echo "Starting cloudhub-file-server......[OK]"
+  exit 0
+else
+  echo "Usage: $0 [-daemon]"
+fi
 
+exec "$JAVA_HOME"/bin/java -jar bin/cloudhub-file-server.jar --conf "$CONF_DIR"
 echo "Starting cloudhub-file-server......[OK]"
