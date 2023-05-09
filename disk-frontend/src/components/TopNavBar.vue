@@ -1,13 +1,17 @@
 <template>
     <n-layout-header bordered style="height: var(--header-height)">
-        <div class="p-5 flex">
-            <n-text :depth="1" class="ui-logo flex justify-start" @click="handleLogoClick">
-                <Logo/>
-            </n-text>
-            <div class="flex justify-end justify-items-end flex-grow">
-                <n-space>
+        <div class="p-1 flex content-center">
+            <div class="ml-1 flex rounded-2xl justify-start
+             hover:bg-opacity-20 hover:bg-neutral-300 transition-all ease-in">
+                <n-text :depth="1" class="ui-logo " @click="handleLogoClick">
+                    <Logo/>
+                </n-text>
+            </div>
+
+            <div class="p-3 flex flex-grow items-center justify-end justify-items-end ">
+                <n-space class="flex items-center">
                     <n-button @click="handleThemeClick">切换主题</n-button>
-                    <div>
+                    <div class="h-9 self-center">
                         <n-button v-if="!userStore.isLogin" @click="handleLoginClick">登录</n-button>
                         <n-dropdown v-else :options="options" trigger="hover" @select="handleSelect">
                             <n-avatar v-if="userStore.userData.setup"
@@ -111,9 +115,9 @@ const adminOptions = [
         label: () => h(
             RouterLink,
             {
-              to: {
-                name: driveFilePage,
-              }
+                to: {
+                    name: driveFilePage,
+                }
             },
             {default: () => "个人主页"}
         ),

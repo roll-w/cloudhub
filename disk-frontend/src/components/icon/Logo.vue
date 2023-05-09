@@ -26,7 +26,7 @@
 
 						<image id="icon_container" display="inline" height="200" overflow="visible"
 									 transform="matrix(0.5469 0 0 0.5469 -152.4408 -221.8266)"
-									 width="200" xlink:href="../../../3B1637B3.png">
+									 width="200">
 					</image>
 				</g>
 			</g>
