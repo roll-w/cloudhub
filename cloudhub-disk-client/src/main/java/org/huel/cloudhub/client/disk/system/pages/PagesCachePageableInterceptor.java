@@ -6,6 +6,7 @@ import org.huel.cloudhub.web.data.page.Pageable;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.function.LongSupplier;
 import java.util.function.Supplier;
 
 /**
@@ -47,6 +48,29 @@ public class PagesCachePageableInterceptor implements PageableInterceptor {
         long count = getCount(active, typeClazz);
         return Page.of(parameter, count, list);
     }
+
+    @Override
+    public <T> Page<T> interceptPageable(Supplier<List<T>> supplier,
+                                         Pageable parameter,
+                                         LongSupplier countSupplier) {
+        return Page.of(
+                parameter,
+                countSupplier.getAsLong(),
+                supplier.get()
+        );
+    }
+
+    @Override
+    public <T> Page<T> interceptPageable(List<T> list,
+                                         Pageable parameter,
+                                         LongSupplier countSupplier) {
+        return Page.of(
+                parameter,
+                countSupplier.getAsLong(),
+                list
+        );
+    }
+
 
     private long getCount(boolean active, Class<? extends DataItem> typeClazz) {
         return active

@@ -1,9 +1,13 @@
 package org.cloudhub.util;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.text.CharacterIterator;
 import java.text.StringCharacterIterator;
 import java.util.ArrayList;
@@ -48,7 +52,7 @@ import java.util.stream.Collectors;
  * @author RollW
  */
 public class Keywords implements Map<String, List<Keywords.Keyword>> {
-    private final Map<String, List<Keyword>> keywordMap ;
+    private final Map<String, List<Keyword>> keywordMap;
 
     private final List<KeywordsGroup> groups;
 
@@ -205,7 +209,6 @@ public class Keywords implements Map<String, List<Keywords.Keyword>> {
         return groups;
     }
 
-
     public record Keyword(
             String word,
             int weight
@@ -213,7 +216,6 @@ public class Keywords implements Map<String, List<Keywords.Keyword>> {
         public Keyword(String word) {
             this(word, 1);
         }
-
 
         @Override
         public int compareTo(Keyword o) {
@@ -482,4 +484,26 @@ public class Keywords implements Map<String, List<Keywords.Keyword>> {
         }
     }
 
+    public void writeTo(OutputStream outputStream) {
+        PrintWriter writer = new PrintWriter(new BufferedWriter(
+                new OutputStreamWriter(outputStream)
+        ));
+        List<KeywordsGroup> keywordsGroups = listGroups();
+        for (KeywordsGroup keywordsGroup : keywordsGroups) {
+            writer.println("[" + keywordsGroup.name() + "]");
+            for (Keyword keyword : keywordsGroup.keywords()) {
+                writer.print(keyword.word());
+                if (keyword.weight() != 1) {
+                    writer.print("=" + keyword.weight());
+                }
+                writer.println();
+            }
+            writer.flush();
+        }
+        writer.flush();
+    }
+
+    public static Keywords loadFile(InputStream inputStream) {
+        return new Keywords(inputStream);
+    }
 }

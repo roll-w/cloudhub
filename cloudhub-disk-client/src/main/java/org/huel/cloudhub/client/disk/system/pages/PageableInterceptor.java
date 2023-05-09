@@ -5,6 +5,7 @@ import org.huel.cloudhub.web.data.page.Page;
 import org.huel.cloudhub.web.data.page.Pageable;
 
 import java.util.List;
+import java.util.function.LongSupplier;
 import java.util.function.Supplier;
 
 /**
@@ -28,6 +29,14 @@ public interface PageableInterceptor {
                                   Pageable parameter,
                                   Class<? extends DataItem> typeClazz,
                                   boolean active);
+
+    <T> Page<T> interceptPageable(Supplier<List<T>> supplier,
+                                  Pageable parameter,
+                                  LongSupplier countSupplier);
+
+    <T> Page<T> interceptPageable(List<T> list,
+                                  Pageable parameter,
+                                  LongSupplier countSupplier);
 
     default <D extends PageableDataTransferObject<T>, T extends DataItem> Page<D> interceptPageable(
             Supplier<List<D>> supplier,

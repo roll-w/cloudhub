@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.Supplier;
+import java.util.function.LongSupplier;
 
 /**
  * @author RollW
@@ -60,12 +60,12 @@ public class PagesCache {
     }
 
     private long tryGetCount(String key,
-                             Supplier<Long> longProvider) {
+                             LongSupplier longProvider) {
         AtomicLong atomicLong = cache.get(key, AtomicLong.class);
         if (atomicLong != null) {
             return atomicLong.get();
         }
-        long value = longProvider.get();
+        long value = longProvider.getAsLong();
         cache.put(key, new AtomicLong(value));
         return value;
     }

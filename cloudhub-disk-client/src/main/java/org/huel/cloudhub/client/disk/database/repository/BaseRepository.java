@@ -16,7 +16,7 @@ import java.util.List;
  */
 public abstract class BaseRepository<T extends DataItem> implements CountableDao<T> {
     protected final AutoPrimaryBaseDao<T> primaryBaseDao;
-    protected final Cache cache;
+    private final Cache cache;
 
     protected BaseRepository(AutoPrimaryBaseDao<T> primaryBaseDao,
                              CacheManager cacheManager) {
@@ -141,7 +141,11 @@ public abstract class BaseRepository<T extends DataItem> implements CountableDao
         if (cache == null) {
             return null;
         }
-        return (T) cache.get(id);
+        Cache.ValueWrapper wrapper = cache.get(id);
+        if (wrapper == null) {
+            return null;
+        }
+        return (T) wrapper.get();
     }
 
     protected CacheResult<T> searchFromCache(List<Long> ids) {
@@ -151,7 +155,7 @@ public abstract class BaseRepository<T extends DataItem> implements CountableDao
         List<T> ts = new ArrayList<>();
         List<Long> missedIds = new ArrayList<>();
         for (Long id : ids) {
-            T t = (T) cache.get(id);
+            T t = getFromCache(id);
             if (t != null) {
                 ts.add(t);
             } else {

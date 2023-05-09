@@ -20,4 +20,6 @@ public class ParameterFailedException extends BusinessRuntimeException {
     public ParameterFailedException(String parameterName) {
         this(DEFAULT_TEMPLATE, parameterName);
     }
+
+
 }

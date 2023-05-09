@@ -61,6 +61,6 @@ public interface OperationLogAssociationDao extends AutoPrimaryBaseDao<Operation
         return "operation_log_association";
     }
 
-    @Query("SELECT * FROM operation_log_association WHERE operation_id IN {operationIds}")
+    @Query("SELECT * FROM operation_log_association WHERE operation_id IN ({operationIds})")
     List<OperationLogAssociation> getByOperationIds(List<Long> operationIds);
 }

@@ -3,9 +3,8 @@ package org.huel.cloudhub.client.disk.domain.user.repository;
 import org.huel.cloudhub.client.disk.common.CacheNames;
 import org.huel.cloudhub.client.disk.database.DiskDatabase;
 import org.huel.cloudhub.client.disk.database.dao.UserDao;
+import org.huel.cloudhub.client.disk.database.repository.BaseRepository;
 import org.huel.cloudhub.client.disk.domain.user.User;
-import org.huel.cloudhub.client.disk.domain.user.dto.UserInfo;
-import org.huel.cloudhub.web.data.page.Offset;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.scheduling.annotation.Async;
@@ -18,12 +17,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @author RollW
  */
 @Repository
-public class UserRepository {
+public class UserRepository extends BaseRepository<User> {
     private final UserDao userDao;
     private final Cache userCache;
 
     public UserRepository(DiskDatabase database,
                           CacheManager cacheManager) {
+        super(database.getUserDao(), cacheManager);
         this.userDao = database.getUserDao();
         this.userCache = cacheManager.getCache(CacheNames.USERS);
     }
@@ -32,7 +32,7 @@ public class UserRepository {
         if (user == null) {
             return -1;
         }
-        long id = userDao.insert(user);
+        long id = userDao.insertReturns(user);
         User newUser = user
                 .toBuilder()
                 .setId(id)
@@ -41,9 +41,9 @@ public class UserRepository {
         return id;
     }
 
-    public void update(User user) {
-        userDao.update(user);
-        updateCache(user);
+    @Override
+    protected Class<User> getEntityClass() {
+        return User.class;
     }
 
     @Async
@@ -55,12 +55,6 @@ public class UserRepository {
         updateCache(newUser);
     }
 
-    @Async
-    public void asyncInsertUser(User user) {
-        userDao.insert(user);
-        updateCache(user);
-    }
-
     public User getUserById(long id) {
         User cached = userCache.get(id, User.class);
         if (cached != null) {
@@ -69,14 +63,6 @@ public class UserRepository {
         User queried = userDao.getUserById(id);
         updateCache(queried);
         return queried;
-    }
-
-    public UserInfo getUserInfoById(long id) {
-        User cached = userCache.get(id, User.class);
-        if (cached != null) {
-            return UserInfo.from(cached);
-        }
-        return userDao.getUserInfoById(id);
     }
 
     public User getUserByName(String name) {
@@ -113,13 +99,6 @@ public class UserRepository {
         return userDao.getAll();
     }
 
-    public List<User> getUsers(Offset offset) {
-        if (offset == null) {
-            return getUsers(Offset.DEFAULT);
-        }
-        return userDao.get(offset.offset(), offset.limit());
-    }
-
     private final AtomicBoolean hasUsers = new AtomicBoolean(false);
 
     public boolean hasUsers() {
@@ -144,9 +123,5 @@ public class UserRepository {
         userCache.evictIfPresent(user.getId());
         userCache.evictIfPresent(user.getUsername());
         userCache.evictIfPresent(user.getEmail());
-    }
-
-    public List<User> getUsersByIds(List<Long> ids) {
-        return userDao.getUsersByIds(ids);
     }
 }
