@@ -2,7 +2,7 @@
     <div class="p-5 flex flex-col items-stretch">
         <div class="flex flex-grow-1 flex-fill mb-5 mr-5">
             <n-h2>
-                <span class="text-amber-500">{{ file.name }}</span> 文件信息
+                <span class="text-amber-500">{{ fileInfo.name }}</span> 文件信息
             </n-h2>
             <div class="flex flex-fill justify-end">
                 <n-button secondary type="primary" @click="handleBack">返回</n-button>
@@ -19,12 +19,12 @@
                         <n-table :bordered="false">
                             <thead>
                             <tr>
-                                <th>类型</th>
+                                <th>名称</th>
                                 <th>值</th>
                             </tr>
                             </thead>
                             <tbody>
-                            <tr v-for="tag in file.tags || []">
+                            <tr v-for="tag in fileAttrs || []">
                                 <td>{{ tag.name }}</td>
                                 <td>
                                     <n-tag :bordered="false" type="primary">{{ tag.value }}</n-tag>
@@ -43,42 +43,13 @@
                 <div class="text-xl mb-4">
                     文件操作日志
                 </div>
-
                 <n-timeline>
-                    <n-timeline-item
-                            time="2023-04-03 20:46"
-                            title="修改权限">
+                    <n-timeline-item v-for="(log, i) in fileLogs"
+                                     :time="formatTimestamp(log.timestamp)"
+                                     :title="log.name" :type="i === 0 ? 'success' : 'default'">
                         <div>
-                            <span class="text-amber-500">user</span> 修改文件权限为私有
-                        </div>
-                    </n-timeline-item>
-                    <n-timeline-item
-                            time="2023-04-03 16:24"
-                            title="文件重命名">
-                        <div>
-                            <span class="text-amber-500">user</span> 重命名文件为 {{ file.name }}
-                        </div>
-                    </n-timeline-item>
-                    <n-timeline-item
-                            time="2023-04-03 16:11"
-                            title="文件更新">
-                        <div>
-                            <span class="text-amber-500">user</span> 更新了文件内容，版本号为 2
-                        </div>
-                    </n-timeline-item>
-                    <n-timeline-item
-                            time="2023-03-23 15:26"
-                            title="修改权限">
-                        <div>
-                            <span class="text-amber-500">user</span> 修改文件权限为 公开查看
-                        </div>
-                    </n-timeline-item>
-                    <n-timeline-item
-                            content="user 上传文件"
-                            time="2023-03-23 15:23"
-                            title="文件上传">
-                        <div>
-                            <span class="text-amber-500">user</span> 上传文件
+                            <span class="text-amber-500">{{ log.username }}</span>
+                            {{ log.description }}
                         </div>
                     </n-timeline-item>
                 </n-timeline>
@@ -103,8 +74,8 @@
                     <tbody>
                     <tr v-for="version in versionInfos">
                         <td>{{ version.version }}</td>
-                        <td>{{ version.createTime }}</td>
-                        <td>{{ version.creator }}</td>
+                        <td>{{ formatTimestamp(version.createTime) }}</td>
+                        <td>{{ version.username }}</td>
                         <td>
                             <n-button-group>
                                 <n-button secondary type="primary">查看</n-button>
@@ -124,32 +95,32 @@
 <script setup>
 
 import {useRouter} from "vue-router";
-import {useDialog} from "naive-ui";
-import {requestFile} from "@/views/temp/files";
-import {ref} from "vue";
+import {useDialog, useNotification} from "naive-ui";
+import {getCurrentInstance, ref} from "vue";
 import {driveFilePage} from "@/router";
+import api from "@/request/api";
+import {createConfig} from "@/request/axios_config";
+import {popUserErrorTemplate} from "@/views/util/error";
+import {getFileType} from "@/views/names";
+import {formatTimestamp} from "@/util/time";
 
 const router = useRouter();
 
 const id = router.currentRoute.value.params.id;
-const file = ref(requestFile(id))
+const storageType = router.currentRoute.value.params.type;
+const ownerType = router.currentRoute.value.params.ownerType;
+const ownerId = router.currentRoute.value.params.ownerId;
 
+const {proxy} = getCurrentInstance()
+
+const fileInfo = ref({})
+const fileAttrs = ref([])
+const fileLogs = ref([])
+
+const notification = useNotification()
 const dialog = useDialog()
 
-console.log(id, requestFile(id))
-
-const versionInfos = ref([
-    {
-        version: 2,
-        createTime: '2023-04-03 16:11',
-        creator: 'user',
-    },
-    {
-        version: 1,
-        createTime: '2023-03-23 15:23',
-        creator: 'user',
-    }
-])
+const versionInfos = ref([])
 
 const onDeleteVersion = (versionInfo) => {
     dialog.error({
@@ -158,7 +129,6 @@ const onDeleteVersion = (versionInfo) => {
         positiveText: '删除',
         negativeText: '取消',
         onPositiveClick: () => {
-            versionInfos.value = versionInfos.value.filter(v => v.version !== versionInfo.version)
         }
     })
 }
@@ -168,5 +138,71 @@ const handleBack = () => {
         name: driveFilePage
     })
 }
+
+const requestFileAttr = () => {
+    const config = createConfig()
+    proxy.$axios.get(api.getStorageAttributes(ownerType, ownerId, storageType, id), config)
+        .then(res => {
+            const index = res.data.findIndex(item => item.name === 'fileType')
+            if (index >= 0) {
+                res.data[index].name = '文件类型'
+                res.data[index].value = getFileType(res.data[0].value)
+            }
+            fileAttrs.value = res.data
+
+        }).catch(err => {
+        popUserErrorTemplate(notification, err,
+            '获取文件属性失败', '文件请求错误')
+    })
+}
+
+const requestFileVersion = () => {
+    const config = createConfig()
+    proxy.$axios.get(api.getStorageVersions(ownerType, ownerId, storageType, id), config)
+        .then(res => {
+            versionInfos.value = res.data
+        }).catch(err => {
+        popUserErrorTemplate(notification, err,
+            '获取文件版本信息失败', '文件请求错误')
+    })
+}
+
+const requestFileLogs = () => {
+    const config = createConfig()
+    proxy.$axios.get(api.getOperationLogsByResource(storageType, id), config)
+        .then(res => {
+            res.data.forEach(item => item.description =
+                item.description.format(
+                    item.originalContent,
+                    item.changedContent
+                )
+            )
+            fileLogs.value = res.data
+            console.log(res.data)
+        }).catch(err => {
+        popUserErrorTemplate(notification, err,
+            '获取文件日志信息失败', '文件请求错误')
+    })
+}
+
+const requestFileInfos = () => {
+    requestFileAttr()
+    requestFileLogs()
+    requestFileVersion()
+}
+
+const requestFileInfo = () => {
+    const config = createConfig()
+    proxy.$axios.get(api.getStorageInfo(ownerType, ownerId, storageType, id), config)
+        .then(res => {
+            fileInfo.value = res.data
+            requestFileInfos()
+        }).catch(err => {
+        popUserErrorTemplate(notification, err,
+            '获取文件信息失败', '文件请求错误')
+    })
+}
+
+requestFileInfo()
 
 </script>

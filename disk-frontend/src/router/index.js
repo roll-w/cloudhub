@@ -9,6 +9,8 @@ export const index = "index"
 export const login = "login-page"
 export const register = "register-page"
 
+export const passwordResetPage = "password-reset-page"
+
 export const driveFilePage = "drive-file-page"
 export const driveFileSearchPage = "drive-file-search-page"
 export const driveFileAttrsPage = "drive-file-attrs-page"
@@ -19,6 +21,13 @@ export const driveTagPage = "drive-tag-page"
 
 export const adminIndex = "admin-index"
 export const adminUserLists = "admin-user-lists"
+
+export const adminFileLists = "admin-file-lists"
+export const adminContentTags = "admin-content-tags"
+
+export const adminVisualData = "admin-visual-data"
+
+export const adminSystemLogs = "admin-system-logs"
 
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
@@ -38,7 +47,8 @@ const router = createRouter({
                     name: driveFilePage,
                     component: () => import("@/views/file/FileView.vue"),
                     meta: {
-                        title: "文件"
+                        title: "文件",
+                        requireLogin: true
                     }
                 },
                 {
@@ -46,7 +56,8 @@ const router = createRouter({
                     name: driveFileSearchPage,
                     component: () => import("@/views/file/FileSearchView.vue"),
                     meta: {
-                        title: "文件搜索"
+                        title: "文件搜索",
+                        requireLogin: true
                     }
                 },
                 {
@@ -54,7 +65,8 @@ const router = createRouter({
                     name: driveFileAttrsPage,
                     component: () => import("@/views/file/FileAttrsView.vue"),
                     meta: {
-                        title: "文件属性"
+                        title: "文件属性",
+                        requireLogin: true
                     }
                 },
                 {
@@ -62,7 +74,8 @@ const router = createRouter({
                     name: driveFilePermissionPage,
                     component: () => import("@/views/file/FilePermissionPage.vue"),
                     meta: {
-                        title: "文件权限"
+                        title: "文件权限",
+                        requireLogin: true
                     }
                 },
                 {
@@ -70,7 +83,8 @@ const router = createRouter({
                     name: driveTagPage,
                     component: () => import("@/views/tag/FileTagsView.vue"),
                     meta: {
-                        title: "标签"
+                        title: "标签",
+                        requireLogin: true
                     }
                 },
 
@@ -87,7 +101,8 @@ const router = createRouter({
                     name: adminIndex,
                     component: () => import("@/views/admin/AdminIndex.vue"),
                     meta: {
-                        title: "管理首页"
+                        title: "管理首页",
+                        requireLogin: true
                     }
                 },
                 {
@@ -95,17 +110,28 @@ const router = createRouter({
                     name: adminUserLists,
                     component: () => import("@/views/admin/user/UsersList.vue"),
                     meta: {
-                        title: "用户列表"
+                        title: "用户列表",
+                        requireLogin: true
                     }
                 },
                 {
-                    path: '/data',
-                    name: "echarts",
+                    path: '/admin/data',
+                    name: adminVisualData,
                     component: () => import("@/views/EchartsIndexView.vue"),
                     meta: {
-                        title: "数据分析"
+                        title: "数据分析",
+                        requireLogin: true
                     }
                 },
+                {
+                    path: '/admin/system/logs',
+                    name: adminSystemLogs,
+                    component: () => import("@/views/admin/system/SystemLog.vue"),
+                    meta: {
+                        title: "系统日志",
+                        requireLogin: true
+                    }
+                }
             ]
         },
         {
@@ -137,6 +163,14 @@ const router = createRouter({
                     component: () => import("@/views/user/LoginView.vue"),
                     meta: {
                         title: "注册"
+                    }
+                },
+                {
+                    path: '/user/reset/password',
+                    name: passwordResetPage,
+                    component: () => import("@/views/user/PasswordResetView.vue"),
+                    meta: {
+                        title: "重置密码"
                     }
                 },
                 {

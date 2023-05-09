@@ -32,6 +32,7 @@ import {formatTimestamp} from "@/util/time";
 import {adminUserLists} from "@/router";
 import {adminMenuUser} from "@/views/menu";
 import {useRouter} from "vue-router";
+import {createConfig} from "@/request/axios_config";
 
 const {proxy} = getCurrentInstance()
 const dialog = useDialog()
@@ -64,6 +65,10 @@ const columns = [
     {
         title: "注册时间",
         key: "createdAt"
+    },
+    {
+        title: "最后更新",
+        key: "updatedAt"
     },
     {
         title: "已启用",
@@ -143,29 +148,26 @@ const handleDeleteUser = (user) => {
             console.log("delete user of " + user.userId)
         },
         onNegativeClick: () => {
-
         }
     })
 }
 
 const requestForData = (page, size) => {
-    // proxy.$axios.get(api.userList, {
-    //   params: {
-    //     page: page,
-    //     size: size
-    //   },
-    //   headers: {
-    //     "Authorization": userStore.getToken
-    //   }
-    // }).then((res) => {
-    //   const recvData = res.data
-    //   recvData.forEach((item) => {
-    //     item.createdAt = formatTimestamp(item.createdAt)
-    //   })
-    //   data.value = recvData
-    // }).catch((err) => {
-    //   console.log(err)
-    // })
+    const config = createConfig()
+    config.params = {
+        page: page,
+        size: size
+    }
+    proxy.$axios.get(api.getUsers,  config).then((res) => {
+        const recvData = res.data
+        recvData.forEach((item) => {
+            item.createdAt = formatTimestamp(item.createdAt)
+            item.updatedAt = formatTimestamp(item.updatedAt)
+        })
+        data.value = recvData
+    }).catch((err) => {
+        console.log(err)
+    })
 }
 
 requestForData(1, 10)

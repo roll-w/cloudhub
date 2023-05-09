@@ -1,7 +1,7 @@
 import {h} from "vue";
 import {RouterLink} from "vue-router";
 import {
-    adminIndex, adminUserLists,
+    adminIndex, adminSystemLogs, adminUserLists, adminVisualData,
     driveFilePage, driveTagPage,
 } from "@/router";
 
@@ -12,9 +12,10 @@ export const keyUser = "user"
 export const keyAdmin = "admin"
 
 export const menuFile = "File"
-export const adminMenuFile = "AdminFile"
 
+export const adminMenuFile = "AdminFile"
 export const adminMenuUser = "AdminUser"
+export const adminMenuSystem = "AdminSystem"
 
 
 const menuOptions = [
@@ -89,7 +90,7 @@ const menuOptions = [
             },
             {
                 name: "文件管理",
-                key: "file-management",
+                key: adminMenuFile,
                 children: [
                     {
                         name: "文件列表",
@@ -104,11 +105,12 @@ const menuOptions = [
             },
             {
                 name: "可视化数据",
-                key: "echarts",
+                key: adminVisualData,
+                linked: true
             },
             {
                 name: "系统管理",
-                key: 'menuSystem',
+                key: adminMenuSystem,
                 children: [
                     {
                         name: "系统设置",
@@ -116,7 +118,8 @@ const menuOptions = [
                     },
                     {
                         name: "系统日志",
-                        key: 'systemLog'
+                        key: adminSystemLogs,
+                        linked: true
                     },
                     {
                         name: "集群监控",

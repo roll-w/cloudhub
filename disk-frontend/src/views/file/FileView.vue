@@ -53,13 +53,13 @@
         </div>
         <n-dropdown
                 :on-clickoutside="onClickOutside"
-                :options="options"
+                :options="menuOptions"
                 :show="showDropdown"
                 :x="xRef"
                 :y="yRef"
                 placement="bottom-start"
                 trigger="manual"
-                @select="handleSelectItem"/>
+                @select="handleMenuSelect"/>
 
         <n-dropdown
                 :on-clickoutside="onClickOutside"
@@ -69,12 +69,32 @@
                 :y="yRef"
                 placement="bottom-start"
                 trigger="manual"
-                @select="handleSelect"/>
+                @select="handleFileOptionSelect"/>
 
-        <n-modal :bordered="false"
+
+        <n-modal v-model:show="showUploadFileModal"
+                 :show-icon="false"
                  preset="dialog"
-                 size="large"
-                 title="文件权限">
+                 title="用户权限"
+                 transform-origin="center">
+            <div>
+                <n-form-item label="用户名">
+                    <n-input v-model:value="usernameValue" placeholder="输入用户名" type="text"/>
+                </n-form-item>
+                <n-form-item label="权限">
+                    <n-checkbox-group v-model:value="userPermissionCheckValue">
+                        <n-checkbox label="读取" value="read"/>
+                        <n-checkbox label="写入" value="write"/>
+                        <n-checkbox label="拒绝访问" value="denied"/>
+                    </n-checkbox-group>
+                </n-form-item>
+                <n-button-group>
+                    <n-button type="primary" @click="handleAddUserPermission(usernameValue, userPermissionCheckValue)">
+                        添加
+                    </n-button>
+                    <n-button secondary type="default" @click="showUploadFileModal = false">取消</n-button>
+                </n-button-group>
+            </div>
 
         </n-modal>
     </div>
@@ -125,10 +145,15 @@ const xRef = ref(0)
 const yRef = ref(0)
 const showDropdown = ref(false)
 const showFileDropdown = ref(false)
+const showUploadFileModal = ref(false)
+const showCreateFolderModal = ref(false)
+
 let showFileDropdownState = false
 let lastTarget = null
 
-const options = [
+const curDirectoryId = ref(0)
+
+const menuOptions = [
     {
         label: "新建文件夹",
         key: "folder",
@@ -161,13 +186,6 @@ const options = [
     {
         key: 'header-divider',
         type: 'divider'
-    },
-    {
-        label: "粘贴",
-        key: "paste",
-        icon() {
-            return "P"
-        },
     },
     {
         label: "刷新",
@@ -273,9 +291,10 @@ const hackFileOptions = (file) => {
 const handleDblClick = (e, target) => {
 }
 
-const handleSelect = (key) => {
+const handleFileOptionSelect = (key) => {
     showDropdown.value = false
     showFileDropdown.value = false
+
 }
 
 const handleContextmenu = (e) => {
@@ -301,11 +320,25 @@ const handleFileOptionContextMenu = (e, target) => {
     showFileDropdown.value = true;
 }
 
-const handleSelectItem = (key) => {
+const handleMenuSelect = (key) => {
     showDropdown.value = false;
     showFileDropdown.value = false;
 
-    console.log(key)
+    switch (key) {
+        case 'folder':
+            break;
+        case 'upload':
+            break;
+        case 'uploadFolder':
+            break;
+        case 'refresh':
+            requestFilesBy(curDirectoryId.value)
+            break;
+        case 'sort':
+            break;
+        default:
+            break;
+    }
 }
 
 const onClickOutside = () => {
@@ -347,6 +380,6 @@ const requestFilesBy = (directoryId) => {
         })
 }
 
-requestFilesBy(0)
+requestFilesBy(curDirectoryId.value)
 
 </script>
