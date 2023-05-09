@@ -1,6 +1,6 @@
-import { createApp } from 'vue'
+import {createApp} from 'vue'
 import naive from "naive-ui";
-import { createPinia } from 'pinia'
+import {createPinia} from 'pinia'
 
 import App from './App.vue'
 import router, {login} from './router'
@@ -8,6 +8,7 @@ import router, {login} from './router'
 import './assets/main.css'
 import {useUserStore} from "@/stores/user";
 import {createAxios} from "@/request/axios_config";
+import '@/util/string_ext'
 
 import * as echarts from 'echarts'
 
@@ -18,6 +19,13 @@ app.config.globalProperties.$echarts = echarts
 app.use(naive)
 app.use(createPinia())
 app.use(router)
+
+const debug = import.meta.env.MODE === 'development'
+
+if (!debug) {
+    console.log = () => {
+    }
+}
 
 const meta = document.createElement('meta')
 meta.name = 'naive-ui-style'
@@ -38,7 +46,6 @@ const onLoginExpired = () => {
 
 const axios = createAxios(onLoginExpired)
 app.config.globalProperties.$axios = axios
-
 
 
 app.mount('#app')

@@ -6,7 +6,11 @@
         <div class="flex flex-fill justify-end">
             <n-h3>
                 <n-text type="info">尚未拥有账号？
-                    <n-a @click="handleToRegister">点此注册</n-a>
+                    <router-link #="{ navigate, href }" :to="{name: register}" custom>
+                        <n-a :href="href" @click="navigate">
+                            点此注册
+                        </n-a>
+                    </router-link>
                 </n-text>
             </n-h3>
         </div>
@@ -34,7 +38,11 @@
                 重置
             </n-button>
         </n-button-group>
-        <n-a>忘记密码</n-a>
+        <router-link #="{ navigate, href }" :to="{name: passwordResetPage}" custom>
+            <n-a :href="href" @click="navigate">
+                忘记密码
+            </n-a>
+        </router-link>
     </n-form>
 
 </template>
@@ -44,7 +52,7 @@ import {getCurrentInstance, ref} from "vue";
 import {useNotification} from "naive-ui";
 import {useRouter} from "vue-router";
 import {useUserStore} from "@/stores/user";
-import {driveFilePage, register} from "@/router";
+import {driveFilePage, passwordResetPage, register} from "@/router";
 import {popUserErrorTemplate} from "@/views/util/error";
 import api from "@/request/api";
 
