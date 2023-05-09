@@ -105,6 +105,11 @@ public class UserFolder implements AttributedStorage, DataItem {
     }
 
     @Override
+    public FileType getFileType() {
+        return FileType.OTHER;
+    }
+
+    @Override
     public long getCreateTime() {
         return createTime;
     }

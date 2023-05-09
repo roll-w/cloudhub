@@ -2,6 +2,7 @@ package org.huel.cloudhub.client.disk.domain.userstorage.service;
 
 import org.huel.cloudhub.client.disk.domain.operatelog.context.OperationContextHolder;
 import org.huel.cloudhub.client.disk.domain.user.LegalUserType;
+import org.huel.cloudhub.client.disk.domain.userstorage.FileType;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageAction;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageType;
 import org.huel.cloudhub.client.disk.domain.userstorage.UserFolder;
@@ -55,6 +56,11 @@ public class DirectoryAction implements StorageAction {
     @Override
     public String getName() {
         return directory.getName();
+    }
+
+    @Override
+    public FileType getFileType() {
+        return FileType.OTHER;
     }
 
     @Override

@@ -131,6 +131,11 @@ public class UserFileStorage implements AttributedStorage, DataItem {
     }
 
     @Override
+    public FileType getFileType() {
+        return getFileCategory();
+    }
+
+    @Override
     public long getCreateTime() {
         return createTime;
     }

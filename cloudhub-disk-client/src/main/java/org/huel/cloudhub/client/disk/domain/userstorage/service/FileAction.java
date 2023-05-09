@@ -2,6 +2,7 @@ package org.huel.cloudhub.client.disk.domain.userstorage.service;
 
 import org.huel.cloudhub.client.disk.domain.operatelog.context.OperationContextHolder;
 import org.huel.cloudhub.client.disk.domain.user.LegalUserType;
+import org.huel.cloudhub.client.disk.domain.userstorage.FileType;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageAction;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageType;
 import org.huel.cloudhub.client.disk.domain.userstorage.UserFileStorage;
@@ -54,6 +55,11 @@ public class FileAction implements StorageAction {
     @NonNull
     public LegalUserType getOwnerType() {
         return file.getOwnerType();
+    }
+
+    @Override
+    public FileType getFileType() {
+        return file.getFileType();
     }
 
     @Override

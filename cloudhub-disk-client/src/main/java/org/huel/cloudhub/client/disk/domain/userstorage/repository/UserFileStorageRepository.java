@@ -78,6 +78,13 @@ public class UserFileStorageRepository extends BaseRepository<UserFileStorage> {
     }
 
     public UserFileStorage getById(long fileId, long ownerId, LegalUserType ownerType) {
-        return fileStorageDao.getById(fileId, ownerId, ownerType);
+        UserFileStorage storage = getById(fileId);
+        if (storage == null) {
+            return null;
+        }
+        if (storage.getOwner() != ownerId || storage.getOwnerType() != ownerType) {
+            return null;
+        }
+        return storage;
     }
 }
