@@ -5,6 +5,7 @@ import org.huel.cloudhub.client.disk.domain.user.LegalUserType;
 import space.lingu.NonNull;
 import space.lingu.light.DataColumn;
 import space.lingu.light.DataTable;
+import space.lingu.light.Index;
 import space.lingu.light.PrimaryKey;
 import space.lingu.light.SQLDataType;
 
@@ -13,7 +14,9 @@ import space.lingu.light.SQLDataType;
  *
  * @author RollW
  */
-@DataTable(name = "user_directory")
+@DataTable(name = "user_directory", indices = {
+        @Index(value = {"owner", "owner_type", "parent_id", "name"}, unique = true)
+})
 public class UserFolder implements AttributedStorage, DataItem {
     public static final long ROOT = 0;
 

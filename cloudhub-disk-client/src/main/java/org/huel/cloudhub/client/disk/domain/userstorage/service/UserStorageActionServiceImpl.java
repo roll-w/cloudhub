@@ -5,6 +5,7 @@ import org.huel.cloudhub.client.disk.domain.userstorage.AttributedStorage;
 import org.huel.cloudhub.client.disk.domain.userstorage.Storage;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageAction;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageActionService;
+import org.huel.cloudhub.client.disk.domain.userstorage.StorageIdentity;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageOwner;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageType;
 import org.huel.cloudhub.client.disk.domain.userstorage.UserFolder;
@@ -31,32 +32,15 @@ public class UserStorageActionServiceImpl implements StorageActionService,
     }
 
     @Override
-    public StorageAction openStorageAction(Storage storage) {
+    public StorageAction openStorageAction(StorageIdentity storage) {
         return createStorageAction(storage);
     }
 
     @Override
-    public StorageAction openStorageAction(long storageId,
-                                           StorageType storageType)
-            throws StorageException {
-        AttributedStorage storage = switch (storageType) {
-            case FOLDER -> findDirectory(storageId);
-            case FILE -> findFile(storageId);
-            case LINK -> null;
-        };
-        if (storage == null) {
-            throw new StorageException(StorageErrorCode.ERROR_FILE_NOT_EXIST);
-        }
-        return createStorageAction(storage);
-    }
-
-    @Override
-    public StorageAction openStorageAction(long storageId, StorageType storageType,
-                                           StorageOwner storageOwner)
-            throws StorageException {
-        AttributedStorage storage = switch (storageType) {
-            case FOLDER -> findDirectory(storageId);
-            case FILE -> findFile(storageId);
+    public StorageAction openStorageAction(StorageIdentity storageIdentity, StorageOwner storageOwner) throws StorageException {
+        AttributedStorage storage = switch (storageIdentity.getStorageType()) {
+            case FOLDER -> findDirectory(storageIdentity.getStorageId());
+            case FILE -> findFile(storageIdentity.getStorageId());
             case LINK -> null;
         };
         if (storage == null || !checkStorageOwner(storage,
@@ -72,7 +56,7 @@ public class UserStorageActionServiceImpl implements StorageActionService,
                 storage.getOwnerType() == userType;
     }
 
-    private StorageAction createStorageAction(Storage storage) {
+    private StorageAction createStorageAction(StorageIdentity storage) {
         return switch (storage.getStorageType()) {
             case FOLDER -> createDirectoryAction(storage);
             case FILE -> createFileAction(storage);
@@ -80,7 +64,7 @@ public class UserStorageActionServiceImpl implements StorageActionService,
         };
     }
 
-    private StorageAction createDirectoryAction(Storage storage) {
+    private StorageAction createDirectoryAction(StorageIdentity storage) {
         if (storage.getStorageType() != StorageType.FOLDER) {
             throw new IllegalArgumentException("storage type must be folder");
         }
@@ -93,7 +77,7 @@ public class UserStorageActionServiceImpl implements StorageActionService,
         return new DirectoryAction(userFolder, this);
     }
 
-    private StorageAction createFileAction(Storage storage) {
+    private StorageAction createFileAction(StorageIdentity storage) {
         if (storage.getStorageType() != StorageType.FILE) {
             throw new IllegalArgumentException("storage type must be file");
         }

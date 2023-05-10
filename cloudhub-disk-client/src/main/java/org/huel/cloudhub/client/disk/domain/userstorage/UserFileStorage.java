@@ -15,7 +15,8 @@ import space.lingu.light.PrimaryKey;
  * @author RollW
  */
 @DataTable(name = "user_file_storage", indices = {
-        @Index(value = {"name", "directory_id"}, unique = true)
+        @Index(value = {"name", "directory_id"}, unique = true),
+        @Index(value = {"owner", "owner_type"})
 })
 public class UserFileStorage implements AttributedStorage, DataItem {
     @DataColumn(name = "id")

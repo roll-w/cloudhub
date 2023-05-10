@@ -16,6 +16,8 @@ import org.huel.cloudhub.client.disk.domain.userstorage.UserStorageSearchService
 import org.huel.cloudhub.client.disk.domain.userstorage.common.StorageErrorCode;
 import org.huel.cloudhub.client.disk.domain.userstorage.common.StorageException;
 import org.huel.cloudhub.client.disk.domain.userstorage.dto.FileStorageInfo;
+import org.huel.cloudhub.client.disk.domain.userstorage.dto.FolderInfo;
+import org.huel.cloudhub.client.disk.domain.userstorage.dto.FolderStructureInfo;
 import org.huel.cloudhub.client.disk.domain.userstorage.dto.StorageAttr;
 import org.huel.cloudhub.client.disk.domain.userstorage.repository.UserFolderRepository;
 import org.huel.cloudhub.client.disk.domain.userstorage.repository.UserFileStorageRepository;
@@ -61,6 +63,8 @@ public class UserFileStorageServiceImpl implements UserFileStorageService, UserS
         if (exist != null && !exist.isDeleted()) {
             throw new StorageException(StorageErrorCode.ERROR_DIRECTORY_EXISTED);
         }
+        checkParent(parentId);
+
         long time = System.currentTimeMillis();
         if (exist != null && exist.isDeleted()) {
             UserFolder updated = exist
@@ -94,6 +98,19 @@ public class UserFileStorageServiceImpl implements UserFileStorageService, UserS
                 .setChangedContent(inserted.getName());
 
         return inserted;
+    }
+
+    private void checkParent(long parentId) {
+        if (parentId == UserFolder.ROOT) {
+            return;
+        }
+
+        UserFolder userFolder =
+                userFolderRepository.getById(parentId);
+        if (userFolder == null) {
+            throw new StorageException(StorageErrorCode.ERROR_DIRECTORY_NOT_EXIST,
+                    "Parent folder not exist");
+        }
     }
 
     @Override
@@ -230,43 +247,6 @@ public class UserFileStorageServiceImpl implements UserFileStorageService, UserS
     }
 
     @Override
-    public void deleteFile(long fileId, StorageOwner storageOwner) {
-        UserFileStorage userFileStorage = findFile(fileId);
-
-        if (userFileStorage.getOwner() != storageOwner.getOwnerId()
-                || userFileStorage.getOwnerType() != storageOwner.getOwnerType()) {
-            throw new StorageException(StorageErrorCode.ERROR_FILE_NOT_EXIST);
-        }
-
-
-        long time = System.currentTimeMillis();
-        UserFileStorage updatedStorage = userFileStorage.toBuilder()
-                .setDeleted(true)
-                .setUpdateTime(time)
-                .build();
-        OperationContextHolder.getContext()
-                .addSystemResource(updatedStorage)
-                .setChangedContent(updatedStorage.getName());
-
-        userFileStorageRepository.update(updatedStorage);
-    }
-
-    @Override
-    public void deleteFile(FileStorageInfo fileStorageInfo) {
-        UserFileStorage userFileStorage = findFile(fileStorageInfo);
-        long time = System.currentTimeMillis();
-        UserFileStorage updatedStorage = userFileStorage.toBuilder()
-                .setDeleted(true)
-                .setUpdateTime(time)
-                .build();
-        OperationContextHolder.getContext()
-                .addSystemResource(updatedStorage)
-                .setChangedContent(updatedStorage.getName());
-
-        userFileStorageRepository.update(updatedStorage);
-    }
-
-    @Override
     public AttributedStorage findStorage(StorageIdentity storageIdentity) throws StorageException {
         return switch (storageIdentity.getStorageType()) {
             case FILE -> findFile(storageIdentity.getStorageId());
@@ -287,22 +267,28 @@ public class UserFileStorageServiceImpl implements UserFileStorageService, UserS
 
     @NonNull
     @Override
-    public UserFolder findFolder(long folderId) throws StorageException {
+    public FolderStructureInfo findFolder(long folderId) throws StorageException {
         if (folderId == UserFolder.ROOT) {
-            return UserFolder.ROOT_FOLDER;
+            return FolderStructureInfo.ROOT_FOLDER;
         }
         UserFolder userFolder = userFolderRepository.getById(folderId);
         if (userFolder == null) {
             throw new StorageException(StorageErrorCode.ERROR_DIRECTORY_NOT_EXIST);
         }
-        if (userFolder.isDeleted()) {
-            throw new StorageException(StorageErrorCode.ERROR_DIRECTORY_NOT_EXIST);
-        }
-        return userFolder;
+        List<UserFolder> userFolders =
+                userFolderRepository.getParents(userFolder.getId());
+        List<FolderInfo> folderInfos = userFolders.stream()
+                .map(FolderInfo::of)
+                .toList();
+        return FolderStructureInfo.of(userFolder, folderInfos);
     }
 
     @Override
-    public AttributedStorage findFolder(long folderId, StorageOwner storageOwner) throws StorageException {
+    public FolderStructureInfo findFolder(long folderId,
+                                          StorageOwner storageOwner) throws StorageException {
+        if (folderId == UserFolder.ROOT) {
+            return FolderStructureInfo.ROOT_FOLDER;
+        }
         UserFolder userFolder = userFolderRepository.getById(
                 folderId,
                 storageOwner.getOwnerId(),
@@ -310,24 +296,27 @@ public class UserFileStorageServiceImpl implements UserFileStorageService, UserS
         if (userFolder == null) {
             throw new StorageException(StorageErrorCode.ERROR_DIRECTORY_NOT_EXIST);
         }
-        return userFolder;
+        List<UserFolder> userFolders =
+                userFolderRepository.getParents(userFolder.getId());
+        List<FolderInfo> folderInfos = userFolders.stream()
+                .map(FolderInfo::of)
+                .toList();
+        return FolderStructureInfo.of(userFolder, folderInfos);
     }
 
     @NonNull
     @Override
-    public UserFolder findFolder(FileStorageInfo fileStorageInfo) throws StorageException {
+    public FolderStructureInfo findFolder(FileStorageInfo fileStorageInfo) throws StorageException {
         UserFolder userFolder = userFolderRepository.getByName(
                 fileStorageInfo.fileName(),
                 fileStorageInfo.folderId(),
                 fileStorageInfo.storageOwner().getOwnerId(),
-                fileStorageInfo.storageOwner().getOwnerType());
+                fileStorageInfo.storageOwner().getOwnerType()
+        );
         if (userFolder == null) {
             throw new StorageException(StorageErrorCode.ERROR_DIRECTORY_NOT_EXIST);
         }
-        if (userFolder.isDeleted()) {
-            throw new StorageException(StorageErrorCode.ERROR_DIRECTORY_NOT_EXIST);
-        }
-        return userFolder;
+        return FolderStructureInfo.of(userFolder, List.of());
     }
 
     @NonNull
@@ -351,9 +340,6 @@ public class UserFileStorageServiceImpl implements UserFileStorageService, UserS
     public UserFileStorage findFile(long fileId) throws StorageException {
         UserFileStorage userFileStorage = userFileStorageRepository.getById(fileId);
         if (userFileStorage == null) {
-            throw new StorageException(StorageErrorCode.ERROR_FILE_NOT_EXIST);
-        }
-        if (userFileStorage.isDeleted()) {
             throw new StorageException(StorageErrorCode.ERROR_FILE_NOT_EXIST);
         }
         return userFileStorage;
@@ -382,9 +368,6 @@ public class UserFileStorageServiceImpl implements UserFileStorageService, UserS
                 fileStorageInfo.fileName()
         );
         if (userFileStorage == null) {
-            throw new StorageException(StorageErrorCode.ERROR_FILE_NOT_EXIST);
-        }
-        if (userFileStorage.isDeleted()) {
             throw new StorageException(StorageErrorCode.ERROR_FILE_NOT_EXIST);
         }
         return userFileStorage;

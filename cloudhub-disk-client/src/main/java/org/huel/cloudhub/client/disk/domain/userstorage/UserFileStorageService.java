@@ -20,7 +20,4 @@ public interface UserFileStorageService extends UserFolderService {
     void downloadFile(FileStorageInfo fileStorageInfo, OutputStream outputStream)
             throws IOException, StorageException;
 
-    void deleteFile(long fileId, StorageOwner storageOwner) throws StorageException;
-
-    void deleteFile(FileStorageInfo fileStorageInfo) throws StorageException;
 }

@@ -4,8 +4,8 @@ import org.huel.cloudhub.client.disk.domain.userstorage.AttributedStorage;
 import org.huel.cloudhub.client.disk.domain.userstorage.FileRecycleService;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageAction;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageActionService;
+import org.huel.cloudhub.client.disk.domain.userstorage.StorageIdentity;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageOwner;
-import org.huel.cloudhub.client.disk.domain.userstorage.StorageType;
 import org.huel.cloudhub.client.disk.domain.userstorage.repository.UserFileStorageRepository;
 import org.springframework.stereotype.Service;
 
@@ -37,13 +37,13 @@ public class FileRecycleServiceImpl implements FileRecycleService {
     }
 
     @Override
-    public void revertRecycle(long storageId, StorageType storageType,
+    public void revertRecycle(StorageIdentity storageIdentity,
                               StorageOwner storageOwner) {
-        if (storageType != StorageType.FILE) {
+        if (!storageIdentity.isFile()) {
             return;
         }
         StorageAction storageAction =
-                storageActionService.openStorageAction(storageId, storageType);
+                storageActionService.openStorageAction(storageIdentity, storageOwner);
         storageAction.restore();
     }
 }

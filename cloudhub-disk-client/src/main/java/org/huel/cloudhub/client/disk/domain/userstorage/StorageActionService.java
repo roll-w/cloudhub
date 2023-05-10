@@ -8,13 +8,10 @@ import org.huel.cloudhub.client.disk.domain.userstorage.common.StorageException;
  */
 @BaseAbility
 public interface StorageActionService {
-    StorageAction openStorageAction(Storage storage);
-
-    StorageAction openStorageAction(long storageId,
-                                    StorageType storageType)
+    StorageAction openStorageAction(StorageIdentity storage)
             throws StorageException;
 
-    StorageAction openStorageAction(long storageId, StorageType storageType,
+    StorageAction openStorageAction(StorageIdentity storageIdentity,
                                     StorageOwner storageOwner)
             throws StorageException;
 }

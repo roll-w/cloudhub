@@ -8,5 +8,5 @@ import java.util.List;
 public interface FileRecycleService {
     List<AttributedStorage> listRecycle(StorageOwner storageOwner);
 
-    void revertRecycle(long storageId, StorageType storageType, StorageOwner storageOwner);
+    void revertRecycle(StorageIdentity storageIdentity, StorageOwner storageOwner);
 }
