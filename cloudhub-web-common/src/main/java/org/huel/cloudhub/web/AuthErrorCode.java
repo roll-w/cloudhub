@@ -47,6 +47,8 @@ public enum AuthErrorCode implements ErrorCode, ErrorCodeFinder, ErrorCodeMessag
      * 黑名单用户
      */
     ERROR_IN_BLOCKLIST("A1011", 401),
+
+    ERROR_NO_HANDLER("A1012", 404),
     ;
 
 

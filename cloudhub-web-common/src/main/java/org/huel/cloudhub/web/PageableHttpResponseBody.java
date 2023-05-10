@@ -12,7 +12,7 @@ import java.util.List;
 final class PageableHttpResponseBody<D> extends HttpResponseBody<List<D>> {
     private int page;
     private int size;
-    private int total;
+    private long total;
 
     private static final PageableHttpResponseBody<?> SUCCESS = new PageableHttpResponseBody<>(
             CommonErrorCode.SUCCESS,
@@ -64,7 +64,7 @@ final class PageableHttpResponseBody<D> extends HttpResponseBody<List<D>> {
                                      List<D> data,
                                      int page,
                                      int size,
-                                     int total) {
+                                     long total) {
         super(errorCode, status, message, tip, data);
         this.page = page;
         this.size = size;
@@ -79,7 +79,7 @@ final class PageableHttpResponseBody<D> extends HttpResponseBody<List<D>> {
         return size;
     }
 
-    public int getTotal() {
+    public long getTotal() {
         return total;
     }
 
@@ -93,7 +93,7 @@ final class PageableHttpResponseBody<D> extends HttpResponseBody<List<D>> {
         return this;
     }
 
-    private PageableHttpResponseBody<D> setTotal(int total) {
+    private PageableHttpResponseBody<D> setTotal(long total) {
         this.total = total;
         return this;
     }

@@ -26,6 +26,8 @@ public final class RequestUtils {
         return ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip);
     }
 
+    private static final String IPV6_LOCAL = "0:0:0:0:0:0:0:1";
+
     public static String getRemoteIpAddress(HttpServletRequest request) {
         String ip = null;
         String ipAddresses = null;
@@ -40,6 +42,9 @@ public final class RequestUtils {
         }
         if (isInvalidIp(ip)) {
             ip = request.getRemoteAddr();
+        }
+        if (IPV6_LOCAL.equals(ip)) {
+            return "127.0.0.1";
         }
         return ip;
     }

@@ -1,5 +1,6 @@
 package org.huel.cloudhub.web;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import space.lingu.NonNull;
 
@@ -13,14 +14,24 @@ public enum WebCommonErrorCode implements ErrorCode, ErrorCodeFinder, ErrorCodeM
      * Request parameter missing.
      */
     ERROR_PARAM_MISSING("A0201", 400),
+
     /**
      * Request parameter validate failed.
      */
     ERROR_PARAM_FAILED("A0202", 400),
+
     /**
      * Request body missing.
      */
     ERROR_BODY_MISSING("A0203", 400),
+
+    /**
+     * Not support method or parameter.
+     */
+    ERROR_NOT_SUPPORT("A0204", 400),
+
+    ERROR_HTTP_REQUEST("A0205", HttpStatus.BAD_REQUEST.value()),
+    ERROR_METHOD_NOT_ALLOWED("A0206", HttpStatus.METHOD_NOT_ALLOWED.value()),
 
     ;
 

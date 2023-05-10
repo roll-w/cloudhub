@@ -10,10 +10,10 @@ import java.util.stream.Stream;
 public class Page<T> {
     private final int page;// current page
     private final int size;// page size
-    private final int total;// total number of items
+    private final long total;// total number of items
     private final List<T> data;
 
-    public Page(int page, int size, int total, List<T> data) {
+    public Page(int page, int size, long total, List<T> data) {
         this.page = page;
         this.size = size;
         this.total = total;
@@ -28,7 +28,7 @@ public class Page<T> {
         return size;
     }
 
-    public int getTotal() {
+    public long getTotal() {
         return total;
     }
 
@@ -55,7 +55,7 @@ public class Page<T> {
     }
 
     public static <T> Page<T> of(Pageable pageable,
-                                 int total, List<T> data) {
+                                 long total, List<T> data) {
         return new Page<>(
                 pageable.getPage(),
                 pageable.getSize(),
