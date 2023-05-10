@@ -1,10 +1,12 @@
 package org.huel.cloudhub.client.disk.configuration.filter;
 
 import org.huel.cloudhub.client.disk.common.ApiContextHolder;
+import org.huel.cloudhub.client.disk.domain.authentication.AuthenticationException;
 import org.huel.cloudhub.client.disk.domain.authentication.token.AuthenticationTokenService;
 import org.huel.cloudhub.client.disk.domain.authentication.token.TokenAuthResult;
 import org.huel.cloudhub.client.disk.domain.user.UserDetailsService;
 import org.huel.cloudhub.client.disk.domain.user.dto.UserInfo;
+import org.huel.cloudhub.web.AuthErrorCode;
 import org.huel.cloudhub.web.BusinessRuntimeException;
 import org.huel.cloudhub.web.RequestUtils;
 import org.springframework.context.i18n.LocaleContextHolder;
@@ -62,7 +64,8 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
             }
 
             String token = loadToken(request);
-            if (token == null || token.isEmpty()) {
+            boolean tokenExists = token != null && !token.isEmpty();
+            if (!tokenExists) {
                 nullNextFilter(isAdminApi, remoteIp, method, timestamp,
                         request, response, filterChain);
                 return;
@@ -77,9 +80,9 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
             UserDetails userDetails =
                     userDetailsService.loadUserByUserId(userId);
             if (userDetails == null) {
-                nullNextFilter(isAdminApi, remoteIp, method, timestamp,
-                        request, response, filterChain);
-                return;
+                throw new AuthenticationException(
+                        AuthErrorCode.ERROR_INVALID_TOKEN
+                );
             }
             TokenAuthResult result = authenticationTokenService.verifyToken(token,
                     userDetails.getPassword());
