@@ -43,6 +43,20 @@ public class OperationContext {
         return this;
     }
 
+    public OperationContext addSystemResources(SystemResource... systemResources) {
+        for (SystemResource systemResource : systemResources) {
+            addSystemResource(systemResource);
+        }
+        return this;
+    }
+
+    public OperationContext addSystemResources(List<? extends SystemResource> systemResources) {
+        for (SystemResource systemResource : systemResources) {
+            addSystemResource(systemResource);
+        }
+        return this;
+    }
+
     public OperationContext addSystemResourceOverrides(SystemResource systemResource) {
         operationBuilder.setSystemResource(systemResource);
         return this;
@@ -81,6 +95,10 @@ public class OperationContext {
     protected OperationContext setAssociatedResources(List<SystemResource> associatedResources) {
         operationBuilder.setAssociatedResources(associatedResources);
         return this;
+    }
+
+    public Operator getOperator() {
+        return operationBuilder.getOperator();
     }
 
     public Operation build() {

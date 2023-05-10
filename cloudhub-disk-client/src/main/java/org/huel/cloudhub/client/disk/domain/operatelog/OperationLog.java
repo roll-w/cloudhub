@@ -13,7 +13,7 @@ import java.util.Objects;
 /**
  * @author RollW
  */
-@DataTable(name = "operate_log")
+@DataTable(name = "operation_log")
 public class OperationLog implements DataItem {
     @DataColumn(name = "id")
     @PrimaryKey(autoGenerate = true)

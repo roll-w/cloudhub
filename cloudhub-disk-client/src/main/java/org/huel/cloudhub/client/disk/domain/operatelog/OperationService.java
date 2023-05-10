@@ -12,6 +12,8 @@ import java.util.List;
 public interface OperationService {
     void recordOperation(Operation operation);
 
+    // TODO: pageable supports
+
     List<OperationLogDto> getOperationsByUserId(long userId);
 
     List<OperationLogDto> getOperationsByResource(SystemResource systemResource);
