@@ -1,6 +1,8 @@
 package org.huel.cloudhub.client.disk.domain.operatelog;
 
 /**
+ * 实现部分类POSIX语义。
+ *
  * @author RollW
  */
 public enum Action {

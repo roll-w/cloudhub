@@ -21,43 +21,43 @@ public class StoragePermissionController {
         this.storagePermissionService = storagePermissionService;
     }
 
-    @GetMapping("/{type}/{ownerId}/disk/{storageType}/{storageId}/permission")
+    @GetMapping("/{ownerType}/{ownerId}/disk/{storageType}/{storageId}/permission")
     public HttpResponseEntity<Void> getPermissionOf(
             @PathVariable("storageType") Long storageType,
             @PathVariable("storageId") Long storageId,
             @PathVariable("ownerId") Long ownerId,
-            @PathVariable("type") String type) {
+            @PathVariable("ownerType") String type) {
         return HttpResponseEntity.success();
     }
 
     @BuiltinOperate(BuiltinOperationType.UPDATE_STORAGE_PERMISSION)
-    @PutMapping("/{type}/{ownerId}/disk/{storageType}/{storageId}/permission/public")
+    @PutMapping("/{ownerType}/{ownerId}/disk/{storageType}/{storageId}/permission/public")
     public HttpResponseEntity<Void> setPublicPermissionOf(
             @PathVariable("storageType") Long storageType,
             @PathVariable("storageId") Long storageId,
             @PathVariable("ownerId") Long ownerId,
-            @PathVariable("type") String type) {
+            @PathVariable("ownerType") String type) {
         return HttpResponseEntity.success();
     }
 
     @BuiltinOperate(BuiltinOperationType.UPDATE_STORAGE_PERMISSION)
-    @PutMapping("/{type}/{ownerId}/disk/{storageType}/{storageId}/permission/user/{userId}")
+    @PutMapping("/{ownerType}/{ownerId}/disk/{storageType}/{storageId}/permission/user/{userId}")
     public HttpResponseEntity<Void> setUserPermissionOf(
             @PathVariable("storageType") Long storageType,
             @PathVariable("storageId") Long storageId,
             @PathVariable("ownerId") Long ownerId,
-            @PathVariable("type") String type,
+            @PathVariable("ownerType") String type,
             @PathVariable("userId") Long userId) {
         return HttpResponseEntity.success();
     }
 
     @BuiltinOperate(BuiltinOperationType.UPDATE_STORAGE_PERMISSION)
-    @DeleteMapping("/{type}/{ownerId}/disk/{storageType}/{storageId}/permission/user/{userId}")
+    @DeleteMapping("/{ownerType}/{ownerId}/disk/{storageType}/{storageId}/permission/user/{userId}")
     public HttpResponseEntity<Void> deleteUserPermissionOf(
             @PathVariable("storageType") Long storageType,
             @PathVariable("storageId") Long storageId,
             @PathVariable("ownerId") Long ownerId,
-            @PathVariable("type") String type,
+            @PathVariable("ownerType") String type,
             @PathVariable("userId") Long userId) {
         return HttpResponseEntity.success();
     }

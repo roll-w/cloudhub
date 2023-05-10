@@ -2,6 +2,7 @@ package org.huel.cloudhub.client.disk.controller.storage;
 
 import org.huel.cloudhub.client.disk.common.ApiContextHolder;
 import org.huel.cloudhub.client.disk.controller.Api;
+import org.huel.cloudhub.client.disk.controller.ParameterHelper;
 import org.huel.cloudhub.client.disk.domain.authentication.AuthenticationException;
 import org.huel.cloudhub.client.disk.domain.operatelog.BuiltinOperationType;
 import org.huel.cloudhub.client.disk.domain.operatelog.context.BuiltinOperate;
@@ -31,7 +32,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.List;
 
 /**
  * @author RollW
@@ -51,10 +51,10 @@ public class FileController {
     }
 
     @BuiltinOperate(BuiltinOperationType.CREATE_FILE)
-    @PutMapping("/{type}/{ownerId}/disk/{directory}/{fileName}")
+    @PutMapping("/{ownerType}/{ownerId}/disk/{directory}/{fileName}")
     public HttpResponseEntity<StorageVo> uploadFile(@PathVariable("directory") Long directoryId,
                                                     @PathVariable("ownerId") Long ownerId,
-                                                    @PathVariable("type") String type,
+                                                    @PathVariable("ownerType") String type,
                                                     @PathVariable("fileName") String fileName,
                                                     @RequestPart(name = "file") MultipartFile file) throws IOException {
         ApiContextHolder.ApiContext context = ApiContextHolder.getContext();
@@ -82,11 +82,11 @@ public class FileController {
     }
 
     @BuiltinOperate(BuiltinOperationType.CREATE_FILE)
-    @PostMapping("/{type}/{ownerId}/disk/{directory}")
+    @PostMapping("/{ownerType}/{ownerId}/disk/{directory}")
     public HttpResponseEntity<StorageVo> uploadFile(
             @PathVariable("directory") Long directoryId,
             @PathVariable("ownerId") Long ownerId,
-            @PathVariable("type") String type,
+            @PathVariable("ownerType") String type,
             @RequestPart(name = "file") MultipartFile file) throws IOException {
         ApiContextHolder.ApiContext context = ApiContextHolder.getContext();
         UserIdentity userIdentity = context.userInfo();
@@ -123,10 +123,10 @@ public class FileController {
     }
 
     // TODO: allow Content-Range and Content-Type in header
-    @GetMapping("/{type}/{ownerId}/disk/file/{fileId}")
+    @GetMapping("/{ownerType}/{ownerId}/disk/file/{fileId}")
     public void downloadFile(@PathVariable("fileId") Long fileId,
                              @PathVariable("ownerId") Long ownerId,
-                             @PathVariable("type") String type,
+                             @PathVariable("ownerType") String type,
                              HttpServletResponse response) throws IOException {
         LegalUserType legalUserType = LegalUserType.from(type);
         userFileStorageService.downloadFile(
@@ -135,10 +135,10 @@ public class FileController {
         );
     }
 
-    @GetMapping("/{type}/{ownerId}/disk/{directory}/{fileName}")
+    @GetMapping("/{ownerType}/{ownerId}/disk/{directory}/{fileName}")
     public void downloadFile(@PathVariable("directory") Long directory,
                              @PathVariable("ownerId") Long ownerId,
-                             @PathVariable("type") String type,
+                             @PathVariable("ownerType") String type,
                              @PathVariable("fileName") String fileName,
                              HttpServletResponse response) throws IOException {
         LegalUserType legalUserType = LegalUserType.from(type);
@@ -152,11 +152,11 @@ public class FileController {
     }
 
     @BuiltinOperate(BuiltinOperationType.DELETE_FILE)
-    @DeleteMapping("/{type}/{ownerId}/disk/{directory}/{fileName}")
+    @DeleteMapping("/{ownerType}/{ownerId}/disk/{directory}/{fileName}")
     public HttpResponseEntity<Void> deleteFile(
             @PathVariable("directory") Long directory,
             @PathVariable("ownerId") Long ownerId,
-            @PathVariable("type") String type,
+            @PathVariable("ownerType") String type,
             @PathVariable("fileName") String fileName) {
         ApiContextHolder.ApiContext context = ApiContextHolder.getContext();
         UserIdentity userIdentity = context.userInfo();
@@ -164,30 +164,14 @@ public class FileController {
             throw new AuthenticationException(AuthErrorCode.ERROR_NOT_HAS_ROLE);
         }
 
-        LegalUserType legalUserType = LegalUserType.from(type);
-
+        StorageOwner storageOwner = ParameterHelper.buildStorageOwner(ownerId, type);
         AttributedStorage storage = userStorageSearchService.findFile(
-                new FileStorageInfo(fileName, directory, new SimpleStorageOwner(ownerId, legalUserType)));
+                new FileStorageInfo(fileName, directory, storageOwner));
         StorageAction storageAction =
                 storageActionService.openStorageAction(storage);
         storageAction.delete();
         return HttpResponseEntity.success();
     }
 
-    @GetMapping("/{type}/{ownerId}/disk/directory/{directory}")
-    public HttpResponseEntity<List<StorageVo>> listFiles(
-            @PathVariable("directory") Long directory,
-            @PathVariable("ownerId") Long ownerId,
-            @PathVariable("type") String type) {
-        List<AttributedStorage> storages = userStorageSearchService.listFiles(
-                directory,
-                new SimpleStorageOwner(ownerId, LegalUserType.from(type))
-        );
 
-        return HttpResponseEntity.success(
-                storages.stream()
-                        .map(StorageVo::from)
-                        .toList()
-        );
-    }
 }
