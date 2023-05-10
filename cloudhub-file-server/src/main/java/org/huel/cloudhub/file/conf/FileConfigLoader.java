@@ -19,6 +19,9 @@ public class FileConfigLoader extends AbstractConfigLoader {
     public static final String FILE_STAGING_PATH_DEFAULT = "tmp/staging";
     public static final String FILE_STORE_PATH_DEFAULT = "dfs";
 
+    public static final String LOG_LEVEL_DEFAULT = "info";
+    public static final String LOG_PATH_DEFAULT = "console";
+
     public FileConfigLoader(InputStream inputStream) throws IOException {
         super(inputStream);
     }
@@ -52,6 +55,14 @@ public class FileConfigLoader extends AbstractConfigLoader {
 
     public String getMetaServerAddress() {
         return get(FileConfigKeys.META_ADDRESS, null);
+    }
+
+    public String getLogLevel() {
+        return get(FileConfigKeys.LOG_LEVEL, LOG_LEVEL_DEFAULT);
+    }
+
+    public String getLogPath() {
+        return get(FileConfigKeys.LOG_PATH, LOG_PATH_DEFAULT);
     }
 
     public static FileConfigLoader tryOpenDefault() throws IOException {

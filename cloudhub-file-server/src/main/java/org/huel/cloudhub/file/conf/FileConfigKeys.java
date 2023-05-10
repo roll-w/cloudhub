@@ -42,6 +42,21 @@ public class FileConfigKeys {
      */
     public static final String CONTAINER_BLOCK_NUM = "cloudhub.file.cont.block_num";
 
+    /**
+     * Cloudhub file-server log level. Support: trace, debug, info, warn, error.
+     */
+    public static final String LOG_LEVEL = "cloudhub.file.log.level";
+
+    /**
+     * Log path. If path is "console", log will be printed to console.
+     * Or will be saved to the path as file. File name format is
+     * "cloudhub-file-server.out" & "cloudhub-file-server-{date}.{order}.log".
+     * <p>
+     * When not start as daemon, this config will be ignored and
+     * log will be printed to console.
+     */
+    public static final String LOG_PATH = "cloudhub.file.log.path";
+
     private FileConfigKeys() {
     }
 }

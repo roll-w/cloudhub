@@ -27,12 +27,23 @@ echo "Configuration directory is in the $CONF_DIR. If you need changes settings,
 
 printf "Starting cloudhub-file-server......\n"
 
+prop(){
+    grep "${1}" "$CONF_DIR"/cloudhub.conf | cut -d'=' -f2 | sed 's/\r//'
+}
+
+LOG_DIR=$(prop "cloudhub.file.log.path")
+
 if [ "$PARAM" = "-daemon" ]; then
-  nohup "$JAVA_HOME"/bin/java -jar bin/cloudhub-file-server.jar --conf conf > /dev/null 2>&1 &
+  nohup "$JAVA_HOME"/bin/java -jar bin/cloudhub-file-server.jar --conf "$CONF_DIR" --daemon > /dev/null 2>&1 &
   echo "Starting cloudhub-file-server......[OK]"
+  echo "Log file is in the $LOG_DIR, you can use the command 'tail -f $LOG_DIR/cloudhub-file-server.out' to trace the log."
   exit 0
 else
+  echo ""
+  echo "Starting cloudhub-file-server failed."
+  echo "Unknown parameter $PARAM"
   echo "Usage: $0 [-daemon]"
+  exit 1
 fi
 
 exec "$JAVA_HOME"/bin/java -jar bin/cloudhub-file-server.jar --conf "$CONF_DIR"

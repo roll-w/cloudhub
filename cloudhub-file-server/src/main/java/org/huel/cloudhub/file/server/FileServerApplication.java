@@ -1,6 +1,7 @@
 package org.huel.cloudhub.file.server;
 
 import io.grpc.Server;
+import org.huel.cloudhub.file.conf.FileConfigLoader;
 import org.huel.cloudhub.file.server.service.heartbeat.HeartbeatTask;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
@@ -13,6 +14,8 @@ import org.springframework.context.ConfigurableApplicationContext;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * File server start class.
@@ -35,8 +38,49 @@ public class FileServerApplication implements ApplicationRunner {
     public static void main(String[] args) throws Exception {
         SpringApplication application =
                 new SpringApplication(FileServerApplication.class);
+
+        FileConfigLoader loader = FileConfigLoader.tryOpenDefault();
+        String logLevel = loader.getLogLevel();
+
+        Map<String, Object> overrideProperties = new HashMap<>();
+
+        overrideProperties.put("logging.level.org.huel.cloudhub", logLevel);
+        overrideProperties.put("logging.level.org.cloudhub", logLevel);
+
+        logToFile(args, overrideProperties, loader);
+        application.setDefaultProperties(overrideProperties);
         application.setWebApplicationType(WebApplicationType.NONE);
-        sContext = application.run();
+
+        sContext = application.run(args);
+    }
+
+    private static final String LOG_FILE = "cloudhub-file-server.out";
+    private static final String ARCHIVE_LOG_FILE = "cloudhub-file-server-log.%d{yyyy-MM-dd}.%i.log";
+
+    private static void logToFile(String[] args,
+                                  Map<String, Object> overrideProperties,
+                                  FileConfigLoader configLoader) {
+        if (!startAsDaemon(args)) {
+            System.out.println("Not start as daemon, log to console.");
+            return;
+        }
+        String logPath = configLoader.getLogPath();
+        if (FileConfigLoader.LOG_PATH_DEFAULT.equals(logPath)) {
+            return;
+        }
+
+        overrideProperties.put("logging.file.name", logPath + "/" + LOG_FILE);
+        overrideProperties.put("logging.logback.rollingpolicy.file-name-pattern",
+                logPath + "/" + ARCHIVE_LOG_FILE);
+    }
+
+    private static boolean startAsDaemon(String[] args) {
+        for (String arg : args) {
+            if (arg.equals("--daemon")) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private final HeartbeatTask heartbeatTask;

@@ -46,6 +46,21 @@ public class MetaConfigKeys {
      */
     public static final String HEARTBEAT_TIMEOUT_CYCLE = "cloudhub.heartbeat.timeout_cycle";
 
+    /**
+     * Cloudhub meta-server log level. Support: trace, debug, info, warn, error.
+     */
+    public static final String LOG_LEVEL = "cloudhub.meta.log.level";
+
+    /**
+     * Log path. If path is "console", log will be printed to console.
+     * Or will be saved to the path as file. File name format is
+     * "cloudhub-meta-server.out" & "cloudhub-meta-server-{date}.{order}.log".
+     * <p>
+     * When not start as daemon, this config will be ignored and
+     * log will be printed to console.
+     */
+    public static final String LOG_PATH = "cloudhub.meta.log.path";
+
     private MetaConfigKeys() {
     }
 }

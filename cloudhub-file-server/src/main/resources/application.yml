@@ -6,5 +6,6 @@ spring:
       history:
         enabled: false
 logging:
-  level:
-    org.huel.cloudhub: debug
+  charset:
+    console: UTF-8
+    file: UTF-8

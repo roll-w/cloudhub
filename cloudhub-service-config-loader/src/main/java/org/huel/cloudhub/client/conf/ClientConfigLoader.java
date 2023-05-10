@@ -13,6 +13,9 @@ public class ClientConfigLoader extends AbstractConfigLoader {
     public static final int RPC_MAX_INBOUND_SIZE_DEFAULT = 40;
 
     public static final int WEB_PORT_DEFAULT = 7010;
+    public static final String LOG_LEVEL_DEFAULT = "info";
+    public static final String LOG_PATH_DEFAULT = "console";
+
     public static final String FILE_TEMP_PATH_DEFAULT = "tmp/tmp";
 
     public ClientConfigLoader(InputStream inputStream) throws IOException {
@@ -42,6 +45,14 @@ public class ClientConfigLoader extends AbstractConfigLoader {
     public int getRpcMaxInboundSize() {
         return getInt(ClientConfigKeys.RPC_MAX_INBOUND_SIZE,
                 RPC_MAX_INBOUND_SIZE_DEFAULT);
+    }
+
+    public String getLogLevel() {
+        return get(ClientConfigKeys.LOG_LEVEL, LOG_LEVEL_DEFAULT);
+    }
+
+    public String getLogPath() {
+        return get(ClientConfigKeys.LOG_PATH, LOG_PATH_DEFAULT);
     }
 
     public String getMetaServerAddress() {
