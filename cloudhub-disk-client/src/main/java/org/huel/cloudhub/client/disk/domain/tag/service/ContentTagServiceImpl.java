@@ -1,11 +1,13 @@
 package org.huel.cloudhub.client.disk.domain.tag.service;
 
+import com.google.common.primitives.Longs;
 import org.apache.commons.lang3.ArrayUtils;
 import org.cloudhub.util.Keywords;
 import org.huel.cloudhub.client.disk.common.ParamValidate;
 import org.huel.cloudhub.client.disk.domain.operatelog.context.OperationContextHolder;
 import org.huel.cloudhub.client.disk.domain.tag.ContentTag;
 import org.huel.cloudhub.client.disk.domain.tag.ContentTagService;
+import org.huel.cloudhub.client.disk.domain.tag.TagEventListener;
 import org.huel.cloudhub.client.disk.domain.tag.TagGroup;
 import org.huel.cloudhub.client.disk.domain.tag.TagKeyword;
 import org.huel.cloudhub.client.disk.domain.tag.common.ContentTagErrorCode;
@@ -17,6 +19,7 @@ import org.huel.cloudhub.client.disk.domain.tag.dto.TagGroupDto;
 import org.huel.cloudhub.client.disk.domain.tag.repository.ContentTagRepository;
 import org.huel.cloudhub.client.disk.domain.tag.repository.TagGroupRepository;
 import org.huel.cloudhub.web.data.page.Pageable;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.io.InputStream;
@@ -32,11 +35,14 @@ import java.util.stream.LongStream;
 public class ContentTagServiceImpl implements ContentTagService {
     private final ContentTagRepository contentTagRepository;
     private final TagGroupRepository tagGroupRepository;
+    private final List<TagEventListener> tagEventListeners;
 
     public ContentTagServiceImpl(ContentTagRepository contentTagRepository,
-                                 TagGroupRepository tagGroupRepository) {
+                                 TagGroupRepository tagGroupRepository,
+                                 List<TagEventListener> tagEventListeners) {
         this.contentTagRepository = contentTagRepository;
         this.tagGroupRepository = tagGroupRepository;
+        this.tagEventListeners = tagEventListeners;
     }
 
     @Override
@@ -58,8 +64,9 @@ public class ContentTagServiceImpl implements ContentTagService {
             throw new ContentTagException(
                     ContentTagErrorCode.ERROR_TAG_GROUP_NOT_EXIST);
         }
-        List<ContentTag> contentTags =
-                contentTagRepository.getTagsBy(tagGroup.getTags());
+        List<ContentTag> contentTags = contentTagRepository.getByIds(
+                Longs.asList(tagGroup.getTags())
+        );
         return pairWith(tagGroup, contentTags);
     }
 
@@ -162,6 +169,8 @@ public class ContentTagServiceImpl implements ContentTagService {
                 .toBuilder()
                 .setId(id)
                 .build();
+        notifyListeners(TagGroupDto.of(inserted));
+
         OperationContextHolder.getContext()
                 .addSystemResource(inserted)
                 .setChangedContent(inserted.getName());
@@ -213,12 +222,23 @@ public class ContentTagServiceImpl implements ContentTagService {
                 .mapToLong(ContentTag::getId)
                 .toArray();
         long[] nowTags = tagGroup.getTags();
+        List<ContentTag> nowContentTags =
+                contentTagRepository.getByIds(Longs.asList(nowTags));
+
+        List<ContentTag> allContentTags = new ArrayList<>(nowContentTags);
+        allContentTags.addAll(inserted);
+
         long[] newTags = ArrayUtils.addAll(nowTags, ids);
 
-        TagGroup updated = tagGroup.toBuilder().setTags(newTags)
+        TagGroup updated = tagGroup.toBuilder()
+                .setTags(newTags)
                 .setUpdateTime(now)
                 .build();
         tagGroupRepository.update(updated);
+        TagGroupDto tagGroupDto =
+                pairWith(tagGroup, allContentTags);
+        notifyListeners(tagGroupDto);
+
         OperationContextHolder.getContext()
                 .addSystemResource(updated)
                 .setChangedContent(updated.getName())
@@ -264,4 +284,10 @@ public class ContentTagServiceImpl implements ContentTagService {
         return tagKeywords;
     }
 
+    @Async
+    void notifyListeners(TagGroupDto tagGroup) {
+        for (TagEventListener tagEventListener : tagEventListeners) {
+            tagEventListener.onTagGroupChanged(tagGroup);
+        }
+    }
 }

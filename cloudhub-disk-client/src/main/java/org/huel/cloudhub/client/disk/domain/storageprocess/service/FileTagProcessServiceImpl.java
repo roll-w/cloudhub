@@ -4,6 +4,7 @@ import org.cloudhub.util.Keywords;
 import org.cloudhub.util.KeywordsScorer;
 import org.huel.cloudhub.client.disk.domain.tag.ContentTag;
 import org.huel.cloudhub.client.disk.domain.tag.KeywordSearchScope;
+import org.huel.cloudhub.client.disk.domain.tag.TagEventListener;
 import org.huel.cloudhub.client.disk.domain.tag.TagGroup;
 import org.huel.cloudhub.client.disk.domain.tag.TagKeyword;
 import org.huel.cloudhub.client.disk.domain.tag.dto.ContentTagDto;
@@ -21,17 +22,19 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * @author RollW
  */
 @Service
-public class FileTagProcessServiceImpl implements StorageProcessor {
+public class FileTagProcessServiceImpl implements StorageProcessor, TagEventListener {
     private final StorageMetadataRepository storageMetadataRepository;
     private final ContentTagRepository contentTagRepository;
     private final TagGroupRepository tagGroupRepository;
 
-    private final List<KeywordProcessor> keywordProcessors = new ArrayList<>();
+    private final List<KeywordProcessor> keywordProcessors = new CopyOnWriteArrayList<>();
 
     public FileTagProcessServiceImpl(StorageMetadataRepository storageMetadataRepository,
                                      ContentTagRepository contentTagRepository,
@@ -50,16 +53,20 @@ public class FileTagProcessServiceImpl implements StorageProcessor {
 
         List<TagGroupDto> tagGroupDtos = matchWith(tagGroups, contentTags);
         for (TagGroupDto tagGroupDto : tagGroupDtos) {
-            Keywords keywords = new Keywords(mapToKeywordMap(tagGroupDto));
-            KeywordsScorer keywordsScorer = new KeywordsScorer(keywords);
-            KeywordProcessor keywordProcessor = new KeywordProcessor(
-                    keywords,
-                    keywordsScorer,
-                    tagGroupDto.keywordSearchScope(),
-                    tagGroupDto
-            );
-            keywordProcessors.add(keywordProcessor);
+            addKeywordProcessor(tagGroupDto);
         }
+    }
+
+    private void addKeywordProcessor(TagGroupDto tagGroupDto) {
+        Keywords keywords = new Keywords(mapToKeywordMap(tagGroupDto));
+        KeywordsScorer keywordsScorer = new KeywordsScorer(keywords);
+        KeywordProcessor keywordProcessor = new KeywordProcessor(
+                keywords,
+                keywordsScorer,
+                tagGroupDto.keywordSearchScope(),
+                tagGroupDto
+        );
+        keywordProcessors.add(keywordProcessor);
     }
 
     private Map<String, List<Keywords.Keyword>> mapToKeywordMap(TagGroupDto tagGroupDto) {
@@ -76,6 +83,29 @@ public class FileTagProcessServiceImpl implements StorageProcessor {
             map.put(contentTagDto.name(), keywords);
         }
         return map;
+    }
+
+    @Override
+    public void onTagGroupChanged(TagGroupDto tagGroupDto) {
+        KeywordProcessor keywordProcessor = findExist(tagGroupDto.id());
+        if (keywordProcessor == null) {
+            addKeywordProcessor(tagGroupDto);
+            return;
+        }
+        Map<String, List<Keywords.Keyword>> keywordMap =
+                mapToKeywordMap(tagGroupDto);
+        Keywords keywords = new Keywords(keywordMap);
+        keywordProcessor.setTagGroupDto(tagGroupDto);
+        keywordProcessor.updateKeywords(keywords);
+    }
+
+    private KeywordProcessor findExist(long tagGroupId) {
+        for (KeywordProcessor keywordProcessor : keywordProcessors) {
+            if (keywordProcessor.tagGroupDto().id() == tagGroupId) {
+                return keywordProcessor;
+            }
+        }
+        return null;
     }
 
     private List<TagGroupDto> matchWith(List<TagGroup> tagGroups,
@@ -173,11 +203,87 @@ public class FileTagProcessServiceImpl implements StorageProcessor {
         return searchScope == KeywordSearchScope.ALL;
     }
 
-    private record KeywordProcessor(
-            Keywords keywords,
-            KeywordsScorer scorer,
-            KeywordSearchScope searchScope,
-            TagGroupDto tagGroupDto
-    ) {
-    }
+
+    private static final class KeywordProcessor {
+        private Keywords keywords;
+        private KeywordsScorer scorer;
+        private KeywordSearchScope searchScope;
+        private TagGroupDto tagGroupDto;
+
+        private KeywordProcessor(
+                Keywords keywords,
+                KeywordsScorer scorer,
+                KeywordSearchScope searchScope,
+                TagGroupDto tagGroupDto
+        ) {
+            this.keywords = keywords;
+            this.scorer = scorer;
+            this.searchScope = searchScope;
+            this.tagGroupDto = tagGroupDto;
+        }
+
+        public KeywordProcessor setKeywords(Keywords keywords) {
+            this.keywords = keywords;
+            return this;
+        }
+
+        public KeywordProcessor setScorer(KeywordsScorer scorer) {
+            this.scorer = scorer;
+            return this;
+        }
+
+        public KeywordProcessor setSearchScope(KeywordSearchScope searchScope) {
+            this.searchScope = searchScope;
+            return this;
+        }
+
+        public KeywordProcessor setTagGroupDto(TagGroupDto tagGroupDto) {
+            this.tagGroupDto = tagGroupDto;
+            return this;
+        }
+
+        void updateKeywords(Keywords keywords) {
+            this.keywords = keywords;
+            this.scorer = new KeywordsScorer(keywords);
+        }
+
+        public Keywords keywords() {
+            return keywords;
+        }
+
+        public KeywordsScorer scorer() {
+            return scorer;
+        }
+
+        public KeywordSearchScope searchScope() {
+            return searchScope;
+        }
+
+        public TagGroupDto tagGroupDto() {
+            return tagGroupDto;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (obj == this) return true;
+            if (obj == null || obj.getClass() != this.getClass()) return false;
+            var that = (KeywordProcessor) obj;
+            return Objects.equals(this.tagGroupDto, that.tagGroupDto);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(keywords, scorer, searchScope, tagGroupDto);
+        }
+
+        @Override
+        public String toString() {
+            return "KeywordProcessor[" +
+                    "keywords=" + keywords + ", " +
+                    "scorer=" + scorer + ", " +
+                    "searchScope=" + searchScope + ", " +
+                    "tagGroupDto=" + tagGroupDto + ']';
+        }
+
+        }
 }
