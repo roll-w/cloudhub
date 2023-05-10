@@ -1,22 +1,40 @@
-import { fileURLToPath, URL } from 'node:url'
-
-import { defineConfig } from 'vite'
+import {fileURLToPath, URL} from 'node:url'
+import AutoImport from 'unplugin-auto-import/vite'
+import Components from 'unplugin-vue-components/vite'
+import {NaiveUiResolver} from 'unplugin-vue-components/resolvers'
+import {defineConfig} from 'vite'
 import vue from '@vitejs/plugin-vue'
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [vue()],
-  server: {
-    host: "localhost",
-    open: true,
-    port: 7016,
-  },
-  build: {
-
-  },
-  resolve: {
-    alias: {
-      '@': fileURLToPath(new URL('./src', import.meta.url))
+    plugins: [
+        vue(),
+        AutoImport({
+            imports: [
+                'vue',
+                {
+                    'naive-ui': [
+                        'useDialog',
+                        'useMessage',
+                        'useNotification',
+                        'useLoadingBar',
+                    ]
+                }
+            ]
+        }),
+        Components({
+            resolvers: [NaiveUiResolver()]
+        })
+    ],
+    server: {
+        host: "localhost",
+        open: true,
+        port: 7016,
+    },
+    build: {},
+    resolve: {
+        alias: {
+            '@': fileURLToPath(new URL('./src', import.meta.url))
+        }
     }
-  }
 })

@@ -12,13 +12,16 @@ export const logout = `${prefix}/user/logout`;
 export const register = `${prefix}/user/register`;
 
 export const getFiles = (ownerType, ownerId, directory) =>
-    `${prefix}/${ownerType}/${ownerId}/disk/directory/${directory}`;
+    `${prefix}/${ownerType}/${ownerId}/disk/folder/${directory}`;
 export const getStorageInfo = (ownerType, ownerId, storageType, storageId) =>
     `${prefix}/${ownerType}/${ownerId}/disk/${storageType}/${storageId}/info`;
 export const getStorageAttributes = (ownerType, ownerId, storageType, storageId) =>
     `${prefix}/${ownerType}/${ownerId}/disk/${storageType}/${storageId}/tags`;
 export const getStorageVersions = (ownerType, ownerId, storageType, id) =>
     `${prefix}/${ownerType}/${ownerId}/disk/${storageType}/${id}/versions`;
+
+export const createFolder = (ownerType, ownerId, directory) =>
+    `${prefix}/${ownerType}/${ownerId}/disk/folder/${directory}`;
 
 export const getOperationLogsByResource = (resourceType, resourceId) =>
     `${prefix}/${resourceType}/${resourceId}/operations/logs`;
