@@ -55,24 +55,12 @@ public class UserRepository extends BaseRepository<User> {
         updateCache(newUser);
     }
 
-    public User getUserById(long id) {
-        User cached = userCache.get(id, User.class);
-        if (cached != null) {
-            return cached;
-        }
-        User queried = userDao.getUserById(id);
-        updateCache(queried);
-        return queried;
-    }
-
     public User getUserByName(String name) {
-        User cached = userCache.get(name, User.class);
-        if (cached != null) {
-            return cached;
+        Long userId = getUserIdByName(name);
+        if (User.isInvalidId(userId)) {
+            return null;
         }
-        User queried = userDao.getUserByName(name);
-        updateCache(queried);
-        return queried;
+        return getById(userId);
     }
 
     private Long getUserIdByName(String name) {
@@ -84,7 +72,11 @@ public class UserRepository extends BaseRepository<User> {
     }
 
     public User getUserByEmail(String email) {
-        return userDao.getUserByEmail(email);
+        Long userId = getUserIdByEmail(email);
+        if (User.isInvalidId(userId)) {
+            return null;
+        }
+        return getById(userId);
     }
 
     private Long getUserIdByEmail(String email) {
@@ -119,9 +111,4 @@ public class UserRepository extends BaseRepository<User> {
         userCache.put(user.getEmail(), user);
     }
 
-    private void removeCache(User user) {
-        userCache.evictIfPresent(user.getId());
-        userCache.evictIfPresent(user.getUsername());
-        userCache.evictIfPresent(user.getEmail());
-    }
 }

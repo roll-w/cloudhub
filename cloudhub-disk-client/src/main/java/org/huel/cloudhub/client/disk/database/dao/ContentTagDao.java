@@ -13,9 +13,6 @@ import java.util.List;
 @Dao
 public interface ContentTagDao extends AutoPrimaryBaseDao<ContentTag> {
 
-    @Query("SELECT * FROM content_tag WHERE id IN ({ids})")
-    List<ContentTag> getTagsBy(long[] ids);
-
     @Query("SELECT * FROM content_tag")
     List<ContentTag> getTags();
 

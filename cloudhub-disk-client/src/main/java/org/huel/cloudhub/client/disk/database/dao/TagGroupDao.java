@@ -13,9 +13,6 @@ import java.util.List;
 @Dao
 public interface TagGroupDao extends AutoPrimaryBaseDao<TagGroup> {
 
-    @Query("SELECT * FROM tag_group WHERE id IN {ids}")
-    List<TagGroup> getTagGroupsBy(long[] ids);
-
     @Query("SELECT * FROM tag_group")
     List<TagGroup> getTagGroups();
 

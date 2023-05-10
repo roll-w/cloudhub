@@ -22,23 +22,33 @@ public class StorageMetadataRepository extends BaseRepository<StorageMetadata> {
     }
 
     public List<StorageMetadata> getByStorageId(long storageId) {
-        return storageMetadataDao.getByStorageId(storageId);
+        List<StorageMetadata> storageMetadata =
+                storageMetadataDao.getByStorageId(storageId);
+        return cacheResult(storageMetadata);
     }
 
     public StorageMetadata getByStorageIdAndTagGroupId(long storageId, long tagGroupId) {
-        return storageMetadataDao.getByStorageIdAndTagGroupId(storageId, tagGroupId);
+        StorageMetadata storageMetadata =
+                storageMetadataDao.getByStorageIdAndTagGroupId(storageId, tagGroupId);
+        return cacheResult(storageMetadata);
     }
 
     public List<StorageMetadata> getByTagId(long tagId) {
-        return storageMetadataDao.getByTagId(tagId);
+        List<StorageMetadata> storageMetadata =
+                storageMetadataDao.getByTagId(tagId);
+        return cacheResult(storageMetadata);
     }
 
     public List<StorageMetadata> getByTagValues(List<TagValue> tagValues) {
-        return storageMetadataDao.getByTagValues(tagValues);
+        List<StorageMetadata> storageMetadata =
+                storageMetadataDao.getByTagValues(tagValues);
+        return cacheResult(storageMetadata);
     }
 
     public StorageMetadata getByStorageIdAndName(long storageId, String name) {
-        return storageMetadataDao.getByStorageIdAndName(storageId, name);
+        StorageMetadata storageMetadata =
+                storageMetadataDao.getByStorageIdAndName(storageId, name);
+        return cacheResult(storageMetadata);
     }
 
     @Override

@@ -30,24 +30,48 @@ public class UserFolderRepository extends BaseRepository<UserFolder> {
     }
 
     public List<UserFolder> getByParentId(long parentId) {
-        return userFolderDao.getByParentId(parentId);
+        return cacheResult(
+                userFolderDao.getByParentId(parentId)
+        );
     }
 
     public List<UserFolder> getByParentId(long parentId, Offset offset) {
-        return userFolderDao.getByParentId(parentId, offset);
+        return cacheResult(
+                userFolderDao.getByParentId(parentId, offset)
+        );
     }
 
     public List<UserFolder> getByParentId(long parentId, long owner,
                                           LegalUserType legalUserType) {
-        return userFolderDao.getByParentId(parentId, owner, legalUserType);
+        return cacheResult(
+                userFolderDao.getByParentId(parentId, owner, legalUserType)
+        );
     }
 
     public UserFolder getByName(String name, long parentId,
                                 long owner, LegalUserType legalUserType) {
-        return userFolderDao.getByName(name, parentId, owner, legalUserType);
+        return cacheResult(
+                userFolderDao.getByName(name, parentId, owner, legalUserType)
+        );
     }
 
     public UserFolder getById(long folderId, long ownerId, LegalUserType ownerType) {
-        return userFolderDao.getById(folderId, ownerId, ownerType);
+        UserFolder userFolder = getById(folderId);
+        if (userFolder == null ||
+                userFolder.getOwner() != ownerId ||
+                userFolder.getOwnerType() != ownerType) {
+            return null;
+        }
+        return userFolder;
+    }
+
+    public List<UserFolder> getParents(long folderId) {
+        UserFolder userFolder = getById(folderId);
+        if (userFolder == null || userFolder.getParentId() <= 0) {
+            return List.of();
+        }
+        List<Long> parentFolderIds =
+                userFolderDao.getParentFolderIds(userFolder.getParentId());
+        return getByIds(parentFolderIds);
     }
 }

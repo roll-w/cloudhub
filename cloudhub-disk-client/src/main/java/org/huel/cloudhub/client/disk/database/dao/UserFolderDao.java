@@ -71,4 +71,18 @@ public interface UserFolderDao extends AutoPrimaryBaseDao<UserFolder> {
 
     @Query("SELECT * FROM user_directory WHERE id = {directoryId} AND owner = {ownerId} AND owner_type = {ownerType}")
     UserFolder getById(long directoryId, long ownerId, LegalUserType ownerType);
+
+    @Query("""
+            SELECT f2.id
+            FROM (SELECT @r                                                  AS _id,
+                         (SELECT @r := parent_id FROM user_directory WHERE id = _id) AS parent_id,
+                         @l := @l + 1                                        AS lv
+                  FROM (SELECT @r := {folderId}, @l := 0) vars,
+                       user_directory h
+                  WHERE @r <> 0) f1
+                     JOIN user_directory f2
+                          ON f1._id = f2.id
+            ORDER BY f1.lv DESC;
+            """)
+    List<Long> getParentFolderIds(long folderId);
 }

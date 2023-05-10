@@ -46,7 +46,7 @@ public class UserServiceImpl implements  UserSignatureProvider,
 
     @Override
     public String getSignature(long userId) {
-        User user = userRepository.getUserById(userId);
+        User user = userRepository.getById(userId);
         if (user == null) {
             return null;
         }
@@ -104,7 +104,7 @@ public class UserServiceImpl implements  UserSignatureProvider,
 
     @Override
     public User getUser(long userId) throws UserViewException {
-        User user = userRepository.getUserById(userId);
+        User user = userRepository.getById(userId);
         if (user == null) {
             throw new UserViewException(UserErrorCode.ERROR_USER_NOT_EXIST);
         }
@@ -123,7 +123,7 @@ public class UserServiceImpl implements  UserSignatureProvider,
 
     @Override
     public AttributedUser findUser(long userId) throws UserViewException {
-        User user = userRepository.getUserById(userId);
+        User user = userRepository.getById(userId);
         if (user == null) {
             throw new UserViewException(UserErrorCode.ERROR_USER_NOT_EXIST);
         }

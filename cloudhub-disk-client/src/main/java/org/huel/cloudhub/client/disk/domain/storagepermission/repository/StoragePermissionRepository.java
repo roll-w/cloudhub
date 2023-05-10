@@ -23,7 +23,9 @@ public class StoragePermissionRepository extends BaseRepository<StoragePermissio
 
     public StoragePermission getStoragePermission(long storageId,
                                                   StorageType storageType) {
-        return storagePermissionDao.getStoragePermission(storageId, storageType);
+        StoragePermission storagePermission =
+                storagePermissionDao.getStoragePermission(storageId, storageType);
+        return cacheResult(storagePermission);
     }
 
     @Override

@@ -16,7 +16,7 @@ import java.util.List;
  */
 public abstract class BaseRepository<T extends DataItem> implements CountableDao<T> {
     protected final AutoPrimaryBaseDao<T> primaryBaseDao;
-    private final Cache cache;
+    protected final Cache cache;
 
     protected BaseRepository(AutoPrimaryBaseDao<T> primaryBaseDao,
                              CacheManager cacheManager) {
@@ -92,7 +92,9 @@ public abstract class BaseRepository<T extends DataItem> implements CountableDao
     }
 
     public List<T> get() {
-        return primaryBaseDao.get();
+        List<T> ts = primaryBaseDao.get();
+        cacheResult(ts);
+        return ts;
     }
 
     public List<T> get(Offset offset) {
@@ -121,20 +123,29 @@ public abstract class BaseRepository<T extends DataItem> implements CountableDao
         cache.clear();
     }
 
-    protected void cacheResult(T t) {
+    protected T cacheResult(T t) {
+        if (t == null) {
+            return null;
+        }
         if (cache == null) {
-            return;
+            return t;
         }
         cache.put(t.getId(), t);
+        return t;
     }
 
-    protected void cacheResult(List<T> t) {
+    protected List<T> cacheResult(List<T> t) {
+        if (t == null || t.isEmpty()) {
+            return t;
+        }
+
         if (cache == null) {
-            return;
+            return t;
         }
         for (T t1 : t) {
             cacheResult(t1);
         }
+        return t;
     }
 
     protected T getFromCache(long id) {

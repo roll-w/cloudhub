@@ -24,52 +24,70 @@ public class UserFileStorageRepository extends BaseRepository<UserFileStorage> {
     }
 
     public List<UserFileStorage> get(long owner, LegalUserType legalUserType) {
-        return fileStorageDao.get(owner, legalUserType);
+        return cacheResult(
+                fileStorageDao.get(owner, legalUserType)
+        );
     }
 
     public List<UserFileStorage> getByDirectoryId(long directoryId, long owner,
                                                   LegalUserType legalUserType) {
-        return fileStorageDao.getByDirectoryId(directoryId, owner, legalUserType);
+        return cacheResult(
+                fileStorageDao.getByDirectoryId(directoryId, owner, legalUserType)
+        );
     }
 
     public List<UserFileStorage> getByDirectoryId(long directoryId) {
-        return fileStorageDao.getByDirectoryId(directoryId);
+        return cacheResult(
+                fileStorageDao.getByDirectoryId(directoryId)
+        );
     }
 
     public List<UserFileStorage> getByType(long owner,
                                            LegalUserType legalUserType,
                                            FileType fileType) {
-        return fileStorageDao.getByType(owner, legalUserType, fileType);
+        return cacheResult(
+                fileStorageDao.getByType(owner, legalUserType, fileType)
+        );
     }
 
     public UserFileStorage getById(long owner, LegalUserType legalUserType,
                                    long directoryId, String name) {
-        return fileStorageDao.getById(owner, legalUserType, directoryId, name);
-    }
-
-    public List<UserFileStorage> getByIdsAndType(List<Long> storageIds,
-                                                 FileType fileType) {
-        return fileStorageDao.getByIdsAndType(storageIds, fileType);
+        return cacheResult(
+                fileStorageDao.getById(owner, legalUserType, directoryId, name)
+        );
     }
 
     public List<UserFileStorage> getByIds(
             List<Long> storageIds,
             StorageOwner storageOwner) {
-       return fileStorageDao.getByIds(storageIds, storageOwner);
+        List<UserFileStorage> storages = fileStorageDao.getByIds(storageIds);
+        storages.removeIf(storage -> storage.getOwner() != storageOwner.getOwnerId()
+                || storage.getOwnerType() != storageOwner.getOwnerType());
+        return storages;
     }
 
     public List<UserFileStorage> getByIdsAndType(List<Long> storageIds,
                                                  FileType fileType,
                                                  StorageOwner storageOwner) {
-        return fileStorageDao.getByIdsAndType(storageIds, fileType, storageOwner);
+        List<UserFileStorage> storages =
+                fileStorageDao.getByIds(storageIds);
+        storages.removeIf(storage -> storage.getOwner() != storageOwner.getOwnerId()
+                || storage.getOwnerType() != storageOwner.getOwnerType()
+                || storage.getFileType() != fileType);
+        return storages;
     }
 
     public List<UserFileStorage> getDeletedByOwner(long owner, LegalUserType legalUserType) {
-        return fileStorageDao.getDeletedByOwner(owner, legalUserType);
+        return cacheResult(
+                fileStorageDao.getDeletedByOwner(owner, legalUserType)
+        );
     }
 
-    public List<UserFileStorage> getFilesLike(String name, long owner, LegalUserType legalUserType) {
-        return fileStorageDao.getFilesLike(name, owner, legalUserType);
+    public List<UserFileStorage> getFilesLike(String name, long owner,
+                                              LegalUserType legalUserType) {
+        return cacheResult(
+                fileStorageDao.getFilesLike(name, owner, legalUserType)
+        );
     }
 
     @Override

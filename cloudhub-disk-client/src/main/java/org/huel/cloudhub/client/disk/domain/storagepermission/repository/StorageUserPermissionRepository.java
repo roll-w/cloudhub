@@ -24,13 +24,16 @@ public class StorageUserPermissionRepository extends BaseRepository<StorageUserP
     }
 
     public List<StorageUserPermission> getStorageUserPermissions(long storageId, StorageType storageType) {
-        return storageUserPermissionDao.getStorageUserPermissions(storageId, storageType);
+        return cacheResult(
+                storageUserPermissionDao.getStorageUserPermissions(storageId, storageType)
+        );
     }
-
 
     public StorageUserPermission getByStorageIdAndUserId(long storageId, StorageType storageType,
                                                          long userId) {
-        return storageUserPermissionDao.getByStorageIdAndUserId(storageId, storageType, userId);
+        return cacheResult(
+                storageUserPermissionDao.getByStorageIdAndUserId(storageId, storageType, userId)
+        );
     }
 
     @Override

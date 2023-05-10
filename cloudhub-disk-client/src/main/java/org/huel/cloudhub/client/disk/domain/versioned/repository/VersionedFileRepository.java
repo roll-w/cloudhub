@@ -23,19 +23,27 @@ public class VersionedFileRepository extends BaseRepository<VersionedFileStorage
     }
 
     public VersionedFileStorage getLatestFileVersion(long storageId) {
-        return versionedFileStorageDao.getLatestFileVersion(storageId);
+        return cacheResult(
+                versionedFileStorageDao.getLatestFileVersion(storageId)
+        );
     }
 
     public List<VersionedFileStorage> getFileVersionsIncludeDelete(long storageId) {
-        return versionedFileStorageDao.getFileVersionsIncludeDelete(storageId);
+        return cacheResult(
+                versionedFileStorageDao.getFileVersionsIncludeDelete(storageId)
+        );
     }
 
     public List<VersionedFileStorage> getFileVersions(long storageId) {
-        return versionedFileStorageDao.getFileVersions(storageId);
+        return cacheResult(
+                versionedFileStorageDao.getFileVersions(storageId)
+        );
     }
 
     public VersionedFileStorage getFileVersion(long storageId, long version) {
-        return versionedFileStorageDao.getFileVersion(storageId, version);
+        return cacheResult(
+                versionedFileStorageDao.getFileVersion(storageId, version)
+        );
     }
 
     @Override

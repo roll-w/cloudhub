@@ -25,11 +25,17 @@ public class OperationLogRepository extends BaseRepository<OperationLog> {
 
     public List<OperationLog> getOperationLogsByResourceId(long resourceId,
                                                            SystemResourceKind resourceKind) {
-        return operationLogDao.getOperationLogsByResourceId(resourceId, resourceKind);
+        List<OperationLog> operationLogs =
+                operationLogDao.getOperationLogsByResourceId(resourceId, resourceKind);
+        cacheResult(operationLogs);
+        return operationLogs;
     }
 
     public List<OperationLog> getByOperator(long operator) {
-        return operationLogDao.getByOperator(operator);
+        List<OperationLog> operationLogs =
+                operationLogDao.getByOperator(operator);
+        cacheResult(operationLogs);
+        return operationLogs;
     }
 
     @Override

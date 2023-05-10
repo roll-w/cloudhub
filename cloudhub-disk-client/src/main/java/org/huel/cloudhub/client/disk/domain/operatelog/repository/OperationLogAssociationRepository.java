@@ -24,16 +24,22 @@ public class OperationLogAssociationRepository extends BaseRepository<OperationL
     }
 
     public List<OperationLogAssociation> getByOperationId(long operationId) {
-        return operationLogAssociationDao.getByOperationId(operationId);
+        List<OperationLogAssociation> operationLogAssociations =
+                operationLogAssociationDao.getByOperationId(operationId);
+        return cacheResult(operationLogAssociations);
     }
 
     public List<OperationLogAssociation> getByOperationIds(List<Long> operationIds) {
-        return operationLogAssociationDao.getByOperationIds(operationIds);
+        List<OperationLogAssociation> operationLogAssociations =
+                operationLogAssociationDao.getByOperationIds(operationIds);
+        return cacheResult(operationLogAssociations);
     }
 
     public List<OperationLogAssociation> getByResourceId(long resourceId,
                                                          SystemResourceKind resourceKind) {
-        return operationLogAssociationDao.getByResourceId(resourceId, resourceKind);
+        List<OperationLogAssociation> operationLogAssociations =
+                operationLogAssociationDao.getByResourceId(resourceId, resourceKind);
+        return cacheResult(operationLogAssociations);
     }
 
     @Override
