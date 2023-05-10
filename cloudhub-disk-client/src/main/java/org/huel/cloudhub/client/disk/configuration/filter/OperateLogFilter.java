@@ -41,19 +41,19 @@ public class OperateLogFilter extends OncePerRequestFilter {
         try {
             filterChain.doFilter(request, response);
         } finally {
-            logContext(context);
+            logContext(context, request);
             OperationContextHolder.remove();
         }
     }
 
-    private void logContext(OperationContext context) {
+    private void logContext(OperationContext context, HttpServletRequest request) {
         Operation operation = context.build();
         if (operation.operator() == null || operation.systemResource() == null) {
-            logger.debug("Operation context not set ready, skip logging.");
             return;
         }
         if (operation.operateType() == null) {
-            logger.error("Not configured operation type, skip logging.");
+            logger.error("Not configured operation type, skip logging. Source: {}.",
+                    request.getRequestURI());
             return;
         }
         operateLogger.recordOperate(operation);

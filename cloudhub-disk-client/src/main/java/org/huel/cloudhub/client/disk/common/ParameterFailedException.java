@@ -7,7 +7,7 @@ import org.huel.cloudhub.web.WebCommonErrorCode;
  * @author RollW
  */
 public class ParameterFailedException extends BusinessRuntimeException {
-    private static final String DEFAULT_TEMPLATE = "Parameter '{}' validate failed.";
+    private static final String DEFAULT_TEMPLATE = "Parameter '{0}' validate failed.";
 
     public ParameterFailedException() {
         super(WebCommonErrorCode.ERROR_PARAM_FAILED);

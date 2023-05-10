@@ -16,7 +16,7 @@ public final class ParameterHelper {
     public static StorageOwner buildStorageOwner(long ownerId, String ownerType) {
         LegalUserType legalUserType = LegalUserType.from(ownerType);
         if (legalUserType == null) {
-            throw new ParameterFailedException("{}", "ownerType is not valid");
+            throw new ParameterFailedException("{0}", "ownerType is not valid");
         }
         return new SimpleStorageOwner(ownerId, legalUserType);
     }
@@ -24,7 +24,7 @@ public final class ParameterHelper {
     public static StorageIdentity buildStorageIdentity(long storageId, String storageType) {
         StorageType type = StorageType.from(storageType);
         if (type == null) {
-            throw new ParameterFailedException("{}", "storageType is not valid");
+            throw new ParameterFailedException("{0}", "storageType is not valid");
         }
         return new SimpleStorageIdentity(storageId, type);
     }

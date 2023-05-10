@@ -43,6 +43,7 @@ import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.BindException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -213,6 +214,8 @@ public class DiskSystemExceptionHandler {
         return HttpResponseEntity.of(UserErrorCode.ERROR_USER_DISABLED);
     }
 
+
+
     @ExceptionHandler(AuthenticationException.class)
     public HttpResponseEntity<Void> handleAuthException(AuthenticationException e) {
         if (e instanceof InsufficientAuthenticationException) {
@@ -225,6 +228,11 @@ public class DiskSystemExceptionHandler {
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public HttpResponseEntity<Void> handleHttpMessageNotReadableException() {
         return HttpResponseEntity.of(WebCommonErrorCode.ERROR_BODY_MISSING);
+    }
+
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    public HttpResponseEntity<Void> handleHttpException() {
+        return HttpResponseEntity.of(WebCommonErrorCode.ERROR_METHOD_NOT_ALLOWED);
     }
 
     @ExceptionHandler(Exception.class)
@@ -266,10 +274,5 @@ public class DiskSystemExceptionHandler {
                         .map(ErrorRecordVo::from)
                         .toList()
         );
-    }
-
-    @GetMapping("/api/v1/common/error/occur")
-    public void makeException() {
-        throw new RuntimeException("test log");
     }
 }
