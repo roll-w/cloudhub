@@ -12,6 +12,7 @@ export const register = "register-page"
 export const passwordResetPage = "password-reset-page"
 
 export const driveFilePage = "drive-file-page"
+export const driveFilePageFolder = "drive-file-page-folder"
 export const driveFileSearchPage = "drive-file-search-page"
 export const driveFileAttrsPage = "drive-file-attrs-page"
 export const driveFilePermissionPage = "drive-file-permission-page"
@@ -45,6 +46,15 @@ const router = createRouter({
                 {
                     path: '/drive/files',
                     name: driveFilePage,
+                    component: () => import("@/views/file/FileView.vue"),
+                    meta: {
+                        title: "文件",
+                        requireLogin: true
+                    }
+                },
+                {
+                    path: '/drive/files/:folder',
+                    name: driveFilePageFolder,
                     component: () => import("@/views/file/FileView.vue"),
                     meta: {
                         title: "文件",
@@ -219,7 +229,7 @@ router.beforeEach((to, from, next) => {
         return next()
     }
     const role = userStore.user.role
-    if (!userStore.isLogin || !role || role.value === "USER") {
+    if (!userStore.isLogin || !role || role === "USER") {
         return next({
             name: page404
         })

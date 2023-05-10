@@ -1,53 +1,47 @@
 <template>
     <div>
-        <div class="p-5">
-            <div class="pb-5">
-                <n-alert closable type="info">
-                    <div class="text-xl">
-                        欢迎使用 Cloudhub 法律文件资料库，您可以在这里上传、下载、分享、管理您的资料文件。
-                    </div>
-                </n-alert>
-            </div>
-            <n-card closable>
-                <div class="text-4xl pb-5">
-                    使用指引
-                </div>
-                <n-steps>
-                    <n-step
-                            description="进入文件资料库，点击右上角的“上传文件”按钮，选择您要上传的文件。"
-                            status="process"
-                            title="上传文件"/>
-                    <n-step
-                            description="在文件列表中找到您需要下载的文件，点击“下载”按钮，即可下载文件。"
-                            status="process"
-                            title="下载文件"/>
-                    <n-step
-                            description="在文件列表中找到您需要分享的文件，点击“分享”按钮，即可分享文件。"
-                            status="process"
-                            title="分享文件"/>
-                    <n-step
-                            description="如果您是文件的所有者，或者您为部门管理员，您可以在文件列表中找到您需要设置的文件，点击“设置权限”按钮，即可管理文件。"
-                            status="process"
-                            title="设置文件权限"/>
-                </n-steps>
-            </n-card>
+        <div v-if="folderInfo.storageId === 0" >
+            <FileSystemInstructions />
         </div>
-
         <div class="flex-fill" @contextmenu="handleContextmenu">
             <div class="p-5">
-                <div class="text-2xl py-2">
-                    文件
+                <div class="text-xl py-2">
+                    <FolderBreadcrumbs :folder-info="folderInfo"/>
                 </div>
                 <div v-if="getCheckedList().length">
                     已选择共 {{ getCheckedList().length }} 个文件
                 </div>
-                <div class="flex flex-fill flex-wrap transition-all duration-300">
-                    <FileComponent v-for="(file, i) in files"
-                                   v-model:checked="checkedState[i]"
-                                   :file="file"
-                                   :onClickMoreOptions="handleClickMoreOptions"
-                                   @contextmenu="handleFileOptionContextMenu($event, file)"
-                                   @dblclick="handleDblClick($event, file)"/>
+                <div class="min-h-[400px]">
+                    <n-spin :show="loading" size="large">
+                        <div v-if="files.length" class="flex flex-fill flex-wrap transition-all duration-300">
+                            <FileComponent v-for="(file, i) in files"
+                                           v-model:checked="checkedState[i]"
+                                           :file="file"
+                                           :onClickMoreOptions="handleClickMoreOptions"
+                                           @contextmenu="handleFileOptionContextMenu($event, file)"
+                                           @dblclick="handleStorageClick($event, file)"/>
+                        </div>
+                        <div v-else class="w-100 h-100 flex flex-col flex-fill content-center justify-center">
+                            <div class="self-center">
+                                <n-empty description="暂无文件">
+                                    <template #extra>
+                                        <n-button-group>
+                                            <n-space size="medium">
+                                                <n-button secondary size="large" type="primary"
+                                                          @click="showCreateFolderModal = true">
+                                                    新建文件夹
+                                                </n-button>
+                                                <n-button secondary size="large" type="primary"
+                                                          @click="showUploadFileModal = true">
+                                                    上传文件
+                                                </n-button>
+                                            </n-space>
+                                        </n-button-group>
+                                    </template>
+                                </n-empty>
+                            </div>
+                        </div>
+                    </n-spin>
                 </div>
             </div>
         </div>
@@ -75,27 +69,57 @@
         <n-modal v-model:show="showUploadFileModal"
                  :show-icon="false"
                  preset="dialog"
-                 title="用户权限"
+                 title="上传文件"
                  transform-origin="center">
             <div>
-                <n-form-item label="用户名">
-                    <n-input v-model:value="usernameValue" placeholder="输入用户名" type="text"/>
+                <n-form-item label="文件">
+                    <n-upload
+                            :default-upload="false"
+                            :directory="false"
+                            :directory-dnd="false"
+                            :max="1"
+                            :multiple="false"
+                            name="file">
+                        <n-upload-dragger>
+                            <n-text class="text-xl">
+                                点击或者拖动文件到此区域来上传
+                            </n-text>
+                        </n-upload-dragger>
+                    </n-upload>
                 </n-form-item>
-                <n-form-item label="权限">
-                    <n-checkbox-group v-model:value="userPermissionCheckValue">
-                        <n-checkbox label="读取" value="read"/>
-                        <n-checkbox label="写入" value="write"/>
-                        <n-checkbox label="拒绝访问" value="denied"/>
-                    </n-checkbox-group>
+                <div class="pb-3">
+                    如果你不想按照原文件名上传，可以在这里修改文件名
+                </div>
+                <n-form-item label="文件名">
+                    <n-input placeholder="修改文件名，不填写即为原文件名" type="text"/>
                 </n-form-item>
+
                 <n-button-group>
-                    <n-button type="primary" @click="handleAddUserPermission(usernameValue, userPermissionCheckValue)">
-                        添加
+                    <n-button type="primary" @click="showUploadFileModal = false">
+                        确认
                     </n-button>
                     <n-button secondary type="default" @click="showUploadFileModal = false">取消</n-button>
                 </n-button-group>
             </div>
+        </n-modal>
 
+        <n-modal v-model:show="showCreateFolderModal"
+                 :show-icon="false"
+                 preset="dialog"
+                 title="新建文件夹"
+                 transform-origin="center">
+            <div>
+                <CreateFolderForm
+                        :folder-id="curDirectoryId"
+                        :on-after-create-folder="() => {
+                            loading = false
+                            refresh()
+                        }"
+                        :on-before-create-folder="() => loading = true"
+                        :on-click-cancel="() => showCreateFolderModal = false"
+                        :on-click-confirm="() => showCreateFolderModal = false"
+                />
+            </div>
         </n-modal>
     </div>
 </template>
@@ -103,24 +127,32 @@
 <script setup>
 import {h, ref, getCurrentInstance} from "vue";
 import {RouterLink, useRouter} from "vue-router";
-import {NIcon} from "naive-ui";
+import {NIcon, useNotification, useMessage} from "naive-ui";
 import Folder24Regular from "@/components/icon/Folder24Regular.vue";
 import FileIcon from "@/components/icon/FileIcon.vue";
 import RefreshRound from "@/components/icon/RefreshRound.vue";
 import FileComponent from "@/components/file/FileComponent.vue";
-import {driveFileAttrsPage, driveFilePermissionPage} from "@/router";
+import {driveFileAttrsPage, driveFilePage, driveFilePageFolder, driveFilePermissionPage} from "@/router";
 import {createConfig} from "@/request/axios_config";
 import {useUserStore} from "@/stores/user";
 import api from "@/request/api";
+import {popUserErrorTemplate} from "@/views/util/error";
+import CreateFolderForm from "@/components/file/CreateFolderForm.vue";
+import FolderBreadcrumbs from "@/components/file/FolderBreadcrumbs.vue";
+import FileSystemInstructions from "@/components/file/FileSystemInstructions.vue";
 
 const {proxy} = getCurrentInstance()
+const notification = useNotification()
+const message = useMessage()
 const userStore = useUserStore()
 const router = useRouter()
 
 const files = ref([])
-
 const fileMenuShowState = ref([])
 const checkedState = ref([])
+const folderInfo = ref({
+    parents: []
+})
 
 const remappingStates = () => {
     fileMenuShowState.value = []
@@ -143,6 +175,9 @@ const getCheckedList = () => {
 
 const xRef = ref(0)
 const yRef = ref(0)
+
+const loading = ref(false)
+
 const showDropdown = ref(false)
 const showFileDropdown = ref(false)
 const showUploadFileModal = ref(false)
@@ -151,7 +186,7 @@ const showCreateFolderModal = ref(false)
 let showFileDropdownState = false
 let lastTarget = null
 
-const curDirectoryId = ref(0)
+const curDirectoryId = router.currentRoute.value.params.folder || 0
 
 const menuOptions = [
     {
@@ -164,23 +199,12 @@ const menuOptions = [
         },
     },
     {
-        key: 'header-divider',
-        type: 'divider'
-    },
-    {
         label: "上传文件",
         key: "upload",
         icon() {
             return h(NIcon, null, {
                 default: () => h(FileIcon)
             })
-        },
-    },
-    {
-        label: "上传文件夹",
-        key: "uploadFolder",
-        icon() {
-            return "U"
         },
     },
     {
@@ -288,7 +312,19 @@ const hackFileOptions = (file) => {
     }
 }
 
-const handleDblClick = (e, target) => {
+const handleStorageClick = (e, target) => {
+    if (target.storageType === 'FOLDER') {
+        router.push({
+            name: driveFilePageFolder,
+            params: {
+                folder: target.storageId
+            }
+
+        })
+        return
+    }
+    message.warning('暂不支持预览此类型文件')
+
 }
 
 const handleFileOptionSelect = (key) => {
@@ -326,13 +362,15 @@ const handleMenuSelect = (key) => {
 
     switch (key) {
         case 'folder':
+            showCreateFolderModal.value = true
             break;
         case 'upload':
+            showUploadFileModal.value = true
             break;
         case 'uploadFolder':
             break;
         case 'refresh':
-            requestFilesBy(curDirectoryId.value)
+            refresh()
             break;
         case 'sort':
             break;
@@ -368,18 +406,44 @@ const handleClickMoreOptions = (e, target) => {
 
 const requestFilesBy = (directoryId) => {
     const config = createConfig()
+    loading.value = true
     proxy.$axios.get(
         api.getFiles('user', userStore.user.id, directoryId), config)
         .then(res => {
             files.value = res.data
-            console.log(res)
             remappingStates()
+            loading.value = false
         })
         .catch(err => {
-            console.log(err)
+            popUserErrorTemplate(notification, err,
+                '获取文件列表失败', '文件请求失败')
         })
 }
 
-requestFilesBy(curDirectoryId.value)
+const requestFolderInfo = () => {
+    const config = createConfig()
+    proxy.$axios.get(
+        api.getStorageInfo('user', userStore.user.id, 'folder', curDirectoryId), config)
+        .then(res => {
+            folderInfo.value = res.data
+            console.log(res)
+        })
+        .catch(err => {
+            popUserErrorTemplate(notification, err,
+                '获取文件夹信息失败', '文件夹信息请求失败')
+        })
+}
+
+
+const refresh = () => {
+    requestFolderInfo()
+    requestFilesBy(curDirectoryId)
+}
+
+refresh()
 
 </script>
+
+<style scoped>
+
+</style>

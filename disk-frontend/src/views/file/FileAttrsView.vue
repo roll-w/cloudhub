@@ -8,84 +8,99 @@
                 <n-button secondary type="primary" @click="handleBack">返回</n-button>
             </div>
         </div>
-
-        <div class="flex items-stretch">
-            <div class="w-2/5 max-w-[40%] min-w-[40%] mr-4">
-                <div class="mb-4 text-xl">
-                    属性
+        <div>
+            <div v-if="error.message">
+                <div class="text-3xl pb-2">
+                    错误：{{ error.status }}
                 </div>
-                <div class="h-100 flex flex-col items-stretch place-items-stretch">
+                <n-alert type="error" :show-icon="false">
+                    <div class="text-xl">
+                        {{ error.message }}
+                    </div>
+                </n-alert>
+            </div>
+
+            <div v-else>
+                <div class="flex items-stretch">
+                    <div class="w-2/5 max-w-[40%] min-w-[40%] mr-4">
+                        <div class="mb-4 text-xl">
+                            属性
+                        </div>
+                        <div class="h-100 flex flex-col items-stretch place-items-stretch">
+                            <div>
+                                <n-table :bordered="false">
+                                    <thead>
+                                    <tr>
+                                        <th>名称</th>
+                                        <th>值</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    <tr v-for="tag in fileAttrs || []">
+                                        <td>{{ tag.name }}</td>
+                                        <td>
+                                            <n-tag :bordered="false" type="primary">{{ tag.value }}</n-tag>
+                                        </td>
+                                    </tr>
+                                    </tbody>
+                                </n-table>
+                            </div>
+                            <div class="py-3 self-end justify-end flex-fill">标记错误？
+                                <n-button secondary type="primary">重新标记</n-button>
+                            </div>
+                        </div>
+                    </div>
+                    <n-divider style="height: auto" vertical/>
+                    <div class="ml-4">
+                        <div class="text-xl mb-4">
+                            文件操作日志
+                        </div>
+                        <n-timeline>
+                            <n-timeline-item v-for="(log, i) in fileLogs"
+                                             :time="formatTimestamp(log.timestamp)"
+                                             :title="log.name" :type="i === 0 ? 'success' : 'default'">
+                                <div>
+                                    <span class="text-amber-500">{{ log.username }}</span>
+                                    {{ log.description }}
+                                </div>
+                            </n-timeline-item>
+                        </n-timeline>
+                    </div>
+                </div>
+                <div class="pb-3">
+                    <div class="text-xl mb-3">版本信息</div>
+                    <n-alert class="my-4" type="info">
+                        只有内容修改会被计入版本。如修改文件名、修改权限等操作不会被计入版本。
+                    </n-alert>
+
                     <div>
-                        <n-table :bordered="false">
+                        <n-table>
                             <thead>
                             <tr>
-                                <th>名称</th>
-                                <th>值</th>
+                                <th>版本</th>
+                                <th>修改时间</th>
+                                <th>修改人</th>
+                                <th>操作</th>
                             </tr>
                             </thead>
                             <tbody>
-                            <tr v-for="tag in fileAttrs || []">
-                                <td>{{ tag.name }}</td>
+                            <tr v-for="version in versionInfos">
+                                <td>{{ version.version }}</td>
+                                <td>{{ formatTimestamp(version.createTime) }}</td>
+                                <td>{{ version.username }}</td>
                                 <td>
-                                    <n-tag :bordered="false" type="primary">{{ tag.value }}</n-tag>
+                                    <n-button-group>
+                                        <n-button secondary type="primary">查看</n-button>
+                                        <n-button secondary type="default">回退</n-button>
+                                        <n-button secondary type="error" @click="onDeleteVersion(version)">删除
+                                        </n-button>
+                                    </n-button-group>
                                 </td>
                             </tr>
                             </tbody>
                         </n-table>
                     </div>
-                    <div class="py-3 self-end justify-end flex-fill">标记错误？
-                        <n-button secondary type="primary">重新标记</n-button>
-                    </div>
                 </div>
-            </div>
-            <n-divider style="height: auto" vertical/>
-            <div class="ml-4">
-                <div class="text-xl mb-4">
-                    文件操作日志
-                </div>
-                <n-timeline>
-                    <n-timeline-item v-for="(log, i) in fileLogs"
-                                     :time="formatTimestamp(log.timestamp)"
-                                     :title="log.name" :type="i === 0 ? 'success' : 'default'">
-                        <div>
-                            <span class="text-amber-500">{{ log.username }}</span>
-                            {{ log.description }}
-                        </div>
-                    </n-timeline-item>
-                </n-timeline>
-            </div>
-        </div>
-        <div class="pb-3">
-            <div class="text-xl mb-3">版本信息</div>
-            <n-alert class="my-4" type="info">
-                只有内容修改会被计入版本。如修改文件名、修改权限等操作不会被计入版本。
-            </n-alert>
-
-            <div>
-                <n-table>
-                    <thead>
-                    <tr>
-                        <th>版本</th>
-                        <th>修改时间</th>
-                        <th>修改人</th>
-                        <th>操作</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr v-for="version in versionInfos">
-                        <td>{{ version.version }}</td>
-                        <td>{{ formatTimestamp(version.createTime) }}</td>
-                        <td>{{ version.username }}</td>
-                        <td>
-                            <n-button-group>
-                                <n-button secondary type="primary">查看</n-button>
-                                <n-button secondary type="default">回退</n-button>
-                                <n-button secondary type="error" @click="onDeleteVersion(version)">删除</n-button>
-                            </n-button-group>
-                        </td>
-                    </tr>
-                    </tbody>
-                </n-table>
             </div>
         </div>
     </div>
@@ -97,7 +112,7 @@
 import {useRouter} from "vue-router";
 import {useDialog, useNotification} from "naive-ui";
 import {getCurrentInstance, ref} from "vue";
-import {driveFilePage} from "@/router";
+import {driveFilePage, driveFilePageFolder} from "@/router";
 import api from "@/request/api";
 import {createConfig} from "@/request/axios_config";
 import {popUserErrorTemplate} from "@/views/util/error";
@@ -117,6 +132,11 @@ const fileInfo = ref({})
 const fileAttrs = ref([])
 const fileLogs = ref([])
 
+const error = ref({
+    status: 0,
+    message: null
+})
+
 const notification = useNotification()
 const dialog = useDialog()
 
@@ -134,8 +154,17 @@ const onDeleteVersion = (versionInfo) => {
 }
 
 const handleBack = () => {
+    if (error.value.message || fileInfo.value.parentId === 0) {
+        router.push({
+            name: driveFilePage
+        })
+        return
+    }
     router.push({
-        name: driveFilePage
+        name: driveFilePageFolder,
+        params: {
+            folder: fileInfo.value.parentId
+        }
     })
 }
 
@@ -198,6 +227,10 @@ const requestFileInfo = () => {
             fileInfo.value = res.data
             requestFileInfos()
         }).catch(err => {
+        error.value = {
+            status: err.status,
+            message: err.tip
+        }
         popUserErrorTemplate(notification, err,
             '获取文件信息失败', '文件请求错误')
     })
