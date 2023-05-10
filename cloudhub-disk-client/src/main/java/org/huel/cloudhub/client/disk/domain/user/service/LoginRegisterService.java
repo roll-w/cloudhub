@@ -6,10 +6,9 @@ import org.huel.cloudhub.client.disk.domain.user.User;
 import org.huel.cloudhub.client.disk.domain.user.dto.UserInfo;
 import org.huel.cloudhub.client.disk.domain.user.dto.UserInfoSignature;
 import org.huel.cloudhub.client.disk.domain.user.event.OnUserLoginEvent;
-import org.huel.cloudhub.client.disk.domain.user.event.OnUserRegistrationEvent;
 import org.huel.cloudhub.client.disk.domain.user.repository.UserRepository;
-import org.huel.cloudhub.web.Result;
 import org.huel.cloudhub.web.RequestMetadata;
+import org.huel.cloudhub.web.Result;
 import org.huel.cloudhub.web.UserErrorCode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,8 +19,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import java.util.Locale;
 
 /**
  * @author RollW
@@ -86,20 +83,11 @@ public class LoginRegisterService  {
                                          String email) {
         boolean hasUsers = userRepository.hasUsers();
         Role role = hasUsers ? Role.USER : Role.ADMIN;
-        boolean enabled = !hasUsers;
         Result<UserInfo> userInfoResult =
-                userManageService.createUser(username, password, email, role, enabled);
+                userManageService.createUser(username, password, email, role, true);
         if (userInfoResult.failed()) {
             return userInfoResult;
         }
-
-        if (!enabled) {
-            OnUserRegistrationEvent event = new OnUserRegistrationEvent(
-                    userInfoResult.data(), Locale.getDefault(),
-                    null);
-            eventPublisher.publishEvent(event);
-        }
-
         logger.info("Register username: {}, email: {}, role: {}, id: {}",
                 username, email,
                 userInfoResult.data().getRole(),
