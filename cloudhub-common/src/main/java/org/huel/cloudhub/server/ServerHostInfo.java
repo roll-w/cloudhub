@@ -143,9 +143,11 @@ public class ServerHostInfo {
 
     private static NetworkIF findNetworkIF(HardwareAbstractionLayer layer) {
         NetworkIF networkIF = findNetworkFromAddress(RUNTIME_ENV.getHostAddress(),
-                layer.getNetworkIFs(false));
+                layer.getNetworkIFs(true));
         if (networkIF == null) {
-            throw new NullPointerException();
+            throw new NullPointerException("Cannot found local network interface. " +
+                    "If you are using Linux, please check hostname in /etc/hosts." +
+                    " Address: " + RUNTIME_ENV.getHostAddress());
         }
         return networkIF;
     }
