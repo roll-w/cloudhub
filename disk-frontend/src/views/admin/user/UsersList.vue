@@ -24,7 +24,7 @@
 
 <script setup>
 import {getCurrentInstance, h, ref} from "vue";
-import {NButton, NButtonGroup, useDialog} from "naive-ui";
+import {NButton, NButtonGroup, useDialog, useNotification} from "naive-ui";
 import api from "@/request/api";
 import {useUserStore} from "@/stores/user";
 import AdminBreadcrumb from "@/components/admin/AdminBreadcrumb.vue";
@@ -33,11 +33,13 @@ import {adminUserLists} from "@/router";
 import {adminMenuUser} from "@/views/menu";
 import {useRouter} from "vue-router";
 import {createConfig} from "@/request/axios_config";
+import {popAdminErrorTemplate} from "@/views/util/error";
 
 const {proxy} = getCurrentInstance()
 const dialog = useDialog()
 const userStore = useUserStore()
 const router = useRouter()
+const notification = useNotification()
 
 const page = ref(1)
 
@@ -166,7 +168,8 @@ const requestForData = (page, size) => {
         })
         data.value = recvData
     }).catch((err) => {
-        console.log(err)
+        popAdminErrorTemplate(notification, err, "获取用户列表失败",
+            "用户请求错误")
     })
 }
 
