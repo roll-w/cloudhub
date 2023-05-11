@@ -6,6 +6,7 @@ import org.huel.cloudhub.client.disk.configuration.filter.OperateLogFilter;
 import org.huel.cloudhub.client.disk.configuration.filter.TokenAuthenticationFilter;
 import org.huel.cloudhub.client.disk.domain.authentication.token.AuthenticationTokenService;
 import org.huel.cloudhub.client.disk.domain.user.UserDetailsService;
+import org.huel.cloudhub.client.disk.domain.user.service.UserSignatureProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -57,12 +58,10 @@ public class WebSecurityConfiguration {
                 .antMatchers("/api/{version}/admin/**").hasRole("ADMIN")
                 .antMatchers("/api/{version}/common/**").permitAll()
                 .antMatchers("/api/{version}/{ownerType}/{ownerId}/disk/**").hasRole("USER")
-                .antMatchers(HttpMethod.GET, "/api/{version}/admin/**").hasAnyRole("ADMIN")
-                .antMatchers(HttpMethod.GET).permitAll()
+                .antMatchers("/api/{version}/user/login/logs").hasRole("USER")
                 .antMatchers("/api/{version}/user/login/**").permitAll()
                 .antMatchers("/api/{version}/user/register/**").permitAll()
                 .antMatchers("/api/{version}/user/logout/**").permitAll()
-
                 .antMatchers("/**").hasRole("USER")
                 .anyRequest().permitAll();
         security.userDetailsService(userDetailsService);
@@ -106,10 +105,12 @@ public class WebSecurityConfiguration {
 
     @Bean
     public TokenAuthenticationFilter tokenAuthenticationFilter(
-            AuthenticationTokenService authenticationTokenService) {
+            AuthenticationTokenService authenticationTokenService,
+            UserSignatureProvider userSignatureProvider) {
         return new TokenAuthenticationFilter(
                 authenticationTokenService,
-                userDetailsService
+                userDetailsService,
+                userSignatureProvider
         );
     }
 

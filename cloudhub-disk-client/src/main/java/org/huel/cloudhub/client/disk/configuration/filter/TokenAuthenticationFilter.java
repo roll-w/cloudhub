@@ -6,6 +6,7 @@ import org.huel.cloudhub.client.disk.domain.authentication.token.AuthenticationT
 import org.huel.cloudhub.client.disk.domain.authentication.token.TokenAuthResult;
 import org.huel.cloudhub.client.disk.domain.user.UserDetailsService;
 import org.huel.cloudhub.client.disk.domain.user.dto.UserInfo;
+import org.huel.cloudhub.client.disk.domain.user.service.UserSignatureProvider;
 import org.huel.cloudhub.web.AuthErrorCode;
 import org.huel.cloudhub.web.BusinessRuntimeException;
 import org.huel.cloudhub.web.RequestUtils;
@@ -31,13 +32,16 @@ import java.io.IOException;
 public class TokenAuthenticationFilter extends OncePerRequestFilter {
     private final AuthenticationTokenService authenticationTokenService;
     private final UserDetailsService userDetailsService;
+    private final UserSignatureProvider userSignatureProvider;
 
     private final AntPathMatcher antPathMatcher = new AntPathMatcher();
 
     public TokenAuthenticationFilter(AuthenticationTokenService authenticationTokenService,
-                                     UserDetailsService userDetailsService) {
+                                     UserDetailsService userDetailsService,
+                                     UserSignatureProvider userSignatureProvider) {
         this.authenticationTokenService = authenticationTokenService;
         this.userDetailsService = userDetailsService;
+        this.userSignatureProvider = userSignatureProvider;
     }
 
     @Override
@@ -84,10 +88,13 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
                         AuthErrorCode.ERROR_INVALID_TOKEN
                 );
             }
-            TokenAuthResult result = authenticationTokenService.verifyToken(token,
-                    userDetails.getPassword());
+            String signature = userSignatureProvider.getSignature(userId);
+            TokenAuthResult result = authenticationTokenService.verifyToken(
+                    token,
+                    signature
+            );
             if (!result.success()) {
-                // although there are anonymous api access that don't need provides token,
+                // although there is anonymous api access that doesn't need provides token,
                 // but as long as it provides token here, we have to verify it.
                 // And throw exception when failed.
                 throw new BusinessRuntimeException(result.errorCode());

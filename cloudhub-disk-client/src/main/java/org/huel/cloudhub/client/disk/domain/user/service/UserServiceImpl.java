@@ -50,7 +50,19 @@ public class UserServiceImpl implements  UserSignatureProvider,
         if (user == null) {
             return null;
         }
-        return "CloudhubUserSignature-" + user.getPassword();
+        return "CloudhubUserSignature-" +
+                getSignature(user);
+    }
+
+    @Override
+    public String getSignature(UserIdentity userIdentity) {
+        return getSignature(userIdentity.getUserId());
+    }
+
+    private String getSignature(User user) {
+        return user.getPassword() + "-" +
+                user.getUsername() + "-" +
+                user.getRole();
     }
 
     @Override
