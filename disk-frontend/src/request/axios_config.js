@@ -37,17 +37,27 @@ export function createAxios(onLoginExpired = () => {
             return response.data
         }, error => {
             console.log(error)
+            if (!error.response) {
+                return Promise.reject({
+                    tip: '网络错误',
+                    message: '网络错误',
+                    errorCode: 'D0000',
+                    status: 500
+                })
+            }
+
             if (isInTokenError(
                 error.response.data.errorCode || '00000')) {
                 onLoginExpired()
                 return Promise.reject({
-                    tip: '登录过期',
-                    message: '登录过期',
+                    tip: '登录过期或登录凭据无效，请重新登录',
+                    message: '登录过期或登录凭据无效，请重新登录',
                     errorCode: error.response.data.errorCode,
                     status: 401
                 })
             }
             return Promise.reject(error.response.data)
+
         }
     )
     return instance

@@ -19,6 +19,10 @@ export const getStorageAttributes = (ownerType, ownerId, storageType, storageId)
     `${prefix}/${ownerType}/${ownerId}/disk/${storageType}/${storageId}/tags`;
 export const getStorageVersions = (ownerType, ownerId, storageType, id) =>
     `${prefix}/${ownerType}/${ownerId}/disk/${storageType}/${id}/versions`;
+export const getStorageVersion = (ownerType, ownerId, storageType, id, version) =>
+    `${prefix}/${ownerType}/${ownerId}/disk/${storageType}/${id}/versions/${version}`;
+export const getStoragePermissions = (ownerType, ownerId, storageType, id) =>
+    `${prefix}/${ownerType}/${ownerId}/disk/${storageType}/${id}/permissions`;
 
 export const createFolder = (ownerType, ownerId, directory) =>
     `${prefix}/${ownerType}/${ownerId}/disk/folder/${directory}`;
@@ -26,8 +30,11 @@ export const createFolder = (ownerType, ownerId, directory) =>
 export const getOperationLogsByResource = (resourceType, resourceId) =>
     `${prefix}/${resourceType}/${resourceId}/operations/logs`;
 
-export const getCurrentUserOperationLog = `${prefix}/user/operations/logs`;
+export const getCurrentUserOperationLogs = `${prefix}/user/operations/logs`;
+export const getCurrentUserLoginLogs = `${prefix}/user/login/logs`;
+export const getCurrentUserInfo = `${prefix}/user`;
 
 export const getUsers = `${adminPrefix}/users`;
+export const getLoginLogs = `${adminPrefix}/users/login/logs`;
 export const getErrorLogs = `${adminPrefix}/system/errors`;
 
