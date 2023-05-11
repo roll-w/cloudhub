@@ -107,6 +107,7 @@ public class User implements UserDetails, AttributedUser, StorageOwner, DataItem
         return username;
     }
 
+    @Override
     public String getNickname() {
         return nickname;
     }
@@ -183,6 +184,7 @@ public class User implements UserDetails, AttributedUser, StorageOwner, DataItem
         return new Builder()
                 .setId(id)
                 .setUsername(username)
+                .setNickname(nickname)
                 .setPassword(password)
                 .setRole(role)
                 .setRegisterTime(registerTime)
@@ -312,7 +314,8 @@ public class User implements UserDetails, AttributedUser, StorageOwner, DataItem
             return new User(
                     id, username, nickname, password,
                     role, registerTime,
-                    updateTime, email, enabled, locked, accountExpired, canceled);
+                    updateTime, email, enabled, locked,
+                    accountExpired, canceled);
         }
     }
 }

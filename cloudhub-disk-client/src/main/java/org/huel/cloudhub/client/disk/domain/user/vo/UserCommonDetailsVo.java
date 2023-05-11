@@ -1,6 +1,7 @@
 package org.huel.cloudhub.client.disk.domain.user.vo;
 
 
+import org.huel.cloudhub.client.disk.domain.user.AttributedUser;
 import org.huel.cloudhub.client.disk.domain.user.Role;
 import org.huel.cloudhub.client.disk.domain.user.UserIdentity;
 
@@ -17,7 +18,26 @@ public record UserCommonDetailsVo(
         String email
 ) {
 
+    public static UserCommonDetailsVo of(AttributedUser attributedUser) {
+        if (attributedUser == null) {
+            return null;
+        }
+        String nickname = attributedUser.getNickname() == null
+                ? attributedUser.getUsername()
+                : attributedUser.getNickname();
+
+        return new UserCommonDetailsVo(
+                attributedUser.getUserId(),
+                attributedUser.getRole(),
+                attributedUser.getUsername(),
+                nickname,
+                attributedUser.getEmail()
+        );
+    }
+
     public static UserCommonDetailsVo of(UserIdentity userIdentity) {
+
+
         return new UserCommonDetailsVo(
                 userIdentity.getUserId(),
                 userIdentity.getRole(),

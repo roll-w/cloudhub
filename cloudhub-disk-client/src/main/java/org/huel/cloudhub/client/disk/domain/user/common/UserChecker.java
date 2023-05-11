@@ -41,7 +41,7 @@ public class UserChecker {
         if (StringUtils.isEmpty(password)) {
             return false;
         }
-        if (password.length() > 18 || password.length() < 3) {
+        if (password.length() > 20 || password.length() < 3) {
             return false;
         }
         Matcher matcher = sPasswordPattern.matcher(password);

@@ -20,12 +20,14 @@ public class RequestEnhanceControllerAdvice {
         if (apiContext != null && apiContext.ip() != null) {
             return new RequestMetadata(
                     apiContext.ip(),
-                    request.getHeader("User-Agent")
+                    request.getHeader("User-Agent"),
+                    apiContext.timestamp()
             );
         }
         return new RequestMetadata(
                 RequestUtils.getRemoteIpAddress(request),
-                request.getHeader("User-Agent")
+                request.getHeader("User-Agent"),
+                System.currentTimeMillis()
         );
     }
 }
