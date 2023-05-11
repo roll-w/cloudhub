@@ -6,7 +6,7 @@
                 <div class="flex ">
                     <div class="p-3 rounded-2xl hover:bg-neutral-200 hover:bg-opacity-30 transition-all ease-in"
                          role="button">
-                        <a href="/">
+                        <a>
                             <Logo/>
                         </a>
                     </div>

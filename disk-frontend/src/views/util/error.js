@@ -7,8 +7,8 @@
 export function popAdminErrorTemplate(notification, error,
                                       location = "请求错误",
                                       errorType = "请求错误") {
-    const msg = error.tip +
-        "\n信息： " + error.message
+    const msg = (error.tip || '无信息') +
+        "\n信息： " + (error.message || "无额外信息")
     notification.error({
         title: location,
         content: msg,
