@@ -1,8 +1,8 @@
 import {h} from "vue";
 import {RouterLink} from "vue-router";
 import {
-    adminIndex, adminSystemLogs, adminUserLists, adminVisualData,
-    driveFilePage, driveTagPage,
+    adminIndex, adminLoginLogs, adminOperationLogs, adminSystemLogs, adminUserLists, adminVisualData,
+    driveFilePage, driveFilePageFolder, driveTagPage,
 } from "@/router";
 
 import {NIcon} from "naive-ui";
@@ -29,6 +29,9 @@ const menuOptions = [
                     {
                         name: "个人主页",
                         key: driveFilePage,
+                        alias: [
+                            driveFilePageFolder
+                        ],
                         linked: true,
                         icon: () => {
                             return h(NIcon, {
@@ -85,6 +88,11 @@ const menuOptions = [
                         name: "用户列表",
                         key: adminUserLists,
                         linked: true
+                    },
+                    {
+                        name: "登录日志",
+                        key: adminLoginLogs,
+                        linked: true
                     }
                 ]
             },
@@ -113,12 +121,13 @@ const menuOptions = [
                 key: adminMenuSystem,
                 children: [
                     {
-                        name: "系统设置",
-                        key: 'systemSettings'
-                    },
-                    {
                         name: "系统日志",
                         key: adminSystemLogs,
+                        linked: true
+                    },
+                    {
+                        name: "操作日志",
+                        key: adminOperationLogs,
                         linked: true
                     },
                     {

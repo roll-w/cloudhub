@@ -38,11 +38,14 @@
                 重置
             </n-button>
         </n-button-group>
-        <router-link #="{ navigate, href }" :to="{name: passwordResetPage}" custom>
-            <n-a :href="href" @click="navigate">
-                忘记密码
-            </n-a>
-        </router-link>
+        <div class="pt-3">
+            <router-link #="{ navigate, href }" :to="{name: passwordResetPage}" custom>
+                <n-a :href="href" @click="navigate">
+                    忘记密码
+                </n-a>
+            </router-link>
+        </div>
+
     </n-form>
 
 </template>

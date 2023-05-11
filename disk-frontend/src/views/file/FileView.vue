@@ -1,7 +1,7 @@
 <template>
     <div>
-        <div v-if="folderInfo.storageId === 0" >
-            <FileSystemInstructions />
+        <div v-if="curDirectoryId === 0">
+            <FileSystemInstructions/>
         </div>
         <div class="flex-fill" @contextmenu="handleContextmenu">
             <div class="p-5">
@@ -280,6 +280,7 @@ const fileOptions = [
 ]
 
 const hackFileOptions = (file) => {
+    curTargetFile.value = file
     fileOptions.find(option => option.key === 'log').label = () => {
         return h(RouterLink, {
             to: {
@@ -327,10 +328,36 @@ const handleStorageClick = (e, target) => {
 
 }
 
+const curTargetFile = ref(null)
+
+
 const handleFileOptionSelect = (key) => {
     showDropdown.value = false
     showFileDropdown.value = false
 
+    const storage = curTargetFile.value
+
+    switch (key) {
+        case 'download':
+            if (storage.storageType !== 'FILE') {
+                message.error("不支持文件夹类型的下载")
+            }
+            break;
+        case 'share':
+            break;
+        case 'collect':
+            break;
+
+        case 'rename':
+            break;
+        case 'move':
+            break;
+        case 'delete':
+            break;
+            case 'log':
+        case 'permission':
+            break;
+    }
 }
 
 const handleContextmenu = (e) => {

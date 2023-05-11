@@ -3,7 +3,7 @@
         <n-breadcrumb-item>
             <span class="folder-breadcrumb"
                   @click="$router.push({name: driveFilePage})">
-                                文件
+                  文件
             </span>
         </n-breadcrumb-item>
         <n-breadcrumb-item

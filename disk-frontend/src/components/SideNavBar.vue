@@ -38,8 +38,32 @@ let routerName = router.currentRoute.value.name
 const chooseOn = ref()
 
 const calcChooseOption = () => {
+    const menus = findMenuOptionByKey(props.optionKey).menus
+    const menu = findByKeyOrAlias(routerName, menus)
+    if (menu) {
+        return menu.key
+    }
     return routerName
 }
+
+const findByKeyOrAlias = (name, menus) => {
+    if (!menus) {
+        return null
+    }
+    for (const menu of menus) {
+        if (menu.key === name || (menu.alias || []).includes(name)) {
+            return menu
+        }
+        if (!menu.children) {
+            continue
+        }
+        const child = findByKeyOrAlias(name, menu.children)
+        if (child) {
+            return child
+        }
+    }
+}
+
 
 chooseOn.value = calcChooseOption()
 

@@ -2,7 +2,8 @@
     <div class="p-5 flex flex-col items-stretch">
         <div class="flex flex-grow-1 flex-fill mb-5 mr-5">
             <n-h2>
-                <span class="text-amber-500">{{ fileInfo.name }}</span> 文件信息
+                <span class="text-amber-500">{{ fileInfo.name }}</span>
+                {{ getFileType(fileInfo.storageType) }}信息
             </n-h2>
             <div class="flex flex-fill justify-end">
                 <n-button secondary type="primary" @click="handleBack">返回</n-button>
@@ -13,7 +14,7 @@
                 <div class="text-3xl pb-2">
                     错误：{{ error.status }}
                 </div>
-                <n-alert type="error" :show-icon="false">
+                <n-alert :show-icon="false" type="error">
                     <div class="text-xl">
                         {{ error.message }}
                     </div>
@@ -69,37 +70,47 @@
                 </div>
                 <div class="pb-3">
                     <div class="text-xl mb-3">版本信息</div>
-                    <n-alert class="my-4" type="info">
-                        只有内容修改会被计入版本。如修改文件名、修改权限等操作不会被计入版本。
-                    </n-alert>
-
-                    <div>
-                        <n-table>
-                            <thead>
-                            <tr>
-                                <th>版本</th>
-                                <th>修改时间</th>
-                                <th>修改人</th>
-                                <th>操作</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <tr v-for="version in versionInfos">
-                                <td>{{ version.version }}</td>
-                                <td>{{ formatTimestamp(version.createTime) }}</td>
-                                <td>{{ version.username }}</td>
-                                <td>
-                                    <n-button-group>
-                                        <n-button secondary type="primary">查看</n-button>
-                                        <n-button secondary type="default">回退</n-button>
-                                        <n-button secondary type="error" @click="onDeleteVersion(version)">删除
-                                        </n-button>
-                                    </n-button-group>
-                                </td>
-                            </tr>
-                            </tbody>
-                        </n-table>
+                    <div v-if="fileInfo.storageType !== 'FILE'">
+                        <n-alert type="warning">
+                            <div>
+                                {{ getFileType(fileInfo.storageType) }}
+                                不支持版本管理。
+                            </div>
+                        </n-alert>
                     </div>
+                    <div v-else>
+                        <n-alert class="my-4" type="info">
+                            只有内容修改会被计入版本。如修改文件名、修改权限等操作不会被计入版本。
+                        </n-alert>
+                        <div>
+                            <n-table>
+                                <thead>
+                                <tr>
+                                    <th>版本</th>
+                                    <th>修改时间</th>
+                                    <th>修改人</th>
+                                    <th>操作</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr v-for="version in fileVersionInfos">
+                                    <td>{{ version.version }}</td>
+                                    <td>{{ formatTimestamp(version.createTime) }}</td>
+                                    <td>{{ version.username }}</td>
+                                    <td>
+                                        <n-button-group>
+                                            <n-button secondary type="primary">查看</n-button>
+                                            <n-button secondary type="default">回退</n-button>
+                                            <n-button secondary type="error" @click="onDeleteVersion(version)">删除
+                                            </n-button>
+                                        </n-button-group>
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </n-table>
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </div>
@@ -131,6 +142,7 @@ const {proxy} = getCurrentInstance()
 const fileInfo = ref({})
 const fileAttrs = ref([])
 const fileLogs = ref([])
+const fileVersionInfos = ref([])
 
 const error = ref({
     status: 0,
@@ -139,8 +151,6 @@ const error = ref({
 
 const notification = useNotification()
 const dialog = useDialog()
-
-const versionInfos = ref([])
 
 const onDeleteVersion = (versionInfo) => {
     dialog.error({
@@ -189,7 +199,7 @@ const requestFileVersion = () => {
     const config = createConfig()
     proxy.$axios.get(api.getStorageVersions(ownerType, ownerId, storageType, id), config)
         .then(res => {
-            versionInfos.value = res.data
+            fileVersionInfos.value = res.data
         }).catch(err => {
         popUserErrorTemplate(notification, err,
             '获取文件版本信息失败', '文件请求错误')
@@ -217,6 +227,9 @@ const requestFileLogs = () => {
 const requestFileInfos = () => {
     requestFileAttr()
     requestFileLogs()
+    if (fileInfo.value.storageType !== 'FILE') {
+        return
+    }
     requestFileVersion()
 }
 

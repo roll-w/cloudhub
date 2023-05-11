@@ -20,6 +20,8 @@ export const driveFilePermissionPage = "drive-file-permission-page"
 export const page404 = "page-404"
 export const driveTagPage = "drive-tag-page"
 
+export const userSettingPage = "user-setting-page"
+
 export const adminIndex = "admin-index"
 export const adminUserLists = "admin-user-lists"
 
@@ -29,6 +31,8 @@ export const adminContentTags = "admin-content-tags"
 export const adminVisualData = "admin-visual-data"
 
 export const adminSystemLogs = "admin-system-logs"
+export const adminLoginLogs = "admin-login-logs"
+export const adminOperationLogs = "admin-operation-logs"
 
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
@@ -98,6 +102,16 @@ const router = createRouter({
                     }
                 },
 
+                {
+                    path: '/user/setting',
+                    name: userSettingPage,
+                    component: () => import("@/views/user/UserSettingView.vue"),
+                    meta: {
+                        title: "用户设置",
+                        requireLogin: true
+                    }
+                },
+
             ]
         },
         {
@@ -136,12 +150,30 @@ const router = createRouter({
                 {
                     path: '/admin/system/logs',
                     name: adminSystemLogs,
-                    component: () => import("@/views/admin/system/SystemLog.vue"),
+                    component: () => import("@/views/admin/system/SystemLogs.vue"),
                     meta: {
                         title: "系统日志",
                         requireLogin: true
                     }
-                }
+                },
+                {
+                    path: '/admin/users/login/logs',
+                    name: adminLoginLogs,
+                    component: () => import("@/views/admin/system/LoginLogs.vue"),
+                    meta: {
+                        title: "用户登录日志",
+                        requireLogin: true
+                    }
+                },
+                {
+                    path: '/admin/system/operations',
+                    name: adminOperationLogs,
+                    component: () => import("@/views/admin/system/SystemLogs.vue"),
+                    meta: {
+                        title: "用户操作日志",
+                        requireLogin: true
+                    }
+                },
             ]
         },
         {
@@ -181,6 +213,14 @@ const router = createRouter({
                     component: () => import("@/views/user/PasswordResetView.vue"),
                     meta: {
                         title: "重置密码"
+                    }
+                },
+                {
+                    path: '/about',
+                    name: 'about',
+                    component: () => import("@/views/system/About.vue"),
+                    meta: {
+                        title: "关于"
                     }
                 },
                 {

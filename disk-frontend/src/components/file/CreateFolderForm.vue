@@ -8,12 +8,15 @@
             <n-form-item label="文件夹名称" path="name">
                 <n-input v-model:value="createFolderFormValue.name" placeholder="输入文件夹名称" type="text"/>
             </n-form-item>
-            <n-button-group>
-                <n-button type="primary" @click="handleCreateFolderConfirm">
-                    确认
-                </n-button>
-                <n-button secondary type="default" @click="onClickCancel()">取消</n-button>
-            </n-button-group>
+            <div class="pt-3">
+                <n-button-group>
+                    <n-button type="primary" @click="handleCreateFolderConfirm">
+                        确认
+                    </n-button>
+                    <n-button secondary type="default" @click="onClickCancel()">取消</n-button>
+                </n-button-group>
+            </div>
+
         </n-form>
     </div>
 </template>

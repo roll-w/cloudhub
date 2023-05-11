@@ -39,7 +39,7 @@ import {useUserStore} from "@/stores/user";
 import {getCurrentInstance, h, onMounted, ref} from "vue";
 import {NAvatar, NText} from "naive-ui";
 import {useSiteStore} from "@/stores/site";
-import {adminIndex, driveFilePage, index, login} from "@/router";
+import {adminIndex, driveFilePage, index, login, userSettingPage} from "@/router";
 import {MD5} from "@/util/crypto";
 import Logo from "@/components/icon/Logo.vue";
 
@@ -89,15 +89,31 @@ const userOptions = [
         key: "space",
     },
     {
-        label: "文件管理",
-        key: "article",
+        label: () => h(
+            RouterLink,
+            {
+                to: {
+                    name: driveFilePage,
+                }
+            },
+            {default: () => "文件管理"}
+        ),
+        key: "storage",
     },
     {
         key: 'header-divider',
         type: 'divider'
     },
     {
-        label: "个人设置",
+        label: () => h(
+            RouterLink,
+            {
+                to: {
+                    name: userSettingPage,
+                }
+            },
+            {default: () => "个人设置"}
+        ),
         key: "settings",
     },
     {
@@ -124,8 +140,16 @@ const adminOptions = [
         key: "space",
     },
     {
-        label: "文件管理",
-        key: "article",
+        label: () => h(
+            RouterLink,
+            {
+                to: {
+                    name: driveFilePage,
+                }
+            },
+            {default: () => "文件管理"}
+        ),
+        key: "storage",
     },
     {
         label: () => h(
@@ -144,7 +168,15 @@ const adminOptions = [
         type: 'divider'
     },
     {
-        label: "个人设置",
+        label: () => h(
+            RouterLink,
+            {
+                to: {
+                    name: userSettingPage,
+                }
+            },
+            {default: () => "个人设置"}
+        ),
         key: "settings",
     },
     {

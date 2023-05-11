@@ -99,6 +99,16 @@ const formRules = ref({
             required: true,
             message: "请输入密码",
             trigger: ["input"]
+        },
+        {
+            min: 4, max: 20,
+            message: '密码长度在 4 到 20 个字符',
+            trigger: ['input', 'blur']
+        },
+        {
+            pattern: /^[a-zA-Z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]{4,20}$/,
+            message: '密码只能包含字母、数字和特殊字符，长度在 4 到 20 个字符',
+            trigger: ['input', 'blur']
         }
     ],
     confirmPassword: [
