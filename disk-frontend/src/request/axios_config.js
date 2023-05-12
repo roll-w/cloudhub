@@ -36,6 +36,15 @@ export function createAxios(onLoginExpired = () => {
             }
             return response.data
         }, error => {
+            if (axios.isCancel(error)) {
+                return Promise.reject({
+                    tip: '请求被取消',
+                    message: '请求被取消',
+                    errorCode: 'CANCEL',
+                    status: 500
+                })
+            }
+
             console.log(error)
             if (!error.response) {
                 return Promise.reject({

@@ -1,8 +1,15 @@
 <template>
     <div class="p-5 ">
-        <n-h2>
-            <span class="text-amber-500">{{ file.name }}</span> 文件权限
-        </n-h2>
+        <div class="flex flex-grow-1 flex-fill mb-5 mr-5">
+            <n-h2>
+                <span class="text-amber-500">{{ fileInfo.name }}</span>
+                {{ getFileType(fileInfo.storageType) }}权限
+            </n-h2>
+            <div class="flex flex-fill justify-end">
+                <n-button secondary type="primary" @click="handleBack">返回</n-button>
+            </div>
+        </div>
+
         <div class="pb-4">
             <n-alert type="info">
                 基于公共权限的基础上，还可以设置对单个用户的权限，优先级高于公共权限。
@@ -12,7 +19,7 @@
             <div class="grid grid-cols-10">
                 <div class="text-gray-600 mr-3">公共权限</div>
                 <div class="col-span-9">
-                    <n-radio-group v-model:value="permit">
+                    <n-radio-group v-model:value="publicPermissionSelect">
                         <n-radio-button
                                 v-for="permission in permissions"
                                 :key="permission.value"
@@ -22,7 +29,7 @@
                     </n-radio-group>
                     <div class="pt-2 pb-4">
                         <n-alert :show-icon="false" type="default">
-                            {{ permissions.find(permission => permission.value === permit).info }}
+                            {{ (permissions.find(permission => permission.value === publicPermissionSelect) || {}).info }}
                         </n-alert>
                     </div>
                 </div>
@@ -30,6 +37,13 @@
             <div class="grid grid-cols-10">
                 <div class="text-gray-600 mr-3">用户权限</div>
                 <div class="col-span-9">
+                    <div class="pb-4">
+                        <n-alert type="info">
+                            <div>
+                                文件的创建者或所有者始终拥有完整权限，不受此处的限制。
+                            </div>
+                        </n-alert>
+                    </div>
                     <n-table striped>
                         <thead>
                         <tr>
@@ -39,9 +53,9 @@
                         </tr>
                         </thead>
                         <tbody>
-                        <tr v-for="permission in userPermissions">
-                            <td>{{ permission.username }}</td>
-                            <td>{{ permission.permission }}</td>
+                        <tr v-for="permission in userPermissionsInput">
+                            <td>{{ permission.userId }}</td>
+                            <td>{{ permission.permissions }}</td>
                             <td>
                                 <n-button-group>
                                     <n-button secondary type="primary">修改</n-button>
@@ -90,7 +104,6 @@
                     <n-button secondary type="default" @click="showUserPermissionModal = false">取消</n-button>
                 </n-button-group>
             </div>
-
         </n-modal>
     </div>
 
@@ -98,16 +111,33 @@
 
 <script setup>
 
-import {ref} from "vue";
+import {getCurrentInstance, ref} from "vue";
 import {useRouter} from "vue-router";
-import {requestFile} from "@/views/temp/files";
-import {useDialog, useMessage} from "naive-ui";
+import {useDialog, useMessage, useNotification} from "naive-ui";
+import {createConfig} from "@/request/axios_config";
+import api from "@/request/api";
+import {popUserErrorTemplate} from "@/views/util/error";
+import {driveFilePage, driveFilePageFolder} from "@/router";
+import {getFileType} from "@/views/names";
 
 const router = useRouter();
 
 const id = router.currentRoute.value.params.id;
-const file = ref(requestFile(id))
+const storageType = router.currentRoute.value.params.type;
+const ownerType = router.currentRoute.value.params.ownerType;
+const ownerId = router.currentRoute.value.params.ownerId;
 
+const {proxy} = getCurrentInstance()
+
+const fileInfo = ref({})
+const storagePermission = ref()
+
+const error = ref({
+    status: 0,
+    message: null
+})
+
+const notification = useNotification()
 const dialog = useDialog()
 const message = useMessage()
 
@@ -116,29 +146,22 @@ const usernameValue = ref()
 
 const showUserPermissionModal = ref(false)
 
-const userPermissions = ref([
-    {
-        id: 1,
-        username: 'user',
-        permission: '读取、写入',
-    }
-])
-
-const permit = ref(1)
+const userPermissionsInput = ref([])
+const publicPermissionSelect = ref()
 
 const permissions = ref([
     {
-        value: 1,
+        value: "PUBLIC",
         label: '公开读写',
         info: '所有人都可以读取和修改文件',
     },
     {
-        value: 2,
+        value: "PUBLIC_READ",
         label: '公开读私有写',
         info: '所有人都可以读取文件，但只有你可以修改文件',
     },
     {
-        value: 3,
+        value: "PRIVATE",
         label: '私有读写',
         info: '只有你可以读取和修改文件',
     },
@@ -151,37 +174,18 @@ const handleDeleteUserPermission = (id) => {
         positiveText: '确定',
         negativeText: '取消',
         onPositiveClick: () => {
-            userPermissions.value = userPermissions.value.filter(userPermission => userPermission.id !== id)
+            userPermissionsInput.value = userPermissionsInput.value.filter(userPermission =>
+                userPermission.id !== id)
         }
     })
 }
 
 const mappingPermission = (permissions) => {
-    return permissions.map(permission => {
-        if (permission === 'read') {
-            return '读取'
-        } else if (permission === 'write') {
-            return '写入'
-        }
-    })
+    return permissions
 }
 
 const handleAddUserPermission = (username, permissions = []) => {
     showUserPermissionModal.value = false
-
-    const latestId = (
-        userPermissions.value[userPermissions.value.length - 1] || {id: 0}
-    ).id
-
-    userPermissions.value.push({
-        id: latestId + 1,
-        username,
-        permission: mappingPermission(permissions).join('、')
-    })
-    resetInput()
-    console.log(userPermissions.value)
-
-    message.success('添加成功')
 }
 
 const resetInput = () => {
@@ -189,5 +193,56 @@ const resetInput = () => {
     userPermissionCheckValue.value = []
 }
 
+const handleBack = () => {
+    if (error.value.message || fileInfo.value.parentId === 0) {
+        router.push({
+            name: driveFilePage
+        })
+        return
+    }
+    router.push({
+        name: driveFilePageFolder,
+        params: {
+            folder: fileInfo.value.parentId
+        }
+    })
+}
+
+const requestGetStoragePermissions = () => {
+    const config = createConfig()
+    proxy.$axios.get(api.getStoragePermissions(ownerType, ownerId, storageType, id), config)
+        .then(res => {
+            const permissions = res.data
+            storagePermission.value = permissions
+
+            publicPermissionSelect.value = permissions.publicPermission
+            userPermissionsInput.value = permissions.userPermissions
+        }).catch(err => {
+        popUserErrorTemplate(notification, err,
+            '获取存储权限失败', '存储请求错误')
+    })
+}
+
+const requestFileInfos = () => {
+    requestGetStoragePermissions()
+}
+
+const requestFileInfo = () => {
+    const config = createConfig()
+    proxy.$axios.get(api.getStorageInfo(ownerType, ownerId, storageType, id), config)
+        .then(res => {
+            fileInfo.value = res.data
+            requestFileInfos()
+        }).catch(err => {
+            error.value = {
+                status: err.status,
+                message: err.tip
+            }
+            popUserErrorTemplate(notification, err,
+                '获取文件信息失败', '存储请求错误')
+    })
+}
+
+requestFileInfo()
 
 </script>

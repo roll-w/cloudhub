@@ -11,8 +11,10 @@ export const passwordLogin = `${prefix}/user/login/password`;
 export const logout = `${prefix}/user/logout`;
 export const register = `${prefix}/user/register`;
 
-export const getFiles = (ownerType, ownerId, directory) =>
-    `${prefix}/${ownerType}/${ownerId}/disk/folder/${directory}`;
+export const file = (ownerType, ownerId, fileId) =>
+    `${prefix}/${ownerType}/${ownerId}/disk/file/${fileId}`;
+export const uploadFile = (ownerType, ownerId, folderId) =>
+    `${prefix}/${ownerType}/${ownerId}/disk/${folderId}`;
 export const getStorageInfo = (ownerType, ownerId, storageType, storageId) =>
     `${prefix}/${ownerType}/${ownerId}/disk/${storageType}/${storageId}/info`;
 export const getStorageAttributes = (ownerType, ownerId, storageType, storageId) =>
@@ -24,7 +26,7 @@ export const getStorageVersion = (ownerType, ownerId, storageType, id, version) 
 export const getStoragePermissions = (ownerType, ownerId, storageType, id) =>
     `${prefix}/${ownerType}/${ownerId}/disk/${storageType}/${id}/permissions`;
 
-export const createFolder = (ownerType, ownerId, directory) =>
+export const folder = (ownerType, ownerId, directory) =>
     `${prefix}/${ownerType}/${ownerId}/disk/folder/${directory}`;
 
 export const getOperationLogsByResource = (resourceType, resourceId) =>

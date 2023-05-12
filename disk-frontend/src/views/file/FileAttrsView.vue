@@ -128,7 +128,7 @@ import api from "@/request/api";
 import {createConfig} from "@/request/axios_config";
 import {popUserErrorTemplate} from "@/views/util/error";
 import {getFileType} from "@/views/names";
-import {formatTimestamp} from "@/util/time";
+import {formatTimestamp} from "@/util/format";
 
 const router = useRouter();
 
