@@ -3,6 +3,7 @@ package org.huel.cloudhub.client.disk.domain.storagepermission;
 import org.huel.cloudhub.client.disk.database.DataItem;
 import org.huel.cloudhub.client.disk.domain.systembased.SystemResource;
 import org.huel.cloudhub.client.disk.domain.systembased.SystemResourceKind;
+import org.huel.cloudhub.client.disk.domain.userstorage.StorageIdentity;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageType;
 import space.lingu.light.DataColumn;
 import space.lingu.light.DataTable;
@@ -96,6 +97,13 @@ public class StoragePermission implements SystemResource, DataItem {
         return new Builder(this);
     }
 
+    public static StoragePermission defaultOf(StorageIdentity storageIdentity) {
+        return builder()
+                .setStorageId(storageIdentity.getStorageId())
+                .setStorageType(storageIdentity.getStorageType())
+                .setPermissionType(PublicPermissionType.PRIVATE)
+                .build();
+    }
     public static Builder builder() {
         return new Builder();
     }

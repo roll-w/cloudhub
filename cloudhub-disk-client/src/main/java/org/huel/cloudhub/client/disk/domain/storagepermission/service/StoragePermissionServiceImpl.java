@@ -8,18 +8,22 @@ import org.huel.cloudhub.client.disk.domain.storagepermission.PublicPermissionTy
 import org.huel.cloudhub.client.disk.domain.storagepermission.StoragePermission;
 import org.huel.cloudhub.client.disk.domain.storagepermission.StoragePermissionService;
 import org.huel.cloudhub.client.disk.domain.storagepermission.StorageUserPermission;
+import org.huel.cloudhub.client.disk.domain.storagepermission.common.StoragePermissionErrorCode;
 import org.huel.cloudhub.client.disk.domain.storagepermission.common.StoragePermissionException;
 import org.huel.cloudhub.client.disk.domain.storagepermission.dto.StoragePermissionDto;
+import org.huel.cloudhub.client.disk.domain.storagepermission.dto.StoragePermissionsInfo;
 import org.huel.cloudhub.client.disk.domain.storagepermission.repository.StoragePermissionRepository;
 import org.huel.cloudhub.client.disk.domain.storagepermission.repository.StorageUserPermissionRepository;
 import org.huel.cloudhub.client.disk.domain.userstorage.AttributedStorage;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageIdentity;
+import org.huel.cloudhub.client.disk.domain.userstorage.StorageOwner;
 import org.huel.cloudhub.client.disk.domain.userstorage.UserStorageSearchService;
 import org.huel.cloudhub.client.disk.domain.userstorage.common.StorageErrorCode;
 import org.huel.cloudhub.web.AuthErrorCode;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @author RollW
@@ -41,6 +45,16 @@ public class StoragePermissionServiceImpl implements StoragePermissionService {
     private AttributedStorage preCheckStorage(StorageIdentity storageIdentity) {
         AttributedStorage storage =
                 userStorageSearchService.findStorage(storageIdentity);
+        if (storage.isDeleted()) {
+            throw new StoragePermissionException(StorageErrorCode.ERROR_FILE_ALREADY_DELETED);
+        }
+        return storage;
+    }
+
+    private AttributedStorage preCheckStorage(StorageIdentity storageIdentity,
+                                               StorageOwner storageOwner) {
+        AttributedStorage storage =
+                userStorageSearchService.findStorage(storageIdentity, storageOwner);
         if (storage.isDeleted()) {
             throw new StoragePermissionException(StorageErrorCode.ERROR_FILE_ALREADY_DELETED);
         }
@@ -82,9 +96,13 @@ public class StoragePermissionServiceImpl implements StoragePermissionService {
     }
 
     @Override
-    public void setStoragePermission(StorageIdentity storageIdentity, Operator operator,
+    public void setStoragePermission(StorageIdentity storageIdentity,
+                                     Operator operator,
                                      List<PermissionType> permissionTypes) {
         AttributedStorage storage = preCheckStorage(storageIdentity);
+        if (operator.getOperatorId() == storage.getOwnerId()) {
+            throw new StoragePermissionException(StoragePermissionErrorCode.ERROR_PERMISSION_NOT_ALLOW_USER);
+        }
 
         StorageUserPermission storageUserPermission = storageUserPermissionRepository.getByStorageIdAndUserId(
                 storageIdentity.getStorageId(),
@@ -183,6 +201,41 @@ public class StoragePermissionServiceImpl implements StoragePermissionService {
                 operator.getOperatorId(),
                 List.of(),
                 PublicPermissionType.PRIVATE
+        );
+    }
+
+    @Override
+    public StoragePermissionsInfo getPermissionOf(
+            StorageIdentity storageIdentity) {
+        AttributedStorage storage =
+                preCheckStorage(storageIdentity);
+        return getPermissionOf(storage);
+    }
+
+    @Override
+    public StoragePermissionsInfo getPermissionOf(
+            StorageIdentity storageIdentity,
+            StorageOwner storageOwner) {
+        AttributedStorage storage =
+                preCheckStorage(storageIdentity, storageOwner);
+        return getPermissionOf(storage);
+    }
+
+    private StoragePermissionsInfo getPermissionOf(AttributedStorage storage) {
+        List<StorageUserPermission> storageUserPermissions =
+                storageUserPermissionRepository.getStorageUserPermissions(
+                        storage.getStorageId(),
+                        storage.getStorageType()
+                );
+        StoragePermission storagePermission =
+                storagePermissionRepository.getStoragePermission(
+                        storage.getStorageId(),
+                        storage.getStorageType()
+                );
+        return StoragePermissionsInfo.of(
+                storage,
+                Objects.requireNonNullElseGet(storagePermission, () -> StoragePermission.defaultOf(storage)),
+                storageUserPermissions
         );
     }
 

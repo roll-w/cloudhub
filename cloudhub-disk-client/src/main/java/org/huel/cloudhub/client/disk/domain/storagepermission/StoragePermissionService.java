@@ -4,7 +4,9 @@ import org.huel.cloudhub.client.disk.domain.operatelog.Action;
 import org.huel.cloudhub.client.disk.domain.operatelog.Operator;
 import org.huel.cloudhub.client.disk.domain.storagepermission.common.StoragePermissionException;
 import org.huel.cloudhub.client.disk.domain.storagepermission.dto.StoragePermissionDto;
+import org.huel.cloudhub.client.disk.domain.storagepermission.dto.StoragePermissionsInfo;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageIdentity;
+import org.huel.cloudhub.client.disk.domain.userstorage.StorageOwner;
 
 import java.util.List;
 
@@ -26,6 +28,11 @@ public interface StoragePermissionService {
                                  Operator operator,
                                  Action action) throws StoragePermissionException;
 
-    StoragePermissionDto getPermissionOf(StorageIdentity storage, Operator operator);
+    StoragePermissionDto getPermissionOf(StorageIdentity storage,
+                                         Operator operator);
 
+    StoragePermissionsInfo getPermissionOf(StorageIdentity storageIdentity);
+
+    StoragePermissionsInfo getPermissionOf(StorageIdentity storageIdentity,
+                                           StorageOwner storageOwner);
 }
