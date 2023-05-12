@@ -16,6 +16,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 import space.lingu.NonNull;
@@ -81,13 +82,7 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
                         request, response, filterChain);
                 return;
             }
-            UserDetails userDetails =
-                    userDetailsService.loadUserByUserId(userId);
-            if (userDetails == null) {
-                throw new AuthenticationException(
-                        AuthErrorCode.ERROR_INVALID_TOKEN
-                );
-            }
+            UserDetails userDetails = tryGetUserDetails(userId);
             String signature = userSignatureProvider.getSignature(userId);
             TokenAuthResult result = authenticationTokenService.verifyToken(
                     token,
@@ -111,6 +106,16 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
         } finally {
             ApiContextHolder.clearContext();
+        }
+    }
+
+    private UserDetails tryGetUserDetails(long id) {
+        try {
+            return userDetailsService.loadUserByUserId(id);
+        } catch (UsernameNotFoundException e) {
+            throw new AuthenticationException(
+                    AuthErrorCode.ERROR_INVALID_TOKEN
+            );
         }
     }
 
