@@ -31,6 +31,9 @@ import org.huel.cloudhub.web.HttpResponseEntity;
 import org.huel.cloudhub.web.IoErrorCode;
 import org.huel.cloudhub.web.UserErrorCode;
 import org.huel.cloudhub.web.WebCommonErrorCode;
+import org.huel.cloudhub.web.data.page.Offset;
+import org.huel.cloudhub.web.data.page.Page;
+import org.huel.cloudhub.web.data.page.Pageable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.MessageSource;
@@ -268,11 +271,21 @@ public class DiskSystemExceptionHandler {
     }
 
     @GetMapping("/api/v1/admin/system/errors")
-    public HttpResponseEntity<List<ErrorRecordVo>> getErrorRecords() {
+    public HttpResponseEntity<List<ErrorRecordVo>> getErrorRecords(Pageable pageable) {
+        Offset offset = pageable.toOffset();
+
+        List<ErrorRecordVo> errorRecordVos = errorRecords.stream()
+                .skip(offset.offset())
+                .limit(offset.limit())
+                .map(ErrorRecordVo::from)
+                .toList();
+
         return HttpResponseEntity.success(
-                errorRecords.stream()
-                        .map(ErrorRecordVo::from)
-                        .toList()
+                Page.of(
+                        offset,
+                        errorRecords.size(),
+                        errorRecordVos
+                )
         );
     }
 }

@@ -7,12 +7,15 @@ import org.huel.cloudhub.client.disk.domain.operatelog.BuiltinOperationType;
 import org.huel.cloudhub.client.disk.domain.operatelog.context.BuiltinOperate;
 import org.huel.cloudhub.client.disk.domain.user.LegalUserType;
 import org.huel.cloudhub.client.disk.domain.userstorage.AttributedStorage;
+import org.huel.cloudhub.client.disk.domain.userstorage.StorageAction;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageActionService;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageIdentity;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageOwner;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageType;
 import org.huel.cloudhub.client.disk.domain.userstorage.UserFolderService;
 import org.huel.cloudhub.client.disk.domain.userstorage.UserStorageSearchService;
+import org.huel.cloudhub.client.disk.domain.userstorage.common.StorageErrorCode;
+import org.huel.cloudhub.client.disk.domain.userstorage.common.StorageException;
 import org.huel.cloudhub.client.disk.domain.userstorage.dto.FolderStructureInfo;
 import org.huel.cloudhub.client.disk.domain.userstorage.dto.SimpleStorageIdentity;
 import org.huel.cloudhub.client.disk.domain.userstorage.dto.SimpleStorageOwner;
@@ -88,6 +91,16 @@ public class FolderController {
             @PathVariable("ownerType") String type,
             @PathVariable("ownerId") Long ownerId,
             @PathVariable("storageId") Long storageId) {
+        StorageOwner storageOwner = ParameterHelper.buildStorageOwner(ownerId, type);
+        StorageIdentity storageIdentity = new SimpleStorageIdentity(storageId, StorageType.FOLDER);
+
+        AttributedStorage storage = userStorageSearchService.findStorage(storageIdentity, storageOwner);
+        if (storage.isDeleted()) {
+            throw new StorageException(StorageErrorCode.ERROR_DIRECTORY_ALREADY_DELETED);
+        }
+        StorageAction storageAction =
+                storageActionService.openStorageAction(storage);
+        storageAction.delete();
         return HttpResponseEntity.success();
     }
 
@@ -103,6 +116,7 @@ public class FolderController {
 
         return HttpResponseEntity.success(
                 storages.stream()
+                        .filter(storage -> !storage.isDeleted())
                         .map(StorageVo::from)
                         .toList()
         );

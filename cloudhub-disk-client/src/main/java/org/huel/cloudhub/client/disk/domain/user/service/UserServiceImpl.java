@@ -115,7 +115,7 @@ public class UserServiceImpl implements  UserSignatureProvider,
     }
 
     @Override
-    public User getUser(long userId) throws UserViewException {
+    public AttributedUser getUser(long userId) throws UserViewException {
         User user = userRepository.getById(userId);
         if (user == null) {
             throw new UserViewException(UserErrorCode.ERROR_USER_NOT_EXIST);

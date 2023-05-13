@@ -55,6 +55,7 @@ public class WebSecurityConfiguration {
                 // TODO: customize accessDecisionManager
                 //.accessDecisionManager(accessDecisionManager())
                 .antMatchers("/api/{version}/auth/token/**").permitAll()
+                .antMatchers("/api/{version}/quickfire/**").permitAll()
                 .antMatchers("/api/{version}/admin/**").hasRole("ADMIN")
                 .antMatchers("/api/{version}/common/**").permitAll()
                 .antMatchers("/api/{version}/{ownerType}/{ownerId}/disk/**").hasRole("USER")
@@ -62,6 +63,7 @@ public class WebSecurityConfiguration {
                 .antMatchers("/api/{version}/user/login/**").permitAll()
                 .antMatchers("/api/{version}/user/register/**").permitAll()
                 .antMatchers("/api/{version}/user/logout/**").permitAll()
+
                 .antMatchers("/**").hasRole("USER")
                 .anyRequest().permitAll();
         security.userDetailsService(userDetailsService);

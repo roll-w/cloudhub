@@ -15,6 +15,7 @@ import org.huel.cloudhub.client.disk.domain.userstorage.UserFileStorageService;
 import org.huel.cloudhub.client.disk.domain.userstorage.UserStorageSearchService;
 import org.huel.cloudhub.client.disk.domain.userstorage.common.StorageErrorCode;
 import org.huel.cloudhub.client.disk.domain.userstorage.common.StorageException;
+import org.huel.cloudhub.client.disk.domain.userstorage.dto.FileInfo;
 import org.huel.cloudhub.client.disk.domain.userstorage.dto.FileStorageInfo;
 import org.huel.cloudhub.client.disk.domain.userstorage.dto.FolderInfo;
 import org.huel.cloudhub.client.disk.domain.userstorage.dto.FolderStructureInfo;
@@ -227,8 +228,8 @@ public class UserFileStorageServiceImpl implements UserFileStorageService, UserS
     public void downloadFile(long fileId,
                              StorageOwner storageOwner,
                              OutputStream outputStream) throws IOException {
-        UserFileStorage userFileStorage = findFile(fileId);
-        if (userFileStorage.getOwner() != storageOwner.getOwnerId()
+        FileInfo userFileStorage = findFile(fileId);
+        if (userFileStorage.getOwnerId() != storageOwner.getOwnerId()
                 || userFileStorage.getOwnerType() != storageOwner.getOwnerType()) {
             throw new StorageException(StorageErrorCode.ERROR_FILE_NOT_EXIST);
         }
@@ -238,11 +239,48 @@ public class UserFileStorageServiceImpl implements UserFileStorageService, UserS
     }
 
     @Override
+    public void downloadFile(long fileId, OutputStream outputStream) throws IOException {
+        FileInfo userFileStorage = findFile(fileId);
+        storageService.getFile(userFileStorage.getFileId(), outputStream);
+    }
+
+    @Override
+    public void downloadFile(long fileId, OutputStream outputStream, long startBytes, long endBytes) throws IOException {
+        FileInfo userFileStorage = findFile(fileId);
+        storageService.getFile(
+                userFileStorage.getFileId(),
+                outputStream,
+                startBytes,
+                endBytes
+        );
+    }
+
+    @Override
+    public void downloadFile(FileInfo fileInfo, OutputStream outputStream)
+            throws IOException {
+        storageService.getFile(
+                fileInfo.getFileId(),
+                outputStream
+        );
+    }
+
+    @Override
+    public void downloadFile(FileInfo fileInfo, OutputStream outputStream,
+                             long startBytes, long endBytes) throws IOException {
+        storageService.getFile(
+                fileInfo.getFileId(),
+                outputStream,
+                startBytes,
+                endBytes
+        );
+    }
+
+    @Override
     public void downloadFile(FileStorageInfo fileStorageInfo,
                              OutputStream outputStream) throws IOException {
-        UserFileStorage userFileStorage = findFile(fileStorageInfo);
+        FileInfo userFileStorage = findFile(fileStorageInfo);
 
-        if (userFileStorage.getOwner() != fileStorageInfo.storageOwner().getOwnerId()
+        if (userFileStorage.getOwnerId() != fileStorageInfo.storageOwner().getOwnerId()
                 || userFileStorage.getOwnerType() != fileStorageInfo.storageOwner().getOwnerType()) {
             throw new StorageException(StorageErrorCode.ERROR_FILE_NOT_EXIST);
         }
@@ -343,16 +381,16 @@ public class UserFileStorageServiceImpl implements UserFileStorageService, UserS
 
     @NonNull
     @Override
-    public UserFileStorage findFile(long fileId) throws StorageException {
+    public FileInfo findFile(long fileId) throws StorageException {
         UserFileStorage userFileStorage = userFileStorageRepository.getById(fileId);
         if (userFileStorage == null) {
             throw new StorageException(StorageErrorCode.ERROR_FILE_NOT_EXIST);
         }
-        return userFileStorage;
+        return FileInfo.from(userFileStorage);
     }
 
     @Override
-    public AttributedStorage findFile(long fileId, StorageOwner storageOwner) throws StorageException {
+    public FileInfo findFile(long fileId, StorageOwner storageOwner) throws StorageException {
         UserFileStorage userFileStorage = userFileStorageRepository.getById(
                 fileId,
                 storageOwner.getOwnerId(),
@@ -361,12 +399,12 @@ public class UserFileStorageServiceImpl implements UserFileStorageService, UserS
         if (userFileStorage == null) {
             throw new StorageException(StorageErrorCode.ERROR_FILE_NOT_EXIST);
         }
-        return userFileStorage;
+        return FileInfo.from(userFileStorage);
     }
 
     @NonNull
     @Override
-    public UserFileStorage findFile(FileStorageInfo fileStorageInfo) throws StorageException {
+    public FileInfo findFile(FileStorageInfo fileStorageInfo) throws StorageException {
         String fileName = StorageNameValidator.validate(fileStorageInfo.fileName());
 
         UserFileStorage userFileStorage = userFileStorageRepository.getById(
@@ -378,7 +416,7 @@ public class UserFileStorageServiceImpl implements UserFileStorageService, UserS
         if (userFileStorage == null) {
             throw new StorageException(StorageErrorCode.ERROR_FILE_NOT_EXIST);
         }
-        return userFileStorage;
+        return FileInfo.from(userFileStorage);
     }
 
     @Override

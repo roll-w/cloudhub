@@ -2,6 +2,7 @@ package org.huel.cloudhub.client.disk.domain.userstorage;
 
 import org.huel.cloudhub.client.disk.BaseAbility;
 import org.huel.cloudhub.client.disk.domain.userstorage.common.StorageException;
+import org.huel.cloudhub.client.disk.domain.userstorage.dto.FileInfo;
 import org.huel.cloudhub.client.disk.domain.userstorage.dto.FileStorageInfo;
 import org.huel.cloudhub.client.disk.domain.userstorage.dto.FolderStructureInfo;
 import space.lingu.NonNull;
@@ -27,13 +28,13 @@ public interface UserStorageSearchService {
     FolderStructureInfo findFolder(FileStorageInfo fileStorageInfo) throws StorageException;
 
     @NonNull
-    AttributedStorage findFile(long fileId) throws StorageException;
+    FileInfo findFile(long fileId) throws StorageException;
 
-    AttributedStorage findFile(long fileId, StorageOwner storageOwner)
+    FileInfo findFile(long fileId, StorageOwner storageOwner)
             throws StorageException;
 
     @NonNull
-    AttributedStorage findFile(FileStorageInfo fileStorageInfo) throws StorageException;
+    FileInfo findFile(FileStorageInfo fileStorageInfo) throws StorageException;
 
     // include directories
     List<AttributedStorage> listFiles(long folderId, StorageOwner storageOwner);
