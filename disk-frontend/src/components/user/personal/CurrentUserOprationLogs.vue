@@ -23,7 +23,7 @@
 import {getCurrentInstance, ref} from "vue";
 import {createConfig} from "@/request/axios_config";
 import api from "@/request/api";
-import {formatTimestamp} from "@/util/time";
+import {formatTimestamp} from "@/util/format";
 import {popUserErrorTemplate} from "@/views/util/error";
 import {useNotification} from "naive-ui";
 import {getActionName} from "@/views/names";

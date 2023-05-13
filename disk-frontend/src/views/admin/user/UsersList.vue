@@ -28,7 +28,7 @@ import {NButton, NButtonGroup, useDialog, useNotification} from "naive-ui";
 import api from "@/request/api";
 import {useUserStore} from "@/stores/user";
 import AdminBreadcrumb from "@/components/admin/AdminBreadcrumb.vue";
-import {formatTimestamp} from "@/util/time";
+import {formatTimestamp} from "@/util/format";
 import {adminUserLists} from "@/router";
 import {adminMenuUser} from "@/views/menu";
 import {useRouter} from "vue-router";

@@ -46,3 +46,34 @@ export const getActionName = (action = 'UNKNOWN') => {
             return '未知'
     }
 }
+
+export const getSystemResourceKindName = (kind = 'UNKNOWN') => {
+    switch (kind) {
+        case 'FILE':
+            return '文件'
+        case 'FOLDER':
+            return '文件夹'
+        case 'LINK':
+            return '链接'
+        case 'STORAGE_PERMISSION':
+            return '存储权限'
+        case 'VERSIONED_FILE':
+            return '版本化文件'
+        case 'VERSIONED_FOLDER':
+            return '版本化文件夹'
+        case 'STORAGE_SHARE':
+            return '存储共享'
+        case 'TAG':
+            return '标签'
+        case 'TAG_GROUP':
+            return '标签组'
+        case 'USER_SETTING':
+            return '用户设置'
+        case 'GROUP_SETTING':
+            return '组设置'
+        case 'ORGANIZATION_SETTING':
+            return '组织设置'
+        case 'UNKNOWN':
+            return '未知'
+    }
+}

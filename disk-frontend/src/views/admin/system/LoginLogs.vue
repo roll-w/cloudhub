@@ -28,7 +28,7 @@
 import {useNotification} from "naive-ui";
 import api from "@/request/api"
 import {ref, getCurrentInstance} from "vue";
-import {formatTimestamp} from "@/util/time";
+import {formatTimestamp} from "@/util/format";
 import AdminBreadcrumb from "@/components/admin/AdminBreadcrumb.vue";
 import {createConfig} from "@/request/axios_config";
 import {adminLoginLogs} from "@/router";
