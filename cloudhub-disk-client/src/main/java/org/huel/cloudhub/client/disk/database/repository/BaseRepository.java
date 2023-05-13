@@ -8,7 +8,6 @@ import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -30,10 +29,19 @@ public abstract class BaseRepository<T extends DataItem> implements CountableDao
     }
 
     public long insert(T t) {
+        if (t.getId() != null) {
+            invalidateCache(t.getId());
+        }
+
         return primaryBaseDao.insertReturns(t);
     }
 
     public long[] insert(List<T> ts) {
+        for (T t : ts) {
+            if (t.getId() != null) {
+                invalidateCache(t.getId());
+            }
+        }
         return primaryBaseDao.insertReturns(ts);
     }
 
@@ -44,14 +52,15 @@ public abstract class BaseRepository<T extends DataItem> implements CountableDao
 
     public void update(List<T> ts) {
         primaryBaseDao.update(ts);
+        cacheResult(ts);
     }
 
     public List<T> getActives() {
-        return primaryBaseDao.getActives();
+        return cacheResult(primaryBaseDao.getActives());
     }
 
     public List<T> getInactives() {
-        return primaryBaseDao.getInactives();
+        return cacheResult(primaryBaseDao.getInactives());
     }
 
     public T getById(long id) {
@@ -93,19 +102,11 @@ public abstract class BaseRepository<T extends DataItem> implements CountableDao
 
     public List<T> get() {
         List<T> ts = primaryBaseDao.get();
-        cacheResult(ts);
-        return ts;
+        return cacheResult(ts);
     }
 
     public List<T> get(Offset offset) {
-        if (offset.getSize() >= 1000) {
-            return primaryBaseDao.get(offset);
-        }
-        long[] ids = calcIds(offset);
-        if (ids.length == 0) {
-            return List.of();
-        }
-        return getByIds(Arrays.stream(ids).boxed().toList());
+        return cacheResult(primaryBaseDao.get(offset));
     }
 
     private long[] calcIds(Offset offset) {
@@ -121,6 +122,13 @@ public abstract class BaseRepository<T extends DataItem> implements CountableDao
             return;
         }
         cache.clear();
+    }
+
+    protected void invalidateCache(long id) {
+        if (cache == null) {
+            return;
+        }
+        cache.evict(id);
     }
 
     protected T cacheResult(T t) {

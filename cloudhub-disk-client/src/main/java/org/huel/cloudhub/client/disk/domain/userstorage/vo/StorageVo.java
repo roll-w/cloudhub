@@ -2,7 +2,7 @@ package org.huel.cloudhub.client.disk.domain.userstorage.vo;
 
 import org.huel.cloudhub.client.disk.domain.user.LegalUserType;
 import org.huel.cloudhub.client.disk.domain.userstorage.AttributedStorage;
-import org.huel.cloudhub.client.disk.domain.userstorage.Storage;
+import org.huel.cloudhub.client.disk.domain.userstorage.FileType;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageType;
 
 /**
@@ -13,29 +13,20 @@ public record StorageVo(
         String name,
         StorageType storageType,
         long ownerId,
-        LegalUserType legalUserType,
+        LegalUserType ownerType,
         Long parentId,
+        FileType fileType,
         long size,
         long createTime,
         long updateTime
 ) {
-    public static StorageVo from(Storage storage) {
+    public static StorageVo from(AttributedStorage storage) {
         return from(storage, 0);
     }
 
-    public static StorageVo from(Storage storage, long size) {
-        if (!(storage instanceof AttributedStorage attributedStorage)) {
-            return new StorageVo(
-                    storage.getStorageId(),
-                    storage.getName(),
-                    storage.getStorageType(),
-                    storage.getOwnerId(),
-                    storage.getOwnerType(),
-                    storage.getParentId(),
-                    size,
-                    0,
-                    0
-            );
+    public static StorageVo from(AttributedStorage storage, long size) {
+        if (storage == null) {
+            return null;
         }
 
         return new StorageVo(
@@ -45,9 +36,10 @@ public record StorageVo(
                 storage.getOwnerId(),
                 storage.getOwnerType(),
                 storage.getParentId(),
+                storage.getFileType(),
                 size,
-                attributedStorage.getCreateTime(),
-                attributedStorage.getUpdateTime()
+                storage.getCreateTime(),
+                storage.getUpdateTime()
         );
     }
 }

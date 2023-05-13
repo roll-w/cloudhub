@@ -1,5 +1,6 @@
 package org.huel.cloudhub.client.disk.domain.storage.service;
 
+import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.huel.cloudhub.client.conf.ClientConfigLoader;
 import org.huel.cloudhub.client.disk.domain.storage.DiskFileStorage;
 import org.huel.cloudhub.client.disk.domain.storage.StorageService;
@@ -7,6 +8,8 @@ import org.huel.cloudhub.client.disk.domain.storage.dto.StorageAsSize;
 import org.huel.cloudhub.client.disk.domain.storage.repository.DiskFileStorageRepository;
 import org.huel.cloudhub.client.CFSClient;
 import org.huel.cloudhub.client.FileValidation;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -23,6 +26,8 @@ public class StorageServiceImpl implements StorageService {
     private final CFSClient cfsClient;
     private final ClientConfigLoader clientConfigLoader;
 
+    private static final Logger logger = LoggerFactory.getLogger(StorageServiceImpl.class);
+
     public StorageServiceImpl(DiskFileStorageRepository diskFileStorageRepository,
                               CFSClient cfsClient,
                               ClientConfigLoader clientConfigLoader) {
@@ -35,6 +40,7 @@ public class StorageServiceImpl implements StorageService {
     public String saveFile(InputStream inputStream) throws IOException {
         FileValidation fileValidation =
                 cfsClient.uploadFile(inputStream, clientConfigLoader.getTempFilePath());
+        IOUtils.closeQuietly(inputStream);
         long time = System.currentTimeMillis();
         DiskFileStorage exist = diskFileStorageRepository.getById(fileValidation.id());
         if (exist != null) {
@@ -53,13 +59,21 @@ public class StorageServiceImpl implements StorageService {
 
     @Override
     public void getFile(String fileId, OutputStream outputStream) throws IOException {
-        cfsClient.downloadFile(outputStream, fileId);
+        boolean status = cfsClient.downloadFile(outputStream, fileId);
+        if (!status) {
+            logger.error("Download file error, fileId: {}", fileId);
+        }
     }
 
     @Override
     public void getFile(String fileId, OutputStream outputStream,
                         long startBytes, long endBytes) throws IOException {
-        cfsClient.downloadFile(outputStream, fileId, startBytes, endBytes);
+        boolean status =
+                cfsClient.downloadFile(outputStream, fileId, startBytes, endBytes);
+        if (!status) {
+            logger.error("Download file error, fileId: {}, startBytes: {}, endBytes: {}",
+                    fileId, startBytes, endBytes);
+        }
     }
 
     @Override

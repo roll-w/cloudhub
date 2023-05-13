@@ -38,4 +38,7 @@ public interface DiskFileStorageDao extends BaseDao<DiskFileStorage> {
     default String getTableName() {
         return "disk_file_storage";
     }
+
+    @Query("SELECT * FROM disk_file_storage WHERE file_id IN ({ids})")
+    List<DiskFileStorage> getByIds(List<String> ids);
 }

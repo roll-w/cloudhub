@@ -16,8 +16,14 @@ public interface OperationLogDao extends AutoPrimaryBaseDao<OperationLog> {
     @Query("SELECT * FROM operation_log WHERE operate_resource_id = {resourceId} AND resource_kind = {resourceKind}")
     List<OperationLog> getOperationLogsByResourceId(long resourceId, SystemResourceKind resourceKind);
 
-    @Query("SELECT * FROM operation_log WHERE operator = {operator}")
+    @Query("SELECT * FROM operation_log WHERE operate_resource_id = {resourceId} AND resource_kind = {resourceKind} LIMIT {offset.limit()} OFFSET {offset.offset()}")
+    List<OperationLog> getOperationLogsByResourceId(long resourceId, SystemResourceKind resourceKind, Offset offset);
+
+    @Query("SELECT * FROM operation_log WHERE operator = {operator} ORDER BY id DESC")
     List<OperationLog> getByOperator(long operator);
+
+    @Query("SELECT * FROM operation_log WHERE operator = {operator} ORDER BY id DESC LIMIT {offset.limit()} OFFSET {offset.offset()}")
+    List<OperationLog> getByOperator(long operator, Offset offset);
 
     @Override
     @Query("SELECT * FROM operation_log WHERE deleted = 0")
@@ -32,7 +38,7 @@ public interface OperationLogDao extends AutoPrimaryBaseDao<OperationLog> {
     OperationLog getById(long id);
 
     @Override
-    @Query("SELECT * FROM operation_log WHERE id IN ({ids})")
+    @Query("SELECT * FROM operation_log WHERE id IN ({ids}) ORDER BY id DESC")
     List<OperationLog> getByIds(List<Long> ids);
 
     @Override
@@ -44,15 +50,21 @@ public interface OperationLogDao extends AutoPrimaryBaseDao<OperationLog> {
     int countInactive();
 
     @Override
-    @Query("SELECT * FROM operation_log")
+    @Query("SELECT * FROM operation_log ORDER BY id DESC")
     List<OperationLog> get();
 
     @Override
     @Query("SELECT COUNT(*) FROM operation_log")
     int count();
 
+    @Query("SELECT COUNT(*) FROM operation_log WHERE operator = {operator} ORDER BY id DESC")
+    int count(long operator);
+
+    @Query("SELECT COUNT(*) FROM operation_log WHERE operate_resource_id = {resourceId} AND resource_kind = {resourceKind} ORDER BY id DESC")
+    int count(long resourceId, SystemResourceKind resourceKind);
+
     @Override
-    @Query("SELECT * FROM operation_log LIMIT {offset.limit()} OFFSET {offset.offset()}")
+    @Query("SELECT * FROM operation_log ORDER BY id DESC LIMIT {offset.limit()} OFFSET {offset.offset()}")
     List<OperationLog> get(Offset offset);
 
     @Override

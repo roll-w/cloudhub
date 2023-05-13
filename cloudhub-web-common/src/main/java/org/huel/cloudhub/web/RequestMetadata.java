@@ -5,6 +5,7 @@ package org.huel.cloudhub.web;
  */
 public record RequestMetadata(
         String ip,
-        String userAgent
+        String userAgent,
+        long timestamp
 ) {
 }
