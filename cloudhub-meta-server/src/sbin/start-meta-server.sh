@@ -38,7 +38,7 @@ if [ "$PARAM" = "-daemon" ]; then
   echo "Starting cloudhub-meta-server......[OK]"
   echo "Log file is in the $LOG_DIR, you can use the command 'tail -f $LOG_DIR/cloudhub-meta-server.out' to trace the log."
   exit 0
-else
+elif [ "$PARAM" != "" ]; then
   echo ""
   echo "Starting cloudhub-meta-server failed."
   echo "Unknown parameter $PARAM"
