@@ -3,8 +3,6 @@ package org.huel.cloudhub.file.server;
 import io.grpc.Server;
 import org.huel.cloudhub.file.conf.FileConfigLoader;
 import org.huel.cloudhub.file.server.service.heartbeat.HeartbeatTask;
-import org.springframework.boot.ApplicationArguments;
-import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -24,7 +22,7 @@ import java.util.Map;
  */
 @SpringBootApplication
 @ConfigurationPropertiesScan
-public class FileServerApplication implements ApplicationRunner {
+public class FileServerApplication {
     private final Server server;
 
     public FileServerApplication(Server server,
@@ -51,7 +49,7 @@ public class FileServerApplication implements ApplicationRunner {
         application.setDefaultProperties(overrideProperties);
         application.setWebApplicationType(WebApplicationType.NONE);
 
-        sContext = application.run(args);
+        sContext = application.run();
     }
 
     private static final String LOG_FILE = "cloudhub-file-server.out";
@@ -108,9 +106,4 @@ public class FileServerApplication implements ApplicationRunner {
     public void stopServer() {
         server.shutdown();
     }
-
-    @Override
-    public void run(ApplicationArguments args) {
-    }
-
 }
