@@ -10,7 +10,27 @@
 
             <div class="p-3 flex flex-grow items-center justify-end justify-items-end ">
                 <n-space class="flex items-center">
-                    <n-button @click="handleThemeClick">切换主题</n-button>
+                    <div v-if="userStore.isLogin" class="pr-3">
+                        <n-space>
+                            <n-button circle quaternary @click="$router.push({name: driveFileSearchPage})">
+                                <n-icon size="22">
+                                    <SearchFilled/>
+                                </n-icon>
+                            </n-button>
+                            <n-dropdown :on-clickoutside="handleClickOutside"
+                                        :options="uploadViewOptions"
+                                        :show="showTransferDropdown"
+                                        trigger="manual">
+                                <n-button circle quaternary @click="handleUploadClick">
+                                    <n-icon size="22">
+                                        <ArrowUpload16Filled/>
+                                    </n-icon>
+                                </n-button>
+                            </n-dropdown>
+                        </n-space>
+                    </div>
+
+                    <n-button secondary @click="handleThemeClick">切换主题</n-button>
                     <div class="h-9 self-center">
                         <n-button v-if="!userStore.isLogin" @click="handleLoginClick">登录</n-button>
                         <n-dropdown v-else :options="options" trigger="hover" @select="handleSelect">
@@ -39,9 +59,13 @@ import {useUserStore} from "@/stores/user";
 import {getCurrentInstance, h, onMounted, ref} from "vue";
 import {NAvatar, NText} from "naive-ui";
 import {useSiteStore} from "@/stores/site";
-import {adminIndex, driveFilePage, index, login, userSettingPage} from "@/router";
+import {adminIndex, driveFilePage, driveFileSearchPage, index, login, userSettingPage} from "@/router";
 import {MD5} from "@/util/crypto";
 import Logo from "@/components/icon/Logo.vue";
+import {useFileStore} from "@/stores/files";
+import ArrowUpload16Filled from "@/components/icon/ArrowUpload16Filled.vue";
+import SearchFilled from "@/components/icon/SearchFilled.vue";
+import FileUploadStateView from "@/components/file/FileUploadStateView.vue";
 
 
 const router = useRouter();
@@ -49,9 +73,13 @@ const {proxy} = getCurrentInstance()
 
 const siteStore = useSiteStore()
 const userStore = useUserStore()
+const fileStore = useFileStore()
 
 const username = ref('')
 const role = ref(userStore.user.role)
+
+const showTransferDropdown = ref(false)
+const transferDropdownOutside = ref(false)
 
 const hexUserColor = ref('#2876c7')
 
@@ -70,6 +98,16 @@ onMounted(() => {
 })
 
 loadUsername(userStore.userData.nickname || userStore.user.username, userStore.user.role)
+
+const uploadViewOptions = [
+    {
+        key: "header",
+        type: "render",
+        render: () => {
+            return h(FileUploadStateView, {})
+        }
+    }
+]
 
 const userOptions = [
     {
@@ -189,18 +227,6 @@ const options = ref(userOptions)
 
 const updatesOption = (options, username, id) => {
     options[0].label = username
-    // options[1].label = () => h(
-    //     RouterLink,
-    //     {
-    //       to: {
-    //         name: userPage,
-    //         params: {
-    //           userId: id
-    //         }
-    //       }
-    //     },
-    //     {default: () => "个人主页"}
-    // )
     return options
 }
 
@@ -228,6 +254,24 @@ userStore.$subscribe((mutation, state) => {
     chooseOptions(state.user.username, state.user.role, state.user.id)
 })
 
+
+const handleUploadClick = () => {
+    if (transferDropdownOutside.value) {
+        transferDropdownOutside.value = false
+        return
+    }
+    showTransferDropdown.value = true
+}
+
+const handleClickOutside = () => {
+    fileStore.hideTransferDialog()
+    showTransferDropdown.value = false
+    transferDropdownOutside.value = true
+}
+
+fileStore.$subscribe((mutation, state) => {
+    showTransferDropdown.value = state.showUploadDialog
+})
 
 const handleLogoClick = () => {
     router.push({
@@ -297,7 +341,4 @@ const handleThemeClick = () => {
     display: flex;
     align-items: center;
 }
-</style>
-
-<style>
 </style>

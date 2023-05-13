@@ -8,9 +8,15 @@
                 <div class="text-xl py-2">
                     <FolderBreadcrumbs :folder-info="folderInfo"/>
                 </div>
-                <div v-if="getCheckedList().length">
-                    已选择共 {{ getCheckedList().length }} 个文件
+                <div>
+                    <span v-if="!getCheckedList().length">
+                        共 {{ files.length }} 项
+                    </span>
+                    <span v-else>
+                        已选择 {{ getCheckedList().length }} 项
+                    </span>
                 </div>
+
                 <div class="min-h-[400px]">
                     <n-spin :show="loading" size="large">
                         <div v-if="files.length" class="flex flex-fill flex-wrap transition-all duration-300">
@@ -71,36 +77,20 @@
                  preset="dialog"
                  title="上传文件"
                  transform-origin="center">
-            <div>
-                <n-form-item label="文件">
-                    <n-upload
-                            :default-upload="false"
-                            :directory="false"
-                            :directory-dnd="false"
-                            :max="1"
-                            :multiple="false"
-                            name="file">
-                        <n-upload-dragger>
-                            <n-text class="text-xl">
-                                点击或者拖动文件到此区域来上传
-                            </n-text>
-                        </n-upload-dragger>
-                    </n-upload>
-                </n-form-item>
-                <div class="pb-3">
-                    如果你不想按照原文件名上传，可以在这里修改文件名
-                </div>
-                <n-form-item label="文件名">
-                    <n-input placeholder="修改文件名，不填写即为原文件名" type="text"/>
-                </n-form-item>
-
-                <n-button-group>
-                    <n-button type="primary" @click="showUploadFileModal = false">
-                        确认
-                    </n-button>
-                    <n-button secondary type="default" @click="showUploadFileModal = false">取消</n-button>
-                </n-button-group>
-            </div>
+            <FileUploadForm
+                    :folder-id="curDirectoryId"
+                    :on-after-action="() => {
+                            loading = true
+                            refresh()
+                        }"
+                    :on-before-action="() => {
+                        fileStore.showTransferDialog()
+                    }"
+                    :on-click-cancel="() => showUploadFileModal = false"
+                    :on-click-confirm="() => showUploadFileModal = false"
+                    :owner-id="userStore.user.id"
+                    owner-type="user"
+            />
         </n-modal>
 
         <n-modal v-model:show="showCreateFolderModal"
@@ -109,17 +99,39 @@
                  title="新建文件夹"
                  transform-origin="center">
             <div>
-                <CreateFolderForm
+                <FolderCreateForm
                         :folder-id="curDirectoryId"
-                        :on-after-create-folder="() => {
+                        :on-after-action="() => {
                             loading = false
                             refresh()
                         }"
-                        :on-before-create-folder="() => loading = true"
+                        :on-before-action="() => loading = true"
                         :on-click-cancel="() => showCreateFolderModal = false"
                         :on-click-confirm="() => showCreateFolderModal = false"
+                        :owner-id="userStore.user.id"
+                        owner-type="user"
                 />
             </div>
+        </n-modal>
+
+        <n-modal v-model:show="showRenameStorageModal"
+                 :show-icon="false"
+                 :title="'重命名 ' + curTargetFile.name"
+                 preset="dialog"
+                 transform-origin="center">
+            <StorageRenameForm
+                    :on-after-rename="() => {
+                    loading = false
+                }"
+                    :on-before-rename="() => loading = true"
+                    :on-click-cancel="() => showRenameStorageModal = false"
+                    :on-click-confirm="() => showRenameStorageModal = false"
+                    :owner-id="userStore.user.id"
+                    :storage-id="curTargetFile.storageId"
+                    :storage-type="curTargetFile.storageType"
+                    owner-type="user"
+            />
+
         </n-modal>
     </div>
 </template>
@@ -127,24 +139,30 @@
 <script setup>
 import {h, ref, getCurrentInstance} from "vue";
 import {RouterLink, useRouter} from "vue-router";
-import {NIcon, useNotification, useMessage} from "naive-ui";
+import {NIcon, useNotification, useMessage, useDialog} from "naive-ui";
 import Folder24Regular from "@/components/icon/Folder24Regular.vue";
 import FileIcon from "@/components/icon/FileIcon.vue";
 import RefreshRound from "@/components/icon/RefreshRound.vue";
 import FileComponent from "@/components/file/FileComponent.vue";
-import {driveFileAttrsPage, driveFilePage, driveFilePageFolder, driveFilePermissionPage} from "@/router";
+import {driveFileAttrsPage, driveFilePageFolder, driveFilePermissionPage} from "@/router";
 import {createConfig} from "@/request/axios_config";
 import {useUserStore} from "@/stores/user";
 import api from "@/request/api";
 import {popUserErrorTemplate} from "@/views/util/error";
-import CreateFolderForm from "@/components/file/CreateFolderForm.vue";
 import FolderBreadcrumbs from "@/components/file/FolderBreadcrumbs.vue";
 import FileSystemInstructions from "@/components/file/FileSystemInstructions.vue";
+import StorageRenameForm from "@/components/file/forms/StorageRenameForm.vue";
+import FolderCreateForm from "@/components/file/forms/FolderCreateForm.vue";
+import FileUploadForm from "@/components/file/forms/FileUploadForm.vue";
+import {useFileStore} from "@/stores/files";
+import {getFileType} from "@/views/names";
 
 const {proxy} = getCurrentInstance()
 const notification = useNotification()
 const message = useMessage()
+const dialog = useDialog()
 const userStore = useUserStore()
+const fileStore = useFileStore()
 const router = useRouter()
 
 const files = ref([])
@@ -182,6 +200,7 @@ const showDropdown = ref(false)
 const showFileDropdown = ref(false)
 const showUploadFileModal = ref(false)
 const showCreateFolderModal = ref(false)
+const showRenameStorageModal = ref(false)
 
 let showFileDropdownState = false
 let lastTarget = null
@@ -328,8 +347,42 @@ const handleStorageClick = (e, target) => {
 
 }
 
-const curTargetFile = ref(null)
+const curTargetFile = ref({})
 
+const handleStorageDelete = (storage) => {
+    const config = createConfig()
+
+    proxy.$axios.delete(
+        api.storage('user', userStore.user.id,
+            storage.storageType.toLowerCase(), storage.storageId), config).then(() => {
+        message.success('删除成功')
+        refresh()
+    }).catch((err) => {
+        popUserErrorTemplate(notification, err, '删除文件失败')
+    })
+}
+
+const handleFileDownload = (storage) => {
+    const token = userStore.getToken
+    window.open(api.storage('user', userStore.user.id,
+        storage.storageType.toLowerCase(), storage.storageId) + '?token=' + token)
+    // const config = createConfig()
+    // config.responseType = 'blob'
+    // proxy.$axios.get(
+    //     api.storage('user', userStore.user.id,
+    //         storage.storageType.toLowerCase(), storage.storageId), config).then((res) => {
+    //     const url = window.URL.createObjectURL(new Blob([res.data]))
+    //     const link = document.createElement('a')
+    //     link.style.display = 'none'
+    //     link.href = url
+    //     link.setAttribute('download', storage.name)
+    //     document.body.appendChild(link)
+    //     link.click()
+    //     document.body.removeChild(link)
+    // }).catch((err) => {
+    //     popUserErrorTemplate(notification, err, '下载文件失败')
+    // })
+}
 
 const handleFileOptionSelect = (key) => {
     showDropdown.value = false
@@ -341,20 +394,31 @@ const handleFileOptionSelect = (key) => {
         case 'download':
             if (storage.storageType !== 'FILE') {
                 message.error("不支持文件夹类型的下载")
+                return
             }
+            handleFileDownload(storage)
             break;
         case 'share':
             break;
         case 'collect':
             break;
-
         case 'rename':
+            showRenameStorageModal.value = true
             break;
         case 'move':
             break;
         case 'delete':
+            dialog.error({
+                title: '删除' + getFileType(storage.storageType),
+                content: '确定删除文件 ' + storage.name + ' 吗？',
+                positiveText: '删除',
+                negativeText: '取消',
+                onPositiveClick: () => {
+                    handleStorageDelete(storage)
+                }
+            })
             break;
-            case 'log':
+        case 'log':
         case 'permission':
             break;
     }
@@ -435,7 +499,7 @@ const requestFilesBy = (directoryId) => {
     const config = createConfig()
     loading.value = true
     proxy.$axios.get(
-        api.getFiles('user', userStore.user.id, directoryId), config)
+        api.folder('user', userStore.user.id, directoryId), config)
         .then(res => {
             files.value = res.data
             remappingStates()

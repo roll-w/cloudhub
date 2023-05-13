@@ -217,7 +217,6 @@ const requestFileLogs = () => {
                 )
             )
             fileLogs.value = res.data
-            console.log(res.data)
         }).catch(err => {
         popUserErrorTemplate(notification, err,
             '获取文件日志信息失败', '文件请求错误')

@@ -31,11 +31,16 @@ export function createAxios(onLoginExpired = () => {
     instance.interceptors.response.use(
         response => {
             console.log(response)
+            if (!(response.data || {}).errorCode) {
+                return {}
+            }
+
             if (response.data.errorCode !== '00000') {
                 return Promise.reject(response.data)
             }
             return response.data
         }, error => {
+            console.log(error)
             if (axios.isCancel(error)) {
                 return Promise.reject({
                     tip: '请求被取消',
@@ -45,7 +50,6 @@ export function createAxios(onLoginExpired = () => {
                 })
             }
 
-            console.log(error)
             if (!error.response) {
                 return Promise.reject({
                     tip: '网络错误',

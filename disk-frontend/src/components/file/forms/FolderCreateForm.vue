@@ -16,7 +16,6 @@
                     <n-button secondary type="default" @click="onClickCancel()">取消</n-button>
                 </n-button-group>
             </div>
-
         </n-form>
     </div>
 </template>
@@ -40,12 +39,12 @@ const props = defineProps({
         default: () => {
         }
     },
-    onBeforeCreateFolder: {
+    onBeforeAction: {
         type: Function,
         default: () => {
         }
     },
-    onAfterCreateFolder: {
+    onAfterAction: {
         type: Function,
         default: () => {
         }
@@ -53,11 +52,18 @@ const props = defineProps({
     folderId: {
         type: Number,
         default: 0
+    },
+    ownerType: {
+        type: String,
+        default: 'user'
+    },
+    ownerId: {
+        type: Number,
+        required: true
     }
 })
 
 const {proxy} = getCurrentInstance()
-const userStore = useUserStore()
 const notification = useNotification()
 const message = useMessage()
 
@@ -76,7 +82,7 @@ const createFolderFormRules = ref({
         {
             min: 1,
             max: 80,
-            message: '长度在 1 到 50 个字符间',
+            message: '长度在 1 到 80 个字符间',
             trigger: 'blur'
         }
     ]
@@ -85,13 +91,13 @@ const createFolderFormRules = ref({
 const createFolder = (name) => {
     const config = createConfig()
     proxy.$axios.post(
-        api.createFolder('user', userStore.user.id, props.folderId), {
+        api.folder(props.ownerType, props.ownerId, props.folderId), {
             name: name
         },
         config
     ).then(res => {
         message.success('创建文件夹成功')
-        props.onAfterCreateFolder()
+        props.onAfterAction()
     }).catch(err => {
         popUserErrorTemplate(notification, err,
             '创建文件夹失败', '文件夹请求失败')
@@ -101,7 +107,7 @@ const createFolder = (name) => {
 
 const handleCreateFolderConfirm = () => {
     createFolderForm.value.validate().then(() => {
-        props.onBeforeCreateFolder()
+        props.onBeforeAction()
         props.onClickConfirm()
         createFolder(createFolderFormValue.value.name)
     })

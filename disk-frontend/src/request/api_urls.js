@@ -28,6 +28,8 @@ export const getStoragePermissions = (ownerType, ownerId, storageType, id) =>
 
 export const folder = (ownerType, ownerId, directory) =>
     `${prefix}/${ownerType}/${ownerId}/disk/folder/${directory}`;
+export const storage = (ownerType, ownerId, storageType, id) =>
+    `${prefix}/${ownerType}/${ownerId}/disk/${storageType}/${id}`;
 
 export const getOperationLogsByResource = (resourceType, resourceId) =>
     `${prefix}/${resourceType}/${resourceId}/operations/logs`;

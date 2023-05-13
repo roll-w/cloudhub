@@ -57,7 +57,7 @@ import Folder24Regular from "@/components/icon/Folder24Regular.vue";
 import FileIcon from "@/components/icon/FileIcon.vue";
 import MoreHorizonal20Regular from "@/components/icon/MoreHorizonal20Regular.vue";
 import {NIcon} from "naive-ui";
-import {formatTimestamp} from "@/util/time";
+import {formatTimestamp} from "@/util/format";
 
 const props = defineProps({
     file: {

@@ -17,3 +17,20 @@ export function formatTimestamp(timestamp) {
         : date.getSeconds()
     return Y + M + D + h + m + s
 }
+
+const gb = 1024 * 1024 * 1024
+const mb = 1024 * 1024
+const kb = 1024
+
+export const formatFileSize = (sizeInBytes) => {
+    if (sizeInBytes < kb) {
+        return sizeInBytes + ' B'
+    }
+    if (sizeInBytes < mb) {
+        return (sizeInBytes / kb).toFixed(2) + ' KB'
+    }
+    if (sizeInBytes < gb) {
+        return (sizeInBytes / mb).toFixed(2) + ' MB'
+    }
+    return (sizeInBytes / gb).toFixed(2) + ' GB'
+}
