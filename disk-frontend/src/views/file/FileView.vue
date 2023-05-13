@@ -24,8 +24,8 @@
                                            v-model:checked="checkedState[i]"
                                            :file="file"
                                            :onClickMoreOptions="handleClickMoreOptions"
-                                           @contextmenu="handleFileOptionContextMenu($event, file)"
-                                           @dblclick="handleStorageClick($event, file)"/>
+                                           @click="handleStorageClick($event, file)"
+                                           @contextmenu="handleFileOptionContextMenu($event, file)"/>
                         </div>
                         <div v-else class="w-100 h-100 flex flex-col flex-fill content-center justify-center">
                             <div class="self-center">
@@ -93,6 +93,26 @@
             />
         </n-modal>
 
+        <n-modal v-model:show="showFilePreviewModal"
+                 :show-icon="false"
+                 preset="card"
+                 style="width: 100vw; height: 100vh"
+                 class="w-full h-full"
+                 :title="curTargetFile.name + ' 预览'">
+            <div class="p-5">
+                <div>
+                    <n-alert type="warning">
+                        当前文件预览功能仅支持图片、文本、音频、视频文件，其他文件请下载后打开。
+                    </n-alert>
+                </div>
+                <div class="pt-3">
+                    <FilePreviewer
+                            :file="curTargetFile"
+                    />
+                </div>
+            </div>
+        </n-modal>
+
         <n-modal v-model:show="showCreateFolderModal"
                  :show-icon="false"
                  preset="dialog"
@@ -156,6 +176,7 @@ import FolderCreateForm from "@/components/file/forms/FolderCreateForm.vue";
 import FileUploadForm from "@/components/file/forms/FileUploadForm.vue";
 import {useFileStore} from "@/stores/files";
 import {getFileType} from "@/views/names";
+import FilePreviewer from "@/components/file/FilePreviewer.vue";
 
 const {proxy} = getCurrentInstance()
 const notification = useNotification()
@@ -200,6 +221,7 @@ const showDropdown = ref(false)
 const showFileDropdown = ref(false)
 const showUploadFileModal = ref(false)
 const showCreateFolderModal = ref(false)
+const showFilePreviewModal = ref(false)
 const showRenameStorageModal = ref(false)
 
 let showFileDropdownState = false
@@ -332,6 +354,8 @@ const hackFileOptions = (file) => {
     }
 }
 
+const previewableTypes = ['IMAGE', 'TEXT', 'PDF', 'VIDEO', 'AUDIO', 'DOCUMENT']
+
 const handleStorageClick = (e, target) => {
     if (target.storageType === 'FOLDER') {
         router.push({
@@ -343,6 +367,12 @@ const handleStorageClick = (e, target) => {
         })
         return
     }
+    if (previewableTypes.includes(target.fileType)) {
+        curTargetFile.value = target
+        showFilePreviewModal.value = true
+        return
+    }
+
     message.warning('暂不支持预览此类型文件')
 
 }
@@ -363,25 +393,15 @@ const handleStorageDelete = (storage) => {
 }
 
 const handleFileDownload = (storage) => {
-    const token = userStore.getToken
-    window.open(api.storage('user', userStore.user.id,
-        storage.storageType.toLowerCase(), storage.storageId) + '?token=' + token)
-    // const config = createConfig()
-    // config.responseType = 'blob'
-    // proxy.$axios.get(
-    //     api.storage('user', userStore.user.id,
-    //         storage.storageType.toLowerCase(), storage.storageId), config).then((res) => {
-    //     const url = window.URL.createObjectURL(new Blob([res.data]))
-    //     const link = document.createElement('a')
-    //     link.style.display = 'none'
-    //     link.href = url
-    //     link.setAttribute('download', storage.name)
-    //     document.body.appendChild(link)
-    //     link.click()
-    //     document.body.removeChild(link)
-    // }).catch((err) => {
-    //     popUserErrorTemplate(notification, err, '下载文件失败')
-    // })
+    const config = createConfig()
+    proxy.$axios.post(
+        api.fileToken('user', userStore.user.id, storage.storageId), null, config).then((res) => {
+        const token = res.data
+        const url = api.quickfire(token)
+        window.open(url, '_self')
+    }).catch((err) => {
+        popUserErrorTemplate(notification, err, '下载文件失败')
+    })
 }
 
 const handleFileOptionSelect = (key) => {

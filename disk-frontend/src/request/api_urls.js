@@ -13,6 +13,8 @@ export const register = `${prefix}/user/register`;
 
 export const file = (ownerType, ownerId, fileId) =>
     `${prefix}/${ownerType}/${ownerId}/disk/file/${fileId}`;
+export const fileToken = (ownerType, ownerId, fileId) =>
+    `${prefix}/${ownerType}/${ownerId}/disk/file/${fileId}/token`;
 export const uploadFile = (ownerType, ownerId, folderId) =>
     `${prefix}/${ownerType}/${ownerId}/disk/${folderId}`;
 export const getStorageInfo = (ownerType, ownerId, storageType, storageId) =>
@@ -30,9 +32,14 @@ export const folder = (ownerType, ownerId, directory) =>
     `${prefix}/${ownerType}/${ownerId}/disk/folder/${directory}`;
 export const storage = (ownerType, ownerId, storageType, id) =>
     `${prefix}/${ownerType}/${ownerId}/disk/${storageType}/${id}`;
+export const quickfire = (token) =>
+    `${prefix}/quickfire/disk/${token}`;
 
 export const getOperationLogsByResource = (resourceType, resourceId) =>
     `${prefix}/${resourceType}/${resourceId}/operations/logs`;
+
+export const getOperationLogsAdmin =
+    `${adminPrefix}/operations/logs`;
 
 export const getCurrentUserOperationLogs = `${prefix}/user/operations/logs`;
 export const getCurrentUserLoginLogs = `${prefix}/user/login/logs`;

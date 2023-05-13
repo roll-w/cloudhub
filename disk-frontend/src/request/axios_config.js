@@ -1,6 +1,5 @@
 import axios from 'axios'
 import {useUserStore} from "@/stores/user";
-import {useRouter} from "vue-router";
 
 axios.defaults.withCredentials = true
 
@@ -32,7 +31,7 @@ export function createAxios(onLoginExpired = () => {
         response => {
             console.log(response)
             if (!(response.data || {}).errorCode) {
-                return {}
+                return response
             }
 
             if (response.data.errorCode !== '00000') {

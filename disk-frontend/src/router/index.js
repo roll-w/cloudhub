@@ -168,9 +168,9 @@ const router = createRouter({
                 {
                     path: '/admin/system/operations',
                     name: adminOperationLogs,
-                    component: () => import("@/views/admin/system/SystemLogs.vue"),
+                    component: () => import("@/views/admin/system/OperationLogs.vue"),
                     meta: {
-                        title: "用户操作日志",
+                        title: "系统操作日志",
                         requireLogin: true
                     }
                 },

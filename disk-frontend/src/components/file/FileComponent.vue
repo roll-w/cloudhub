@@ -10,9 +10,12 @@
           fileMenuShowState || checkedState ? 'opacity-100' : 'opacity-0']">
             <n-checkbox
                 v-model:checked="checkedState"
+                @dblclick="preventDefault"
+                @click="stopPropagation"
                 @update:checked="$emit('update:checked', checkedState)"/>
             <div class="pl-3 flex flex-fill justify-end">
-                <n-button circle @click="onClickMoreOptions($event, file)">
+                <n-button circle @click="handleMoreOptionsClick($event, file)"
+                          @dblclick="preventDefault">
                     <template #icon>
                         <n-icon size="20">
                             <MoreHorizonal20Regular/>
@@ -83,5 +86,18 @@ const emits = defineEmits([
 const fileMenuShowState = ref(false)
 const checkedState = ref(props.checked)
 
+const handleMoreOptionsClick = (event, file) => {
+    event.stopPropagation()
+    props.onClickMoreOptions(event, file)
+}
+
+const preventDefault = (event) => {
+    event.preventDefault()
+    event.stopPropagation()
+}
+
+const stopPropagation = (event) => {
+    event.stopPropagation()
+}
 
 </script>

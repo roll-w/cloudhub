@@ -126,7 +126,7 @@ const menuOptions = [
                         linked: true
                     },
                     {
-                        name: "操作日志",
+                        name: "系统操作日志",
                         key: adminOperationLogs,
                         linked: true
                     },
