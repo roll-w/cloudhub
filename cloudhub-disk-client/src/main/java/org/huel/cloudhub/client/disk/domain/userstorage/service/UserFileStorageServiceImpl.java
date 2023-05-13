@@ -21,6 +21,7 @@ import org.huel.cloudhub.client.disk.domain.userstorage.dto.FolderStructureInfo;
 import org.huel.cloudhub.client.disk.domain.userstorage.dto.StorageAttr;
 import org.huel.cloudhub.client.disk.domain.userstorage.repository.UserFolderRepository;
 import org.huel.cloudhub.client.disk.domain.userstorage.repository.UserFileStorageRepository;
+import org.huel.cloudhub.client.disk.domain.userstorage.util.StorageNameValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -54,8 +55,10 @@ public class UserFileStorageServiceImpl implements UserFileStorageService, UserS
     }
 
     @Override
-    public AttributedStorage createFolder(String folderName, long parentId,
+    public AttributedStorage createFolder(String folderNameParam, long parentId,
                                           StorageOwner storageOwner) throws StorageException {
+        String folderName = StorageNameValidator.validate(folderNameParam);
+
         UserFolder exist = userFolderRepository.getByName(
                 folderName, parentId,
                 storageOwner.getOwnerId(),
@@ -117,6 +120,7 @@ public class UserFileStorageServiceImpl implements UserFileStorageService, UserS
     public AttributedStorage uploadFile(FileStorageInfo fileStorageInfo,
                                         FileStreamInfo fileStreamInfo) throws IOException {
         String cfsFileId = storageService.saveFile(fileStreamInfo.inputStream());
+        String fileName = StorageNameValidator.validate(fileStorageInfo.fileName());
 
         checkDirectoryState(fileStorageInfo.folderId(), fileStorageInfo.storageOwner());
 
@@ -124,7 +128,7 @@ public class UserFileStorageServiceImpl implements UserFileStorageService, UserS
                 fileStorageInfo.storageOwner().getOwnerId(),
                 fileStorageInfo.storageOwner().getOwnerType(),
                 fileStorageInfo.folderId(),
-                fileStorageInfo.fileName()
+                fileName
         );
 
         long time = System.currentTimeMillis();
@@ -133,7 +137,7 @@ public class UserFileStorageServiceImpl implements UserFileStorageService, UserS
                     .setFileId(cfsFileId)
                     .setFileCategory(fileStreamInfo.fileType())
                     .setMimeType(fileStreamInfo.mimeType())
-                    .setName(fileStorageInfo.fileName())
+                    .setName(fileName)
                     .setOwner(fileStorageInfo.storageOwner().getOwnerId())
                     .setOwnerType(fileStorageInfo.storageOwner().getOwnerType())
                     .setFolderId(fileStorageInfo.folderId())
@@ -154,7 +158,7 @@ public class UserFileStorageServiceImpl implements UserFileStorageService, UserS
             return updatedStorage;
         }
 
-        if (existUserFileStorage.getFileId().equals(cfsFileId)) {
+        if (existUserFileStorage.getFileId().equals(cfsFileId) && !existUserFileStorage.isDeleted()) {
             return existUserFileStorage;
         }
 
@@ -164,7 +168,7 @@ public class UserFileStorageServiceImpl implements UserFileStorageService, UserS
                 .setFileId(cfsFileId)
                 .setFileCategory(fileStreamInfo.fileType())
                 .setMimeType(fileStreamInfo.mimeType())
-                .setName(fileStorageInfo.fileName())
+                .setName(fileName)
                 .build();
         userFileStorageRepository.update(updatedStorage);
         OperationContextHolder.getContext()
@@ -307,8 +311,10 @@ public class UserFileStorageServiceImpl implements UserFileStorageService, UserS
     @NonNull
     @Override
     public FolderStructureInfo findFolder(FileStorageInfo fileStorageInfo) throws StorageException {
+        String folderName = StorageNameValidator.validate(fileStorageInfo.fileName());
+
         UserFolder userFolder = userFolderRepository.getByName(
-                fileStorageInfo.fileName(),
+                folderName,
                 fileStorageInfo.folderId(),
                 fileStorageInfo.storageOwner().getOwnerId(),
                 fileStorageInfo.storageOwner().getOwnerType()
@@ -361,11 +367,13 @@ public class UserFileStorageServiceImpl implements UserFileStorageService, UserS
     @NonNull
     @Override
     public UserFileStorage findFile(FileStorageInfo fileStorageInfo) throws StorageException {
+        String fileName = StorageNameValidator.validate(fileStorageInfo.fileName());
+
         UserFileStorage userFileStorage = userFileStorageRepository.getById(
                 fileStorageInfo.storageOwner().getOwnerId(),
                 fileStorageInfo.storageOwner().getOwnerType(),
                 fileStorageInfo.folderId(),
-                fileStorageInfo.fileName()
+                fileName
         );
         if (userFileStorage == null) {
             throw new StorageException(StorageErrorCode.ERROR_FILE_NOT_EXIST);
