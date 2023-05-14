@@ -1,12 +1,26 @@
 import {h} from "vue";
 import {RouterLink} from "vue-router";
 import {
-    adminIndex, adminLoginLogs, adminOperationLogs, adminSystemLogs, adminUserLists, adminVisualData,
-    driveFilePage, driveFilePageFolder, driveTagPage,
+    adminIndex,
+    adminLoginLogs,
+    adminOperationLogs,
+    adminSystemLogs,
+    adminUserLists,
+    adminVisualData,
+    driveFilePage,
+    driveFilePageFolder,
+    driveFilePageTypeAudio,
+    driveFilePageTypeDocument,
+    driveFilePageTypeImage,
+    driveFilePageTypeVideo,
+    driveTagPage,
 } from "@/router";
 
 import {NIcon} from "naive-ui";
 import FileIcon from "@/components/icon/FileIcon.vue";
+import ImageOutlined from "@/components/icon/ImageOutlined.vue";
+import AudioFileOutlined from "@/components/icon/AudioFileOutlined.vue";
+import VideoFileOutlined from "@/components/icon/VideoFileOutlined.vue";
 
 export const keyUser = "user"
 export const keyAdmin = "admin"
@@ -32,6 +46,54 @@ const menuOptions = [
                         alias: [
                             driveFilePageFolder
                         ],
+                        linked: true,
+                        icon: () => {
+                            return h(NIcon, {
+                                class: "text-2xl"
+                            }, {
+                                default: () => h(FileIcon)
+                            })
+                        }
+                    },
+                    {
+                        name: "图片",
+                        key: driveFilePageTypeImage,
+                        linked: true,
+                        icon: () => {
+                            return h(NIcon, {
+                                class: "text-2xl"
+                            }, {
+                                default: () => h(ImageOutlined)
+                            })
+                        }
+                    },
+                    {
+                        name: "视频",
+                        key: driveFilePageTypeVideo,
+                        linked: true,
+                        icon: () => {
+                            return h(NIcon, {
+                                class: "text-2xl"
+                            }, {
+                                default: () => h(VideoFileOutlined)
+                            })
+                        }
+                    },
+                    {
+                        name: "音频",
+                        key: driveFilePageTypeAudio,
+                        linked: true,
+                        icon: () => {
+                            return h(NIcon, {
+                                class: "text-2xl"
+                            }, {
+                                default: () => h(AudioFileOutlined)
+                            })
+                        }
+                    },
+                    {
+                        name: "文档",
+                        key: driveFilePageTypeDocument,
                         linked: true,
                         icon: () => {
                             return h(NIcon, {

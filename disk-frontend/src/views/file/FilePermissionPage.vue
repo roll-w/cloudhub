@@ -117,7 +117,13 @@ import {useDialog, useMessage, useNotification} from "naive-ui";
 import {createConfig} from "@/request/axios_config";
 import api from "@/request/api";
 import {popUserErrorTemplate} from "@/views/util/error";
-import {driveFilePage, driveFilePageFolder} from "@/router";
+import {
+    driveFilePage,
+    driveFilePageFolder,
+    driveFilePageTypeAudio, driveFilePageTypeDocument,
+    driveFilePageTypeImage,
+    driveFilePageTypeVideo
+} from "@/router";
 import {getFileType} from "@/views/names";
 
 const router = useRouter();
@@ -180,10 +186,6 @@ const handleDeleteUserPermission = (id) => {
     })
 }
 
-const mappingPermission = (permissions) => {
-    return permissions
-}
-
 const handleAddUserPermission = (username, permissions = []) => {
     showUserPermissionModal.value = false
 }
@@ -193,7 +195,33 @@ const resetInput = () => {
     userPermissionCheckValue.value = []
 }
 
+const urlSource = (source) => {
+    switch (source) {
+        case 'audio':
+            return driveFilePageTypeAudio
+        case 'video':
+            return driveFilePageTypeVideo
+        case 'image':
+            return driveFilePageTypeImage
+        case 'document':
+            return driveFilePageTypeDocument
+        default:
+            return driveFilePage
+    }
+}
+
 const handleBack = () => {
+    const refer = router.currentRoute.value.query.refer
+    const source = router.currentRoute.value.query.source
+    if (refer === 'type' && source) {
+        const url = urlSource(source)
+        router.push({
+            name: url
+        })
+        return;
+    }
+
+
     if (error.value.message || fileInfo.value.parentId === 0) {
         router.push({
             name: driveFilePage

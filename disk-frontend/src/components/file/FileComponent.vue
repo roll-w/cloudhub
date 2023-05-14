@@ -2,6 +2,7 @@
     <div class="flex h-58 flex-col items-center p-6 cursor-pointer
              rounded-2xl transition-all duration-300
              ease-in-out w-[220px]
+             dark:bg-gray-800 dark:hover:bg-gray-700
              hover:bg-gray-100 hover:bg-opacity-50 m-2"
          @mouseenter="fileMenuShowState = true"
          @mouseleave="fileMenuShowState = false"
@@ -9,10 +10,10 @@
         <div :class="['w-100 flex justify-start transition-all duration-300 items-start align-baseline ',
           fileMenuShowState || checkedState ? 'opacity-100' : 'opacity-0']">
             <n-checkbox
-                v-model:checked="checkedState"
-                @dblclick="preventDefault"
-                @click="stopPropagation"
-                @update:checked="$emit('update:checked', checkedState)"/>
+                    v-model:checked="checkedState"
+                    @click="stopPropagation"
+                    @dblclick="preventDefault"
+                    @update:checked="$emit('update:checked', checkedState)"/>
             <div class="pl-3 flex flex-fill justify-end">
                 <n-button circle @click="handleMoreOptionsClick($event, file)"
                           @dblclick="preventDefault">
@@ -27,7 +28,16 @@
 
         <div class="px-5 pb-3">
             <n-icon v-if="file.storageType === 'FOLDER' " size="80">
-                <Folder24Regular/>
+                <Folder24Regular />
+            </n-icon>
+            <n-icon v-else-if="file.fileType === 'IMAGE'" size="80">
+                <ImageOutlined/>
+            </n-icon>
+            <n-icon v-else-if="file.fileType === 'AUDIO'" size="80">
+                <AudioFileOutlined/>
+            </n-icon>
+            <n-icon v-else-if="file.fileType === 'VIDEO'" size="80">
+                <VideoFileOutlined/>
             </n-icon>
             <n-icon v-else size="80">
                 <FileIcon/>
@@ -61,6 +71,10 @@ import FileIcon from "@/components/icon/FileIcon.vue";
 import MoreHorizonal20Regular from "@/components/icon/MoreHorizonal20Regular.vue";
 import {NIcon} from "naive-ui";
 import {formatTimestamp} from "@/util/format";
+import ImageOutlined from "@/components/icon/ImageOutlined.vue";
+import AudioFileOutlined from "@/components/icon/AudioFileOutlined.vue";
+import VideoFileOutlined from "@/components/icon/VideoFileOutlined.vue";
+
 
 const props = defineProps({
     file: {

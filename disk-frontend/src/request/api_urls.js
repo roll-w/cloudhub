@@ -13,6 +13,8 @@ export const register = `${prefix}/user/register`;
 
 export const file = (ownerType, ownerId, fileId) =>
     `${prefix}/${ownerType}/${ownerId}/disk/file/${fileId}`;
+export const fileType = (ownerType, ownerId, fileType) =>
+    `${prefix}/${ownerType}/${ownerId}/disk/file/category/${fileType}`;
 export const fileToken = (ownerType, ownerId, fileId) =>
     `${prefix}/${ownerType}/${ownerId}/disk/file/${fileId}/token`;
 export const uploadFile = (ownerType, ownerId, folderId) =>
@@ -32,6 +34,11 @@ export const folder = (ownerType, ownerId, directory) =>
     `${prefix}/${ownerType}/${ownerId}/disk/folder/${directory}`;
 export const storage = (ownerType, ownerId, storageType, id) =>
     `${prefix}/${ownerType}/${ownerId}/disk/${storageType}/${id}`;
+export const storageName = (ownerType, ownerId, storageType, id) =>
+    `${prefix}/${ownerType}/${ownerId}/disk/${storageType}/${id}/info/name`;
+export const storageParent = (ownerType, ownerId, storageType, id) =>
+    `${prefix}/${ownerType}/${ownerId}/disk/${storageType}/${id}/info/parent`;
+
 export const quickfire = (token) =>
     `${prefix}/quickfire/disk/${token}`;
 

@@ -5,8 +5,11 @@
         </div>
         <div class="flex-fill" @contextmenu="handleContextmenu">
             <div class="p-5">
-                <div class="text-xl py-2">
+                <div v-if="!nowOpenType" class="text-xl py-2">
                     <FolderBreadcrumbs :folder-info="folderInfo"/>
+                </div>
+                <div v-else class="text-xl py-2">
+                    {{ getFileType(nowOpenType.toUpperCase()) }}
                 </div>
                 <div>
                     <span v-if="!getCheckedList().length">
@@ -31,10 +34,11 @@
                             <div class="self-center">
                                 <n-empty description="暂无文件">
                                     <template #extra>
-                                        <n-button-group>
+                                        <n-button-group v-if="!nowOpenType">
                                             <n-space size="medium">
-                                                <n-button secondary size="large" type="primary"
-                                                          @click="showCreateFolderModal = true">
+                                                <n-button
+                                                        secondary size="large" type="primary"
+                                                        @click="showCreateFolderModal = true">
                                                     新建文件夹
                                                 </n-button>
                                                 <n-button secondary size="large" type="primary"
@@ -95,10 +99,10 @@
 
         <n-modal v-model:show="showFilePreviewModal"
                  :show-icon="false"
-                 preset="card"
-                 style="width: 100vw; height: 100vh"
+                 :title="curTargetFile.name + ' 预览'"
                  class="w-full h-full"
-                 :title="curTargetFile.name + ' 预览'">
+                 preset="card"
+                 style="width: 100vw; height: 100vh">
             <div class="p-5">
                 <div>
                     <n-alert type="warning">
@@ -140,10 +144,10 @@
                  preset="dialog"
                  transform-origin="center">
             <StorageRenameForm
-                    :on-after-rename="() => {
+                    :on-after-action="() => {
                     loading = false
                 }"
-                    :on-before-rename="() => loading = true"
+                    :on-before-action="() => loading = true"
                     :on-click-cancel="() => showRenameStorageModal = false"
                     :on-click-confirm="() => showRenameStorageModal = false"
                     :owner-id="userStore.user.id"
@@ -151,20 +155,43 @@
                     :storage-type="curTargetFile.storageType"
                     owner-type="user"
             />
-
         </n-modal>
+
+
+        <n-modal v-model:show="showShareStorageModal"
+                 :show-icon="false"
+                 :title="'分享 ' + curTargetFile.name"
+                 preset="dialog"
+                 transform-origin="center">
+            <StorageShareForm
+                    :on-click-cancel="() => showShareStorageModal = false"
+                    :on-click-confirm="() => showShareStorageModal = false"
+                    :owner-id="userStore.user.id"
+                    :storage-id="curTargetFile.storageId"
+                    :storage-type="curTargetFile.storageType"
+                    owner-type="user"
+            />
+        </n-modal>
+
+        <FileViewToolbar :checked-list="getCheckedList()"/>
+
     </div>
 </template>
 
 <script setup>
 import {h, ref, getCurrentInstance} from "vue";
 import {RouterLink, useRouter} from "vue-router";
-import {NIcon, useNotification, useMessage, useDialog} from "naive-ui";
-import Folder24Regular from "@/components/icon/Folder24Regular.vue";
-import FileIcon from "@/components/icon/FileIcon.vue";
-import RefreshRound from "@/components/icon/RefreshRound.vue";
+import {useNotification, useMessage, useDialog} from "naive-ui";
 import FileComponent from "@/components/file/FileComponent.vue";
-import {driveFileAttrsPage, driveFilePageFolder, driveFilePermissionPage} from "@/router";
+import {
+    driveFileAttrsPage,
+    driveFilePageFolder,
+    driveFilePageTypeAudio,
+    driveFilePageTypeDocument,
+    driveFilePageTypeImage,
+    driveFilePageTypeVideo,
+    driveFilePermissionPage
+} from "@/router";
 import {createConfig} from "@/request/axios_config";
 import {useUserStore} from "@/stores/user";
 import api from "@/request/api";
@@ -177,6 +204,9 @@ import FileUploadForm from "@/components/file/forms/FileUploadForm.vue";
 import {useFileStore} from "@/stores/files";
 import {getFileType} from "@/views/names";
 import FilePreviewer from "@/components/file/FilePreviewer.vue";
+import FileViewToolbar from "@/components/file/FileViewToolbar.vue";
+import {options, getFileViewMenuOptions} from "@/views/file/options";
+import StorageShareForm from "@/components/file/forms/StorageShareForm.vue";
 
 const {proxy} = getCurrentInstance()
 const notification = useNotification()
@@ -185,6 +215,8 @@ const dialog = useDialog()
 const userStore = useUserStore()
 const fileStore = useFileStore()
 const router = useRouter()
+
+const routeName = router.currentRoute.value.name
 
 const files = ref([])
 const fileMenuShowState = ref([])
@@ -223,52 +255,38 @@ const showUploadFileModal = ref(false)
 const showCreateFolderModal = ref(false)
 const showFilePreviewModal = ref(false)
 const showRenameStorageModal = ref(false)
+const showShareStorageModal = ref(false)
 
 let showFileDropdownState = false
 let lastTarget = null
 
-const curDirectoryId = router.currentRoute.value.params.folder || 0
+const getNowOpenType = () => {
+    switch (routeName) {
+        case driveFilePageTypeImage:
+            return "image"
+        case driveFilePageTypeVideo:
+            return "video"
+        case driveFilePageTypeAudio:
+            return "audio"
+        case driveFilePageTypeDocument:
+            return "document"
+        default:
+            return null
+    }
+}
 
-const menuOptions = [
-    {
-        label: "新建文件夹",
-        key: "folder",
-        icon() {
-            return h(NIcon, null, {
-                default: () => h(Folder24Regular)
-            })
-        },
-    },
-    {
-        label: "上传文件",
-        key: "upload",
-        icon() {
-            return h(NIcon, null, {
-                default: () => h(FileIcon)
-            })
-        },
-    },
-    {
-        key: 'header-divider',
-        type: 'divider'
-    },
-    {
-        label: "刷新",
-        key: "refresh",
-        icon() {
-            return h(NIcon, null, {
-                default: () => h(RefreshRound)
-            })
-        },
-    },
-    {
-        label: "排序",
-        key: "sort",
-        icon() {
-            return "S"
-        },
-    },
-];
+const nowOpenType = getNowOpenType()
+
+const getCurrentFolderId = () => {
+    if (nowOpenType) {
+        return -1
+    }
+    return router.currentRoute.value.params.folder || 0
+}
+
+const curDirectoryId = getCurrentFolderId()
+
+const menuOptions = getFileViewMenuOptions(nowOpenType)
 
 const fileOptions = [
     {
@@ -322,6 +340,11 @@ const fileOptions = [
 
 const hackFileOptions = (file) => {
     curTargetFile.value = file
+
+    const queryParams = nowOpenType ? {
+        refer: 'type', source: nowOpenType
+    } : {}
+
     fileOptions.find(option => option.key === 'log').label = () => {
         return h(RouterLink, {
             to: {
@@ -332,6 +355,7 @@ const hackFileOptions = (file) => {
                     id: file.storageId,
                     type: file.storageType.toLowerCase()
                 },
+                query: queryParams
             },
         }, {
             default: () => '属性与日志'
@@ -347,6 +371,7 @@ const hackFileOptions = (file) => {
                     id: file.storageId,
                     type: file.storageType.toLowerCase()
                 },
+                query: queryParams
             },
         }, {
             default: () => '权限'
@@ -374,7 +399,6 @@ const handleStorageClick = (e, target) => {
     }
 
     message.warning('暂不支持预览此类型文件')
-
 }
 
 const curTargetFile = ref({})
@@ -419,6 +443,7 @@ const handleFileOptionSelect = (key) => {
             handleFileDownload(storage)
             break;
         case 'share':
+            showShareStorageModal.value = true
             break;
         case 'collect':
             break;
@@ -472,18 +497,18 @@ const handleMenuSelect = (key) => {
     showFileDropdown.value = false;
 
     switch (key) {
-        case 'folder':
+        case options.folder:
             showCreateFolderModal.value = true
             break;
-        case 'upload':
+        case options.upload:
             showUploadFileModal.value = true
             break;
         case 'uploadFolder':
             break;
-        case 'refresh':
+        case options.refresh:
             refresh()
             break;
-        case 'sort':
+        case options.sort:
             break;
         default:
             break;
@@ -515,7 +540,7 @@ const handleClickMoreOptions = (e, target) => {
     yRef.value = e.clientY
 }
 
-const requestFilesBy = (directoryId) => {
+const requestFilesByFolder = (directoryId) => {
     const config = createConfig()
     loading.value = true
     proxy.$axios.get(
@@ -530,6 +555,23 @@ const requestFilesBy = (directoryId) => {
                 '获取文件列表失败', '文件请求失败')
         })
 }
+
+const requestFilesByType = (type) => {
+    const config = createConfig()
+    loading.value = true
+    proxy.$axios.get(
+        api.fileType('user', userStore.user.id, type), config)
+        .then(res => {
+            files.value = res.data
+            remappingStates()
+            loading.value = false
+        })
+        .catch(err => {
+            popUserErrorTemplate(notification, err,
+                '获取文件列表失败', '文件请求失败')
+        })
+}
+
 
 const requestFolderInfo = () => {
     const config = createConfig()
@@ -547,8 +589,12 @@ const requestFolderInfo = () => {
 
 
 const refresh = () => {
+    if (nowOpenType) {
+        requestFilesByType(nowOpenType)
+        return
+    }
     requestFolderInfo()
-    requestFilesBy(curDirectoryId)
+    requestFilesByFolder(curDirectoryId)
 }
 
 refresh()

@@ -1,14 +1,22 @@
 <template>
     <div>
         <div v-if="file.fileType === 'IMAGE'">
-            <img :src="url" alt="预览" class="frame object-contain rounded-md">
+            <div class="frame">
+                <n-image
+                        :img-props="{class: 'h-[70vh] m-auto w-auto'}"
+
+                        :src="url"
+                        :theme-overrides="themeOverrides"
+                        class="h-[70vh] m-auto w-full" object-fit="contain"/>
+            </div>
+
         </div>
         <div v-else-if="file.fileType === 'TEXT'">
             <div class="frame border border-neutral-200 rounded-md">
                 <n-scrollbar class="frame">
-                    <n-code class="whitespace-pre-wrap "
-                            show-line-numbers
-                            :code="text" word-wrap/>
+                    <n-code :code="text"
+                            class="whitespace-pre-wrap "
+                            show-line-numbers word-wrap/>
                 </n-scrollbar>
             </div>
 
@@ -17,7 +25,7 @@
             <iframe :src="url" class="frame rounded-md" width="auto"></iframe>
         </div>
         <div v-else-if="file.fileType === 'AUDIO'">
-            <audio :src="url" controls class="m-auto"/>
+            <audio :src="url" class="m-auto" controls/>
         </div>
         <div v-else-if="file.fileType === 'VIDEO'">
             <video :src="url" class="frame rounded-md" controls></video>
@@ -35,6 +43,7 @@
 import api from "@/request/api";
 import {useUserStore} from "@/stores/user";
 import {getCurrentInstance, ref} from "vue";
+import {useThemeVars} from "naive-ui";
 
 const {proxy} = getCurrentInstance()
 
@@ -64,6 +73,15 @@ const isPdf = () => {
     return props.file.name.toLowerCase().endsWith('.pdf')
 }
 
+const {popoverColor, boxShadow2, textColor2, borderRadius} = useThemeVars().value;
+
+const themeOverrides = {
+    toolbarColor: popoverColor,
+    toolbarBoxShadow: boxShadow2,
+    toolbarIconColor: textColor2,
+    toolbarBorderRadius: borderRadius,
+};
+
 </script>
 
 <style scoped>
@@ -73,4 +91,10 @@ const isPdf = () => {
     height: 70vh;
 }
 
+</style>
+
+<style>
+.n-base-icon {
+    width: auto !important;
+}
 </style>

@@ -47,7 +47,8 @@
                                 </n-table>
                             </div>
                             <div class="py-3 self-end justify-end flex-fill">标记错误？
-                                <n-button secondary type="primary">重新标记</n-button>
+                                <n-button secondary type="primary" @click="showFileRelabelAttrsModal = true">重新标记
+                                </n-button>
                             </div>
                         </div>
                     </div>
@@ -114,6 +115,24 @@
                 </div>
             </div>
         </div>
+
+        <n-modal
+                v-model:show="showFileRelabelAttrsModal"
+                :show-icon="false"
+                preset="dialog"
+                title="重新标记属性"
+                transform-origin="center">
+            <div>
+                <FileAttrsRelableForm
+                        :attributes="fileAttrs"
+                        :owner-id="fileInfo.ownerId"
+                        :owner-type="fileInfo.ownerType"
+                        :storage-id="fileInfo.storageId"
+                        :storage-type="fileInfo.storageType"
+                />
+            </div>
+        </n-modal>
+
     </div>
 
 </template>
@@ -123,12 +142,20 @@
 import {useRouter} from "vue-router";
 import {useDialog, useNotification} from "naive-ui";
 import {getCurrentInstance, ref} from "vue";
-import {driveFilePage, driveFilePageFolder} from "@/router";
+import {
+    driveFilePage,
+    driveFilePageFolder,
+    driveFilePageTypeAudio,
+    driveFilePageTypeDocument,
+    driveFilePageTypeImage,
+    driveFilePageTypeVideo
+} from "@/router";
 import api from "@/request/api";
 import {createConfig} from "@/request/axios_config";
 import {popUserErrorTemplate} from "@/views/util/error";
 import {getFileType} from "@/views/names";
 import {formatTimestamp} from "@/util/format";
+import FileAttrsRelableForm from "@/components/file/forms/FileAttrsRelableForm.vue";
 
 const router = useRouter();
 
@@ -138,6 +165,8 @@ const ownerType = router.currentRoute.value.params.ownerType;
 const ownerId = router.currentRoute.value.params.ownerId;
 
 const {proxy} = getCurrentInstance()
+
+const showFileRelabelAttrsModal = ref(false)
 
 const fileInfo = ref({})
 const fileAttrs = ref([])
@@ -163,7 +192,33 @@ const onDeleteVersion = (versionInfo) => {
     })
 }
 
+const urlSource = (source) => {
+    switch (source) {
+        case 'audio':
+            return driveFilePageTypeAudio
+        case 'video':
+            return driveFilePageTypeVideo
+        case 'image':
+            return driveFilePageTypeImage
+        case 'document':
+            return driveFilePageTypeDocument
+        default:
+            return driveFilePage
+    }
+}
+
 const handleBack = () => {
+    const refer = router.currentRoute.value.query.refer
+    const source = router.currentRoute.value.query.source
+    if (refer === 'type' && source) {
+        const url = urlSource(source)
+        router.push({
+            name: url
+        })
+        return;
+    }
+
+
     if (error.value.message || fileInfo.value.parentId === 0) {
         router.push({
             name: driveFilePage
@@ -185,6 +240,7 @@ const requestFileAttr = () => {
             const index = res.data.findIndex(item => item.name === 'fileType')
             if (index >= 0) {
                 res.data[index].name = '文件类型'
+                res.data[index].dataType = 'fileType'
                 res.data[index].value = getFileType(res.data[0].value)
             }
             fileAttrs.value = res.data
