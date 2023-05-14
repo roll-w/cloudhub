@@ -22,33 +22,16 @@
             <n-h2 class="pl-2">
                 系统快捷入口
             </n-h2>
-            <n-grid cols="3" x-gap="10" y-gap="10">
-                <n-gi v-for="option in systemEntries">
-                    <n-card :bordered="false" embedded>
-                            <div class="flex py-3 text-2xl items-center">
-                            <div class="text-amber-500">
-                                {{ option.name }}
-                            </div>
-                            <div class="flex flex-fill items-center h-12 justify-end justify-items-stretch">
-                                <div class="select-none text-xl transition-all duration-150
-                                    font-semibold font-sans
-                                    cursor-pointer
-                                    hover:text-4xl hover:text-amber-500
-                                    text-neutral-400 ease-in">
-                                    &gt;
-                                </div>
-                            </div>
-                        </div>
-                    </n-card>
-                </n-gi>
-            </n-grid>
-
+            <AdminFastEntries :entries="systemEntries" />
         </div>
 
     </div>
 </template>
 
 <script setup>
+import {adminLoginLogs, adminOperationLogs, adminSystemLogs, adminUserLists} from "@/router";
+import AdminFastEntries from "@/components/admin/AdminFastEntries.vue";
+
 const dataOptions = [
     {
         name: "文件数量",
@@ -82,18 +65,27 @@ const dataOptions = [
 
 const systemEntries = [
     {
-        name: "文件管理",
+        name: "存储管理",
     },
     {
         name: "用户管理",
+        route: adminUserLists
     },
     {
-        name: "部门管理",
+        name: "登录日志",
+        route: adminLoginLogs
     },
     {
-        name: "文件服务器管理",
+        name: "标签管理",
     },
-
+    {
+        name: "操作日志",
+        route: adminOperationLogs
+    },
+    {
+        name: "系统日志",
+        route: adminSystemLogs
+    }
 ]
 
 </script>

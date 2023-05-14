@@ -1,7 +1,11 @@
 <template>
   <n-breadcrumb>
     <n-breadcrumb-item @click="$router.push({name: adminIndex})">
-      系统
+        <n-dropdown :options="adminMenuOptions">
+            <div>
+                系统
+            </div>
+        </n-dropdown>
     </n-breadcrumb-item>
     <n-breadcrumb-item :clickable="false">
       <n-dropdown :options="menuOptions">
@@ -19,7 +23,7 @@
 <script setup>
 import {adminIndex} from "@/router";
 import {
-    convertsToNMenuOptions,
+    convertsToNMenuOptions, findMenuOptionByKey,
     keyAdmin,
     requestMenusByName
 } from "@/views/menu";
@@ -41,9 +45,13 @@ const properties = defineProps({
   }
 })
 
+const adminMenu = findMenuOptionByKey(keyAdmin)
+
 const menu = requestMenusByName(keyAdmin, properties.menu)
 const current = menu.children.find(it => it.key === properties.location)
 const children = [...menu.children]
 const menuOptions = convertsToNMenuOptions(children)
+
+const adminMenuOptions = convertsToNMenuOptions(adminMenu.menus)
 
 </script>
