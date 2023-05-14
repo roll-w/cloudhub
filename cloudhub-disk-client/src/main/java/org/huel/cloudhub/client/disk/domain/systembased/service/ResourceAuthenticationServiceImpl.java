@@ -1,6 +1,7 @@
 package org.huel.cloudhub.client.disk.domain.systembased.service;
 
 import org.huel.cloudhub.client.disk.domain.authentication.AuthenticationException;
+import org.huel.cloudhub.client.disk.domain.operatelog.Action;
 import org.huel.cloudhub.client.disk.domain.operatelog.Operator;
 import org.huel.cloudhub.client.disk.domain.systembased.SimpleSystemAuthentication;
 import org.huel.cloudhub.client.disk.domain.systembased.SystemAuthentication;
@@ -63,7 +64,7 @@ public class ResourceAuthenticationServiceImpl implements SystemResourceAuthenti
         @NonNull
         @Override
         public SystemAuthentication authentication(SystemResource systemResource,
-                                                   Operator operator) {
+                                                   Operator operator, Action action) {
             return new SimpleSystemAuthentication(systemResource, operator, true);
         }
     }

@@ -1,5 +1,6 @@
 package org.huel.cloudhub.client.disk.domain.systembased;
 
+import org.huel.cloudhub.client.disk.domain.operatelog.Action;
 import org.huel.cloudhub.client.disk.domain.operatelog.Operator;
 import space.lingu.NonNull;
 
@@ -11,5 +12,5 @@ public interface SystemResourceAuthenticationProvider {
 
     @NonNull
     SystemAuthentication authentication(SystemResource systemResource,
-                                        Operator operator);
+                                        Operator operator, Action action);
 }
