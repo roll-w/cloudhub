@@ -33,6 +33,9 @@
 <script setup>
 import {getCurrentInstance, ref} from "vue";
 import {useMessage, useNotification} from "naive-ui";
+import {createConfig} from "@/request/axios_config";
+import api from "@/request/api";
+import {popUserErrorTemplate} from "@/views/util/error";
 
 const {proxy} = getCurrentInstance()
 const notification = useNotification()
@@ -113,7 +116,17 @@ const handleConfirm = () => {
 
 const requestRename = () => {
     props.onBeforeAction()
-    props.onAfterAction()
+    const config = createConfig()
+    proxy.$axios.put(api.storageName(props.ownerType, props.ownerId, props.storageType, props.storageId), {
+        name: formValue.value.name
+    }, config).then(response => {
+        message.success('重命名成功')
+        props.onAfterAction()
+    }).catch(error => {
+        props.onAfterAction()
+        popUserErrorTemplate(notification, error, '重命名失败')
+    })
+
 }
 
 </script>
