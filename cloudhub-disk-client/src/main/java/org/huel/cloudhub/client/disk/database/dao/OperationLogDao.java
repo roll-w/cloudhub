@@ -13,10 +13,10 @@ import java.util.List;
  */
 @Dao
 public interface OperationLogDao extends AutoPrimaryBaseDao<OperationLog> {
-    @Query("SELECT * FROM operation_log WHERE operate_resource_id = {resourceId} AND resource_kind = {resourceKind}")
+    @Query("SELECT * FROM operation_log WHERE operate_resource_id = {resourceId} AND resource_kind = {resourceKind} ORDER BY id DESC")
     List<OperationLog> getOperationLogsByResourceId(long resourceId, SystemResourceKind resourceKind);
 
-    @Query("SELECT * FROM operation_log WHERE operate_resource_id = {resourceId} AND resource_kind = {resourceKind} LIMIT {offset.limit()} OFFSET {offset.offset()}")
+    @Query("SELECT * FROM operation_log WHERE operate_resource_id = {resourceId} AND resource_kind = {resourceKind} ORDER BY id DESC LIMIT {offset.limit()} OFFSET {offset.offset()}")
     List<OperationLog> getOperationLogsByResourceId(long resourceId, SystemResourceKind resourceKind, Offset offset);
 
     @Query("SELECT * FROM operation_log WHERE operator = {operator} ORDER BY id DESC")

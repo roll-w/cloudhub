@@ -25,7 +25,7 @@ public interface UserFileStorageDao extends AutoPrimaryBaseDao<UserFileStorage> 
     @Query("SELECT * FROM user_file_storage WHERE directory_id = {directoryId}")
     List<UserFileStorage> getByDirectoryId(long directoryId);
 
-    @Query("SELECT * FROM user_file_storage WHERE owner = {owner} AND owner_type = {ownerType} AND file_type = {fileType}")
+    @Query("SELECT * FROM user_file_storage WHERE owner = {owner} AND owner_type = {ownerType} AND file_category = {fileType} AND deleted = 0")
     List<UserFileStorage> getByType(long owner, LegalUserType ownerType, FileType fileType);
 
     @Query("SELECT * FROM user_file_storage WHERE owner = {owner} AND owner_type = {ownerType} AND directory_id = {directoryId} AND name = {name}")
@@ -34,10 +34,10 @@ public interface UserFileStorageDao extends AutoPrimaryBaseDao<UserFileStorage> 
     @Query("SELECT * FROM user_file_storage WHERE id IN {storageIds} AND owner = {storageOwner.getOwnerId()} AND owner_type = {storageOwner.getOwnerType()}")
     List<UserFileStorage> getByIds(List<Long> storageIds, StorageOwner storageOwner);
 
-    @Query("SELECT * FROM user_file_storage WHERE id IN {storageIds} AND file_type = {fileType}")
+    @Query("SELECT * FROM user_file_storage WHERE id IN {storageIds} AND file_category = {fileType}")
     List<UserFileStorage> getByIdsAndType(List<Long> storageIds, FileType fileType);
 
-    @Query("SELECT * FROM user_file_storage WHERE id IN {storageIds} AND file_type = {fileType} AND owner = {storageOwner.getOwnerId()} AND owner_type = {storageOwner.getOwnerType()}")
+    @Query("SELECT * FROM user_file_storage WHERE id IN {storageIds} AND file_category = {fileType} AND owner = {storageOwner.getOwnerId()} AND owner_type = {storageOwner.getOwnerType()}")
     List<UserFileStorage> getByIdsAndType(List<Long> storageIds, FileType fileType, StorageOwner storageOwner);
 
     @Query("SELECT * FROM user_file_storage WHERE owner = {owner} AND owner_type = {ownerType} AND deleted = 1")

@@ -50,9 +50,9 @@ public class UserController {
     @GetMapping("/user/{userId}")
     public HttpResponseEntity<UserCommonDetailsVo> getUserInfo(
             @PathVariable("userId") Long userId) {
-        UserIdentity userIdentity = userSearchService.findUser(userId);
+        AttributedUser attributedUser = userSearchService.findUser(userId);
         return HttpResponseEntity.success(
-                UserCommonDetailsVo.of(userIdentity)
+                UserCommonDetailsVo.of(attributedUser)
         );
     }
 

@@ -1,8 +1,8 @@
 package org.huel.cloudhub.client.disk.controller.user;
 
 import org.huel.cloudhub.client.disk.controller.AdminApi;
+import org.huel.cloudhub.client.disk.domain.user.AttributedUser;
 import org.huel.cloudhub.client.disk.domain.user.LoginLogService;
-import org.huel.cloudhub.client.disk.domain.user.User;
 import org.huel.cloudhub.client.disk.domain.user.dto.LoginLog;
 import org.huel.cloudhub.client.disk.domain.user.service.UserManageService;
 import org.huel.cloudhub.client.disk.domain.user.vo.UserDetailsVo;
@@ -33,7 +33,7 @@ public class UserManageController {
 
     @GetMapping("/users")
     public HttpResponseEntity<List<UserDetailsVo>> getUserList(Pageable pageRequest) {
-        List<User> userIdentities = userManageService.getUsers(
+        List<? extends AttributedUser> userIdentities = userManageService.getUsers(
                 pageRequest.getPage(),
                 pageRequest.getSize()
         );
@@ -47,7 +47,7 @@ public class UserManageController {
     @GetMapping("/users/{userId}")
     public HttpResponseEntity<UserDetailsVo> getUserDetails(
             @PathVariable Long userId) {
-        User user = userManageService.getUser(userId);
+        AttributedUser user = userManageService.getUser(userId);
         UserDetailsVo userDetailsVo =
                 UserDetailsVo.of(user);
         return HttpResponseEntity.success(userDetailsVo);
