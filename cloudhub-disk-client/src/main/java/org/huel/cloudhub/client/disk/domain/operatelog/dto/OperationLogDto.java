@@ -10,6 +10,7 @@ import org.huel.cloudhub.client.disk.domain.systembased.SystemResourceKind;
  * @author RollW
  */
 public record OperationLogDto(
+        long id,
         long operatorId,
         long resourceId,
         SystemResourceKind resourceKind,
@@ -21,7 +22,7 @@ public record OperationLogDto(
         long timestamp,
         String originContent,
         String changedContent,
-        boolean isAssociated
+        long associatedTo
 ) {
 
     public static OperationLogDto from(OperationLog operationLog,
@@ -30,6 +31,7 @@ public record OperationLogDto(
             return null;
         }
         return new OperationLogDto(
+                operationLog.getId(),
                 operationLog.getOperator(),
                 operationLog.getOperateResourceId(),
                 operationLog.getSystemResourceKind(),
@@ -41,7 +43,7 @@ public record OperationLogDto(
                 operationLog.getOperateTime(),
                 operationLog.getOriginContent(),
                 operationLog.getChangedContent(),
-                false
+                0
         );
     }
 
@@ -52,6 +54,7 @@ public record OperationLogDto(
             return null;
         }
         return new OperationLogDto(
+                operationLog.getId(),
                 operationLog.getOperator(),
                 operationLogAssociation.getResourceId(),
                 operationLogAssociation.getResourceKind(),
@@ -63,7 +66,7 @@ public record OperationLogDto(
                 operationLog.getOperateTime(),
                 operationLog.getOriginContent(),
                 operationLog.getChangedContent(),
-                true
+                operationLog.getId()
         );
     }
 }

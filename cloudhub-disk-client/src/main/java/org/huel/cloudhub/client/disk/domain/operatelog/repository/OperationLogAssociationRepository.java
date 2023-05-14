@@ -30,9 +30,12 @@ public class OperationLogAssociationRepository extends BaseRepository<OperationL
     }
 
     public List<OperationLogAssociation> getByOperationIds(List<Long> operationIds) {
-        List<OperationLogAssociation> operationLogAssociations =
-                operationLogAssociationDao.getByOperationIds(operationIds);
-        return cacheResult(operationLogAssociations);
+        if (operationIds == null || operationIds.isEmpty()) {
+            return List.of();
+        }
+        return cacheResult(
+                operationLogAssociationDao.getByOperationIds(operationIds)
+        );
     }
 
     public List<OperationLogAssociation> getByResourceId(long resourceId,

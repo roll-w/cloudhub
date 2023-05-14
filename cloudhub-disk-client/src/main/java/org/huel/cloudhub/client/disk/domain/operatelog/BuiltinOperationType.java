@@ -14,9 +14,9 @@ public enum BuiltinOperationType implements OperateType, OperateTypeFinder {
     CREATE_VERSIONED_FILE(-4L, Action.CREATE, "创建版本化文件", "创建版本化文件", SystemResourceKind.VERSIONED_FILE),
     CREATE_VERSIONED_FOLDER(-5L, Action.CREATE, "创建版本化文件夹", "创建版本化文件夹", SystemResourceKind.VERSIONED_FOLDER),
     CREATE_STORAGE_PERMISSION(-6L, Action.CREATE, "创建存储权限", "创建存储权限", SystemResourceKind.STORAGE_PERMISSION),
-    CREATE_TAG(-7L, Action.CREATE, "创建标签", "创建标签", SystemResourceKind.TAG),
-    CREATE_TAG_GROUP(-8L, Action.CREATE, "创建标签组", "创建标签组", SystemResourceKind.TAG_GROUP),
-    CREATE_STORAGE_SHARE(-9L, Action.CREATE, "创建存储分享", "创建存储分享", SystemResourceKind.STORAGE_SHARE),
+    CREATE_TAG(-7L, Action.CREATE, "创建标签", "创建 {1} 标签", SystemResourceKind.TAG),
+    CREATE_TAG_GROUP(-8L, Action.CREATE, "创建标签组", "创建 {1} 标签组", SystemResourceKind.TAG_GROUP),
+    CREATE_STORAGE_SHARE(-9L, Action.CREATE, "创建存储分享", "创建 {1} 存储分享", SystemResourceKind.STORAGE_SHARE),
 
     UPDATE_FILE(-101L, Action.UPDATE, "更新文件", "更新文件", SystemResourceKind.FILE),
     UPDATE_FOLDER(-111L, Action.UPDATE, "更新文件夹", "更新文件夹", SystemResourceKind.FOLDER),
@@ -48,9 +48,9 @@ public enum BuiltinOperationType implements OperateType, OperateTypeFinder {
     COPY_FOLDER(-116L, Action.COPY, "复制文件夹", "复制了 {1} 文件夹", SystemResourceKind.FOLDER),
     COPY_LINK(-126L, Action.COPY, "复制链接", "复制了 {1} 链接", SystemResourceKind.LINK),
 
-    RENAME_FILE(-107L, Action.RENAME, "重命名文件", "重命名了 {1} 文件", SystemResourceKind.FILE),
-    RENAME_FOLDER(-117L, Action.RENAME, "重命名文件夹", "重命名了 {1} 文件夹", SystemResourceKind.FOLDER),
-    RENAME_LINK(-127L, Action.RENAME, "重命名链接", "重命名了 {1} 链接", SystemResourceKind.LINK),
+    RENAME_FILE(-107L, Action.RENAME, "重命名文件", "从 {0} 重命名了 {1} 文件", SystemResourceKind.FILE),
+    RENAME_FOLDER(-117L, Action.RENAME, "重命名文件夹", "从 {0} 重命名了 {1} 文件夹", SystemResourceKind.FOLDER),
+    RENAME_LINK(-127L, Action.RENAME, "重命名链接", "从 {0} 重命名了 {1} 链接", SystemResourceKind.LINK),
 
     ;
     private final long id;

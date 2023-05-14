@@ -8,6 +8,7 @@ import org.huel.cloudhub.client.disk.domain.operatelog.OperateTypeFinder;
 import org.huel.cloudhub.client.disk.domain.operatelog.OperateTypeFinderFactory;
 import org.huel.cloudhub.client.disk.domain.operatelog.OperationLog;
 import org.huel.cloudhub.client.disk.domain.operatelog.OperationLogAssociation;
+import org.huel.cloudhub.client.disk.domain.operatelog.OperationLogCountProvider;
 import org.huel.cloudhub.client.disk.domain.operatelog.OperationService;
 import org.huel.cloudhub.client.disk.domain.operatelog.Operator;
 import org.huel.cloudhub.client.disk.domain.operatelog.dto.Operation;
@@ -15,6 +16,8 @@ import org.huel.cloudhub.client.disk.domain.operatelog.dto.OperationLogDto;
 import org.huel.cloudhub.client.disk.domain.operatelog.repository.OperationLogAssociationRepository;
 import org.huel.cloudhub.client.disk.domain.operatelog.repository.OperationLogRepository;
 import org.huel.cloudhub.client.disk.domain.systembased.SystemResource;
+import org.huel.cloudhub.client.disk.domain.systembased.SystemResourceKind;
+import org.huel.cloudhub.web.data.page.Pageable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -27,7 +30,8 @@ import java.util.Objects;
  * @author RollW
  */
 @Service
-public class OperateLogServiceImpl implements OperateLogger, OperationService {
+public class OperateLogServiceImpl implements OperateLogger, OperationService,
+        OperationLogCountProvider {
     private static final Logger logger = LoggerFactory.getLogger(OperateLogServiceImpl.class);
 
     private final OperationLogRepository operationLogRepository;
@@ -104,6 +108,13 @@ public class OperateLogServiceImpl implements OperateLogger, OperationService {
     }
 
     @Override
+    public List<OperationLogDto> getOperations(Pageable pageable) {
+        List<OperationLog> operationLogs =
+                operationLogRepository.get(pageable.toOffset());
+        return getOperationLogDtosWithAssociates(operationLogs);
+    }
+
+    @Override
     public List<OperationLogDto> getOperationsByUserId(long userId) {
         List<OperationLog> operationLogs =
                 operationLogRepository.getByOperator(userId);
@@ -115,6 +126,14 @@ public class OperateLogServiceImpl implements OperateLogger, OperationService {
     }
 
     @Override
+    public List<OperationLogDto> getOperationsByUserId(long userId,
+                                                       Pageable pageable) {
+        List<OperationLog> operationLogs =
+                operationLogRepository.getByOperator(userId, pageable);
+        return getOperationLogDtosWithAssociates(operationLogs);
+    }
+
+    @Override
     public List<OperationLogDto> getOperationsByResource(SystemResource systemResource) {
         List<OperationLog> operationLogs = operationLogRepository.getOperationLogsByResourceId(
                 systemResource.getResourceId(),
@@ -123,16 +142,36 @@ public class OperateLogServiceImpl implements OperateLogger, OperationService {
         if (operationLogs == null || operationLogs.isEmpty()) {
             return List.of();
         }
+        return getOperationLogDtosWithAssociates(operationLogs);
+    }
 
+    @Override
+    public List<OperationLogDto> getOperationsByResource(SystemResource systemResource,
+                                                         Pageable pageable) {
+        List<OperationLog> operationLogs = operationLogRepository.getOperationLogsByResourceId(
+                systemResource.getResourceId(),
+                systemResource.getSystemResourceKind(),
+                pageable
+        );
+        if (operationLogs == null || operationLogs.isEmpty()) {
+            return List.of();
+        }
+        return getOperationLogDtosWithAssociates(operationLogs);
+    }
+
+    private List<OperationLogDto> getOperationLogDtosWithAssociates(List<OperationLog> operationLogs) {
         List<Long> ids = operationLogs.stream().map(OperationLog::getId).toList();
         List<OperationLogAssociation> associations =
                 operationLogAssociationRepository.getByOperationIds(ids);
+
         List<OperationLogDto> operationLogDtos = operationLogs.stream().map(operationLog -> {
             OperateType operateType = operateTypeFinder
                     .getOperateType(operationLog.getOperateType());
             return OperationLogDto.from(operationLog, operateType);
         }).toList();
+
         List<OperationLogDto> result = new ArrayList<>(operationLogDtos);
+
         associations.stream().map(association -> {
             OperationLog operationLog = operationLogs.stream()
                     .filter(log -> log.getId().equals(association.getOperationId()))
@@ -144,6 +183,7 @@ public class OperateLogServiceImpl implements OperateLogger, OperationService {
                     .getOperateType(operationLog.getOperateType());
             return OperationLogDto.from(operationLog, association, operateType);
         }).filter(Objects::nonNull).forEach(result::add);
+
         return result;
     }
 
@@ -162,5 +202,15 @@ public class OperateLogServiceImpl implements OperateLogger, OperationService {
             associations.add(association);
         }
         operationLogAssociationRepository.insert(associations);
+    }
+
+    @Override
+    public long getOperationLogCount(long operatorId) {
+        return operationLogRepository.countByOperator(operatorId);
+    }
+
+    @Override
+    public long getOperationLogCount(long resourceId, SystemResourceKind resourceKind) {
+        return operationLogRepository.countByResourceId(resourceId, resourceKind);
     }
 }
