@@ -89,4 +89,7 @@ public interface UserFileStorageDao extends AutoPrimaryBaseDao<UserFileStorage> 
 
     @Query("SELECT * FROM user_file_storage WHERE id = {fileId} AND owner = {ownerId} AND owner_type = {ownerType}")
     UserFileStorage getById(long fileId, long ownerId, LegalUserType ownerType);
+
+    @Query("SELECT * FROM user_file_storage WHERE name = {name} AND directory_id = {parentId}")
+    UserFileStorage getByName(String name, long parentId);
 }

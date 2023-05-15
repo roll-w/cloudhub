@@ -9,4 +9,7 @@ public interface DirectoryActionDelegate {
     Long createDirectory(UserFolder userFolder);
 
     void updateDirectory(UserFolder userFolder);
+
+    void checkExistsFolder(String name, long parentId);
+
 }

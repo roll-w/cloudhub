@@ -55,6 +55,12 @@ public class UserFolderRepository extends BaseRepository<UserFolder> {
         );
     }
 
+    public UserFolder getByName(String name, long parentId) {
+        return cacheResult(
+                userFolderDao.getByName(name, parentId)
+        );
+    }
+
     public UserFolder getById(long folderId, long ownerId, LegalUserType ownerType) {
         UserFolder userFolder = getById(folderId);
         if (userFolder == null ||

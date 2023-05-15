@@ -104,7 +104,11 @@ public class FileAction implements StorageAction {
 
     @Override
     public void rename(String newName) throws StorageException {
+        fileActionDelegate.checkExistsFile(newName, file.getParentId());
         fileBuilder.setName(newName);
+        OperationContextHolder.getContext()
+                .setOriginContent(file.getName())
+                .setChangedContent(newName);
         update();
     }
 
@@ -162,7 +166,6 @@ public class FileAction implements StorageAction {
         fileActionDelegate.updateFile(updatedFile);
         file = updatedFile;
         OperationContextHolder.getContext()
-                .addSystemResource(file)
-                .setChangedContent(file.getName());
+                .addSystemResource(file);
     }
 }

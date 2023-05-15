@@ -1,6 +1,7 @@
 package org.huel.cloudhub.client.disk.domain.storage.service;
 
 import org.apache.tomcat.util.http.fileupload.IOUtils;
+import org.huel.cloudhub.client.CFSStatus;
 import org.huel.cloudhub.client.conf.ClientConfigLoader;
 import org.huel.cloudhub.client.disk.domain.storage.DiskFileStorage;
 import org.huel.cloudhub.client.disk.domain.storage.StorageService;
@@ -59,20 +60,20 @@ public class StorageServiceImpl implements StorageService {
 
     @Override
     public void getFile(String fileId, OutputStream outputStream) throws IOException {
-        boolean status = cfsClient.downloadFile(outputStream, fileId);
-        if (!status) {
-            logger.error("Download file error, fileId: {}", fileId);
+        CFSStatus status = cfsClient.downloadFile(outputStream, fileId);
+        if (!status.success()) {
+            logger.debug("Download file error, fileId: {}, status: {}", fileId, status);
         }
     }
 
     @Override
     public void getFile(String fileId, OutputStream outputStream,
                         long startBytes, long endBytes) throws IOException {
-        boolean status =
+        CFSStatus status =
                 cfsClient.downloadFile(outputStream, fileId, startBytes, endBytes);
-        if (!status) {
-            logger.error("Download file error, fileId: {}, startBytes: {}, endBytes: {}",
-                    fileId, startBytes, endBytes);
+        if (!status.success()) {
+            logger.debug("Download file error, fileId: {}, startBytes: {}, endBytes: {}, status: {}",
+                    fileId, startBytes, endBytes, status);
         }
     }
 

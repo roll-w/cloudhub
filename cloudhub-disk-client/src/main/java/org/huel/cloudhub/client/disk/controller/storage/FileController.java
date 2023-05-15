@@ -42,6 +42,8 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 /**
@@ -180,9 +182,8 @@ public class FileController {
     private void downloadFile(FileInfo fileInfo,
                               HttpServletRequest request,
                               HttpServletResponse response) throws IOException {
-        String contentType = getResponseType(fileInfo, request);
         String dispositionType = getDispositionType(request);
-
+        String contentType = getResponseType(fileInfo, request);
         response.setContentType(contentType);
 
         if (fileInfo.getFileType() == FileType.TEXT) {
@@ -190,7 +191,8 @@ public class FileController {
         }
         List<HttpRange> ranges = HttpRangeUtils.tryGetsRange(request);
         response.setHeader("Accept-Ranges", "bytes");
-        response.setHeader("Content-Disposition", dispositionType + ";filename*=UTF-8''" + fileInfo.getName());
+        response.setHeader("Content-Disposition",
+                dispositionType + ";filename*=utf-8''" + getEncodedFileName(fileInfo.getName()));
         long length = storageService.getFileSize(fileInfo.getFileId());
 
         if (!ranges.isEmpty()) {
@@ -212,6 +214,11 @@ public class FileController {
         storageService.getFile(fileInfo.getFileId(), response.getOutputStream());
     }
 
+    private String getEncodedFileName(String fileName){
+        return URLEncoder.encode(fileName, StandardCharsets.UTF_8)
+                .replace("+", "%20");
+    }
+
     private String getResponseType(FileInfo fileInfo, HttpServletRequest request) {
         String contentType = request.getHeader(ACCEPT_TYPE);
         if (Strings.isNullOrEmpty(contentType)) {
@@ -222,10 +229,6 @@ public class FileController {
 
     private String getDispositionType(HttpServletRequest request) {
         String dispositionType = request.getHeader(DISPOSITION_TYPE);
-        String requestParam = request.getParameter("disposition");
-        if (!Strings.isNullOrEmpty(requestParam)) {
-            dispositionType = requestParam;
-        }
         if (Strings.isNullOrEmpty(dispositionType)) {
             return "attachment";
         }

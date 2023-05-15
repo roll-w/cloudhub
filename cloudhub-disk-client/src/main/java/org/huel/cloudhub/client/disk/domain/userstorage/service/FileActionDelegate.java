@@ -9,4 +9,6 @@ public interface FileActionDelegate {
     Long createFile(UserFileStorage userFileStorage);
 
     void updateFile(UserFileStorage userFileStorage);
+
+    void checkExistsFile(String name, long parentId);
 }

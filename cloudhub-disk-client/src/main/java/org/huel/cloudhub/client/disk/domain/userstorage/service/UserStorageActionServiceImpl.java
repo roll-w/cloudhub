@@ -123,6 +123,15 @@ public class UserStorageActionServiceImpl implements StorageActionService,
     }
 
     @Override
+    public void checkExistsFolder(String name, long parentId) {
+        UserFolder userFolder =
+                userFolderRepository.getByName(name, parentId);
+        if (userFolder != null) {
+            throw new StorageException(StorageErrorCode.ERROR_DIRECTORY_EXISTED);
+        }
+    }
+
+    @Override
     public Long createFile(UserFileStorage userFileStorage) {
         return userFileStorageRepository.insert(userFileStorage);
     }
@@ -130,5 +139,14 @@ public class UserStorageActionServiceImpl implements StorageActionService,
     @Override
     public void updateFile(UserFileStorage userFileStorage) {
         userFileStorageRepository.update(userFileStorage);
+    }
+
+    @Override
+    public void checkExistsFile(String name, long parentId) {
+        UserFileStorage userFileStorage =
+                userFileStorageRepository.getByName(name, parentId);
+        if (userFileStorage != null) {
+            throw new StorageException(StorageErrorCode.ERROR_FILE_EXISTED);
+        }
     }
 }

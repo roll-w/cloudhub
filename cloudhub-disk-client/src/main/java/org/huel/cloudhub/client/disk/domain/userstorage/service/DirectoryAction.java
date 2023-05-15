@@ -100,7 +100,12 @@ public class DirectoryAction implements StorageAction {
 
     @Override
     public void rename(String newName) throws StorageException {
+        directoryActionDelegate.checkExistsFolder(newName, directory.getParentId());
+
         directoryBuilder.setName(newName);
+        OperationContextHolder.getContext()
+                .setOriginContent(directory.getName())
+                .setChangedContent(newName);
         update();
     }
 
@@ -109,6 +114,7 @@ public class DirectoryAction implements StorageAction {
         if (directory.getParentId() == newParentId) {
             throw new StorageException(StorageErrorCode.ERROR_SAME_DIRECTORY);
         }
+        // TODO: check new parent directory is exist
         directoryBuilder.setParentId(newParentId);
         update();
     }
@@ -160,7 +166,6 @@ public class DirectoryAction implements StorageAction {
         directoryActionDelegate.updateDirectory(updatedDirectory);
         directory = updatedDirectory;
         OperationContextHolder.getContext()
-                .addSystemResource(directory)
-                .setChangedContent(directory.getName());
+                .addSystemResource(updatedDirectory);
     }
 }

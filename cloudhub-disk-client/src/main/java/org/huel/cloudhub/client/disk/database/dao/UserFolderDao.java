@@ -28,6 +28,9 @@ public interface UserFolderDao extends AutoPrimaryBaseDao<UserFolder> {
     @Query("SELECT * FROM user_directory WHERE name = {name} AND parent_id = {parentId} AND owner = {owner} AND owner_type = {ownerType}")
     UserFolder getByName(String name, long parentId, long owner, LegalUserType ownerType);
 
+    @Query("SELECT * FROM user_directory WHERE name = {name} AND parent_id = {parentId} ")
+    UserFolder getByName(String name, long parentId);
+
     @Override
     @Query("SELECT * FROM user_directory WHERE deleted = 0")
     List<UserFolder> getActives();

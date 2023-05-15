@@ -105,4 +105,10 @@ public class UserFileStorageRepository extends BaseRepository<UserFileStorage> {
         }
         return storage;
     }
+
+    public UserFileStorage getByName(String name, long parentId) {
+        return cacheResult(
+                fileStorageDao.getByName(name, parentId)
+        );
+    }
 }
