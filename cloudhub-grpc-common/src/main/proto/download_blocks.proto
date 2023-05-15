@@ -56,6 +56,6 @@ message DownloadBlockResponse {
 }
 
 service BlockDownloadService {
-  rpc downloadBlocks(DownloadBlockRequest)
+  rpc downloadBlocks(stream DownloadBlockRequest)
       returns (stream DownloadBlockResponse);
 }

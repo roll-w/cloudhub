@@ -18,7 +18,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Cloudhub File System Client.
@@ -48,6 +48,11 @@ public class CFSClient implements Closeable {
     public CFSClient(String target,
                      GrpcProperties grpcProperties) {
         this(new MetaServerConnection(target), grpcProperties);
+    }
+
+    public CFSClient(String target) {
+        this(new MetaServerConnection(target),
+                new GrpcProperties(0, 64));
     }
 
     public CFSClient(MetaServerConnection metaServerConnection,
@@ -119,10 +124,10 @@ public class CFSClient implements Closeable {
         );
     }
 
-    public boolean downloadFile(OutputStream outputStream,
-                                String fileId,
-                                long startBytes, long endBytes) throws IOException {
-        AtomicBoolean success = new AtomicBoolean(false);
+    public CFSStatus downloadFile(OutputStream outputStream,
+                                  String fileId,
+                                  long startBytes, long endBytes) throws IOException {
+        AtomicReference<CFSStatus> success = new AtomicReference<>(CFSStatus.UNKNOWN);
         CountDownLatch latch = new CountDownLatch(1);
 
         clientFileDownloadClient.downloadFile(
@@ -155,9 +160,9 @@ public class CFSClient implements Closeable {
     }
 
 
-    public boolean downloadFile(OutputStream outputStream,
+    public CFSStatus downloadFile(OutputStream outputStream,
                                 String fileId) throws IOException {
-        AtomicBoolean success = new AtomicBoolean(false);
+        AtomicReference<CFSStatus> success = new AtomicReference<>(CFSStatus.UNKNOWN);
         CountDownLatch latch = new CountDownLatch(1);
 
         clientFileDownloadClient.downloadFile(

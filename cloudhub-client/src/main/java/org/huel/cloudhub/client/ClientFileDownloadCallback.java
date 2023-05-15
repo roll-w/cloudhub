@@ -5,5 +5,5 @@ package org.huel.cloudhub.client;
  */
 @FunctionalInterface
 public interface ClientFileDownloadCallback {
-    void onComplete(boolean success);
+    void onComplete(CFSStatus success);
 }

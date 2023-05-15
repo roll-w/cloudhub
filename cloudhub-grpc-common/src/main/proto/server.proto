@@ -4,6 +4,11 @@ option java_multiple_files = true;
 option java_package = "org.huel.cloudhub.server.rpc.server";
 option java_outer_classname = "ServerProtos";
 
+message SerializedMetaServer {
+  string host = 1;
+  string port = 2;
+}
+
 message SerializedFileServer {
   string host = 1;
   int32 port = 2;

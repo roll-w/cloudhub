@@ -1,5 +1,6 @@
 package org.huel.cloudhub.rpc;
 
+import io.grpc.Status;
 import io.grpc.stub.ServerCallStreamObserver;
 import io.grpc.stub.StreamObserver;
 
@@ -10,7 +11,7 @@ import java.util.concurrent.TimeUnit;
  * @author RollW
  */
 public class StreamObserverWrapper<V> implements StreamObserver<V> {
-    private boolean close = false;
+    private volatile boolean close = false;
     private final StreamObserver<V> streamObserver;
     private final ServerCallStreamObserver<V> callStreamObserver;
 
@@ -40,8 +41,8 @@ public class StreamObserverWrapper<V> implements StreamObserver<V> {
         if (close) {
             return;
         }
-        streamObserver.onError(t);
         close();
+        streamObserver.onError(t);
     }
 
     @Override
@@ -49,8 +50,16 @@ public class StreamObserverWrapper<V> implements StreamObserver<V> {
         if (close) {
             return;
         }
-        streamObserver.onCompleted();
         close();
+        streamObserver.onCompleted();
+    }
+
+    public void setClose() {
+        close = true;
+    }
+
+    public void cancel() {
+        onError(Status.CANCELLED.asRuntimeException());
     }
 
     public boolean isReady() {
@@ -67,6 +76,8 @@ public class StreamObserverWrapper<V> implements StreamObserver<V> {
         callStreamObserver.setOnReadyHandler(runnable);
     }
 
+    public static final int WAIT_FOR_READY_TIMEOUT = 10000;
+
     public void waitForReady() throws InterruptedException {
         if (isClose()) {
             return;
@@ -77,13 +88,28 @@ public class StreamObserverWrapper<V> implements StreamObserver<V> {
         if (callStreamObserver.isReady()) {
             return;
         }
-        CountDownLatch countDownLatch = new CountDownLatch(1);
-        callStreamObserver.setOnReadyHandler(countDownLatch::countDown);
-        boolean state = countDownLatch.await(500, TimeUnit.MILLISECONDS);
-        if (state) {
-            return;
+        try {
+            CountDownLatch countDownLatch = new CountDownLatch(1);
+            callStreamObserver.setOnReadyHandler(countDownLatch::countDown);
+            boolean state = countDownLatch.await(500, TimeUnit.MILLISECONDS);
+            if (state) {
+                return;
+            }
+        } catch (InterruptedException e) {
+            throw e;
+        } catch (Exception ignored) {
+            // it may not allow setting the handler
         }
+
+        // fallback to busy wait
+        int i = 0;
         while (!callStreamObserver.isReady()) {
+            // wait for ready
+            // TODO: is there a better way to do this?
+            if (i++ > WAIT_FOR_READY_TIMEOUT) {
+                // wait for max 10000 times
+                return;
+            }
         }
     }
 

@@ -8,6 +8,8 @@ import org.huel.cloudhub.meta.server.data.entity.FileStorageLocation;
 import org.huel.cloudhub.meta.server.service.node.*;
 import org.huel.cloudhub.rpc.GrpcProperties;
 import org.huel.cloudhub.rpc.GrpcServiceStubPool;
+import org.huel.cloudhub.rpc.StatusHelper;
+import org.huel.cloudhub.rpc.StreamObserverWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -23,7 +25,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 @Service
 public class FileDownloadService {
-    private final Logger logger = LoggerFactory.getLogger(FileDownloadService.class);
+    private static final Logger logger = LoggerFactory.getLogger(FileDownloadService.class);
 
     private final NodeAllocator nodeAllocator;
     private final ServerChecker serverChecker;
@@ -62,7 +64,13 @@ public class FileDownloadService {
 
         logger.debug("Start downloading file, id={}.", fileId);
 
-        stub.downloadBlocks(request, new DownloadBlockStreamObserver(outputStream, callback));
+        DownloadBlockStreamObserver streamObserver =
+                new DownloadBlockStreamObserver(outputStream, callback);
+        StreamObserver<DownloadBlockRequest> downloadBlockRequestStreamObserver =
+                stub.downloadBlocks(streamObserver);
+        streamObserver.setStreamObserver(downloadBlockRequestStreamObserver);
+        downloadBlockRequestStreamObserver
+                .onNext(request);
     }
 
     private DownloadBlockRequest buildFirstRequest(RequestServer server, FileStorageLocation location, String fileId) {
@@ -109,6 +117,8 @@ public class FileDownloadService {
     }
 
     private class DownloadBlockStreamObserver implements StreamObserver<DownloadBlockResponse> {
+        private StreamObserverWrapper<DownloadBlockRequest> streamObserverWrapper;
+
         private int responseCount;
         private long fileLength;
         private long validBytes;
@@ -116,7 +126,8 @@ public class FileDownloadService {
         private final FileDownloadCallback callback;
         private final AtomicInteger receiveCount = new AtomicInteger(1);
 
-        private DownloadBlockStreamObserver(OutputStream outputStream, FileDownloadCallback callback) {
+        private DownloadBlockStreamObserver(OutputStream outputStream,
+                                            FileDownloadCallback callback) {
             this.outputStream = outputStream;
             this.callback = callback;
         }
@@ -129,14 +140,18 @@ public class FileDownloadService {
             validBytes = checkMessage.getValidBytes();
         }
 
+        void setStreamObserver(StreamObserver<DownloadBlockRequest> streamObserverWrapper) {
+            this.streamObserverWrapper = new StreamObserverWrapper<>(streamObserverWrapper);
+        }
+
         @Override
         public void onNext(DownloadBlockResponse value) {
             if (value.getDownloadMessageCase() ==
                     DownloadBlockResponse.DownloadMessageCase.DOWNLOADMESSAGE_NOT_SET) {
-                logger.error("--- Not a valid response.");
                 throw new IllegalArgumentException("Not valid response.");
             }
-            if (value.getDownloadMessageCase() == DownloadBlockResponse.DownloadMessageCase.FILE_EXISTS) {
+            if (value.getDownloadMessageCase() ==
+                    DownloadBlockResponse.DownloadMessageCase.FILE_EXISTS) {
                 logger.debug("File not exists");
                 onFileNotExists();
                 return;
@@ -145,7 +160,7 @@ public class FileDownloadService {
             if (value.getDownloadMessageCase() ==
                     DownloadBlockResponse.DownloadMessageCase.CHECK_MESSAGE) {
                 saveCheckMessage(value.getCheckMessage());
-                if (callback != null ) {
+                if (callback != null) {
                     callback.onSaveCheckMessage(value.getCheckMessage());
                 }
                 return;
@@ -153,7 +168,7 @@ public class FileDownloadService {
             if (receiveCount.get() > responseCount) {
                 FileDownloadingException e = new FileDownloadingException(FileDownloadingException.Type.DATA_LOSS,
                         "Illegal receive count.");
-                if (callback != null ) {
+                if (callback != null) {
                     callback.onDownloadError(e);
                 }
                 throw e;
@@ -162,7 +177,12 @@ public class FileDownloadService {
             List<DownloadBlockData> dataList = downloadBlocksInfo.getDataList();
             logger.debug("Receive download response:index={}, count={}, dataBlock size={}",
                     downloadBlocksInfo.getIndex(), receiveCount.get(), dataList.size());
-            writeTo(dataList, outputStream, calcValidBytes(receiveCount.get()));
+            try {
+                writeTo(dataList, outputStream, calcValidBytes(receiveCount.get()));
+            } catch (FileServerException e) {
+                streamObserverWrapper.cancel();
+                return;
+            }
 
             receiveCount.incrementAndGet();
         }
@@ -176,29 +196,31 @@ public class FileDownloadService {
 
         @Override
         public void onError(Throwable t) {
-            logger.error("download file error.", t);
+            if (StatusHelper.isCancelled(t)) {
+                return;
+            }
+            logger.error("Download file error.", t);
             if (callback != null) {
                 callback.onDownloadError(
-                        new FileDownloadingException(FileDownloadingException.Type.OTHER, t.toString()));
+                        new FileDownloadingException(FileDownloadingException.Type.OTHER, t.toString())
+                );
             }
             try {
                 outputStream.close();
             } catch (IOException e) {
-                logger.debug("close error.", e);
             }
         }
 
         @Override
         public void onCompleted() {
             // TODO: check file.
-            logger.debug("download file complete. all request count: {}", receiveCount.get() - 1);
+            logger.debug("Download file complete. all request count: {}", receiveCount.get() - 1);
             if (callback != null) {
                 callback.onDownloadComplete();
             }
             try {
                 outputStream.close();
             } catch (IOException e) {
-                logger.debug("close error.", e);
             }
         }
 
@@ -211,7 +233,8 @@ public class FileDownloadService {
 
     }
 
-    private void writeTo(List<DownloadBlockData> downloadBlockData, OutputStream stream, long validBytes) {
+    private void writeTo(List<DownloadBlockData> downloadBlockData, OutputStream stream, long validBytes)
+            throws FileServerException {
         if (validBytes < 0) {
             writeFully(downloadBlockData, stream);
             return;
@@ -228,7 +251,7 @@ public class FileDownloadService {
             }
             stream.flush();
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new FileServerException(e);
         }
     }
 
@@ -240,7 +263,7 @@ public class FileDownloadService {
             }
             stream.flush();
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new FileServerException(e);
         }
     }
 
