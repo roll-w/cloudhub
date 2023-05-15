@@ -29,6 +29,14 @@ public class ParamValidate {
         return chars;
     }
 
+    public static <T extends CharSequence> T notEmpty(final T chars,
+                                                      final String message) {
+        if (chars == null || chars.isEmpty()) {
+            throw new ParameterMissingException("Parameter '%s' must not be empty.", message);
+        }
+        return chars;
+    }
+
 
     public static <T> T notNull(final T obj,
                                  final String message,
