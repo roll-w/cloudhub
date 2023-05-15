@@ -12,6 +12,7 @@ public record ShareInfo(
         StorageType storageType,
         long creatorId,
         String shareCode,
+        boolean isPublic,
         long expireTime,
         long createTime
 ) {
@@ -27,6 +28,7 @@ public record ShareInfo(
                 userShare.getStorageType(),
                 userShare.getUserId(),
                 userShare.getShareId(),
+                userShare.isPublic(),
                 userShare.getExpireTime(),
                 userShare.getCreateTime()
         );
@@ -43,6 +45,7 @@ public record ShareInfo(
                 sharePasswordInfo.storageType(),
                 sharePasswordInfo.creatorId(),
                 sharePasswordInfo.shareCode(),
+                sharePasswordInfo.isPublic(),
                 sharePasswordInfo.expireTime(),
                 sharePasswordInfo.createTime()
         );

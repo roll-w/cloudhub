@@ -16,6 +16,9 @@ public interface ShareService {
     Duration DAYS_30 = Duration.ofDays(30);
     Duration INFINITE = Duration.ofDays(-1);
 
+    String DISABLED_PASSWORD = "[DISABLED_PASSWORD]";
+    int DEFAULT_PASSWORD_LENGTH = 6;
+
     SharePasswordInfo share(StorageIdentity storage, StorageOwner storageOwner,
                             Duration time,
                             Operator operator, String password);

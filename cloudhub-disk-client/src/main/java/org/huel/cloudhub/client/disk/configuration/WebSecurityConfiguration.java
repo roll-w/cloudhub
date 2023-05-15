@@ -56,6 +56,7 @@ public class WebSecurityConfiguration {
                 //.accessDecisionManager(accessDecisionManager())
                 .antMatchers("/api/{version}/auth/token/**").permitAll()
                 .antMatchers("/api/{version}/quickfire/**").permitAll()
+                .antMatchers("/api/{version}/shares/**").permitAll()
                 .antMatchers("/api/{version}/admin/**").hasRole("ADMIN")
                 .antMatchers("/api/{version}/common/**").permitAll()
                 .antMatchers("/api/{version}/{ownerType}/{ownerId}/disk/**").hasRole("USER")

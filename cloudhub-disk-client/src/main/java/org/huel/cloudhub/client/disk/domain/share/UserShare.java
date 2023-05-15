@@ -113,6 +113,10 @@ public class UserShare implements SystemResource, DataItem {
         return SystemResourceKind.STORAGE_SHARE;
     }
 
+    public boolean isPublic() {
+        return password == null || password.isEmpty();
+    }
+
     public static final class Builder {
         private Long id;
         private String shareId;

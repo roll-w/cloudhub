@@ -10,12 +10,16 @@ import java.time.Duration;
  */
 public record ShareCreateRequest(
         int time,
-        String password
+        String password,
+        int type
 ) {
-    public static final int TIME_1_DAY = 1;
-    public static final int TIME_7_DAY = 2;
-    public static final int TIME_30_DAY = 3;
-    public static final int TIME_INFINITE = 4;
+    public static final int TIME_1_DAY = -1;
+    public static final int TIME_7_DAY = -7;
+    public static final int TIME_30_DAY = -30;
+    public static final int TIME_INFINITE = 0;
+
+    public static final int PUBLIC = 0;
+    public static final int PRIVATE = 1;
 
     public Duration toDuration() {
         return switch (time) {
@@ -23,7 +27,8 @@ public record ShareCreateRequest(
             case TIME_7_DAY -> ShareService.DAYS_7;
             case TIME_30_DAY -> ShareService.DAYS_30;
             case TIME_INFINITE -> ShareService.INFINITE;
-            default -> throw new ParameterFailedException("time");
+            // TODO: may supports custom time future
+            default -> throw new ParameterFailedException("Not supports time param.");
         };
     }
 

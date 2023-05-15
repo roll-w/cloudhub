@@ -12,10 +12,19 @@ public record SharePasswordInfo(
         StorageType storageType,
         long creatorId,
         String shareCode,
+        // as a utility field, can be removed if not needed
+        boolean isPublic,
         long expireTime,
         long createTime,
         String password
 ) {
+
+    public boolean isExpired(long time) {
+        if (expireTime <= 0) {
+            return false;
+        }
+        return time > expireTime;
+    }
 
     public static SharePasswordInfo from(ShareInfo shareInfo, String password) {
         if (shareInfo == null) {
@@ -28,6 +37,7 @@ public record SharePasswordInfo(
                 shareInfo.storageType(),
                 shareInfo.creatorId(),
                 shareInfo.shareCode(),
+                shareInfo.isPublic(),
                 shareInfo.expireTime(),
                 shareInfo.createTime(),
                 password
@@ -45,6 +55,7 @@ public record SharePasswordInfo(
                 userShare.getStorageType(),
                 userShare.getUserId(),
                 userShare.getShareId(),
+                userShare.isPublic(),
                 userShare.getExpireTime(),
                 userShare.getCreateTime(),
                 userShare.getPassword()

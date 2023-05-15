@@ -1,6 +1,7 @@
 package org.huel.cloudhub.client.disk.database.dao;
 
 import org.huel.cloudhub.client.disk.domain.share.UserShare;
+import org.huel.cloudhub.client.disk.domain.userstorage.StorageType;
 import org.huel.cloudhub.web.data.page.Offset;
 import space.lingu.light.Dao;
 import space.lingu.light.Query;
@@ -46,8 +47,23 @@ public interface UserShareDao extends AutoPrimaryBaseDao<UserShare> {
     int count();
 
     @Override
-    @Query("SELECT * FROM user_share LIMIT {offset.limit()} OFFSET {offset.offset()}")
+    @Query("SELECT * FROM user_share ORDER BY id DESC LIMIT {offset.limit()} OFFSET {offset.offset()}")
     List<UserShare> get(Offset offset);
+
+    @Query("SELECT * FROM user_share WHERE share_id = {shareId}")
+    UserShare getByShareId(String shareId);
+
+    @Query("SELECT * FROM user_share WHERE user_id = {userId} ORDER BY id DESC")
+    List<UserShare> getByUserId(long userId);
+
+    @Query("SELECT * FROM user_share WHERE user_id = {userId} ORDER BY id DESC LIMIT {offset.limit()} OFFSET {offset.offset()} ")
+    List<UserShare> getByUserId(long userId, Offset offset);
+
+    @Query("SELECT * FROM user_share WHERE storage_id = {storageId} AND storage_type = {storageType} ORDER BY id DESC")
+    List<UserShare> getByStorage(long storageId, StorageType storageType);
+
+    @Query("SELECT * FROM user_share WHERE storage_id = {storageId} AND storage_type = {storageType} ORDER BY id DESC LIMIT {offset.limit()} OFFSET {offset.offset()} ")
+    List<UserShare> getByStorage(long storageId, StorageType storageType, Offset offset);
 
     @Override
     default String getTableName() {
