@@ -1,49 +1,44 @@
-package org.huel.cloudhub.client.disk.domain.share.dto;
+package org.huel.cloudhub.client.disk.domain.share.vo;
 
-import org.huel.cloudhub.client.disk.domain.share.UserShare;
+import org.huel.cloudhub.client.disk.domain.share.dto.SharePasswordInfo;
+import org.huel.cloudhub.client.disk.domain.user.AttributedUser;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageType;
+
+import java.util.Objects;
 
 /**
  * @author RollW
  */
-public record ShareInfo(
+public record ShareInfoVo(
         long id,
         long storageId,
         StorageType storageType,
         long creatorId,
+        String username,
+        String nickname,
         String shareCode,
         boolean isPublic,
         long expireTime,
         long createTime
 ) {
 
-    public static ShareInfo from(UserShare userShare) {
-        if (userShare == null) {
-            return null;
-        }
 
-        return new ShareInfo(
-                userShare.getId(),
-                userShare.getStorageId(),
-                userShare.getStorageType(),
-                userShare.getUserId(),
-                userShare.getShareId(),
-                userShare.isPublic(),
-                userShare.getExpireTime(),
-                userShare.getCreateTime()
-        );
-    }
-
-    public static ShareInfo from(SharePasswordInfo sharePasswordInfo) {
+    public static ShareInfoVo from(SharePasswordInfo sharePasswordInfo,
+                                   AttributedUser attributedUser) {
         if (sharePasswordInfo == null) {
             return null;
         }
 
-        return new ShareInfo(
+        return new ShareInfoVo(
                 sharePasswordInfo.id(),
                 sharePasswordInfo.storageId(),
                 sharePasswordInfo.storageType(),
                 sharePasswordInfo.creatorId(),
+                attributedUser.getUsername(),
+                Objects.requireNonNullElse(
+                        attributedUser.getNickname(),
+                        attributedUser.getUsername()
+                ),
                 sharePasswordInfo.shareCode(),
                 sharePasswordInfo.isPublic(),
                 sharePasswordInfo.expireTime(),

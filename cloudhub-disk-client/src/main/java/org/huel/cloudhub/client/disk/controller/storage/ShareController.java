@@ -11,10 +11,14 @@ import org.huel.cloudhub.client.disk.domain.share.ShareSearchService;
 import org.huel.cloudhub.client.disk.domain.share.ShareService;
 import org.huel.cloudhub.client.disk.domain.share.common.UserShareErrorCode;
 import org.huel.cloudhub.client.disk.domain.share.common.UserShareException;
-import org.huel.cloudhub.client.disk.domain.share.dto.ShareInfo;
+import org.huel.cloudhub.client.disk.domain.share.dto.ShareStructureInfo;
+import org.huel.cloudhub.client.disk.domain.share.vo.ShareInfoVo;
 import org.huel.cloudhub.client.disk.domain.share.dto.SharePasswordInfo;
+import org.huel.cloudhub.client.disk.domain.share.vo.ShareStructureVo;
+import org.huel.cloudhub.client.disk.domain.user.AttributedUser;
 import org.huel.cloudhub.client.disk.domain.user.LegalUserType;
 import org.huel.cloudhub.client.disk.domain.user.UserIdentity;
+import org.huel.cloudhub.client.disk.domain.user.service.UserSearchService;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageIdentity;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageOwner;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageType;
@@ -38,11 +42,14 @@ import java.util.List;
 public class ShareController {
     private final ShareService shareService;
     private final ShareSearchService shareSearchService;
+    private final UserSearchService userSearchService;
 
     public ShareController(ShareService shareService,
-                           ShareSearchService shareSearchService) {
+                           ShareSearchService shareSearchService,
+                           UserSearchService userSearchService) {
         this.shareService = shareService;
         this.shareSearchService = shareSearchService;
+        this.userSearchService = userSearchService;
     }
 
     @BuiltinOperate(BuiltinOperationType.CREATE_STORAGE_SHARE)
@@ -131,7 +138,7 @@ public class ShareController {
 
 
     @GetMapping("/shares/{shareToken}/metadata")
-    public HttpResponseEntity<ShareInfo> getShareMetadataByLink(
+    public HttpResponseEntity<ShareInfoVo> getShareMetadataByLink(
             @PathVariable("shareToken") String shareToken) {
         // basic info of share
         ParamValidate.notEmpty(shareToken, "shareToken");
@@ -141,27 +148,33 @@ public class ShareController {
         if (sharePasswordInfo.isExpired(System.currentTimeMillis())) {
             throw new UserShareException(UserShareErrorCode.ERROR_SHARE_EXPIRED);
         }
-        return HttpResponseEntity.success(ShareInfo.from(sharePasswordInfo));
+        AttributedUser attributedUser =
+                userSearchService.findUser(sharePasswordInfo.creatorId());
+        return HttpResponseEntity.success(
+                ShareInfoVo.from(sharePasswordInfo, attributedUser)
+        );
     }
 
     // with password
     @GetMapping("/shares/{shareToken}")
-    public HttpResponseEntity<ShareInfo> getShareByLink(
+    public HttpResponseEntity<ShareStructureVo> getShareByLink(
             @PathVariable("shareToken") String shareToken,
-            @RequestParam(value = "password", defaultValue = "") String password) {
+            @RequestParam(value = "password", defaultValue = "") String password,
+            @RequestParam(value = "parent", defaultValue = "0") Long parent) {
 
-        SharePasswordInfo sharePasswordInfo =
-                shareSearchService.search(shareToken);
-        if (sharePasswordInfo.isExpired(System.currentTimeMillis())) {
+        ShareStructureInfo shareStructureInfo =
+                shareSearchService.findStructureByShareCode(shareToken, parent);
+        if (shareStructureInfo.isExpired(System.currentTimeMillis())) {
             throw new UserShareException(UserShareErrorCode.ERROR_SHARE_EXPIRED);
         }
-
-        if (!password.equals(sharePasswordInfo.password())) {
+        if (!password.equals(shareStructureInfo.password())) {
             throw new UserShareException(UserShareErrorCode.ERROR_PASSWORD);
         }
-
-        // TODO: get storage info
-        return HttpResponseEntity.success(ShareInfo.from(sharePasswordInfo));
+        AttributedUser attributedUser =
+                userSearchService.findUser(shareStructureInfo.creatorId());
+        return HttpResponseEntity.success(
+                ShareStructureVo.from(shareStructureInfo, attributedUser)
+        );
     }
 
     @PostMapping("/shares/{shareToken}/save/{storageType}/{storageId}")

@@ -11,6 +11,7 @@ import org.huel.cloudhub.client.disk.domain.share.UserShare;
 import org.huel.cloudhub.client.disk.domain.share.common.UserShareErrorCode;
 import org.huel.cloudhub.client.disk.domain.share.common.UserShareException;
 import org.huel.cloudhub.client.disk.domain.share.dto.SharePasswordInfo;
+import org.huel.cloudhub.client.disk.domain.share.dto.ShareStructureInfo;
 import org.huel.cloudhub.client.disk.domain.share.repository.UserShareRepository;
 import org.huel.cloudhub.client.disk.domain.systembased.SimpleSystemAuthentication;
 import org.huel.cloudhub.client.disk.domain.systembased.SystemAuthentication;
@@ -22,7 +23,14 @@ import org.huel.cloudhub.client.disk.domain.userstorage.AttributedStorage;
 import org.huel.cloudhub.client.disk.domain.userstorage.Storage;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageIdentity;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageOwner;
+import org.huel.cloudhub.client.disk.domain.userstorage.StorageType;
+import org.huel.cloudhub.client.disk.domain.userstorage.UserFolder;
 import org.huel.cloudhub.client.disk.domain.userstorage.UserStorageSearchService;
+import org.huel.cloudhub.client.disk.domain.userstorage.common.StorageErrorCode;
+import org.huel.cloudhub.client.disk.domain.userstorage.common.StorageException;
+import org.huel.cloudhub.client.disk.domain.userstorage.dto.FolderInfo;
+import org.huel.cloudhub.client.disk.domain.userstorage.dto.FolderStructureInfo;
+import org.huel.cloudhub.client.disk.domain.userstorage.dto.SimpleStorageIdentity;
 import org.huel.cloudhub.web.data.page.Pageable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -154,21 +162,14 @@ public class ShareServiceImpl implements ShareService, ShareSearchService,
     @Override
     public SharePasswordInfo search(String shareCode) {
         UserShare userShare =
-                userShareRepository.getByShareId(shareCode);
-        if (userShare == null) {
-            throw new UserShareException(UserShareErrorCode.ERROR_SHARE_NOT_FOUND);
-        }
+                findShareByShareCode(shareCode);
 
         return SharePasswordInfo.from(userShare);
     }
 
     @Override
     public SharePasswordInfo findById(long shareId) {
-        UserShare userShare =
-                userShareRepository.getById(shareId);
-        if (userShare == null) {
-            throw new UserShareException(UserShareErrorCode.ERROR_SHARE_NOT_FOUND);
-        }
+        UserShare userShare = findShareById(shareId);
         return SharePasswordInfo.from(userShare);
     }
 
@@ -187,5 +188,78 @@ public class ShareServiceImpl implements ShareService, ShareSearchService,
             StorageIdentity storageIdentity) {
         // TODO: find by storage
         return List.of();
+    }
+
+    private UserShare findShareById(long shareId) {
+        UserShare userShare =
+                userShareRepository.getById(shareId);
+        if (userShare == null) {
+            throw new UserShareException(UserShareErrorCode.ERROR_SHARE_NOT_FOUND);
+        }
+        return userShare;
+    }
+
+    private UserShare findShareByShareCode(String shareCode) {
+        UserShare userShare =
+                userShareRepository.getByShareId(shareCode);
+        if (userShare == null) {
+            throw new UserShareException(UserShareErrorCode.ERROR_SHARE_NOT_FOUND);
+        }
+        return userShare;
+    }
+
+    @Override
+    public ShareStructureInfo findStructureById(
+            long shareId, long parentId) {
+        UserShare userShare = findShareById(shareId);
+        return getShareStructureInfo(userShare, parentId);
+    }
+
+    private ShareStructureInfo getShareStructureInfo(UserShare userShare, long parentId) {
+        if (parentId < 0) {
+            throw new StorageException(StorageErrorCode.ERROR_DIRECTORY_NOT_EXIST);
+        }
+        if (parentId == UserFolder.ROOT) {
+            return getByParentIfRoot(userShare);
+        }
+        if (userShare.getStorageType() != StorageType.FOLDER) {
+            throw new UserShareException(UserShareErrorCode.ERROR_SHARE_NOT_FOUND);
+        }
+        FolderStructureInfo folderStructureInfo
+                = userStorageSearchService.findFolder(parentId);
+        // check share is in folder
+        checkFolderInShare(userShare, folderStructureInfo);
+        List<FolderInfo> parents = folderStructureInfo.getParents();
+
+        List<? extends AttributedStorage> storages =
+                userStorageSearchService.listFiles(parentId);
+
+        return ShareStructureInfo.of(userShare, parents, storages);
+    }
+
+    private void checkFolderInShare(UserShare userShare,
+                                    FolderStructureInfo folderStructureInfo) {
+        for (FolderInfo folderStructureInfoParent : folderStructureInfo.getParents()) {
+            if (folderStructureInfoParent.getStorageId() == userShare.getStorageId()) {
+                return;
+            }
+        }
+        if (folderStructureInfo.getStorageId() == userShare.getStorageId()) {
+            return;
+        }
+        throw new UserShareException(UserShareErrorCode.ERROR_SHARE_NOT_FOUND);
+    }
+
+    private ShareStructureInfo getByParentIfRoot(UserShare userShare) {
+        AttributedStorage storage = userStorageSearchService.findStorage(new SimpleStorageIdentity(
+                userShare.getStorageId(), userShare.getStorageType()));
+        return ShareStructureInfo.of(userShare, List.of(), List.of(storage));
+    }
+
+    @Override
+    public ShareStructureInfo findStructureByShareCode(
+            String shareCode, long parentId) {
+        UserShare userShare = findShareByShareCode(shareCode);
+        return getShareStructureInfo(userShare, parentId);
     }
 }

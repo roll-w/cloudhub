@@ -1,6 +1,7 @@
 package org.huel.cloudhub.client.disk.domain.share;
 
 import org.huel.cloudhub.client.disk.domain.share.dto.SharePasswordInfo;
+import org.huel.cloudhub.client.disk.domain.share.dto.ShareStructureInfo;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageIdentity;
 import org.huel.cloudhub.web.data.page.Pageable;
 
@@ -14,7 +15,13 @@ public interface ShareSearchService {
 
     SharePasswordInfo findById(long shareId);
 
-    List<SharePasswordInfo> findByUserId(long userId, Pageable pageable);
+    List<SharePasswordInfo> findByUserId(
+            long userId, Pageable pageable);
 
-    List<SharePasswordInfo> findByStorage(StorageIdentity storageIdentity);
+    List<SharePasswordInfo> findByStorage(
+            StorageIdentity storageIdentity);
+
+    ShareStructureInfo findStructureById(long shareId, long parentId);
+
+    ShareStructureInfo findStructureByShareCode(String shareCode, long parentId);
 }

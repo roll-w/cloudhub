@@ -1,22 +1,24 @@
 package org.huel.cloudhub.client.disk.domain.share.dto;
 
 import org.huel.cloudhub.client.disk.domain.share.UserShare;
-import org.huel.cloudhub.client.disk.domain.userstorage.StorageType;
+import org.huel.cloudhub.client.disk.domain.userstorage.AttributedStorage;
+import org.huel.cloudhub.client.disk.domain.userstorage.dto.FolderInfo;
+
+import java.util.List;
 
 /**
  * @author RollW
  */
-public record SharePasswordInfo(
+public record ShareStructureInfo(
         long id,
-        long storageId,
-        StorageType storageType,
         long creatorId,
         String shareCode,
-        // as a utility field, can be removed if not needed
+        String password,
         boolean isPublic,
         long expireTime,
         long createTime,
-        String password
+        List<FolderInfo> parents,
+        List<? extends AttributedStorage> storages
 ) {
 
     public boolean isExpired(long time) {
@@ -26,21 +28,19 @@ public record SharePasswordInfo(
         return time > expireTime;
     }
 
-    public static SharePasswordInfo from(UserShare userShare) {
-        if (userShare == null) {
-            return null;
-        }
-
-        return new SharePasswordInfo(
+    public static ShareStructureInfo of(UserShare userShare,
+                                        List<FolderInfo> parents,
+                                        List<? extends AttributedStorage> storages) {
+        return new ShareStructureInfo(
                 userShare.getId(),
-                userShare.getStorageId(),
-                userShare.getStorageType(),
                 userShare.getUserId(),
                 userShare.getShareId(),
+                userShare.getPassword(),
                 userShare.isPublic(),
                 userShare.getExpireTime(),
                 userShare.getCreateTime(),
-                userShare.getPassword()
+                parents,
+                storages
         );
     }
 }
