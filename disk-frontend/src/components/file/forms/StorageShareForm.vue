@@ -16,7 +16,7 @@
 
                 <n-form-item label="分享密码" path="password">
                     <n-input v-model:value="formValue.password" placeholder="请输入密码"
-                             show-password-toggle
+                             show-password-on="click"
                              type="password"/>
                 </n-form-item>
             </div>
@@ -170,14 +170,12 @@ const handleCancel = () => {
     props.onClickCancel()
 }
 
-const getUrl = () => {
-    return `${window.location.protocol}//${window.location.host}/share/${shareInfo.value.shareCode}?password=${shareInfo.value.password}`
-}
 
 const requestCreateShare = () => {
     const config = createConfig(true)
     props.onBeforeAction()
-    proxy.$axios.post(api.storageShare(props.ownerType, props.ownerId, props.storageType, props.storageId), {
+    proxy.$axios.post(api.storageShare(props.ownerType.toLowerCase(),
+        props.ownerId, props.storageType.toLowerCase(), props.storageId), {
         time: formValue.value.time,
         type: formValue.value.type,
         password: formValue.value.password

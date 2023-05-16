@@ -268,7 +268,7 @@ const requestFileLogs = () => {
         .then(res => {
             res.data.forEach(item => item.description =
                 item.description.format(
-                    item.originalContent,
+                    item.originContent,
                     item.changedContent
                 )
             )

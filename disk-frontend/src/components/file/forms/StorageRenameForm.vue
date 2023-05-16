@@ -116,9 +116,10 @@ const handleConfirm = () => {
 
 const requestRename = () => {
     props.onBeforeAction()
-    const config = createConfig()
-    proxy.$axios.put(api.storageName(props.ownerType, props.ownerId, props.storageType, props.storageId), {
-        name: formValue.value.name
+    const config = createConfig(true)
+    proxy.$axios.put(api.storageName(props.ownerType, props.ownerId,
+        props.storageType.toLowerCase(), props.storageId), {
+        value: formValue.value.name
     }, config).then(response => {
         message.success('重命名成功')
         props.onAfterAction()

@@ -22,6 +22,8 @@ export const driveFileSearchPage = "drive-file-search-page"
 export const driveFileAttrsPage = "drive-file-attrs-page"
 export const driveFilePermissionPage = "drive-file-permission-page"
 
+export const driveShareTokenPage = "drive-share-token-page"
+
 export const page404 = "page-404"
 export const driveTagPage = "drive-tag-page"
 
@@ -151,7 +153,6 @@ const router = createRouter({
                         requireLogin: true
                     }
                 },
-
                 {
                     path: '/user/setting',
                     name: userSettingPage,
@@ -233,7 +234,7 @@ const router = createRouter({
             meta: {
                 title: "Cloudhub 法律案件资料库 - 可靠、专业的法律案件资料库",
                 originalTitle: true
-            }
+            },
         },
         {
             path: '/layout/header',
@@ -279,6 +280,15 @@ const router = createRouter({
                     component: () => import('@/views/NotFound.vue'),
                     meta: {
                         title: "404"
+                    }
+                },
+                {
+                    path: '/s/:token',
+                    name: driveShareTokenPage,
+                    component: () => import("@/views/share/ShareView.vue"),
+                    meta: {
+                        title: "分享",
+                        requireLogin: false
                     }
                 },
                 {

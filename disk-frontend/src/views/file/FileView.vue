@@ -22,14 +22,17 @@
 
                 <div class="min-h-[400px]">
                     <n-spin :show="loading" size="large">
-                        <div v-if="files.length" class="flex flex-fill flex-wrap transition-all duration-300">
-                            <FileComponent v-for="(file, i) in files"
-                                           v-model:checked="checkedState[i]"
-                                           :file="file"
-                                           :onClickMoreOptions="handleClickMoreOptions"
-                                           @click="handleStorageClick($event, file)"
-                                           @contextmenu="handleFileOptionContextMenu($event, file)"/>
+                        <div v-if="files.length" class="pb-[30vh]">
+                            <div class="flex flex-fill flex-wrap transition-all duration-300">
+                                <FileComponent v-for="(file, i) in files"
+                                               v-model:checked="checkedState[i]"
+                                               :file="file"
+                                               :onClickMoreOptions="handleClickMoreOptions"
+                                               @click="handleStorageClick($event, file)"
+                                               @contextmenu="handleFileOptionContextMenu($event, file)"/>
+                            </div>
                         </div>
+
                         <div v-else class="w-100 h-100 flex flex-col flex-fill content-center justify-center">
                             <div class="self-center">
                                 <n-empty description="暂无文件">
@@ -164,13 +167,25 @@
                  preset="dialog"
                  transform-origin="center">
             <StorageShareForm
+                    :on-after-action="(info) => {
+                        showShareStorageModal = false
+                        shareInfo = info
+                        showShareConfirmStorageModal = true
+                    }"
                     :on-click-cancel="() => showShareStorageModal = false"
-                    :on-click-confirm="() => showShareStorageModal = false"
                     :owner-id="userStore.user.id"
                     :storage-id="curTargetFile.storageId"
                     :storage-type="curTargetFile.storageType"
                     owner-type="user"
             />
+        </n-modal>
+
+        <n-modal v-model:show="showShareConfirmStorageModal"
+                 :show-icon="false"
+                 :title="'分享 ' + curTargetFile.name"
+                 preset="dialog"
+                 transform-origin="center">
+            <StorageShareConfirm :share-info="shareInfo"/>
         </n-modal>
 
         <FileViewToolbar :checked-list="getCheckedList()"/>
@@ -207,6 +222,7 @@ import FilePreviewer from "@/components/file/FilePreviewer.vue";
 import FileViewToolbar from "@/components/file/FileViewToolbar.vue";
 import {options, getFileViewMenuOptions} from "@/views/file/options";
 import StorageShareForm from "@/components/file/forms/StorageShareForm.vue";
+import StorageShareConfirm from "@/components/file/forms/StorageShareConfirm.vue";
 
 const {proxy} = getCurrentInstance()
 const notification = useNotification()
@@ -256,6 +272,9 @@ const showCreateFolderModal = ref(false)
 const showFilePreviewModal = ref(false)
 const showRenameStorageModal = ref(false)
 const showShareStorageModal = ref(false)
+const showShareConfirmStorageModal = ref(false)
+
+const shareInfo = ref()
 
 let showFileDropdownState = false
 let lastTarget = null

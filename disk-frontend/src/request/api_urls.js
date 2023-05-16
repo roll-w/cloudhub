@@ -40,6 +40,10 @@ export const storageParent = (ownerType, ownerId, storageType, id) =>
     `${prefix}/${ownerType}/${ownerId}/disk/${storageType}/${id}/info/parent`;
 export const storageShare = (ownerType, ownerId, storageType, id) =>
     `${prefix}/${ownerType}/${ownerId}/disk/${storageType}/${id}/shares`;
+export const shareTokenInfo = (token) =>
+    `${prefix}/shares/${token}/metadata`;
+export const shareToken = (token) =>
+    `${prefix}/shares/${token}`;
 
 export const quickfire = (token) =>
     `${prefix}/quickfire/disk/${token}`;
