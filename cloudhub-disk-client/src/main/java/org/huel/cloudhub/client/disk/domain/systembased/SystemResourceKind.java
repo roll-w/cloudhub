@@ -16,7 +16,7 @@ public enum SystemResourceKind {
     USER_SETTING,
     GROUP_SETTING,
     ORGANIZATION_SETTING,
-
+    STORAGE_USER_PERMISSION,
     ;
 
     public interface Kind {

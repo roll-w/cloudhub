@@ -14,6 +14,11 @@ import org.huel.cloudhub.client.disk.domain.storagepermission.dto.StoragePermiss
 import org.huel.cloudhub.client.disk.domain.storagepermission.dto.StoragePermissionsInfo;
 import org.huel.cloudhub.client.disk.domain.storagepermission.repository.StoragePermissionRepository;
 import org.huel.cloudhub.client.disk.domain.storagepermission.repository.StorageUserPermissionRepository;
+import org.huel.cloudhub.client.disk.domain.systembased.SimpleSystemAuthentication;
+import org.huel.cloudhub.client.disk.domain.systembased.SystemAuthentication;
+import org.huel.cloudhub.client.disk.domain.systembased.SystemResource;
+import org.huel.cloudhub.client.disk.domain.systembased.SystemResourceActionProvider;
+import org.huel.cloudhub.client.disk.domain.systembased.SystemResourceKind;
 import org.huel.cloudhub.client.disk.domain.userstorage.AttributedStorage;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageIdentity;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageOwner;
@@ -21,6 +26,7 @@ import org.huel.cloudhub.client.disk.domain.userstorage.UserStorageSearchService
 import org.huel.cloudhub.client.disk.domain.userstorage.common.StorageErrorCode;
 import org.huel.cloudhub.web.AuthErrorCode;
 import org.springframework.stereotype.Service;
+import space.lingu.NonNull;
 
 import java.util.List;
 import java.util.Objects;
@@ -29,7 +35,8 @@ import java.util.Objects;
  * @author RollW
  */
 @Service
-public class StoragePermissionServiceImpl implements StoragePermissionService {
+public class StoragePermissionServiceImpl implements StoragePermissionService,
+        SystemResourceActionProvider {
     private final StoragePermissionRepository storagePermissionRepository;
     private final StorageUserPermissionRepository storageUserPermissionRepository;
     private final UserStorageSearchService userStorageSearchService;
@@ -52,7 +59,7 @@ public class StoragePermissionServiceImpl implements StoragePermissionService {
     }
 
     private AttributedStorage preCheckStorage(StorageIdentity storageIdentity,
-                                               StorageOwner storageOwner) {
+                                              StorageOwner storageOwner) {
         AttributedStorage storage =
                 userStorageSearchService.findStorage(storageIdentity, storageOwner);
         if (storage.isDeleted()) {
@@ -252,5 +259,69 @@ public class StoragePermissionServiceImpl implements StoragePermissionService {
                 storage.getStorageType(),
                 operator.getOperatorId()
         );
+    }
+
+    @NonNull
+    @Override
+    public SystemAuthentication authentication(
+            SystemResource systemResource,
+            Operator operator,
+            Action action) {
+
+        return switch (systemResource.getSystemResourceKind()) {
+            case STORAGE_PERMISSION -> authenticationStoragePermission(
+                    systemResource,
+                    operator
+            );
+            case STORAGE_USER_PERMISSION -> authenticationStorageUserPermission(
+                    systemResource,
+                    operator
+            );
+            default -> throw new IllegalArgumentException("Unsupported system resource kind: " + systemResource.getSystemResourceKind());
+        };
+    }
+
+    private SystemAuthentication authenticationStoragePermission(
+            SystemResource systemResource,
+            Operator operator) {
+        StoragePermission storagePermission =
+                storagePermissionRepository.getById(systemResource.getResourceId());
+        AttributedStorage attributedStorage =
+                userStorageSearchService.findStorage(storagePermission);
+        if (attributedStorage.getOwnerId() == operator.getOperatorId()) {
+            return new SimpleSystemAuthentication(
+                    storagePermission, operator, true);
+        }
+        return new SimpleSystemAuthentication(systemResource, operator, false);
+    }
+
+    private SystemAuthentication authenticationStorageUserPermission(
+            SystemResource systemResource,
+            Operator operator) {
+        StorageUserPermission storageUserPermission =
+                storageUserPermissionRepository.getById(systemResource.getResourceId());
+        AttributedStorage attributedStorage =
+                userStorageSearchService.findStorage(storageUserPermission);
+        if (attributedStorage.getOwnerId() == operator.getOperatorId()) {
+            return new SimpleSystemAuthentication(
+                    storageUserPermission, operator, true);
+        }
+        return new SimpleSystemAuthentication(systemResource, operator, false);
+    }
+
+    @Override
+    public boolean supports(SystemResourceKind systemResourceKind) {
+        return systemResourceKind == SystemResourceKind.STORAGE_PERMISSION
+                || systemResourceKind == SystemResourceKind.STORAGE_USER_PERMISSION;
+    }
+
+    @Override
+    public SystemResource provide(long resourceId,
+                                  SystemResourceKind systemResourceKind) {
+        return switch (systemResourceKind) {
+            case STORAGE_PERMISSION -> storagePermissionRepository.getById(resourceId);
+            case STORAGE_USER_PERMISSION -> storageUserPermissionRepository.getById(resourceId);
+            default -> throw new IllegalArgumentException("Unsupported system resource kind: " + systemResourceKind);
+        };
     }
 }

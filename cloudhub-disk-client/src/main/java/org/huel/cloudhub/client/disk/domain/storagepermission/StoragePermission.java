@@ -5,6 +5,7 @@ import org.huel.cloudhub.client.disk.domain.systembased.SystemResource;
 import org.huel.cloudhub.client.disk.domain.systembased.SystemResourceKind;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageIdentity;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageType;
+import space.lingu.NonNull;
 import space.lingu.light.DataColumn;
 import space.lingu.light.DataTable;
 import space.lingu.light.Index;
@@ -17,7 +18,7 @@ import space.lingu.light.SQLDataType;
 @DataTable(name = "storage_permission", indices = {
         @Index(value = {"storage_id", "storage_type"}, unique = true)
 })
-public class StoragePermission implements SystemResource, DataItem {
+public class StoragePermission implements SystemResource, DataItem, StorageIdentity {
     @DataColumn(name = "id")
     @PrimaryKey(autoGenerate = true)
     private final Long id;
@@ -59,10 +60,13 @@ public class StoragePermission implements SystemResource, DataItem {
         return id;
     }
 
+    @Override
     public long getStorageId() {
         return storageId;
     }
 
+    @NonNull
+    @Override
     public StorageType getStorageType() {
         return storageType;
     }
