@@ -9,9 +9,9 @@ import org.huel.cloudhub.client.disk.domain.userstorage.Storage;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageIdentity;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageOwner;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageProcessor;
-import org.huel.cloudhub.client.disk.domain.userstorage.UserFolder;
 import org.huel.cloudhub.client.disk.domain.userstorage.UserFileStorage;
 import org.huel.cloudhub.client.disk.domain.userstorage.UserFileStorageService;
+import org.huel.cloudhub.client.disk.domain.userstorage.UserFolder;
 import org.huel.cloudhub.client.disk.domain.userstorage.UserStorageSearchService;
 import org.huel.cloudhub.client.disk.domain.userstorage.common.StorageErrorCode;
 import org.huel.cloudhub.client.disk.domain.userstorage.common.StorageException;
@@ -20,8 +20,8 @@ import org.huel.cloudhub.client.disk.domain.userstorage.dto.FileStorageInfo;
 import org.huel.cloudhub.client.disk.domain.userstorage.dto.FolderInfo;
 import org.huel.cloudhub.client.disk.domain.userstorage.dto.FolderStructureInfo;
 import org.huel.cloudhub.client.disk.domain.userstorage.dto.StorageAttr;
-import org.huel.cloudhub.client.disk.domain.userstorage.repository.UserFolderRepository;
 import org.huel.cloudhub.client.disk.domain.userstorage.repository.UserFileStorageRepository;
+import org.huel.cloudhub.client.disk.domain.userstorage.repository.UserFolderRepository;
 import org.huel.cloudhub.client.disk.domain.userstorage.util.StorageNameValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,7 +37,8 @@ import java.util.List;
  * @author RollW
  */
 @Service
-public class UserFileStorageServiceImpl implements UserFileStorageService, UserStorageSearchService {
+public class UserFileStorageServiceImpl implements
+        UserFileStorageService, UserStorageSearchService {
     private static final Logger logger = LoggerFactory.getLogger(UserFileStorageServiceImpl.class);
 
     private final StorageService storageService;
@@ -234,56 +235,6 @@ public class UserFileStorageServiceImpl implements UserFileStorageService, UserS
             throw new StorageException(StorageErrorCode.ERROR_FILE_NOT_EXIST);
         }
 
-
-        storageService.getFile(userFileStorage.getFileId(), outputStream);
-    }
-
-    @Override
-    public void downloadFile(long fileId, OutputStream outputStream) throws IOException {
-        FileInfo userFileStorage = findFile(fileId);
-        storageService.getFile(userFileStorage.getFileId(), outputStream);
-    }
-
-    @Override
-    public void downloadFile(long fileId, OutputStream outputStream, long startBytes, long endBytes) throws IOException {
-        FileInfo userFileStorage = findFile(fileId);
-        storageService.getFile(
-                userFileStorage.getFileId(),
-                outputStream,
-                startBytes,
-                endBytes
-        );
-    }
-
-    @Override
-    public void downloadFile(FileInfo fileInfo, OutputStream outputStream)
-            throws IOException {
-        storageService.getFile(
-                fileInfo.getFileId(),
-                outputStream
-        );
-    }
-
-    @Override
-    public void downloadFile(FileInfo fileInfo, OutputStream outputStream,
-                             long startBytes, long endBytes) throws IOException {
-        storageService.getFile(
-                fileInfo.getFileId(),
-                outputStream,
-                startBytes,
-                endBytes
-        );
-    }
-
-    @Override
-    public void downloadFile(FileStorageInfo fileStorageInfo,
-                             OutputStream outputStream) throws IOException {
-        FileInfo userFileStorage = findFile(fileStorageInfo);
-
-        if (userFileStorage.getOwnerId() != fileStorageInfo.storageOwner().getOwnerId()
-                || userFileStorage.getOwnerType() != fileStorageInfo.storageOwner().getOwnerType()) {
-            throw new StorageException(StorageErrorCode.ERROR_FILE_NOT_EXIST);
-        }
 
         storageService.getFile(userFileStorage.getFileId(), outputStream);
     }

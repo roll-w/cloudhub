@@ -19,6 +19,9 @@ public record FolderInfo(
         long updateTime,
         boolean deleted
 ) implements Storage {
+    public static final FolderInfo ROOT =
+            FolderInfo.of(UserFolder.ROOT_FOLDER);
+
     @Override
     public long getStorageId() {
         return id();
@@ -61,6 +64,19 @@ public record FolderInfo(
                 userFolder.getCreateTime(),
                 userFolder.getUpdateTime(),
                 userFolder.isDeleted()
+        );
+    }
+
+    public static FolderInfo of(FolderStructureInfo folderStructureInfo) {
+        return new FolderInfo(
+                folderStructureInfo.storageId(),
+                folderStructureInfo.name(),
+                folderStructureInfo.parentId(),
+                folderStructureInfo.ownerId(),
+                folderStructureInfo.ownerType(),
+                folderStructureInfo.createTime(),
+                folderStructureInfo.updateTime(),
+                folderStructureInfo.deleted()
         );
     }
 }

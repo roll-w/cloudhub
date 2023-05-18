@@ -1,5 +1,6 @@
 package org.huel.cloudhub.client.disk.domain.userstorage.service;
 
+import org.huel.cloudhub.client.disk.domain.userstorage.AttributedStorage;
 import org.huel.cloudhub.client.disk.domain.userstorage.UserFileStorage;
 
 /**
@@ -11,4 +12,6 @@ public interface FileActionDelegate {
     void updateFile(UserFileStorage userFileStorage);
 
     void checkExistsFile(String name, long parentId);
+
+    AttributedStorage checkParentExists(long parentId);
 }

@@ -2,6 +2,7 @@ package org.huel.cloudhub.client.disk.domain.userstorage.service;
 
 import org.huel.cloudhub.client.disk.domain.operatelog.context.OperationContextHolder;
 import org.huel.cloudhub.client.disk.domain.user.LegalUserType;
+import org.huel.cloudhub.client.disk.domain.userstorage.AttributedStorage;
 import org.huel.cloudhub.client.disk.domain.userstorage.FileType;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageAction;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageType;
@@ -114,8 +115,14 @@ public class DirectoryAction implements StorageAction {
         if (directory.getParentId() == newParentId) {
             throw new StorageException(StorageErrorCode.ERROR_SAME_DIRECTORY);
         }
-        // TODO: check new parent directory is exist
+        AttributedStorage storage =
+                directoryActionDelegate.checkParentExists(newParentId);
+        AttributedStorage parent =
+                directoryActionDelegate.checkParentExists(directory.getParentId());
         directoryBuilder.setParentId(newParentId);
+        OperationContextHolder.getContext()
+                .setOriginContent(parent.getName())
+                .setChangedContent(storage.getName());
         update();
     }
 

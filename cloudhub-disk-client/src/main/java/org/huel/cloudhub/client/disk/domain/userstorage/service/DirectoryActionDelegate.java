@@ -1,5 +1,6 @@
 package org.huel.cloudhub.client.disk.domain.userstorage.service;
 
+import org.huel.cloudhub.client.disk.domain.userstorage.AttributedStorage;
 import org.huel.cloudhub.client.disk.domain.userstorage.UserFolder;
 
 /**
@@ -12,4 +13,5 @@ public interface DirectoryActionDelegate {
 
     void checkExistsFolder(String name, long parentId);
 
+    AttributedStorage checkParentExists(long parentId);
 }

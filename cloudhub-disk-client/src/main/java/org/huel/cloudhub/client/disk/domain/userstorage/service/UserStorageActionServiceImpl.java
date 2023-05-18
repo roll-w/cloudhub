@@ -149,4 +149,22 @@ public class UserStorageActionServiceImpl implements StorageActionService,
             throw new StorageException(StorageErrorCode.ERROR_FILE_EXISTED);
         }
     }
+
+    @Override
+    public AttributedStorage checkParentExists(long parentId) {
+        if (parentId < 0) {
+            throw new StorageException(StorageErrorCode.ERROR_DIRECTORY_NOT_EXIST);
+        }
+        if (parentId == 0) {
+            return UserFolder.ROOT_FOLDER;
+        }
+        UserFolder userFolder = userFolderRepository.getById(parentId);
+        if (userFolder == null) {
+            throw new StorageException(StorageErrorCode.ERROR_DIRECTORY_NOT_EXIST);
+        }
+        if (userFolder.isDeleted()) {
+            throw new StorageException(StorageErrorCode.ERROR_DIRECTORY_NOT_EXIST);
+        }
+        return userFolder;
+    }
 }

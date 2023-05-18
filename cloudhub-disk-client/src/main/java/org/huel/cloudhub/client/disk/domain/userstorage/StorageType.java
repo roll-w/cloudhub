@@ -29,6 +29,15 @@ public enum StorageType implements SystemResourceKind.Kind {
         return null;
     }
 
+    public static StorageType from(SystemResourceKind systemResourceKind) {
+        for (StorageType value : values()) {
+            if (value.getSystemResourceKind() == systemResourceKind) {
+                return value;
+            }
+        }
+        return null;
+    }
+
     @Override
     public SystemResourceKind getSystemResourceKind() {
         return systemResourceKind;
