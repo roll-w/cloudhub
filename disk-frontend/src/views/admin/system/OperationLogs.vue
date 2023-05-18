@@ -140,7 +140,7 @@ const getLogs = () => {
             item.timestamp = formatTimestamp(item.timestamp)
             item.action = getActionName(item.action)
             item.description = item.description.format(
-                item.originalContent,
+                item.originContent,
                 item.changedContent
             )
             if (item.associatedTo) {

@@ -1,3 +1,5 @@
+
+
 const viteBase = import.meta.env.VITE_BASE_URL;
 const httpPrefix = import.meta.env.VITE_HTTP_PREFIX;
 
@@ -44,6 +46,7 @@ export const shareTokenInfo = (token) =>
     `${prefix}/shares/${token}/metadata`;
 export const shareToken = (token) =>
     `${prefix}/shares/${token}`;
+export const userShares = `${prefix}/user/shares`;
 
 export const quickfire = (token) =>
     `${prefix}/quickfire/disk/${token}`;
@@ -53,10 +56,17 @@ export const getOperationLogsByResource = (resourceType, resourceId) =>
 
 export const getOperationLogsAdmin =
     `${adminPrefix}/operations/logs`;
+export const tagGroups = (admin = false) =>
+    `${admin ? adminPrefix : prefix}/tags/groups`;
+export const tags = (admin = false) =>
+    `${admin ? adminPrefix : prefix}/tags`;
 
 export const getCurrentUserOperationLogs = `${prefix}/user/operations/logs`;
 export const getCurrentUserLoginLogs = `${prefix}/user/login/logs`;
 export const getCurrentUserInfo = `${prefix}/user`;
+
+export const userInfo = (userId, admin = false) =>
+    `${admin ? adminPrefix : prefix}/users/${userId}`;
 
 export const getUsers = `${adminPrefix}/users`;
 export const getLoginLogs = `${adminPrefix}/users/login/logs`;

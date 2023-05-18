@@ -77,3 +77,16 @@ export const getSystemResourceKindName = (kind = 'UNKNOWN') => {
             return '未知'
     }
 }
+
+export const getKeywordSearchScopeName = (name) => {
+    switch (name) {
+        case 'NAME':
+            return '名称'
+        case 'DESCRIPTION':
+            return '描述'
+        case 'CONTENT':
+            return '内容'
+        case 'ALL':
+            return '所有'
+    }
+}

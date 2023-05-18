@@ -28,12 +28,18 @@ export const page404 = "page-404"
 export const driveTagPage = "drive-tag-page"
 
 export const userSettingPage = "user-setting-page"
+export const userSharePage = "user-share-page"
 
 export const adminIndex = "admin-index"
+
 export const adminUserLists = "admin-user-lists"
+export const adminUserDetails = "admin-user-details"
 
 export const adminFileLists = "admin-file-lists"
-export const adminContentTags = "admin-content-tags"
+
+export const adminTagGroups = "admin-tag-groups"
+export const adminTags = "admin-tags"
+export const adminTagGroupInfo = "admin-tag-group-info"
 
 export const adminVisualData = "admin-visual-data"
 
@@ -55,17 +61,12 @@ const router = createRouter({
                     redirect: '/drive/files'
                 },
                 {
-                    path: '/drive/files',
-                    name: driveFilePage,
-                    component: () => import("@/views/file/FileView.vue"),
-                    meta: {
-                        title: "文件",
-                        requireLogin: true
-                    }
+                    path: '/drive/files/folder/0',
+                    redirect: '/drive/files'
                 },
                 {
-                    path: '/drive/files/:folder',
-                    name: driveFilePageFolder,
+                    path: '/drive/files',
+                    name: driveFilePage,
                     component: () => import("@/views/file/FileView.vue"),
                     meta: {
                         title: "文件",
@@ -162,6 +163,15 @@ const router = createRouter({
                         requireLogin: true
                     }
                 },
+                {
+                    path: '/user/shares',
+                    name: userSharePage,
+                    component: () => import("@/views/user/PersonalShareView.vue"),
+                    meta: {
+                        title: "用户分享",
+                        requireLogin: true
+                    }
+                },
 
             ]
         },
@@ -190,6 +200,24 @@ const router = createRouter({
                     }
                 },
                 {
+                    path: '/admin/tags/groups',
+                    name: adminTagGroups,
+                    component: () => import("@/views/admin/tag/AdminTagGroupsView.vue"),
+                    meta: {
+                        title: "标签组列表",
+                        requireLogin: true
+                    }
+                },
+                {
+                    path: '/admin/tags',
+                    name: adminTags,
+                    component: () => import("@/views/admin/tag/AdminTagsView.vue"),
+                    meta: {
+                        title: "标签列表",
+                        requireLogin: true
+                    }
+                },
+                {
                     path: '/admin/data',
                     name: adminVisualData,
                     component: () => import("@/views/EchartsIndexView.vue"),
@@ -213,6 +241,15 @@ const router = createRouter({
                     component: () => import("@/views/admin/system/LoginLogs.vue"),
                     meta: {
                         title: "用户登录日志",
+                        requireLogin: true
+                    }
+                },
+                {
+                    path: '/admin/users/:userId',
+                    name: adminUserDetails,
+                    component: () => import("@/views/admin/user/AdminUserDetails.vue"),
+                    meta: {
+                        title: "用户信息",
                         requireLogin: true
                     }
                 },

@@ -4,7 +4,7 @@ import {
     adminIndex,
     adminLoginLogs,
     adminOperationLogs,
-    adminSystemLogs,
+    adminSystemLogs, adminTagGroups, adminTags,
     adminUserLists,
     adminVisualData,
     driveFilePage,
@@ -13,7 +13,7 @@ import {
     driveFilePageTypeDocument,
     driveFilePageTypeImage,
     driveFilePageTypeVideo,
-    driveTagPage,
+    driveTagPage, userSharePage,
 } from "@/router";
 
 import {NIcon} from "naive-ui";
@@ -29,6 +29,7 @@ export const menuFile = "File"
 
 export const adminMenuFile = "AdminFile"
 export const adminMenuUser = "AdminUser"
+export const adminMenuTag = "AdminTag"
 export const adminMenuSystem = "AdminSystem"
 
 
@@ -120,7 +121,8 @@ const menuOptions = [
             },
             {
                 name: "分享",
-                key: "Share",
+                key: userSharePage,
+                linked: true
             },
             {
                 name: "回收站",
@@ -159,19 +161,34 @@ const menuOptions = [
                 ]
             },
             {
-                name: "文件管理",
+                name: "存储管理",
                 key: adminMenuFile,
                 children: [
                     {
                         name: "文件列表",
                         key: "file-management-list"
                     },
+                    {
+                        name: "分享管理",
+                        key: "file-management-share"
+                    },
                 ]
             },
             {
                 name: "标签管理",
-                key: "file-tag",
-
+                key: adminMenuTag,
+                children: [
+                    {
+                        name: "标签组列表",
+                        key: adminTagGroups,
+                        linked: true
+                    },
+                    {
+                        name: "标签列表",
+                        key: adminTags,
+                        linked: true
+                    }
+                ]
             },
             {
                 name: "可视化数据",
