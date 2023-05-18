@@ -234,7 +234,12 @@ public class ShareServiceImpl implements ShareService, ShareSearchService,
         List<? extends AttributedStorage> storages =
                 userStorageSearchService.listFiles(parentId);
 
-        return ShareStructureInfo.of(userShare, parents, storages);
+        return ShareStructureInfo.of(
+                userShare,
+                parents,
+                FolderInfo.of(folderStructureInfo),
+                storages
+        );
     }
 
     private void checkFolderInShare(UserShare userShare,
@@ -253,7 +258,12 @@ public class ShareServiceImpl implements ShareService, ShareSearchService,
     private ShareStructureInfo getByParentIfRoot(UserShare userShare) {
         AttributedStorage storage = userStorageSearchService.findStorage(new SimpleStorageIdentity(
                 userShare.getStorageId(), userShare.getStorageType()));
-        return ShareStructureInfo.of(userShare, List.of(), List.of(storage));
+        return ShareStructureInfo.of(
+                userShare,
+                List.of(),
+                FolderInfo.ROOT,
+                List.of(storage)
+        );
     }
 
     @Override

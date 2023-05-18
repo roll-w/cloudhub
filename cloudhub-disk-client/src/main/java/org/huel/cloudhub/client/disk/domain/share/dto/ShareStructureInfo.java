@@ -18,6 +18,7 @@ public record ShareStructureInfo(
         long expireTime,
         long createTime,
         List<FolderInfo> parents,
+        FolderInfo current,
         List<? extends AttributedStorage> storages
 ) {
 
@@ -30,6 +31,7 @@ public record ShareStructureInfo(
 
     public static ShareStructureInfo of(UserShare userShare,
                                         List<FolderInfo> parents,
+                                        FolderInfo current,
                                         List<? extends AttributedStorage> storages) {
         return new ShareStructureInfo(
                 userShare.getId(),
@@ -40,6 +42,7 @@ public record ShareStructureInfo(
                 userShare.getExpireTime(),
                 userShare.getCreateTime(),
                 parents,
+                current,
                 storages
         );
     }

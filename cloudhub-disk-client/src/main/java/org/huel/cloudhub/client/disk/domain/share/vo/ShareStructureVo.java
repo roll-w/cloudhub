@@ -20,6 +20,7 @@ public record ShareStructureVo(
         long expireTime,
         long createTime,
         List<FolderInfo> parents,
+        FolderInfo current,
         List<StorageVo> storages
 ) {
 
@@ -35,6 +36,7 @@ public record ShareStructureVo(
                 shareStructureInfo.expireTime(),
                 shareStructureInfo.createTime(),
                 shareStructureInfo.parents(),
+                shareStructureInfo.current(),
                 shareStructureInfo.storages()
                         .stream()
                         .map(StorageVo::from)
