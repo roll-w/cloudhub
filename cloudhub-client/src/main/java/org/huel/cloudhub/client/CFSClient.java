@@ -106,7 +106,7 @@ public class CFSClient implements Closeable {
         try {
             latch.await();
         } catch (InterruptedException e) {
-            throw new CFSException(e);
+            Thread.currentThread().interrupt();
         }
         return object.fileValidation;
     }
@@ -143,7 +143,7 @@ public class CFSClient implements Closeable {
         try {
             latch.await();
         } catch (InterruptedException e) {
-            throw new CFSException(e);
+            Thread.currentThread().interrupt();
         }
         return success.get();
     }
@@ -177,7 +177,7 @@ public class CFSClient implements Closeable {
         try {
             latch.await();
         } catch (InterruptedException e) {
-            throw new CFSException(e);
+            Thread.currentThread().interrupt();
         }
         return success.get();
     }
