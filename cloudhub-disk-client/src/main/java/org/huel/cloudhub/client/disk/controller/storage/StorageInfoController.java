@@ -3,7 +3,9 @@ package org.huel.cloudhub.client.disk.controller.storage;
 import org.huel.cloudhub.client.disk.common.ParamValidate;
 import org.huel.cloudhub.client.disk.common.ParameterFailedException;
 import org.huel.cloudhub.client.disk.controller.Api;
+import org.huel.cloudhub.client.disk.controller.LongActionRequest;
 import org.huel.cloudhub.client.disk.controller.ParameterHelper;
+import org.huel.cloudhub.client.disk.controller.StringActionRequest;
 import org.huel.cloudhub.client.disk.domain.operatelog.BuiltinOperationType;
 import org.huel.cloudhub.client.disk.domain.operatelog.context.OperationContextHolder;
 import org.huel.cloudhub.client.disk.domain.userstorage.AttributedStorage;
@@ -106,13 +108,4 @@ public class StorageInfoController {
         return HttpResponseEntity.success();
     }
 
-    public record LongActionRequest(
-            Long value
-    ) {
-    }
-
-    public record StringActionRequest(
-            String value
-    ) {
-    }
 }

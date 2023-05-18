@@ -191,6 +191,8 @@ public class FileController {
         }
         List<HttpRange> ranges = HttpRangeUtils.tryGetsRange(request);
         response.setHeader("Accept-Ranges", "bytes");
+        response.setHeader("X-Frame-Options", "SAMEORIGIN");
+        response.setHeader("Content-Security-Policy", "frame-ancestors 'self' localhost:* 127.0.0.1:*");
         response.setHeader("Content-Disposition",
                 dispositionType + ";filename*=utf-8''" + getEncodedFileName(fileInfo.getName()));
         long length = storageService.getFileSize(fileInfo.getFileId());
@@ -229,6 +231,10 @@ public class FileController {
 
     private String getDispositionType(HttpServletRequest request) {
         String dispositionType = request.getHeader(DISPOSITION_TYPE);
+        String param = request.getParameter("disposition");
+        if (Strings.isNullOrEmpty(dispositionType)) {
+            dispositionType = param;
+        }
         if (Strings.isNullOrEmpty(dispositionType)) {
             return "attachment";
         }

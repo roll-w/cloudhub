@@ -60,7 +60,8 @@ public class ContentTagController {
     }
 
     @GetMapping("/tags/groups")
-    public HttpResponseEntity<List<TagGroupDto>> getTagGroups(Pageable pageable) {
+    public HttpResponseEntity<List<TagGroupDto>> getTagGroups(
+            Pageable pageable) {
         List<TagGroupDto> tagGroupDtos =
                 contentTagService.getTagGroups(pageable);
 
