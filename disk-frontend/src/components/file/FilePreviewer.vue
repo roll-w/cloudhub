@@ -22,13 +22,17 @@
 
         </div>
         <div v-else-if="isPdf()">
-            <iframe :src="url" class="frame rounded-md" width="auto"></iframe>
+                <embed :src="url" type="application/pdf" class="h-[70vh] w[75vw] m-auto"
+                style="height: 75vh !important; width: 90vw !important;"/>
         </div>
         <div v-else-if="file.fileType === 'AUDIO'">
             <audio :src="url" class="m-auto" controls/>
         </div>
         <div v-else-if="file.fileType === 'VIDEO'">
-            <video :src="url" class="frame rounded-md" controls></video>
+            <div class="frame rounded-md">
+                <video :src="url" class="frame" controls></video>
+            </div>
+
         </div>
         <div v-else>
             <div class="w-full h-full flex justify-center items-center">
@@ -54,10 +58,14 @@ const props = defineProps({
     },
 })
 
+const isPdf = () => {
+    return props.file.name.toLowerCase().endsWith('.pdf')
+}
 const userStore = useUserStore()
+
 const url = api.file(props.file.ownerType.toLowerCase(),
         props.file.ownerId, props.file.storageId) +
-    "?disposition=inline&token=" + userStore.getToken
+    "?token=" + userStore.getToken + (isPdf() ? "&disposition=inline" : "")
 
 const text = ref('')
 const requestText = async () => {
@@ -69,9 +77,6 @@ const requestText = async () => {
 }
 requestText()
 
-const isPdf = () => {
-    return props.file.name.toLowerCase().endsWith('.pdf')
-}
 
 const {popoverColor, boxShadow2, textColor2, borderRadius} = useThemeVars().value;
 

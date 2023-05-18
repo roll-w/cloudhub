@@ -156,6 +156,7 @@
                     :owner-id="userStore.user.id"
                     :storage-id="curTargetFile.storageId"
                     :storage-type="curTargetFile.storageType"
+                    :file-name="curTargetFile.name"
                     owner-type="user"
             />
         </n-modal>

@@ -47,7 +47,13 @@ const fileViewMenuOptions = [
 
 const fileTypeViewMenuOptions = [
     {
-        label: "上传文件请到文件夹中操作",
+        label: () => h(
+            'div',
+            {
+                class: "text-red-500 mr-10"
+            },
+            {default: () => "上传文件请在文件夹内操作"}
+        ),
         key: "non-action",
     },
     {

@@ -78,13 +78,16 @@ const props = defineProps({
     ownerId: {
         type: Number,
         required: true
+    },
+    fileName: {
+        type: String,
+        default: ''
     }
-
 })
 
 const form = ref()
 const formValue = ref({
-    name: ''
+    name: props.fileName
 })
 
 const formRules = ref({
