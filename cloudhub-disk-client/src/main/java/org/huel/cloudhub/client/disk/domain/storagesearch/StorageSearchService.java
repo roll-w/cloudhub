@@ -13,4 +13,7 @@ public interface StorageSearchService {
     List<? extends AttributedStorage> searchFor(List<SearchCondition> searchConditions,
                                                 StorageOwner storageOwner)
             throws SearchConditionException;
+
+    List<? extends AttributedStorage> searchFor(List<SearchCondition> searchConditions)
+            throws SearchConditionException;
 }

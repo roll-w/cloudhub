@@ -3,7 +3,7 @@ package org.huel.cloudhub.client.disk.domain.storagesearch.common;
 /**
  * @author RollW
  */
-public class SearchConditionException extends RuntimeException {
+public class SearchConditionException extends SearchExpressionException {
     private final String name;
     private final String keyword;
 

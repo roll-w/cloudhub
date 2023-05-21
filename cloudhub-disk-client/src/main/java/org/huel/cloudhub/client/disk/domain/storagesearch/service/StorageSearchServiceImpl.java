@@ -4,6 +4,7 @@ import org.huel.cloudhub.client.disk.domain.storagesearch.SearchCondition;
 import org.huel.cloudhub.client.disk.domain.storagesearch.SearchConditionGroup;
 import org.huel.cloudhub.client.disk.domain.storagesearch.StorageSearchConditionProvider;
 import org.huel.cloudhub.client.disk.domain.storagesearch.StorageSearchService;
+import org.huel.cloudhub.client.disk.domain.storagesearch.common.SearchConditionException;
 import org.huel.cloudhub.client.disk.domain.userstorage.AttributedStorage;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageOwner;
 import org.springframework.stereotype.Service;
@@ -40,6 +41,11 @@ public class StorageSearchServiceImpl implements StorageSearchService {
             result.addAll(attributedStorages);
         }
         return result.stream().distinct().toList();
+    }
+
+    @Override
+    public List<? extends AttributedStorage> searchFor(List<SearchCondition> searchConditions) throws SearchConditionException {
+        return null;
     }
 
     private List<StorageSearchConditionProvider> getProviders(
