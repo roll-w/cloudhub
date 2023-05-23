@@ -2,7 +2,7 @@ package org.huel.cloudhub.client.disk.domain.user.service;
 
 import org.huel.cloudhub.client.disk.domain.user.AttributedUser;
 import org.huel.cloudhub.client.disk.domain.user.UserIdentity;
-import org.huel.cloudhub.client.disk.domain.user.common.UserViewException;
+import org.huel.cloudhub.client.disk.domain.user.common.UserException;
 import org.huel.cloudhub.web.data.page.Pageable;
 
 import java.util.List;
@@ -17,21 +17,21 @@ public interface UserSearchService {
     /**
      * Get user by id. And enables check if user is deleted or canceled.
      *
-     * @throws UserViewException if user is deleted or canceled.
+     * @throws UserException if user is deleted or canceled.
      */
-    AttributedUser findUser(long userId) throws UserViewException;
+    AttributedUser findUser(long userId) throws UserException;
 
 
-    AttributedUser findUser(String username) throws UserViewException;
+    AttributedUser findUser(String username) throws UserException;
 
     List<? extends AttributedUser> findUsers(String username);
 
     /**
      * Get user by id. And enables check if user is deleted or canceled.
      *
-     * @throws UserViewException if user is deleted or canceled.
+     * @throws UserException if user is deleted or canceled.
      */
-    AttributedUser findUser(UserIdentity userIdentity) throws UserViewException;
+    AttributedUser findUser(UserIdentity userIdentity) throws UserException;
 
     List<? extends AttributedUser> findUsers(Pageable pageable);
 

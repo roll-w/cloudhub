@@ -4,13 +4,12 @@ import com.google.common.base.Strings;
 import org.huel.cloudhub.client.disk.common.ApiContextHolder;
 import org.huel.cloudhub.client.disk.common.ParamValidate;
 import org.huel.cloudhub.client.disk.domain.authentication.token.AuthenticationTokenService;
-import org.huel.cloudhub.client.disk.domain.user.dto.UserInfo;
 import org.huel.cloudhub.client.disk.domain.user.dto.UserInfoSignature;
 import org.huel.cloudhub.client.disk.domain.user.service.LoginRegisterService;
 import org.huel.cloudhub.client.disk.domain.user.vo.LoginResponse;
-import org.huel.cloudhub.web.Result;
 import org.huel.cloudhub.web.HttpResponseEntity;
 import org.huel.cloudhub.web.RequestMetadata;
+import org.huel.cloudhub.web.Result;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -67,12 +66,12 @@ public class LoginRegisterController {
 
     @PostMapping("/register")
     public HttpResponseEntity<Void> registerUser(@RequestBody UserRegisterRequest request) {
-        Result<UserInfo> res = loginRegisterService.registerUser(
+        loginRegisterService.registerUser(
                 request.username(),
                 request.password(),
                 request.email()
         );
-        return HttpResponseEntity.of(res.toResponseBody(() -> null));
+        return HttpResponseEntity.success();
     }
 
     @PostMapping("/logout")

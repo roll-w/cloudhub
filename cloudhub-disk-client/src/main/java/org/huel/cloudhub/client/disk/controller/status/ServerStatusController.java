@@ -76,6 +76,11 @@ public class ServerStatusController {
                 cfsClient.getFileServerInfo(serverId));
     }
 
+    @GetMapping("/server/cfs/status")
+    public HttpResponseEntity<ServerHostInfo> getServerStatus() {
+        return getServerStatus(null);
+    }
+
     @GetMapping("/server/cfs/status/{serverId}/net")
     public HttpResponseEntity<List<NetworkUsageInfo>> getServerNetInfos(
             @PathVariable("serverId") String serverId) {
@@ -97,6 +102,11 @@ public class ServerStatusController {
                 cfsClient.getFileNetRecords(serverId));
     }
 
+    @GetMapping("/server/cfs/status/net")
+    public HttpResponseEntity<List<NetworkUsageInfo>> getServerNetInfos() {
+        return getServerNetInfos(null);
+    }
+
     @GetMapping("/server/cfs/status/{serverId}/disk")
     public HttpResponseEntity<List<DiskUsageInfo>> getServerDiskInfos(
             @PathVariable("serverId") String serverId) {
@@ -116,5 +126,10 @@ public class ServerStatusController {
                     "Not found server: " + serverId);
         }
         return HttpResponseEntity.success(disks);
+    }
+
+    @GetMapping("/server/cfs/status/disk")
+    public HttpResponseEntity<List<DiskUsageInfo>> getServerDiskInfos() {
+        return getServerDiskInfos(null);
     }
 }

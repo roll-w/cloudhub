@@ -1,11 +1,11 @@
 package org.huel.cloudhub.client.disk.domain.user.service;
 
 import com.google.common.base.Preconditions;
+import org.huel.cloudhub.client.disk.domain.user.AttributedUser;
 import org.huel.cloudhub.client.disk.domain.user.LoginLogService;
 import org.huel.cloudhub.client.disk.domain.user.Role;
 import org.huel.cloudhub.client.disk.domain.user.User;
 import org.huel.cloudhub.client.disk.domain.user.dto.LoginLog;
-import org.huel.cloudhub.client.disk.domain.user.dto.UserInfo;
 import org.huel.cloudhub.client.disk.domain.user.dto.UserInfoSignature;
 import org.huel.cloudhub.client.disk.domain.user.event.OnUserLoginEvent;
 import org.huel.cloudhub.client.disk.domain.user.repository.UserRepository;
@@ -96,21 +96,18 @@ public class LoginRegisterService implements LoginLogService {
         );
     }
 
-    public Result<UserInfo> registerUser(String username, String password,
-                                         String email) {
+    public AttributedUser registerUser(String username, String password,
+                                       String email) {
         boolean hasUsers = userRepository.hasUsers();
         Role role = hasUsers ? Role.USER : Role.ADMIN;
-        Result<UserInfo> userInfoResult =
+        AttributedUser user =
                 userManageService.createUser(username, password, email, role, true);
-        if (userInfoResult.failed()) {
-            return userInfoResult;
-        }
         logger.info("Register username: {}, email: {}, role: {}, id: {}",
                 username, email,
-                userInfoResult.data().getRole(),
-                userInfoResult.data().getUserId()
+                user.getRole(),
+                user.getUserId()
         );
-        return userInfoResult;
+        return user;
     }
 
     public void logout() {

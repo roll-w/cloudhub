@@ -3,9 +3,7 @@ package org.huel.cloudhub.client.disk.domain.user.service;
 
 import org.huel.cloudhub.client.disk.domain.user.AttributedUser;
 import org.huel.cloudhub.client.disk.domain.user.Role;
-import org.huel.cloudhub.client.disk.domain.user.common.UserViewException;
-import org.huel.cloudhub.client.disk.domain.user.dto.UserInfo;
-import org.huel.cloudhub.web.Result;
+import org.huel.cloudhub.client.disk.domain.user.common.UserException;
 
 import java.util.List;
 
@@ -13,10 +11,10 @@ import java.util.List;
  * @author RollW
  */
 public interface UserManageService {
-    Result<UserInfo> createUser(String username, String password,
-                                String email, Role role, boolean enable);
+    AttributedUser createUser(String username, String password,
+                              String email, Role role, boolean enable);
 
-    AttributedUser getUser(long userId) throws UserViewException;
+    AttributedUser getUser(long userId) throws UserException;
 
     List<? extends AttributedUser> getUsers(int page, int size);
 

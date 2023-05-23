@@ -4,7 +4,7 @@ import org.huel.cloudhub.client.disk.domain.user.AttributedUser;
 import org.huel.cloudhub.client.disk.domain.user.Role;
 import org.huel.cloudhub.client.disk.domain.user.User;
 import org.huel.cloudhub.client.disk.domain.user.UserIdentity;
-import org.huel.cloudhub.client.disk.domain.user.common.UserViewException;
+import org.huel.cloudhub.client.disk.domain.user.common.UserException;
 import org.huel.cloudhub.client.disk.domain.user.dto.UserInfo;
 import org.huel.cloudhub.client.disk.domain.user.event.OnUserCreateEvent;
 import org.huel.cloudhub.client.disk.domain.user.filter.UserFilteringInfo;
@@ -13,7 +13,6 @@ import org.huel.cloudhub.client.disk.domain.user.filter.UserInfoFilter;
 import org.huel.cloudhub.client.disk.domain.user.repository.UserRepository;
 import org.huel.cloudhub.web.CommonErrorCode;
 import org.huel.cloudhub.web.ErrorCode;
-import org.huel.cloudhub.web.Result;
 import org.huel.cloudhub.web.UserErrorCode;
 import org.huel.cloudhub.web.data.page.PageHelper;
 import org.huel.cloudhub.web.data.page.Pageable;
@@ -27,7 +26,7 @@ import java.util.List;
  * @author RollW
  */
 @Service
-public class UserServiceImpl implements  UserSignatureProvider,
+public class UserServiceImpl implements UserSignatureProvider,
         UserManageService, UserSearchService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -66,17 +65,17 @@ public class UserServiceImpl implements  UserSignatureProvider,
     }
 
     @Override
-    public Result<UserInfo> createUser(String username, String password,
-                                       String email, Role role, boolean enable) {
+    public AttributedUser createUser(String username, String password,
+                                     String email, Role role, boolean enable) {
         if (userRepository.isExistByEmail(username)) {
-            return Result.of(UserErrorCode.ERROR_USER_EXISTED);
+            throw new UserException(UserErrorCode.ERROR_EMAIL_EXISTED);
         }
         if (userRepository.isExistByEmail(email)) {
-            return Result.of(UserErrorCode.ERROR_EMAIL_EXISTED);
+            throw new UserException(UserErrorCode.ERROR_EMAIL_EXISTED);
         }
         ErrorCode validateUser = validate(username, password, email);
         if (validateUser.failed()) {
-            return Result.of(validateUser);
+            throw new UserException(validateUser);
         }
         long now = System.currentTimeMillis();
         User user = User.builder()
@@ -94,7 +93,7 @@ public class UserServiceImpl implements  UserSignatureProvider,
         OnUserCreateEvent onUserCreateEvent =
                 new OnUserCreateEvent(userInfo);
         eventPublisher.publishEvent(onUserCreateEvent);
-        return Result.success(userInfo);
+        return user;
     }
 
     private ErrorCode validate(String username,
@@ -115,10 +114,10 @@ public class UserServiceImpl implements  UserSignatureProvider,
     }
 
     @Override
-    public AttributedUser getUser(long userId) throws UserViewException {
+    public AttributedUser getUser(long userId) throws UserException {
         User user = userRepository.getById(userId);
         if (user == null) {
-            throw new UserViewException(UserErrorCode.ERROR_USER_NOT_EXIST);
+            throw new UserException(UserErrorCode.ERROR_USER_NOT_EXIST);
         }
         return user;
     }
@@ -134,22 +133,22 @@ public class UserServiceImpl implements  UserSignatureProvider,
     }
 
     @Override
-    public AttributedUser findUser(long userId) throws UserViewException {
+    public AttributedUser findUser(long userId) throws UserException {
         User user = userRepository.getById(userId);
         if (user == null) {
-            throw new UserViewException(UserErrorCode.ERROR_USER_NOT_EXIST);
+            throw new UserException(UserErrorCode.ERROR_USER_NOT_EXIST);
         }
         if (!user.isEnabled()) {
-            throw new UserViewException(UserErrorCode.ERROR_USER_DISABLED);
+            throw new UserException(UserErrorCode.ERROR_USER_DISABLED);
         }
         if (user.isCanceled()) {
-            throw new UserViewException(UserErrorCode.ERROR_USER_CANCELED);
+            throw new UserException(UserErrorCode.ERROR_USER_CANCELED);
         }
         return user;
     }
 
     @Override
-    public AttributedUser findUser(String username) throws UserViewException {
+    public AttributedUser findUser(String username) throws UserException {
         return null;
     }
 
@@ -159,9 +158,9 @@ public class UserServiceImpl implements  UserSignatureProvider,
     }
 
     @Override
-    public AttributedUser findUser(UserIdentity userIdentity) throws UserViewException {
+    public AttributedUser findUser(UserIdentity userIdentity) throws UserException {
         if (userIdentity == null) {
-            throw new UserViewException(UserErrorCode.ERROR_USER_NOT_EXIST);
+            throw new UserException(UserErrorCode.ERROR_USER_NOT_EXIST);
         }
         return findUser(userIdentity.getUserId());
     }
