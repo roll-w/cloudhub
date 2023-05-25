@@ -1,5 +1,3 @@
-
-
 const viteBase = import.meta.env.VITE_BASE_URL;
 const httpPrefix = import.meta.env.VITE_HTTP_PREFIX;
 
@@ -40,6 +38,8 @@ export const storageName = (ownerType, ownerId, storageType, id) =>
     `${prefix}/${ownerType}/${ownerId}/disk/${storageType}/${id}/info/name`;
 export const storageParent = (ownerType, ownerId, storageType, id) =>
     `${prefix}/${ownerType}/${ownerId}/disk/${storageType}/${id}/info/parent`;
+export const search = (ownerType, ownerId) =>
+    `${prefix}/${ownerType}/${ownerId}/disk/search`;
 export const storageShare = (ownerType, ownerId, storageType, id) =>
     `${prefix}/${ownerType}/${ownerId}/disk/${storageType}/${id}/shares`;
 export const shareTokenInfo = (token) =>
@@ -72,3 +72,7 @@ export const getUsers = `${adminPrefix}/users`;
 export const getLoginLogs = `${adminPrefix}/users/login/logs`;
 export const getErrorLogs = `${adminPrefix}/system/errors`;
 
+export const serverStatus = `${adminPrefix}/server/cfs/status`;
+export const cfsStatus = (serverId) =>
+    `${adminPrefix}/server/cfs/status/${serverId}`;
+export const fileServers = `${adminPrefix}/server/cfs/connected`;

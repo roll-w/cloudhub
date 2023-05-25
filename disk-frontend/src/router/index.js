@@ -46,6 +46,9 @@ export const adminVisualData = "admin-visual-data"
 export const adminSystemLogs = "admin-system-logs"
 export const adminLoginLogs = "admin-login-logs"
 export const adminOperationLogs = "admin-operation-logs"
+export const adminSystemMonitor = "admin-system-monitor"
+export const adminClusterMonitor = "admin-cluster-monitor"
+export const adminFileServerMonitor = "admin-file-server-monitor"
 
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
@@ -259,6 +262,33 @@ const router = createRouter({
                     component: () => import("@/views/admin/system/OperationLogs.vue"),
                     meta: {
                         title: "系统操作日志",
+                        requireLogin: true
+                    }
+                },
+                {
+                    path: '/admin/system/monitor',
+                    name: adminSystemMonitor,
+                    component: () => import("@/views/admin/system/ServerMonitorView.vue"),
+                    meta: {
+                        title: "系统监控",
+                        requireLogin: true
+                    }
+                },
+                {
+                    path: '/admin/system/cfs/meta/monitor',
+                    name: adminClusterMonitor,
+                    component: () => import("@/views/admin/system/ServerMonitorView.vue"),
+                    meta: {
+                        title: "集群监控",
+                        requireLogin: true
+                    }
+                },
+                {
+                    path: '/admin/system/cfs/:serverId/monitor',
+                    name: adminFileServerMonitor,
+                    component: () => import("@/views/admin/system/ServerMonitorView.vue"),
+                    meta: {
+                        title: "文件服务器监控",
                         requireLogin: true
                     }
                 },

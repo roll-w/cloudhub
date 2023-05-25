@@ -1,10 +1,11 @@
 import {h} from "vue";
 import {RouterLink} from "vue-router";
 import {
+    adminClusterMonitor,
     adminIndex,
     adminLoginLogs,
     adminOperationLogs,
-    adminSystemLogs, adminTagGroups, adminTags,
+    adminSystemLogs, adminSystemMonitor, adminTagGroups, adminTags,
     adminUserLists,
     adminVisualData,
     driveFilePage,
@@ -211,11 +212,13 @@ const menuOptions = [
                     },
                     {
                         name: "集群监控",
-                        key: 'system-cluster-monitor'
+                        key: adminClusterMonitor,
+                        linked: true
                     },
                     {
                         name: "系统监控",
-                        key: "system-management-monitor"
+                        key: adminSystemMonitor,
+                        linked: true
                     },
                 ]
             },
