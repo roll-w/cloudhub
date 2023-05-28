@@ -29,7 +29,7 @@ import api from "@/request/api";
 import {useUserStore} from "@/stores/user";
 import AdminBreadcrumb from "@/components/admin/AdminBreadcrumb.vue";
 import {formatTimestamp} from "@/util/format";
-import {adminUserLists} from "@/router";
+import {adminUserDetails, adminUserLists} from "@/router";
 import {adminMenuUser} from "@/views/menu";
 import {useRouter} from "vue-router";
 import {createConfig} from "@/request/axios_config";
@@ -114,12 +114,12 @@ const columns = [
                         {
                             size: 'small',
                             onClick: () => {
-                                // router.push({
-                                //   name: adminUserDetails,
-                                //   params: {
-                                //     userId: row.userId
-                                //   }
-                                // })
+                                router.push({
+                                  name: adminUserDetails,
+                                  params: {
+                                    userId: row.userId
+                                  }
+                                })
                             }
                         },
                         {default: () => "查看/编辑"}),
@@ -147,7 +147,6 @@ const handleDeleteUser = (user) => {
         negativeText: "取消",
         positiveText: "确认",
         onPositiveClick: () => {
-            console.log("delete user of " + user.userId)
         },
         onNegativeClick: () => {
         }

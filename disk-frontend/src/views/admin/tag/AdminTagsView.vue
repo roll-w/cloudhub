@@ -2,7 +2,7 @@
   <div class="p-5">
     <AdminBreadcrumb :location="adminTags"
                      :menu="adminMenuTag"/>
-    <n-h2>标签管理</n-h2>
+    <n-h1>标签管理</n-h1>
     <div>
       <n-data-table :bordered="false"
                     :columns="columns"

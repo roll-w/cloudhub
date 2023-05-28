@@ -2,11 +2,11 @@
   <div class="p-5">
     <AdminBreadcrumb :location="adminTagGroups"
                      :menu="adminMenuTag"/>
-    <n-h2>标签组管理</n-h2>
+    <n-h1>标签组管理</n-h1>
     <div class="mb-5">
-      <n-h3>
+      <n-h2>
         导入标签组文件
-      </n-h3>
+      </n-h2>
       <div>
         <n-text class="mb-3" tag="p">
           从keywords文件创建并导入标签组。
@@ -46,9 +46,9 @@
 
     <div class="my-3">
       <div class="flex">
-        <n-h3>
+        <n-h2>
           标签组列表
-        </n-h3>
+        </n-h2>
         <div class="flex flex-grow justify-end">
           <n-button>创建新标签组</n-button>
         </div>
