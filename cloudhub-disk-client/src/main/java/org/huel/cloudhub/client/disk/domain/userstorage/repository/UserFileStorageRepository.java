@@ -86,7 +86,7 @@ public class UserFileStorageRepository extends BaseRepository<UserFileStorage> {
     public List<UserFileStorage> getFilesLike(String name, long owner,
                                               LegalUserType legalUserType) {
         return cacheResult(
-                fileStorageDao.getFilesLike(name, owner, legalUserType)
+                fileStorageDao.findFilesLike(name, owner, legalUserType)
         );
     }
 

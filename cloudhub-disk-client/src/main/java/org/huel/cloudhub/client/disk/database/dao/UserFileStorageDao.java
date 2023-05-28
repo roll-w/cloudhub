@@ -5,9 +5,11 @@ import org.huel.cloudhub.client.disk.domain.userstorage.FileType;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageOwner;
 import org.huel.cloudhub.client.disk.domain.userstorage.UserFileStorage;
 import org.huel.cloudhub.web.data.page.Offset;
+import space.lingu.Nullable;
 import space.lingu.light.Dao;
 import space.lingu.light.Query;
 
+import java.sql.Timestamp;
 import java.util.List;
 
 /**
@@ -84,12 +86,98 @@ public interface UserFileStorageDao extends AutoPrimaryBaseDao<UserFileStorage> 
         return "user_file_storage";
     }
 
-    @Query("SELECT * FROM user_file_storage WHERE name LIKE CONCAT('%', {name}, '%') AND owner = {owner} AND owner_type = {legalUserType} AND deleted = 0")
-    List<UserFileStorage> getFilesLike(String name, long owner, LegalUserType legalUserType);
-
     @Query("SELECT * FROM user_file_storage WHERE id = {fileId} AND owner = {ownerId} AND owner_type = {ownerType}")
     UserFileStorage getById(long fileId, long ownerId, LegalUserType ownerType);
 
     @Query("SELECT * FROM user_file_storage WHERE name = {name} AND directory_id = {parentId}")
     UserFileStorage getByName(String name, long parentId);
+
+    @Query("SELECT * FROM user_file_storage WHERE name LIKE CONCAT('%', {name}, '%') AND owner = {owner} AND owner_type = {legalUserType} AND deleted = 0")
+    List<UserFileStorage> findFilesLike(String name, long owner, LegalUserType legalUserType);
+
+    @Query("SELECT * FROM user_file_storage WHERE LIKE CONCAT('%', {name}, '%') AND owner = {storageOwner.getOwnerId()} AND owner_type = {storageOwner.getOwnerType()} AND deleted = 0")
+    List<UserFileStorage> findFilesLike(StorageOwner storageOwner, String name, FileType fileType);
+
+    @Query("SELECT * FROM user_file_storage WHERE LIKE CONCAT('%', {name}, '%') AND owner = {storageOwner.getOwnerId()} " +
+            "AND owner_type = {storageOwner.getOwnerType()} " +
+            "AND file_category = {fileType} " +
+            "AND create_time <= {before} " +
+            "AND create_time >= {after} " +
+            "AND deleted = 0")
+    List<UserFileStorage> findFilesLikeAndBetween(
+            StorageOwner storageOwner,
+            String name,
+            FileType fileType,
+            Timestamp before,
+            Timestamp after);
+
+    @Query("SELECT * FROM user_file_storage WHERE owner = {storageOwner.getOwnerId()} " +
+            "AND owner_type = {storageOwner.getOwnerType()} " +
+            "AND file_category = {fileType} " +
+            "AND create_time <= {before} " +
+            "AND create_time >= {after} " +
+            "AND deleted = 0")
+    List<UserFileStorage> findFilesBetween(StorageOwner storageOwner, FileType fileType, Timestamp before, Timestamp after);
+
+    @Query("SELECT * FROM user_file_storage WHERE owner = {storageOwner.getOwnerId()} " +
+            "AND owner_type = {storageOwner.getOwnerType()} " +
+            "AND create_time <= {before} " +
+            "AND create_time >= {after} " +
+            "AND deleted = 0")
+    List<UserFileStorage> findFilesLikeAndBetween(
+            StorageOwner storageOwner,
+            String name,
+            Timestamp before,
+            Timestamp after);
+
+    @Query("SELECT * FROM user_file_storage WHERE owner = {storageOwner.getOwnerId()} " +
+            "AND owner_type = {storageOwner.getOwnerType()} " +
+            "AND create_time <= {before} " +
+            "AND create_time >= {after} " +
+            "AND deleted = 0")
+    List<UserFileStorage> findFilesBetween(StorageOwner storageOwner, Timestamp before, Timestamp after);
+
+    Timestamp MIN_TIMESTAMP = new Timestamp(0L);
+    Timestamp MAX_TIMESTAMP = new Timestamp(Long.MAX_VALUE);
+
+    default List<UserFileStorage> findFilesByConditions(
+            StorageOwner storageOwner,
+            @Nullable String name,
+            @Nullable FileType fileType,
+            @Nullable Timestamp before,
+            @Nullable Timestamp after) {
+        if (name == null && fileType == null && before == null && after == null) {
+            return List.of();
+        }
+
+        if (name == null) {
+            name = "";
+        }
+        if (before == null) {
+            before = MAX_TIMESTAMP;
+        }
+        if (after == null) {
+            after = MIN_TIMESTAMP;
+        }
+
+        return findFiles(storageOwner, name, fileType, before, after);
+    }
+
+    default List<UserFileStorage> findFiles(
+            StorageOwner storageOwner,
+            String name,
+            FileType fileType,
+            Timestamp before,
+            Timestamp after) {
+        if (name.isEmpty() && fileType == null) {
+            return findFilesBetween(storageOwner, before, after);
+        }
+        if (name.isEmpty()) {
+            return findFilesBetween(storageOwner, fileType, before, after);
+        }
+        if (fileType == null) {
+            return findFilesLikeAndBetween(storageOwner, name, before, after);
+        }
+        return findFilesLikeAndBetween(storageOwner, name, fileType, before, after);
+    }
 }

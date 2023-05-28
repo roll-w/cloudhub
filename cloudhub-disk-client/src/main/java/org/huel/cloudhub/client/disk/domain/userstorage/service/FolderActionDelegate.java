@@ -6,7 +6,7 @@ import org.huel.cloudhub.client.disk.domain.userstorage.UserFolder;
 /**
  * @author RollW
  */
-public interface DirectoryActionDelegate {
+public interface FolderActionDelegate {
     Long createDirectory(UserFolder userFolder);
 
     void updateDirectory(UserFolder userFolder);

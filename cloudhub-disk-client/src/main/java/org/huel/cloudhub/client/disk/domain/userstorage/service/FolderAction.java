@@ -14,49 +14,49 @@ import space.lingu.NonNull;
 /**
  * @author RollW
  */
-public class DirectoryAction implements StorageAction {
-    private final UserFolder.Builder directoryBuilder;
-    private final DirectoryActionDelegate directoryActionDelegate;
+public class FolderAction implements StorageAction {
+    private final UserFolder.Builder folderBuilder;
+    private final FolderActionDelegate folderActionDelegate;
 
-    private UserFolder directory;
+    private UserFolder folder;
 
-    public DirectoryAction(UserFolder directory,
-                           DirectoryActionDelegate directoryActionDelegate) {
-        this.directoryBuilder = directory.toBuilder();
-        this.directory = directory;
-        this.directoryActionDelegate = directoryActionDelegate;
+    public FolderAction(UserFolder folder,
+                        FolderActionDelegate folderActionDelegate) {
+        this.folderBuilder = folder.toBuilder();
+        this.folder = folder;
+        this.folderActionDelegate = folderActionDelegate;
     }
 
     @Override
     public long getStorageId() {
-        return directory.getStorageId();
+        return folder.getStorageId();
     }
 
     @Override
     @NonNull
     public StorageType getStorageType() {
-        return directory.getStorageType();
+        return folder.getStorageType();
     }
 
     @Override
     public Long getParentId() {
-        return directory.getParentId();
+        return folder.getParentId();
     }
 
     @Override
     public long getOwnerId() {
-        return directory.getOwnerId();
+        return folder.getOwnerId();
     }
 
     @Override
     @NonNull
     public LegalUserType getOwnerType() {
-        return directory.getOwnerType();
+        return folder.getOwnerType();
     }
 
     @Override
     public String getName() {
-        return directory.getName();
+        return folder.getName();
     }
 
     @Override
@@ -66,26 +66,26 @@ public class DirectoryAction implements StorageAction {
 
     @Override
     public long getCreateTime() {
-        return directory.getCreateTime();
+        return folder.getCreateTime();
     }
 
     @Override
     public long getUpdateTime() {
-        return directory.getUpdateTime();
+        return folder.getUpdateTime();
     }
 
     @Override
     public boolean isDeleted() {
-        return directory.isDeleted();
+        return folder.isDeleted();
     }
 
     @Override
     public void delete() throws StorageException {
-        if (directory.isDeleted()) {
+        if (folder.isDeleted()) {
             throw new StorageException(StorageErrorCode.ERROR_DIRECTORY_ALREADY_DELETED);
         }
 
-        directoryBuilder.setDeleted(true);
+        folderBuilder.setDeleted(true);
         update();
     }
 
@@ -101,25 +101,25 @@ public class DirectoryAction implements StorageAction {
 
     @Override
     public void rename(String newName) throws StorageException {
-        directoryActionDelegate.checkExistsFolder(newName, directory.getParentId());
+        folderActionDelegate.checkExistsFolder(newName, folder.getParentId());
 
-        directoryBuilder.setName(newName);
+        folderBuilder.setName(newName);
         OperationContextHolder.getContext()
-                .setOriginContent(directory.getName())
+                .setOriginContent(folder.getName())
                 .setChangedContent(newName);
         update();
     }
 
     @Override
     public void move(long newParentId) throws StorageException {
-        if (directory.getParentId() == newParentId) {
+        if (folder.getParentId() == newParentId) {
             throw new StorageException(StorageErrorCode.ERROR_SAME_DIRECTORY);
         }
         AttributedStorage storage =
-                directoryActionDelegate.checkParentExists(newParentId);
+                folderActionDelegate.checkParentExists(newParentId);
         AttributedStorage parent =
-                directoryActionDelegate.checkParentExists(directory.getParentId());
-        directoryBuilder.setParentId(newParentId);
+                folderActionDelegate.checkParentExists(folder.getParentId());
+        folderBuilder.setParentId(newParentId);
         OperationContextHolder.getContext()
                 .setOriginContent(parent.getName())
                 .setChangedContent(storage.getName());
@@ -129,27 +129,27 @@ public class DirectoryAction implements StorageAction {
     @Override
     public StorageAction copy(long newParentId)
             throws StorageException {
-        if (directory.getParentId() == newParentId) {
+        if (folder.getParentId() == newParentId) {
             throw new StorageException(StorageErrorCode.ERROR_SAME_DIRECTORY);
         }
-        UserFolder copy = directoryBuilder.build().toBuilder()
+        UserFolder copy = folderBuilder.build().toBuilder()
                 .setId(null)
                 .setParentId(newParentId)
                 .setCreateTime(System.currentTimeMillis())
                 .setUpdateTime(System.currentTimeMillis())
                 .build();
-        Long id = directoryActionDelegate.createDirectory(copy);
+        Long id = folderActionDelegate.createDirectory(copy);
         copy = copy.toBuilder()
                 .setId(id)
                 .build();
         OperationContextHolder.getContext()
                 .addSystemResource(copy)
                 .setChangedContent(copy.getName());
-        return new DirectoryAction(copy, directoryActionDelegate);
+        return new FolderAction(copy, folderActionDelegate);
     }
 
     private void insert() {
-        UserFolder insertedDirectory = directoryBuilder
+        UserFolder insertedDirectory = folderBuilder
                 .setCreateTime(System.currentTimeMillis())
                 .setUpdateTime(System.currentTimeMillis())
                 .build();
@@ -157,21 +157,21 @@ public class DirectoryAction implements StorageAction {
             throw new StorageException(StorageErrorCode.ERROR_DIRECTORY_EXISTED);
         }
 
-        Long id = directoryActionDelegate.createDirectory(insertedDirectory);
-        directory = directoryBuilder
+        Long id = folderActionDelegate.createDirectory(insertedDirectory);
+        folder = folderBuilder
                 .setId(id)
                 .build();
         OperationContextHolder.getContext()
-                .addSystemResource(directory)
-                .setChangedContent(directory.getName());
+                .addSystemResource(folder)
+                .setChangedContent(folder.getName());
     }
 
     private void update() {
-        UserFolder updatedDirectory = directoryBuilder
+        UserFolder updatedDirectory = folderBuilder
                 .setUpdateTime(System.currentTimeMillis())
                 .build();
-        directoryActionDelegate.updateDirectory(updatedDirectory);
-        directory = updatedDirectory;
+        folderActionDelegate.updateDirectory(updatedDirectory);
+        folder = updatedDirectory;
         OperationContextHolder.getContext()
                 .addSystemResource(updatedDirectory);
     }

@@ -21,7 +21,7 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class UserStorageActionServiceImpl implements StorageActionService,
-        DirectoryActionDelegate, FileActionDelegate {
+        FolderActionDelegate, FileActionDelegate {
     private final UserFileStorageRepository userFileStorageRepository;
     private final UserFolderRepository userFolderRepository;
 
@@ -74,7 +74,7 @@ public class UserStorageActionServiceImpl implements StorageActionService,
             );
         }
 
-        return new DirectoryAction(userFolder, this);
+        return new FolderAction(userFolder, this);
     }
 
     private StorageAction createFileAction(StorageIdentity storage) {
