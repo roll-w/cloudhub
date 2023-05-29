@@ -167,7 +167,8 @@ public class ShareController {
         if (shareStructureInfo.isExpired(System.currentTimeMillis())) {
             throw new UserShareException(UserShareErrorCode.ERROR_SHARE_EXPIRED);
         }
-        if (!password.equals(shareStructureInfo.password())) {
+        if (!shareStructureInfo.isPublic() &&
+                !password.equals(shareStructureInfo.password())) {
             throw new UserShareException(UserShareErrorCode.ERROR_PASSWORD);
         }
         AttributedUser attributedUser =
