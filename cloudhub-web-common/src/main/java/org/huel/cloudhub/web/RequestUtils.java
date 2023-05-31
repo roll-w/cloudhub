@@ -23,10 +23,12 @@ public final class RequestUtils {
     };
 
     private static boolean isInvalidIp(String ip) {
-        return ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip);
+        return ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip) ||
+                ip.equalsIgnoreCase(IPV6_LOCAL) || ip.equalsIgnoreCase(IPV4_LOCAL);
     }
 
     private static final String IPV6_LOCAL = "0:0:0:0:0:0:0:1";
+    private static final String IPV4_LOCAL = "127.0.0.1";
 
     public static String getRemoteIpAddress(HttpServletRequest request) {
         String ip = null;
@@ -44,7 +46,7 @@ public final class RequestUtils {
             ip = request.getRemoteAddr();
         }
         if (IPV6_LOCAL.equals(ip)) {
-            return "127.0.0.1";
+            return IPV4_LOCAL;
         }
         return ip;
     }
