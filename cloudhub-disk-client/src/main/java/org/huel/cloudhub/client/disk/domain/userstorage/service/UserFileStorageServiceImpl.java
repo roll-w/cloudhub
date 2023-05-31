@@ -3,23 +3,11 @@ package org.huel.cloudhub.client.disk.domain.userstorage.service;
 import org.huel.cloudhub.client.disk.domain.operatelog.Operator;
 import org.huel.cloudhub.client.disk.domain.operatelog.context.OperationContextHolder;
 import org.huel.cloudhub.client.disk.domain.storage.StorageService;
-import org.huel.cloudhub.client.disk.domain.userstorage.AttributedStorage;
-import org.huel.cloudhub.client.disk.domain.userstorage.FileStreamInfo;
-import org.huel.cloudhub.client.disk.domain.userstorage.Storage;
-import org.huel.cloudhub.client.disk.domain.userstorage.StorageIdentity;
-import org.huel.cloudhub.client.disk.domain.userstorage.StorageOwner;
-import org.huel.cloudhub.client.disk.domain.userstorage.StorageProcessor;
-import org.huel.cloudhub.client.disk.domain.userstorage.UserFileStorage;
-import org.huel.cloudhub.client.disk.domain.userstorage.UserFileStorageService;
-import org.huel.cloudhub.client.disk.domain.userstorage.UserFolder;
-import org.huel.cloudhub.client.disk.domain.userstorage.UserStorageSearchService;
+import org.huel.cloudhub.client.disk.domain.storage.dto.CFSFile;
+import org.huel.cloudhub.client.disk.domain.userstorage.*;
 import org.huel.cloudhub.client.disk.domain.userstorage.common.StorageErrorCode;
 import org.huel.cloudhub.client.disk.domain.userstorage.common.StorageException;
-import org.huel.cloudhub.client.disk.domain.userstorage.dto.FileInfo;
-import org.huel.cloudhub.client.disk.domain.userstorage.dto.FileStorageInfo;
-import org.huel.cloudhub.client.disk.domain.userstorage.dto.FolderInfo;
-import org.huel.cloudhub.client.disk.domain.userstorage.dto.FolderStructureInfo;
-import org.huel.cloudhub.client.disk.domain.userstorage.dto.StorageAttr;
+import org.huel.cloudhub.client.disk.domain.userstorage.dto.*;
 import org.huel.cloudhub.client.disk.domain.userstorage.repository.UserFileStorageRepository;
 import org.huel.cloudhub.client.disk.domain.userstorage.repository.UserFolderRepository;
 import org.huel.cloudhub.client.disk.domain.userstorage.util.StorageNameValidator;
@@ -121,7 +109,7 @@ public class UserFileStorageServiceImpl implements
     @Override
     public AttributedStorage uploadFile(FileStorageInfo fileStorageInfo,
                                         FileStreamInfo fileStreamInfo) throws IOException {
-        String cfsFileId = storageService.saveFile(fileStreamInfo.inputStream());
+        CFSFile cfsFile = storageService.saveFile(fileStreamInfo.inputStream());
         String fileName = StorageNameValidator.validate(fileStorageInfo.fileName());
 
         checkDirectoryState(fileStorageInfo.folderId(), fileStorageInfo.storageOwner());
@@ -136,7 +124,7 @@ public class UserFileStorageServiceImpl implements
         long time = System.currentTimeMillis();
         if (existUserFileStorage == null) {
             UserFileStorage userFileStorage = UserFileStorage.builder()
-                    .setFileId(cfsFileId)
+                    .setFileId(cfsFile.id())
                     .setFileCategory(fileStreamInfo.fileType())
                     .setMimeType(fileStreamInfo.mimeType())
                     .setName(fileName)
@@ -156,18 +144,19 @@ public class UserFileStorageServiceImpl implements
                     .setChangedContent(updatedStorage.getName());
 
             dispatchFileOnCreate(updatedStorage, fileStreamInfo,
+                    cfsFile.size(),
                     OperationContextHolder.getContext().getOperator());
             return updatedStorage;
         }
 
-        if (existUserFileStorage.getFileId().equals(cfsFileId) && !existUserFileStorage.isDeleted()) {
+        if (existUserFileStorage.getFileId().equals(cfsFile) && !existUserFileStorage.isDeleted()) {
             return existUserFileStorage;
         }
 
         UserFileStorage updatedStorage = existUserFileStorage.toBuilder()
                 .setUpdateTime(time)
                 .setDeleted(false)
-                .setFileId(cfsFileId)
+                .setFileId(cfsFile.id())
                 .setFileCategory(fileStreamInfo.fileType())
                 .setMimeType(fileStreamInfo.mimeType())
                 .setName(fileName)
@@ -178,6 +167,7 @@ public class UserFileStorageServiceImpl implements
                 .setChangedContent(updatedStorage.getName());
 
         dispatchFileOnCreate(updatedStorage, fileStreamInfo,
+                cfsFile.size(),
                 OperationContextHolder.getContext().getOperator());
 
         return updatedStorage;
@@ -185,6 +175,7 @@ public class UserFileStorageServiceImpl implements
 
     private void dispatchFileOnCreate(UserFileStorage userFileStorage,
                                       FileStreamInfo fileStreamInfo,
+                                      long size,
                                       Operator operator) {
         StorageAttr storageAttr = new StorageAttr(
                 userFileStorage.getName(),
@@ -192,6 +183,7 @@ public class UserFileStorageServiceImpl implements
                 null,
                 fileStreamInfo.fileType(),
                 userFileStorage.getFileId(),
+                size,
                 operator
         );
         dispatchFileOnCreate(userFileStorage, storageAttr);

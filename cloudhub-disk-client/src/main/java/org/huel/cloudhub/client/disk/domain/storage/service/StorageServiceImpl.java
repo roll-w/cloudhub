@@ -1,14 +1,15 @@
 package org.huel.cloudhub.client.disk.domain.storage.service;
 
 import org.apache.tomcat.util.http.fileupload.IOUtils;
+import org.huel.cloudhub.client.CFSClient;
 import org.huel.cloudhub.client.CFSStatus;
+import org.huel.cloudhub.client.FileValidation;
 import org.huel.cloudhub.client.conf.ClientConfigLoader;
 import org.huel.cloudhub.client.disk.domain.storage.DiskFileStorage;
 import org.huel.cloudhub.client.disk.domain.storage.StorageService;
 import org.huel.cloudhub.client.disk.domain.storage.dto.StorageAsSize;
+import org.huel.cloudhub.client.disk.domain.storage.dto.CFSFile;
 import org.huel.cloudhub.client.disk.domain.storage.repository.DiskFileStorageRepository;
-import org.huel.cloudhub.client.CFSClient;
-import org.huel.cloudhub.client.FileValidation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -38,14 +39,14 @@ public class StorageServiceImpl implements StorageService {
     }
 
     @Override
-    public String saveFile(InputStream inputStream) throws IOException {
+    public CFSFile saveFile(InputStream inputStream) throws IOException {
         FileValidation fileValidation =
                 cfsClient.uploadFile(inputStream, clientConfigLoader.getTempFilePath());
         IOUtils.closeQuietly(inputStream);
         long time = System.currentTimeMillis();
         DiskFileStorage exist = diskFileStorageRepository.getById(fileValidation.id());
         if (exist != null) {
-            return exist.getFileId();
+            return new CFSFile(exist.getFileId(), exist.getFileSize());
         }
         DiskFileStorage diskFileStorage = new DiskFileStorage(
                 fileValidation.id(),
@@ -55,7 +56,7 @@ public class StorageServiceImpl implements StorageService {
         );
         diskFileStorageRepository.insert(diskFileStorage);
 
-        return diskFileStorage.getFileId();
+        return new CFSFile(diskFileStorage.getFileId(), diskFileStorage.getFileSize());
     }
 
     @Override

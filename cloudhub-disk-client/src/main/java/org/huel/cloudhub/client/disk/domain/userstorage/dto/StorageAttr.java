@@ -15,6 +15,7 @@ public record StorageAttr(
         String suffix,
         FileType parsedFileType,
         String fileId,
+        long size,
         Operator operator
 ) {
     @Override

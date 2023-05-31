@@ -1,13 +1,13 @@
 package org.huel.cloudhub.client.disk.database;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
 import org.huel.cloudhub.client.disk.domain.storagepermission.PermissionType;
 import org.huel.cloudhub.client.disk.domain.tag.TagKeyword;
 import space.lingu.light.DataConverter;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.StringJoiner;
+import java.util.*;
 
 /**
  * @author RollW
@@ -44,6 +44,32 @@ public class DiskConverter {
             builder.append(l).append(",");
         }
         return builder.toString();
+    }
+
+    private static final ObjectMapper MAPPER = new ObjectMapper();
+
+    @DataConverter
+    public static Map<String, String> convertMapFrom(String s) {
+        if (Strings.isNullOrEmpty(s)) {
+            return Map.of();
+        }
+        try {
+            return (Map<String, String>) MAPPER.readValue(s, Map.class);
+        } catch (JsonProcessingException e) {
+            return Map.of();
+        }
+    }
+
+    @DataConverter
+    public static String convertMapTo(Map<String, String> map) {
+        if (map == null || map.isEmpty()) {
+            return "";
+        }
+        try {
+            return MAPPER.writeValueAsString(map);
+        } catch (JsonProcessingException e) {
+            return "";
+        }
     }
 
     @DataConverter

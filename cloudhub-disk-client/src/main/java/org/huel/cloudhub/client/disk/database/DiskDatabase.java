@@ -1,18 +1,6 @@
 package org.huel.cloudhub.client.disk.database;
 
-import org.huel.cloudhub.client.disk.database.dao.ContentTagDao;
-import org.huel.cloudhub.client.disk.database.dao.DiskFileStorageDao;
-import org.huel.cloudhub.client.disk.database.dao.OperationLogAssociationDao;
-import org.huel.cloudhub.client.disk.database.dao.OperationLogDao;
-import org.huel.cloudhub.client.disk.database.dao.StorageMetadataDao;
-import org.huel.cloudhub.client.disk.database.dao.StoragePermissionDao;
-import org.huel.cloudhub.client.disk.database.dao.StorageUserPermissionDao;
-import org.huel.cloudhub.client.disk.database.dao.TagGroupDao;
-import org.huel.cloudhub.client.disk.database.dao.UserDao;
-import org.huel.cloudhub.client.disk.database.dao.UserFolderDao;
-import org.huel.cloudhub.client.disk.database.dao.UserFileStorageDao;
-import org.huel.cloudhub.client.disk.database.dao.UserShareDao;
-import org.huel.cloudhub.client.disk.database.dao.VersionedFileStorageDao;
+import org.huel.cloudhub.client.disk.database.dao.*;
 import org.huel.cloudhub.client.disk.domain.operatelog.OperationLog;
 import org.huel.cloudhub.client.disk.domain.operatelog.OperationLogAssociation;
 import org.huel.cloudhub.client.disk.domain.share.UserShare;
@@ -22,9 +10,12 @@ import org.huel.cloudhub.client.disk.domain.storagepermission.StorageUserPermiss
 import org.huel.cloudhub.client.disk.domain.tag.ContentTag;
 import org.huel.cloudhub.client.disk.domain.tag.TagGroup;
 import org.huel.cloudhub.client.disk.domain.user.User;
+import org.huel.cloudhub.client.disk.domain.usergroup.UserGroup;
+import org.huel.cloudhub.client.disk.domain.usergroup.UserGroupMember;
+import org.huel.cloudhub.client.disk.domain.userstats.UserStatistics;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageMetadata;
-import org.huel.cloudhub.client.disk.domain.userstorage.UserFolder;
 import org.huel.cloudhub.client.disk.domain.userstorage.UserFileStorage;
+import org.huel.cloudhub.client.disk.domain.userstorage.UserFolder;
 import org.huel.cloudhub.client.disk.domain.versioned.VersionedFileStorage;
 import space.lingu.light.DataConverters;
 import space.lingu.light.Database;
@@ -36,6 +27,7 @@ import space.lingu.light.LightDatabase;
  */
 @Database(name = "cloudhub_disk_database", version = 1, tables = {
         User.class,
+        UserGroup.class, UserGroupMember.class, UserStatistics.class,
         DiskFileStorage.class, UserFileStorage.class, UserFolder.class,
         UserShare.class,
         StorageMetadata.class, VersionedFileStorage.class,
@@ -47,6 +39,12 @@ import space.lingu.light.LightDatabase;
 @LightConfiguration(key = LightConfiguration.KEY_VARCHAR_LENGTH, value = "255")
 public abstract class DiskDatabase extends LightDatabase {
     public abstract UserDao getUserDao();
+
+    public abstract UserGroupDao getUserGroupDao();
+
+    public abstract UserGroupMemberDao getUserGroupMemberDao();
+
+    public abstract UserStatisticsDao getUserStatisticsDao();
 
     public abstract DiskFileStorageDao getDiskFileStorageDao();
 
