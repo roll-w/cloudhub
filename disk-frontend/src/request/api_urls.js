@@ -13,6 +13,9 @@ export const register = `${prefix}/user/register`;
 
 export const file = (ownerType, ownerId, fileId) =>
     `${prefix}/${ownerType}/${ownerId}/disk/file/${fileId}`;
+export const recycles = (ownerType, ownerId) =>
+    `${prefix}/${ownerType}/${ownerId}/disk/recycles`;
+
 export const fileType = (ownerType, ownerId, fileType) =>
     `${prefix}/${ownerType}/${ownerId}/disk/file/category/${fileType}`;
 export const fileToken = (ownerType, ownerId, fileId) =>

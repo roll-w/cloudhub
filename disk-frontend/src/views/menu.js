@@ -13,7 +13,7 @@ import {
     driveFilePageTypeAudio,
     driveFilePageTypeDocument,
     driveFilePageTypeImage,
-    driveFilePageTypeVideo,
+    driveFilePageTypeVideo, driveFileRecycleBinPage,
     driveTagPage, userSharePage,
 } from "@/router";
 
@@ -127,7 +127,8 @@ const menuOptions = [
             },
             {
                 name: "回收站",
-                key: "Recycle",
+                key: driveFileRecycleBinPage,
+                linked: true
             },
 
         ]

@@ -19,6 +19,7 @@ export const driveFilePageTypeAudio = "drive-file-page-type-audio"
 export const driveFilePageTypeDocument = "drive-file-page-type-document"
 
 export const driveFileSearchPage = "drive-file-search-page"
+export const driveFileRecycleBinPage = "drive-file-recycle-bin-page"
 export const driveFileAttrsPage = "drive-file-attrs-page"
 export const driveFilePermissionPage = "drive-file-permission-page"
 
@@ -118,6 +119,15 @@ const router = createRouter({
                     component: () => import("@/views/file/FileView.vue"),
                     meta: {
                         title: "文档",
+                        requireLogin: true
+                    }
+                },
+                {
+                    path: '/drive/files/recycles',
+                    name: driveFileRecycleBinPage,
+                    component: () => import("@/views/file/FileRecycleView.vue"),
+                    meta: {
+                        title: "回收站",
                         requireLogin: true
                     }
                 },
