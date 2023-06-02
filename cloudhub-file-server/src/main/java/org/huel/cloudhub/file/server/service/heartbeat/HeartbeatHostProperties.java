@@ -14,7 +14,7 @@ public class HeartbeatHostProperties {
     /**
      * in ms, the interval between two heartbeats.
      */
-    private int heartbeatPeriod = 200;
+    private int heartbeatPeriod = 500;
 
 
     public HeartbeatHostProperties(String address, int heartbeatPeriod) {
