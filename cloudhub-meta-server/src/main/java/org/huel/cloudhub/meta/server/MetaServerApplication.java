@@ -39,13 +39,13 @@ public class MetaServerApplication {
 
         logToFile(args, overrideProperties, loader);
         application.setDefaultProperties(overrideProperties);
-
         application.setWebApplicationType(WebApplicationType.NONE);
+
         application.run();
     }
 
-    private static final String LOG_FILE = "cloudhub-file-server.out";
-    private static final String ARCHIVE_LOG_FILE = "cloudhub-file-server-log.%d{yyyy-MM-dd}.%i.log";
+    private static final String LOG_FILE = "cloudhub-meta-server.out";
+    private static final String ARCHIVE_LOG_FILE = "cloudhub-meta-server-log.%d{yyyy-MM-dd}.%i.log";
 
     private static void logToFile(String[] args,
                                   Map<String, Object> overrideProperties,
