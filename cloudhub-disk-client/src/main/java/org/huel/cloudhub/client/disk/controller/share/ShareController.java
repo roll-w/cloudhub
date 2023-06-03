@@ -1,4 +1,4 @@
-package org.huel.cloudhub.client.disk.controller.storage;
+package org.huel.cloudhub.client.disk.controller.share;
 
 import com.google.common.base.Strings;
 import org.apache.commons.lang3.RandomStringUtils;

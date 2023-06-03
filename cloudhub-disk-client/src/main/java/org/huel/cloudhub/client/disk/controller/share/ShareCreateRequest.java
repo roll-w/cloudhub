@@ -1,4 +1,4 @@
-package org.huel.cloudhub.client.disk.controller.storage;
+package org.huel.cloudhub.client.disk.controller.share;
 
 import org.huel.cloudhub.client.disk.common.ParameterFailedException;
 import org.huel.cloudhub.client.disk.domain.share.ShareService;
