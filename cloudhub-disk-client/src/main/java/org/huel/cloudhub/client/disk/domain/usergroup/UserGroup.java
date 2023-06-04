@@ -1,6 +1,8 @@
 package org.huel.cloudhub.client.disk.domain.usergroup;
 
 import org.huel.cloudhub.client.disk.database.DataItem;
+import org.huel.cloudhub.client.disk.domain.systembased.SystemResource;
+import org.huel.cloudhub.client.disk.domain.systembased.SystemResourceKind;
 import space.lingu.light.DataColumn;
 import space.lingu.light.DataTable;
 import space.lingu.light.PrimaryKey;
@@ -12,7 +14,7 @@ import java.util.Map;
  * @author RollW
  */
 @DataTable(name = "user_group")
-public class UserGroup implements DataItem {
+public class UserGroup implements DataItem, SystemResource {
     @DataColumn(name = "id")
     @PrimaryKey(autoGenerate = true)
     private final Long id;
@@ -23,7 +25,7 @@ public class UserGroup implements DataItem {
     @DataColumn(name = "description")
     private final String description;
 
-    @DataColumn(name = "settings")
+    @DataColumn(name = "settings", dataType = SQLDataType.LONGTEXT)
     private final Map<String, String> settings;
 
     @DataColumn(name = "create_time", dataType = SQLDataType.TIMESTAMP)
@@ -82,6 +84,16 @@ public class UserGroup implements DataItem {
 
     public Builder toBuilder() {
         return new Builder(this);
+    }
+
+    @Override
+    public long getResourceId() {
+        return getId();
+    }
+
+    @Override
+    public SystemResourceKind getSystemResourceKind() {
+        return SystemResourceKind.GROUP_SETTING;
     }
 
     public static final class Builder {
