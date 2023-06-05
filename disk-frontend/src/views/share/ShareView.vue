@@ -85,42 +85,34 @@
                         <n-divider style="width: 2px; height: 30vh" vertical/>
                         <Transition mode="out-in" name="fade">
                             <div>
-                                <n-breadcrumb separator=">">
-                                    <n-breadcrumb-item>
-                                        <span class="text-xl"
-                                              @click="setCurFolderId(0)">
-                                              分享
-                                        </span>
-                                    </n-breadcrumb-item>
-                                    <n-breadcrumb-item
-                                            v-for="folder in (shareStructureInfo.parents || [])">
-                                        <span class="text-xl"
-                                              @click="setCurFolderId(folder.storageId)">
-                                            {{ folder.name }}
-                                        </span>
-                                    </n-breadcrumb-item>
-                                    <n-breadcrumb-item v-if="shareStructureInfo.current.storageId !== 0">
-                                        <span class="text-xl">
-                                            {{ shareStructureInfo.current.name }}
-                                        </span>
-                                    </n-breadcrumb-item>
-                                </n-breadcrumb>
-                                <div>
-                                    <span v-if="!getCheckedList().length">
-                                        共 {{ shareStructureInfo.storages.length }} 项
-                                    </span>
-                                    <span v-else>
-                                        已选择 {{ getCheckedList().length }} 项
-                                    </span>
-                                </div>
-                                <div class="flex flex-fill flex-wrap transition-all duration-300">
-                                    <FileComponent v-for="(file, i) in shareStructureInfo.storages"
-                                                   v-model:checked="checkedState[i]"
-                                                   :file="file"
-                                                   :onClickMoreOptions="handleClickMoreOptions"
-                                                   @click="handleStorageClick($event, file)"
-                                                   @contextmenu="handleFileOptionContextMenu($event, file)"/>
-                                </div>
+                                <FileComponentsView
+                                        :file-options="fileOptions"
+                                        :on-storage-click="handleStorageClick"
+                                        :files="shareStructureInfo.storages">
+                                    <template #folder>
+                                        <n-breadcrumb separator=">">
+                                            <n-breadcrumb-item>
+                                                <span class="text-xl"
+                                                     @click="setCurFolderId(0)">
+                                                    分享
+                                                </span>
+                                            </n-breadcrumb-item>
+                                            <n-breadcrumb-item
+                                                    v-for="folder in (shareStructureInfo.parents || [])">
+                                                <span class="text-xl"
+                                                     @click="setCurFolderId(folder.storageId)">
+                                                    {{ folder.name }}
+                                                </span>
+                                            </n-breadcrumb-item>
+                                            <n-breadcrumb-item v-if="shareStructureInfo.current.storageId !== 0">
+                                                <span class="text-xl">
+                                                    {{ shareStructureInfo.current.name }}
+                                                </span>
+                                            </n-breadcrumb-item>
+                                        </n-breadcrumb>
+                                    </template>
+
+                                </FileComponentsView>
                             </div>
                         </Transition>
 
@@ -147,16 +139,6 @@
                 </div>
             </div>
         </n-modal>
-
-        <n-dropdown
-                :on-clickoutside="onClickOutside"
-                :options="fileOptions"
-                :show="showFileDropdown"
-                :x="xRef"
-                :y="yRef"
-                placement="bottom-start"
-                trigger="manual"
-                @select="handleFileOptionSelect"/>
     </div>
 </template>
 
@@ -169,7 +151,7 @@ import {formatTimestamp} from "@/util/format";
 import {popUserErrorTemplate} from "@/views/util/error";
 import FileComponent from "@/components/file/FileComponent.vue";
 import FilePreviewer from "@/components/file/FilePreviewer.vue";
-import {driveShareTokenPage} from "@/router";
+import FileComponentsView from "@/views/file/FileComponentsView.vue";
 
 const router = useRouter()
 const {proxy} = getCurrentInstance()
@@ -204,26 +186,11 @@ const shareError = ref({
     tip: ''
 })
 
-const xRef = ref(0)
-const yRef = ref(0)
-const showFileDropdown = ref(false)
 const showFilePreviewModal = ref(false)
 
 let showFileDropdownState = false
 let lastTarget = null
 const curTargetFile = ref({})
-
-const checkedState = ref([])
-
-const getCheckedList = () => {
-    let checkedList = []
-    for (let i = 0; i < checkedState.value.length; i++) {
-        if (checkedState.value[i]) {
-            checkedList.push(i)
-        }
-    }
-    return checkedList
-}
 
 const folderInfo = ref({
     parents: []
@@ -243,12 +210,6 @@ const parseHash = () => {
 const folder = 0
 const curFolderId = ref(folder)
 
-const remappingStates = () => {
-    checkedState.value = []
-    for (const _ of shareStructureInfo.value.storages) {
-        checkedState.value.push(false)
-    }
-}
 
 const setCurFolderId = (folder) => {
     curFolderId.value = folder
@@ -276,38 +237,6 @@ const fileOptions = [
     }
 ]
 
-const handleFileOptionContextMenu = (e, target) => {
-    e.preventDefault();
-    showFileDropdownState = false
-
-    xRef.value = e.clientX;
-    yRef.value = e.clientY;
-
-    showFileDropdown.value = true;
-}
-
-const onClickOutside = () => {
-    showFileDropdown.value = false;
-}
-
-const handleClickMoreOptions = (e, target) => {
-    e.preventDefault();
-    if (lastTarget === target) {
-        showFileDropdownState = !showFileDropdownState
-    } else {
-        showFileDropdownState = true
-    }
-    lastTarget = target
-    showFileDropdown.value = showFileDropdownState
-
-    if (!showFileDropdownState) {
-        return
-    }
-    xRef.value = e.clientX
-    yRef.value = e.clientY
-}
-
-
 const previewableTypes = ['IMAGE', 'TEXT', 'PDF', 'VIDEO', 'AUDIO', 'DOCUMENT']
 
 const handleStorageClick = (e, target) => {
@@ -333,6 +262,7 @@ const getShareMetaInfo = () => {
         }
     }).catch(err => {
         shareError.value = err
+        showPasswordView.value = false
     })
 }
 
@@ -370,7 +300,6 @@ const requestGetShareInfoWithinPassword = (parentId = curFolderId.value,
         sharePassword.value = code
         showPasswordView.value = false
         shareStructureInfo.value = res.data
-        remappingStates()
     }).catch((err) => {
         popUserErrorTemplate(notification, err, '获取分享信息失败')
     })

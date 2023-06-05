@@ -3,34 +3,28 @@
         <div v-if="curDirectoryId === 0">
             <FileSystemInstructions/>
         </div>
-        <div class="flex-fill" @contextmenu="handleContextmenu">
+        <div class="flex-fill">
             <div class="p-5">
-                <div v-if="!nowOpenType" class="text-xl py-2">
-                    <FolderBreadcrumbs :folder-info="folderInfo"/>
-                </div>
-                <div v-else class="text-xl py-2">
-                    {{ getFileType(nowOpenType.toUpperCase()) }}
-                </div>
-                <div>
-                    <span v-if="!getCheckedList().length">
-                        共 {{ files.length }} 项
-                    </span>
-                    <span v-else>
-                        已选择 {{ getCheckedList().length }} 项
-                    </span>
-                </div>
-
                 <div class="min-h-[400px]">
                     <n-spin :show="loading" size="large">
                         <div v-if="files.length" class="pb-[30vh]">
-                            <div class="flex flex-fill flex-wrap transition-all duration-300">
-                                <FileComponent v-for="(file, i) in files"
-                                               v-model:checked="checkedState[i]"
-                                               :file="file"
-                                               :onClickMoreOptions="handleClickMoreOptions"
-                                               @click="handleStorageClick($event, file)"
-                                               @contextmenu="handleFileOptionContextMenu($event, file)"/>
-                            </div>
+                            <FileComponentsView :disable-click="false"
+                                                :disable-preview="false"
+                                                :file-options="fileOptions"
+                                                :files="files"
+                                                :menu-options="menuOptions"
+                                                :on-file-option-select="handleFileOptionSelect"
+                                                :on-menu-select="handleMenuSelect"
+                                                :on-show-file-option="hackFileOptions">
+                                <template #folder>
+                                    <div v-if="!nowOpenType" class="text-xl py-2">
+                                        <FolderBreadcrumbs :folder-info="folderInfo"/>
+                                    </div>
+                                    <div v-else class="text-xl py-2">
+                                        {{ getFileType(nowOpenType.toUpperCase()) }}
+                                    </div>
+                                </template>
+                            </FileComponentsView>
                         </div>
 
                         <div v-else class="w-100 h-100 flex flex-col flex-fill content-center justify-center">
@@ -58,25 +52,6 @@
                 </div>
             </div>
         </div>
-        <n-dropdown
-                :on-clickoutside="onClickOutside"
-                :options="menuOptions"
-                :show="showDropdown"
-                :x="xRef"
-                :y="yRef"
-                placement="bottom-start"
-                trigger="manual"
-                @select="handleMenuSelect"/>
-
-        <n-dropdown
-                :on-clickoutside="onClickOutside"
-                :options="fileOptions"
-                :show="showFileDropdown"
-                :x="xRef"
-                :y="yRef"
-                placement="bottom-start"
-                trigger="manual"
-                @select="handleFileOptionSelect"/>
 
 
         <n-modal v-model:show="showUploadFileModal"
@@ -98,26 +73,6 @@
                     :owner-id="userStore.user.id"
                     owner-type="user"
             />
-        </n-modal>
-
-        <n-modal v-model:show="showFilePreviewModal"
-                 :show-icon="false"
-                 :title="curTargetFile.name + ' 预览'"
-                 class="w-full h-full"
-                 preset="card"
-                 style="width: 100vw; height: 100vh">
-            <div class="p-5">
-                <div>
-                    <n-alert type="warning">
-                        当前文件预览功能仅支持图片、文本、音频、视频文件，其他文件请下载后打开。
-                    </n-alert>
-                </div>
-                <div class="pt-3">
-                    <FilePreviewer
-                            :file="curTargetFile"
-                    />
-                </div>
-            </div>
         </n-modal>
 
         <n-modal v-model:show="showCreateFolderModal"
@@ -147,6 +102,7 @@
                  preset="dialog"
                  transform-origin="center">
             <StorageRenameForm
+                    :file-name="curTargetFile.name"
                     :on-after-action="() => {
                     loading = false
                 }"
@@ -156,7 +112,6 @@
                     :owner-id="userStore.user.id"
                     :storage-id="curTargetFile.storageId"
                     :storage-type="curTargetFile.storageType"
-                    :file-name="curTargetFile.name"
                     owner-type="user"
             />
         </n-modal>
@@ -188,9 +143,6 @@
                  transform-origin="center">
             <StorageShareConfirm :share-info="shareInfo"/>
         </n-modal>
-
-        <FileViewToolbar :checked-list="getCheckedList()"/>
-
     </div>
 </template>
 
@@ -198,7 +150,6 @@
 import {h, ref, getCurrentInstance} from "vue";
 import {RouterLink, useRouter} from "vue-router";
 import {useNotification, useMessage, useDialog} from "naive-ui";
-import FileComponent from "@/components/file/FileComponent.vue";
 import {
     driveFileAttrsPage,
     driveFilePageFolder,
@@ -219,11 +170,10 @@ import FolderCreateForm from "@/components/file/forms/FolderCreateForm.vue";
 import FileUploadForm from "@/components/file/forms/FileUploadForm.vue";
 import {useFileStore} from "@/stores/files";
 import {getFileType} from "@/views/names";
-import FilePreviewer from "@/components/file/FilePreviewer.vue";
-import FileViewToolbar from "@/components/file/FileViewToolbar.vue";
 import {options, getFileViewMenuOptions} from "@/views/file/options";
 import StorageShareForm from "@/components/file/forms/StorageShareForm.vue";
 import StorageShareConfirm from "@/components/file/forms/StorageShareConfirm.vue";
+import FileComponentsView from "@/views/file/FileComponentsView.vue";
 
 const {proxy} = getCurrentInstance()
 const notification = useNotification()
@@ -236,49 +186,19 @@ const router = useRouter()
 const routeName = router.currentRoute.value.name
 
 const files = ref([])
-const fileMenuShowState = ref([])
-const checkedState = ref([])
 const folderInfo = ref({
     parents: []
 })
 
-const remappingStates = () => {
-    fileMenuShowState.value = []
-    checkedState.value = []
-    for (const _ of files.value) {
-        fileMenuShowState.value.push(false)
-        checkedState.value.push(false)
-    }
-}
-
-const getCheckedList = () => {
-    let checkedList = []
-    for (let i = 0; i < checkedState.value.length; i++) {
-        if (checkedState.value[i]) {
-            checkedList.push(i)
-        }
-    }
-    return checkedList
-}
-
-const xRef = ref(0)
-const yRef = ref(0)
-
 const loading = ref(false)
 
-const showDropdown = ref(false)
-const showFileDropdown = ref(false)
 const showUploadFileModal = ref(false)
 const showCreateFolderModal = ref(false)
 const showFilePreviewModal = ref(false)
 const showRenameStorageModal = ref(false)
 const showShareStorageModal = ref(false)
 const showShareConfirmStorageModal = ref(false)
-
 const shareInfo = ref()
-
-let showFileDropdownState = false
-let lastTarget = null
 
 const getNowOpenType = () => {
     switch (routeName) {
@@ -301,7 +221,7 @@ const getCurrentFolderId = () => {
     if (nowOpenType) {
         return -1
     }
-    return router.currentRoute.value.params.folder || 0
+    return Number.parseInt(router.currentRoute.value.params.folder) || 0
 }
 
 const curDirectoryId = getCurrentFolderId()
@@ -345,14 +265,21 @@ const fileOptions = [
         label: "移动",
         key: "move",
     },
-
+    {
+        label: "复制",
+        key: "copy",
+    },
+    {
+        key: 'header-divider',
+        type: 'divider'
+    },
     {
         label: () => h(
-            'div',
-            {
-                class: "text-red-500 mr-10"
-            },
-            {default: () => "删除"}
+                'div',
+                {
+                    class: "text-red-500 mr-10"
+                },
+                {default: () => "删除"}
         ),
         key: "delete",
     },
@@ -408,7 +335,7 @@ const handleStorageClick = (e, target) => {
             params: {
                 folder: target.storageId
             }
-
+        }).catch(() => {
         })
         return
     }
@@ -427,8 +354,8 @@ const handleStorageDelete = (storage) => {
     const config = createConfig()
 
     proxy.$axios.delete(
-        api.storage('user', userStore.user.id,
-            storage.storageType.toLowerCase(), storage.storageId), config).then(() => {
+            api.storage('user', userStore.user.id,
+                    storage.storageType.toLowerCase(), storage.storageId), config).then(() => {
         message.success('删除成功')
         refresh()
     }).catch((err) => {
@@ -439,7 +366,7 @@ const handleStorageDelete = (storage) => {
 const handleFileDownload = (storage) => {
     const config = createConfig()
     proxy.$axios.post(
-        api.fileToken('user', userStore.user.id, storage.storageId), null, config).then((res) => {
+            api.fileToken('user', userStore.user.id, storage.storageId), null, config).then((res) => {
         const token = res.data
         const url = api.quickfire(token)
         window.open(url, '_self')
@@ -448,11 +375,8 @@ const handleFileDownload = (storage) => {
     })
 }
 
-const handleFileOptionSelect = (key) => {
-    showDropdown.value = false
-    showFileDropdown.value = false
-
-    const storage = curTargetFile.value
+const handleFileOptionSelect = (key, options, target) => {
+    const storage = target
 
     switch (key) {
         case 'download':
@@ -489,33 +413,7 @@ const handleFileOptionSelect = (key) => {
     }
 }
 
-const handleContextmenu = (e) => {
-    e.preventDefault();
-    xRef.value = e.clientX;
-    yRef.value = e.clientY;
-    if (showFileDropdown.value) {
-        return
-    }
-    showDropdown.value = true;
-}
-
-const handleFileOptionContextMenu = (e, target) => {
-    e.preventDefault();
-    showFileDropdownState = false
-
-    xRef.value = e.clientX;
-    yRef.value = e.clientY;
-
-    hackFileOptions(target)
-
-    showDropdown.value = false;
-    showFileDropdown.value = true;
-}
-
 const handleMenuSelect = (key) => {
-    showDropdown.value = false;
-    showFileDropdown.value = false;
-
     switch (key) {
         case options.folder:
             showCreateFolderModal.value = true
@@ -535,76 +433,48 @@ const handleMenuSelect = (key) => {
     }
 }
 
-const onClickOutside = () => {
-    showDropdown.value = false;
-    showFileDropdown.value = false;
-}
-
-const handleClickMoreOptions = (e, target) => {
-    e.preventDefault();
-    showDropdown.value = false
-    if (lastTarget === target) {
-        showFileDropdownState = !showFileDropdownState
-    } else {
-        showFileDropdownState = true
-    }
-    lastTarget = target
-    showFileDropdown.value = showFileDropdownState
-
-    if (!showFileDropdownState) {
-        return
-    }
-    hackFileOptions(target)
-
-    xRef.value = e.clientX
-    yRef.value = e.clientY
-}
-
 const requestFilesByFolder = (directoryId) => {
     const config = createConfig()
     loading.value = true
     proxy.$axios.get(
-        api.folder('user', userStore.user.id, directoryId), config)
-        .then(res => {
-            files.value = res.data
-            remappingStates()
-            loading.value = false
-        })
-        .catch(err => {
-            popUserErrorTemplate(notification, err,
-                '获取文件列表失败', '文件请求失败')
-        })
+            api.folder('user', userStore.user.id, directoryId), config)
+            .then(res => {
+                files.value = res.data
+                loading.value = false
+            })
+            .catch(err => {
+                popUserErrorTemplate(notification, err,
+                        '获取文件列表失败', '文件请求失败')
+            })
 }
 
 const requestFilesByType = (type) => {
     const config = createConfig()
     loading.value = true
     proxy.$axios.get(
-        api.fileType('user', userStore.user.id, type), config)
-        .then(res => {
-            files.value = res.data
-            remappingStates()
-            loading.value = false
-        })
-        .catch(err => {
-            popUserErrorTemplate(notification, err,
-                '获取文件列表失败', '文件请求失败')
-        })
+            api.fileType('user', userStore.user.id, type), config)
+            .then(res => {
+                files.value = res.data
+                loading.value = false
+            })
+            .catch(err => {
+                popUserErrorTemplate(notification, err,
+                        '获取文件列表失败', '文件请求失败')
+            })
 }
-
 
 const requestFolderInfo = () => {
     const config = createConfig()
     proxy.$axios.get(
-        api.getStorageInfo('user', userStore.user.id, 'folder', curDirectoryId), config)
-        .then(res => {
-            folderInfo.value = res.data
-            console.log(res)
-        })
-        .catch(err => {
-            popUserErrorTemplate(notification, err,
-                '获取文件夹信息失败', '文件夹信息请求失败')
-        })
+            api.getStorageInfo('user', userStore.user.id, 'folder', curDirectoryId), config)
+            .then(res => {
+                folderInfo.value = res.data
+                console.log(res)
+            })
+            .catch(err => {
+                popUserErrorTemplate(notification, err,
+                        '获取文件夹信息失败', '文件夹信息请求失败')
+            })
 }
 
 
