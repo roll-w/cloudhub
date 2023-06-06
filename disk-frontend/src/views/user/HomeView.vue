@@ -1,11 +1,11 @@
 <template>
-    <div class="flex flex-fill flex-grow w-100 h-100vh h-full bg-no-repeat bg-cover bg-center bg ">
+    <div class="flex flex-fill flex-grow w-100 h-100vh h-full bg-no-repeat bg-cover bg-center bg">
 
-        <div class="w-100 h-100 backdrop-brightness-125">
+        <div class="w-100 h-100 backdrop-blur-3xl">
             <div class="flex flex-col w-100 px-16 p-6 h-100">
-                <div class="flex ">
-                    <div class="p-3 rounded-2xl hover:bg-neutral-200 hover:bg-opacity-30 transition-all ease-in"
-                         role="button">
+                <div class="flex px-5 ">
+                    <div class="rounded-2xl p-3
+                    bg-neutral-200 bg-opacity-40">
                         <a>
                             <Logo/>
                         </a>
@@ -15,7 +15,7 @@
                     <div class="leading-tight sm:leading-tight text-4xl sm:text-6xl font-extrabold text-black ">
                         Cloudhub<br>法律案件资料库
                     </div>
-                    <div class="flex-fill py-7 text-gray-500 text-2xl leading-relaxed sm:w-2/5">
+                    <div class="flex-fill py-7 text-[#4f4662] text-2xl leading-relaxed sm:w-2/5">
                         Cloudhub 法律案件资料库是一个专业的法律文件资料库。可以快速、安全、便捷的管理您的法律文件资料。
                     </div>
                 </div>
@@ -29,8 +29,8 @@
                             立即进入
                         </a>
                     </div>
-                    <div class="text-gray-500 opacity-70
-                    transition-all hover:text-gray-800 hover:opacity-100 hover:drop-shadow hover:shadow-white">
+                    <div class="text-[#4f4662] opacity-70
+                    transition-all hover:text-black hover:opacity-100 hover:drop-shadow hover:shadow-white">
                         ©2023 Cloudhub. All rights reserved. 版权所有
                         <br>
                         <a v-if="icp" class="hover:underline hover:underline-offset-4" href="https://beian.miit.gov.cn/"
@@ -76,7 +76,14 @@ const beian = ((window.cloudhub || {}).server || {}).beian
 
 <style scoped>
 .bg {
-    background-image: url('/public/img/mind.jpg');
+    background: radial-gradient(110vw 250vh ellipse at 0% 11%,
+    #dde6f6 46%,
+    #e1cbfc 55%,
+    #f82edd 65%,
+    #ff3378 70%,
+    #fa7931 75%,
+    #ffffff 81%);
+    background-size: 100% auto;
 }
 
 .link-btn {
