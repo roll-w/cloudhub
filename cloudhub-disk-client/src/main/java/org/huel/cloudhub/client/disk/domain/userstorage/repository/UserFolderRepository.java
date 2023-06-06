@@ -4,6 +4,7 @@ import org.huel.cloudhub.client.disk.database.DiskDatabase;
 import org.huel.cloudhub.client.disk.database.dao.UserFolderDao;
 import org.huel.cloudhub.client.disk.database.repository.BaseRepository;
 import org.huel.cloudhub.client.disk.domain.user.LegalUserType;
+import org.huel.cloudhub.client.disk.domain.userstorage.StorageOwner;
 import org.huel.cloudhub.client.disk.domain.userstorage.UserFolder;
 import org.huel.cloudhub.web.data.page.Offset;
 import org.springframework.cache.CacheManager;
@@ -79,5 +80,18 @@ public class UserFolderRepository extends BaseRepository<UserFolder> {
         List<Long> parentFolderIds =
                 userFolderDao.getParentFolderIds(userFolder.getParentId());
         return getByIds(parentFolderIds);
+    }
+
+    public List<UserFolder> getFoldersLike(String name, StorageOwner storageOwner) {
+        return cacheResult(userFolderDao.findFoldersLike(name, storageOwner));
+    }
+
+    public List<UserFolder> findFoldersByCondition(StorageOwner storageOwner,
+                                                   String name,
+                                                   Long before,
+                                                   Long after) {
+        return cacheResult(
+                userFolderDao.findFoldersByCondition(storageOwner, name, before, after)
+        );
     }
 }

@@ -7,10 +7,13 @@ import org.huel.cloudhub.client.disk.domain.storagesearch.StorageSearchService;
 import org.huel.cloudhub.client.disk.domain.storagesearch.common.SearchConditionException;
 import org.huel.cloudhub.client.disk.domain.userstorage.AttributedStorage;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageOwner;
+import org.huel.cloudhub.client.disk.domain.userstorage.dto.SimpleStorageIdentity;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author RollW
@@ -26,7 +29,10 @@ public class StorageSearchServiceImpl implements StorageSearchService {
     @Override
     public List<? extends AttributedStorage> searchFor(
             List<SearchCondition> searchConditions, StorageOwner storageOwner) {
-        List<StorageSearchConditionProvider> collected =
+        if (searchConditions.isEmpty()) {
+            return List.of();
+        }
+        Set<StorageSearchConditionProvider> collected =
                 getProviders(searchConditions);
 
         SearchConditionGroup conditionGroup = new SearchConditionGroup(searchConditions);
@@ -40,17 +46,32 @@ public class StorageSearchServiceImpl implements StorageSearchService {
                     storageSearchConditionProvider.getStorages(conditionGroup, storageOwner);
             result.addAll(attributedStorages);
         }
-        return result.stream().distinct().toList();
+        return distinctByIdAndType(result);
+    }
+
+    private List<? extends AttributedStorage> distinctByIdAndType(List<AttributedStorage> result) {
+        Set<SimpleStorageIdentity> existStorages = new HashSet<>();
+        List<AttributedStorage> distinctResult = new ArrayList<>();
+        for (AttributedStorage attributedStorage : result) {
+            SimpleStorageIdentity simpleStorageIdentity = new SimpleStorageIdentity(attributedStorage.getStorageId(),
+                    attributedStorage.getStorageType());
+            if (!existStorages.contains(simpleStorageIdentity)) {
+                distinctResult.add(attributedStorage);
+                existStorages.add(simpleStorageIdentity);
+            }
+        }
+        return distinctResult;
     }
 
     @Override
-    public List<? extends AttributedStorage> searchFor(List<SearchCondition> searchConditions) throws SearchConditionException {
+    public List<? extends AttributedStorage> searchFor(
+            List<SearchCondition> searchConditions) throws SearchConditionException {
         return null;
     }
 
-    private List<StorageSearchConditionProvider> getProviders(
+    private Set<StorageSearchConditionProvider> getProviders(
             List<SearchCondition> searchConditions) {
-        List<StorageSearchConditionProvider> collected = new ArrayList<>();
+        Set<StorageSearchConditionProvider> collected = new HashSet<>();
         for (SearchCondition searchCondition : searchConditions) {
             StorageSearchConditionProvider provider = findFirst(searchCondition.name());
             if (provider != null) {

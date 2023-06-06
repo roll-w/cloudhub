@@ -31,10 +31,11 @@ public class SearchExpressionParserImpl implements SearchExpressionParser {
         List<SearchCondition> searchConditions = new ArrayList<>();
 
         for (String condition : conditions) {
-            if (condition.isEmpty()) {
-                throw new SearchExpressionException("Empty condition");
+            String trimmed = condition.trim();
+            if (trimmed.isEmpty()) {
+                throw new SearchExpressionException("Empty condition.");
             }
-            SearchCondition searchCondition = parseCondition(condition);
+            SearchCondition searchCondition = parseCondition(trimmed);
             searchConditions.add(searchCondition);
         }
 

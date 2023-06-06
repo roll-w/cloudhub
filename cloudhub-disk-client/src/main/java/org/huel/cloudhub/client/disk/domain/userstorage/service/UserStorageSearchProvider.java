@@ -5,14 +5,11 @@ import org.huel.cloudhub.client.disk.domain.storagesearch.SearchConditionGroup;
 import org.huel.cloudhub.client.disk.domain.storagesearch.StorageSearchConditionProvider;
 import org.huel.cloudhub.client.disk.domain.storagesearch.common.SearchConditionException;
 import org.huel.cloudhub.client.disk.domain.tag.dto.TagValue;
-import org.huel.cloudhub.client.disk.domain.userstorage.AttributedStorage;
-import org.huel.cloudhub.client.disk.domain.userstorage.FileType;
-import org.huel.cloudhub.client.disk.domain.userstorage.StorageCategoryService;
-import org.huel.cloudhub.client.disk.domain.userstorage.StorageMetadata;
-import org.huel.cloudhub.client.disk.domain.userstorage.StorageOwner;
-import org.huel.cloudhub.client.disk.domain.userstorage.UserFileStorage;
+import org.huel.cloudhub.client.disk.domain.userstorage.*;
 import org.huel.cloudhub.client.disk.domain.userstorage.repository.StorageMetadataRepository;
 import org.huel.cloudhub.client.disk.domain.userstorage.repository.UserFileStorageRepository;
+import org.huel.cloudhub.client.disk.domain.userstorage.repository.UserStorageSearchCondition;
+import org.huel.cloudhub.client.disk.domain.userstorage.repository.UserStorageSearchRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
@@ -35,11 +32,14 @@ public class UserStorageSearchProvider implements StorageCategoryService,
 
     private final StorageMetadataRepository storageMetadataRepository;
     private final UserFileStorageRepository userFileStorageRepository;
+    private final UserStorageSearchRepository userStorageSearchRepository;
 
     public UserStorageSearchProvider(StorageMetadataRepository storageMetadataRepository,
-                                     UserFileStorageRepository userFileStorageRepository) {
+                                     UserFileStorageRepository userFileStorageRepository,
+                                     UserStorageSearchRepository userStorageSearchRepository) {
         this.storageMetadataRepository = storageMetadataRepository;
         this.userFileStorageRepository = userFileStorageRepository;
+        this.userStorageSearchRepository = userStorageSearchRepository;
     }
 
     @Override
@@ -50,14 +50,39 @@ public class UserStorageSearchProvider implements StorageCategoryService,
         SearchCondition timeCondition = conditionGroup.getCondition(TIME);
         SearchCondition typeCondition = conditionGroup.getCondition(TYPE);
 
-        if (nameCondition != null) {
-            return userFileStorageRepository.getFilesLike(
-                    nameCondition.keyword(), storageOwner.getOwnerId(), storageOwner.getOwnerType());
-        }
+        StorageType storageType = tryParseStorageType(typeCondition);
+        FileType fileType = tryParseFileType(typeCondition);
 
-        return List.of();
+        UserStorageSearchCondition userStorageSearchCondition = new UserStorageSearchCondition(
+                storageType,
+                storageOwner,
+                nameCondition == null ? null : nameCondition.keyword(),
+                fileType,
+                null, null, null
+        );
+
+        return userStorageSearchRepository.findStoragesBy(userStorageSearchCondition);
     }
 
+    private StorageType tryParseStorageType(SearchCondition condition) {
+        if (condition == null) {
+            return null;
+        }
+        return StorageType.from(condition.keyword());
+    }
+
+    private FileType tryParseFileType(SearchCondition condition) {
+        if (condition == null) {
+            return null;
+        }
+        return FileType.from(condition.keyword());
+    }
+
+    private record TimePair(
+            Long before,
+            Long after
+    ) {
+    }
 
 
     @Override

@@ -9,7 +9,6 @@ import space.lingu.Nullable;
 import space.lingu.light.Dao;
 import space.lingu.light.Query;
 
-import java.sql.Timestamp;
 import java.util.List;
 
 /**
@@ -95,10 +94,10 @@ public interface UserFileStorageDao extends AutoPrimaryBaseDao<UserFileStorage> 
     @Query("SELECT * FROM user_file_storage WHERE name LIKE CONCAT('%', {name}, '%') AND owner = {owner} AND owner_type = {legalUserType} AND deleted = 0")
     List<UserFileStorage> findFilesLike(String name, long owner, LegalUserType legalUserType);
 
-    @Query("SELECT * FROM user_file_storage WHERE LIKE CONCAT('%', {name}, '%') AND owner = {storageOwner.getOwnerId()} AND owner_type = {storageOwner.getOwnerType()} AND deleted = 0")
+    @Query("SELECT * FROM user_file_storage WHERE name LIKE CONCAT('%', {name}, '%') AND owner = {storageOwner.getOwnerId()} AND owner_type = {storageOwner.getOwnerType()} AND deleted = 0")
     List<UserFileStorage> findFilesLike(StorageOwner storageOwner, String name, FileType fileType);
 
-    @Query("SELECT * FROM user_file_storage WHERE LIKE CONCAT('%', {name}, '%') AND owner = {storageOwner.getOwnerId()} " +
+    @Query("SELECT * FROM user_file_storage WHERE name LIKE CONCAT('%', {name}, '%') AND owner = {storageOwner.getOwnerId()} " +
             "AND owner_type = {storageOwner.getOwnerType()} " +
             "AND file_category = {fileType} " +
             "AND create_time <= {before} " +
@@ -108,8 +107,8 @@ public interface UserFileStorageDao extends AutoPrimaryBaseDao<UserFileStorage> 
             StorageOwner storageOwner,
             String name,
             FileType fileType,
-            Timestamp before,
-            Timestamp after);
+            long before,
+            long after);
 
     @Query("SELECT * FROM user_file_storage WHERE owner = {storageOwner.getOwnerId()} " +
             "AND owner_type = {storageOwner.getOwnerType()} " +
@@ -117,9 +116,10 @@ public interface UserFileStorageDao extends AutoPrimaryBaseDao<UserFileStorage> 
             "AND create_time <= {before} " +
             "AND create_time >= {after} " +
             "AND deleted = 0")
-    List<UserFileStorage> findFilesBetween(StorageOwner storageOwner, FileType fileType, Timestamp before, Timestamp after);
+    List<UserFileStorage> findFilesBetween(StorageOwner storageOwner, FileType fileType, long before, long after);
 
-    @Query("SELECT * FROM user_file_storage WHERE owner = {storageOwner.getOwnerId()} " +
+    @Query("SELECT * FROM user_file_storage WHERE name LIKE CONCAT('%', {name}, '%') " +
+            "AND owner = {storageOwner.getOwnerId()} " +
             "AND owner_type = {storageOwner.getOwnerType()} " +
             "AND create_time <= {before} " +
             "AND create_time >= {after} " +
@@ -127,25 +127,25 @@ public interface UserFileStorageDao extends AutoPrimaryBaseDao<UserFileStorage> 
     List<UserFileStorage> findFilesLikeAndBetween(
             StorageOwner storageOwner,
             String name,
-            Timestamp before,
-            Timestamp after);
+            long before,
+            long after);
 
     @Query("SELECT * FROM user_file_storage WHERE owner = {storageOwner.getOwnerId()} " +
             "AND owner_type = {storageOwner.getOwnerType()} " +
             "AND create_time <= {before} " +
             "AND create_time >= {after} " +
             "AND deleted = 0")
-    List<UserFileStorage> findFilesBetween(StorageOwner storageOwner, Timestamp before, Timestamp after);
+    List<UserFileStorage> findFilesBetween(StorageOwner storageOwner, long before, long after);
 
-    Timestamp MIN_TIMESTAMP = new Timestamp(0L);
-    Timestamp MAX_TIMESTAMP = new Timestamp(Long.MAX_VALUE);
+    long MIN_TIMESTAMP = -1;
+    long MAX_TIMESTAMP = Long.MAX_VALUE;
 
     default List<UserFileStorage> findFilesByConditions(
             StorageOwner storageOwner,
             @Nullable String name,
             @Nullable FileType fileType,
-            @Nullable Timestamp before,
-            @Nullable Timestamp after) {
+            @Nullable Long before,
+            @Nullable Long after) {
         if (name == null && fileType == null && before == null && after == null) {
             return List.of();
         }
@@ -167,8 +167,8 @@ public interface UserFileStorageDao extends AutoPrimaryBaseDao<UserFileStorage> 
             StorageOwner storageOwner,
             String name,
             FileType fileType,
-            Timestamp before,
-            Timestamp after) {
+            Long before,
+            Long after) {
         if (name.isEmpty() && fileType == null) {
             return findFilesBetween(storageOwner, before, after);
         }

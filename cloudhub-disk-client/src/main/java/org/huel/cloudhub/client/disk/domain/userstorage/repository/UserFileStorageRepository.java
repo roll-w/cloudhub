@@ -111,4 +111,15 @@ public class UserFileStorageRepository extends BaseRepository<UserFileStorage> {
                 fileStorageDao.getByName(name, parentId)
         );
     }
+
+    public List<UserFileStorage> findFilesByConditions(
+            StorageOwner storageOwner,
+            String name,
+            FileType fileType,
+            Long before,
+            Long after) {
+        return cacheResult(
+                fileStorageDao.findFilesByConditions(storageOwner, name, fileType, before, after)
+        );
+    }
 }
