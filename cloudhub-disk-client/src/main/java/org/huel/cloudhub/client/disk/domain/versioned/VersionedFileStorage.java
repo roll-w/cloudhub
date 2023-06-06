@@ -8,7 +8,6 @@ import space.lingu.light.DataColumn;
 import space.lingu.light.DataTable;
 import space.lingu.light.Index;
 import space.lingu.light.PrimaryKey;
-import space.lingu.light.SQLDataType;
 
 /**
  * @author RollW
@@ -38,7 +37,7 @@ public class VersionedFileStorage implements SystemResource, DataItem {
     @DataColumn(name = "operator")
     private final long operator;
 
-    @DataColumn(name = "create_time", dataType = SQLDataType.TIMESTAMP)
+    @DataColumn(name = "create_time")
     private final long createTime;
 
     @DataColumn(name = "deleted")

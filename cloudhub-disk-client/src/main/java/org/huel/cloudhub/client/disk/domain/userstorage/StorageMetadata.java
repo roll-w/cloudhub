@@ -5,7 +5,6 @@ import space.lingu.light.DataColumn;
 import space.lingu.light.DataTable;
 import space.lingu.light.Index;
 import space.lingu.light.PrimaryKey;
-import space.lingu.light.SQLDataType;
 
 /**
  * @author RollW
@@ -38,10 +37,10 @@ public class StorageMetadata implements DataItem {
     @DataColumn(name = "deleted")
     private final boolean deleted;
 
-    @DataColumn(name = "create_time", dataType = SQLDataType.TIMESTAMP)
+    @DataColumn(name = "create_time")
     private final long createTime;
 
-    @DataColumn(name = "update_time", dataType = SQLDataType.TIMESTAMP)
+    @DataColumn(name = "update_time")
     private final long updateTime;
 
     public StorageMetadata(Long id, long storageId,

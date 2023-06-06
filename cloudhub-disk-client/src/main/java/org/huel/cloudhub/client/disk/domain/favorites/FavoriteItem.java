@@ -80,15 +80,16 @@ public class FavoriteItem implements DataItem {
         return deleted;
     }
 
-    public Builder toBuilder() {
-        return new Builder(this);
-    }
-
     public static Builder builder() {
         return new Builder();
     }
 
+    public Builder toBuilder() {
+        return new Builder(this);
+    }
+
     public static final class Builder {
+
         private Long id;
         private long favoriteGroupId;
         private long userId;
@@ -98,18 +99,18 @@ public class FavoriteItem implements DataItem {
         private long updateTime;
         private boolean deleted;
 
-        public Builder() {
+        private Builder() {
         }
 
-        public Builder(FavoriteItem favoriteItem) {
-            this.id = favoriteItem.id;
-            this.favoriteGroupId = favoriteItem.favoriteGroupId;
-            this.userId = favoriteItem.userId;
-            this.storageId = favoriteItem.storageId;
-            this.storageType = favoriteItem.storageType;
-            this.createTime = favoriteItem.createTime;
-            this.updateTime = favoriteItem.updateTime;
-            this.deleted = favoriteItem.deleted;
+        private Builder(FavoriteItem favoriteitem) {
+            this.id = favoriteitem.id;
+            this.favoriteGroupId = favoriteitem.favoriteGroupId;
+            this.userId = favoriteitem.userId;
+            this.storageId = favoriteitem.storageId;
+            this.storageType = favoriteitem.storageType;
+            this.createTime = favoriteitem.createTime;
+            this.updateTime = favoriteitem.updateTime;
+            this.deleted = favoriteitem.deleted;
         }
 
         public Builder setId(Long id) {
@@ -153,10 +154,7 @@ public class FavoriteItem implements DataItem {
         }
 
         public FavoriteItem build() {
-            return new FavoriteItem(
-                    id, favoriteGroupId, userId, storageId,
-                    storageType, createTime, updateTime, deleted
-            );
+            return new FavoriteItem(id, favoriteGroupId, userId, storageId, storageType, createTime, updateTime, deleted);
         }
     }
 }

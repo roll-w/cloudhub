@@ -28,10 +28,10 @@ public class UserGroup implements DataItem, SystemResource {
     @DataColumn(name = "settings", dataType = SQLDataType.LONGTEXT)
     private final Map<String, String> settings;
 
-    @DataColumn(name = "create_time", dataType = SQLDataType.TIMESTAMP)
+    @DataColumn(name = "create_time")
     private final long createTime;
 
-    @DataColumn(name = "update_time", dataType = SQLDataType.TIMESTAMP)
+    @DataColumn(name = "update_time")
     private final long updateTime;
 
     @DataColumn(name = "deleted")

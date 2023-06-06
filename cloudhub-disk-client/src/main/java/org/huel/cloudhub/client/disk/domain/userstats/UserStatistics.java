@@ -2,10 +2,7 @@ package org.huel.cloudhub.client.disk.domain.userstats;
 
 import org.huel.cloudhub.client.disk.database.DataItem;
 import org.huel.cloudhub.client.disk.domain.user.LegalUserType;
-import space.lingu.light.DataColumn;
-import space.lingu.light.DataTable;
-import space.lingu.light.Index;
-import space.lingu.light.PrimaryKey;
+import space.lingu.light.*;
 
 import java.util.Map;
 
@@ -26,7 +23,7 @@ public class UserStatistics implements DataItem {
     @DataColumn(name = "user_type")
     private final LegalUserType userType;
 
-    @DataColumn(name = "statistics")
+    @DataColumn(name = "statistics", dataType = SQLDataType.LONGTEXT)
     private final Map<String, String> statistics;
 
     public UserStatistics(Long id, long userId,

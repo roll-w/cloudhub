@@ -34,10 +34,10 @@ public class TagGroup implements SystemResource, DataItem {
     @DataColumn(name = "search_scope")
     private final KeywordSearchScope keywordSearchScope;
 
-    @DataColumn(name = "create_time", dataType = SQLDataType.TIMESTAMP)
+    @DataColumn(name = "create_time")
     private final long createTime;
 
-    @DataColumn(name = "update_time", dataType = SQLDataType.TIMESTAMP)
+    @DataColumn(name = "update_time")
     private final long updateTime;
 
     @DataColumn(name = "deleted")

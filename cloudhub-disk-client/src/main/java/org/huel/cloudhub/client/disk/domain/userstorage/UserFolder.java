@@ -7,14 +7,13 @@ import space.lingu.light.DataColumn;
 import space.lingu.light.DataTable;
 import space.lingu.light.Index;
 import space.lingu.light.PrimaryKey;
-import space.lingu.light.SQLDataType;
 
 /**
  * 用户定义的文件夹/目录
  *
  * @author RollW
  */
-@DataTable(name = "user_directory", indices = {
+@DataTable(name = "user_folder", indices = {
         @Index(value = {"owner", "owner_type", "parent_id", "name"}, unique = true)
 })
 public class UserFolder implements AttributedStorage, DataItem {
@@ -44,10 +43,10 @@ public class UserFolder implements AttributedStorage, DataItem {
     @DataColumn(name = "name")
     private final String name;
 
-    @DataColumn(name = "create_time", dataType = SQLDataType.TIMESTAMP)
+    @DataColumn(name = "create_time")
     private final long createTime;
 
-    @DataColumn(name = "update_time", dataType = SQLDataType.TIMESTAMP)
+    @DataColumn(name = "update_time")
     private final long updateTime;
 
     @DataColumn(name = "deleted")

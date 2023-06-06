@@ -34,7 +34,7 @@ public class OperationLog implements DataItem {
     @DataColumn(name = "operate_type")
     private final long operateType;
 
-    @DataColumn(name = "operate_time", dataType = SQLDataType.TIMESTAMP)
+    @DataColumn(name = "operate_time")
     private final long operateTime;
 
     @DataColumn(name = "address")

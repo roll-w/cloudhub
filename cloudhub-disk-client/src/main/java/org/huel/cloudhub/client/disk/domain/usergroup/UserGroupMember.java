@@ -25,10 +25,10 @@ public class UserGroupMember implements DataItem {
     @DataColumn(name = "user_type")
     private final LegalUserType userType;
 
-    @DataColumn(name = "create_time", dataType = SQLDataType.TIMESTAMP)
+    @DataColumn(name = "create_time")
     private final long createTime;
 
-    @DataColumn(name = "update_time", dataType = SQLDataType.TIMESTAMP)
+    @DataColumn(name = "update_time")
     private final long updateTime;
 
     @DataColumn(name = "deleted")

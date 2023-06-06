@@ -7,7 +7,6 @@ import org.huel.cloudhub.client.disk.domain.userstorage.StorageType;
 import space.lingu.light.DataColumn;
 import space.lingu.light.DataTable;
 import space.lingu.light.PrimaryKey;
-import space.lingu.light.SQLDataType;
 
 /**
  * @author RollW
@@ -34,13 +33,13 @@ public class UserShare implements SystemResource, DataItem {
     private final long userId;
     // who create this share
 
-    @DataColumn(name = "expire_time", dataType = SQLDataType.TIMESTAMP)
+    @DataColumn(name = "expire_time")
     private final long expireTime;
 
-    @DataColumn(name = "create_time", dataType = SQLDataType.TIMESTAMP)
+    @DataColumn(name = "create_time")
     private final long createTime;
 
-    @DataColumn(name = "update_time", dataType = SQLDataType.TIMESTAMP)
+    @DataColumn(name = "update_time")
     private final long updateTime;
 
     public UserShare(Long id, String shareId, String password,

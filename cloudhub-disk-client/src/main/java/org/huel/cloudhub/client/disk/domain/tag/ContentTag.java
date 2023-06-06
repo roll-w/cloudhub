@@ -22,16 +22,16 @@ public class ContentTag implements SystemResource, DataItem {
     @DataColumn(name = "name")
     private final String name;
 
-    @DataColumn(name = "keywords")
+    @DataColumn(name = "keywords", dataType = SQLDataType.LONGTEXT)
     private final List<TagKeyword> keywords;
 
     @DataColumn(name = "description")
     private final String description;
 
-    @DataColumn(name = "create_time", dataType = SQLDataType.TIMESTAMP)
+    @DataColumn(name = "create_time")
     private final long createTime;
 
-    @DataColumn(name = "update_time", dataType = SQLDataType.TIMESTAMP)
+    @DataColumn(name = "update_time")
     private final long updateTime;
 
     @DataColumn(name = "deleted")

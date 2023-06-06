@@ -3,7 +3,6 @@ package org.huel.cloudhub.client.disk.domain.storage;
 import space.lingu.light.DataColumn;
 import space.lingu.light.DataTable;
 import space.lingu.light.PrimaryKey;
-import space.lingu.light.SQLDataType;
 
 import java.util.Objects;
 
@@ -19,10 +18,10 @@ public class DiskFileStorage {
     @DataColumn(name = "size")
     private final long fileSize;
 
-    @DataColumn(name = "create_time", dataType = SQLDataType.TIMESTAMP)
+    @DataColumn(name = "create_time")
     private final long createTime;
 
-    @DataColumn(name = "last_access_time", dataType = SQLDataType.TIMESTAMP)
+    @DataColumn(name = "last_access_time")
     private final long lastAccessTime;
 
     public DiskFileStorage(String fileId,
