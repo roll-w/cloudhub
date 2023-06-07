@@ -93,7 +93,9 @@ public class UserServiceImpl implements UserSignatureProvider,
         OnUserCreateEvent onUserCreateEvent =
                 new OnUserCreateEvent(userInfo);
         eventPublisher.publishEvent(onUserCreateEvent);
-        return user;
+        return user.toBuilder()
+                .setId(id)
+                .build();
     }
 
     private ErrorCode validate(String username,
