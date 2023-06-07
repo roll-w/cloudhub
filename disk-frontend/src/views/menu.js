@@ -193,6 +193,26 @@ const menuOptions = [
                 ]
             },
             {
+                name: "用户组管理",
+                key: "user-group-management",
+                children: [
+                    {
+                        name: "用户组列表",
+                        key: "user-group-management-list"
+                    },
+                ]
+            },
+            {
+                name: "组织管理",
+                key: "organization-management",
+                children: [
+                    {
+                        name: "组织列表",
+                        key: "organization-management-list"
+                    },
+                ]
+            },
+            {
                 name: "可视化数据",
                 key: adminVisualData,
                 linked: true

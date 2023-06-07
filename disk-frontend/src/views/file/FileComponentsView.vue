@@ -26,15 +26,17 @@
             </div>
         </div>
         <slot name="before"></slot>
-
-        <div class="min-h-[30vh]">
-            <div class="flex flex-fill flex-wrap transition-all duration-300">
+        <div class="min-h-[50vh]">
+            <div v-if="files.length" class="flex flex-fill flex-wrap transition-all duration-300">
                 <FileComponent v-for="(file, i) in files"
                                v-model:checked="checkedState[i]"
                                :file="file"
                                :on-click-more-options="handleClickMoreOptions"
                                @click="handleStorageClick($event, file)"
                                @contextmenu="handleFileOptionContextMenu($event, file)"/>
+            </div>
+            <div v-else>
+                <slot name="empty"></slot>
             </div>
         </div>
         <n-dropdown
@@ -56,8 +58,9 @@
                 placement="bottom-start"
                 trigger="manual"
                 @select="handleFileOptionSelect"/>
-
-        <FileViewToolbar :checked-list="getCheckedList()"/>
+        <Teleport to="body">
+            <FileViewToolbar :checked-list="getCheckedList()"/>
+        </Teleport>
 
         <n-modal v-model:show="showFilePreviewModal"
                  :show-icon="false"
@@ -291,6 +294,11 @@ const handleStorageClick = (e, target) => {
 
 watch(checkedState, (newVal) => {
     const checkedList = getCheckedList()
+    if (checkedList.length === 0) {
+        selectAllCheckBox.value = false
+        return
+    }
+
     if (checkedList.length === props.files.length) {
         selectAllCheckBox.value = true
         return

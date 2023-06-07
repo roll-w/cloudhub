@@ -23,6 +23,31 @@ export const getFileType = (type = 'OTHER') => {
     }
 }
 
+export const toFileType = (type = '其他') => {
+    switch (type) {
+        case '图片':
+            return 'IMAGE'
+        case '视频':
+            return 'VIDEO'
+        case '音频':
+            return 'AUDIO'
+        case '文档':
+            return 'DOCUMENT'
+        case '文本':
+            return 'TEXT'
+        case '压缩包':
+            return 'COMPRESSED'
+        case '文件':
+            return 'FILE'
+        case '文件夹':
+            return 'FOLDER'
+        case '链接':
+            return 'LINK'
+        default:
+            return 'OTHER'
+    }
+}
+
 
 export const getActionName = (action = 'UNKNOWN') => {
     switch (action) {
