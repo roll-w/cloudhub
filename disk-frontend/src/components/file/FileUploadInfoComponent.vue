@@ -117,8 +117,6 @@ const getProgress = () => {
     return props.file.progress + '%'
 }
 
-console.log(props.file)
-
 const progressValue = ref(getProgress())
 const percentage = ref(props.file.progress)
 

@@ -7,7 +7,8 @@
          @mouseenter="fileMenuShowState = true"
          @mouseleave="fileMenuShowState = false"
     >
-        <div :class="['w-100 flex justify-start transition-all duration-300 items-start align-baseline ',
+        <div v-if="showOption"
+             :class="['w-100 flex justify-start transition-all duration-300 items-start align-baseline ',
           fileMenuShowState || checkedState ? 'opacity-100' : 'opacity-0']">
             <n-checkbox
                     v-model:checked="checkedState"
@@ -28,7 +29,7 @@
 
         <div class="px-5 pb-3">
             <n-icon v-if="file.storageType === 'FOLDER' " size="80">
-                <Folder24Regular />
+                <Folder24Regular/>
             </n-icon>
             <n-icon v-else-if="file.fileType === 'IMAGE'" size="80">
                 <ImageOutlined/>
@@ -65,7 +66,7 @@
 </script>
 
 <script setup>
-import {ref} from 'vue'
+import {ref, watch} from 'vue'
 import Folder24Regular from "@/components/icon/Folder24Regular.vue";
 import FileIcon from "@/components/icon/FileIcon.vue";
 import MoreHorizonal20Regular from "@/components/icon/MoreHorizonal20Regular.vue";
@@ -80,6 +81,10 @@ const props = defineProps({
     file: {
         type: Object,
         required: true
+    },
+    showOption: {
+        type: Boolean,
+        default: true
     },
     checked: {
         type: Boolean,
@@ -96,9 +101,16 @@ const emits = defineEmits([
     'update:checked'
 ])
 
-
 const fileMenuShowState = ref(false)
 const checkedState = ref(props.checked)
+
+const setCheckedState = () => {
+    checkedState.value = props.checked
+}
+
+watch(props, (newValue) => {
+    setCheckedState()
+})
 
 const handleMoreOptionsClick = (event, file) => {
     event.stopPropagation()

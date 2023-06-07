@@ -63,6 +63,15 @@ export const tagGroups = (admin = false) =>
     `${admin ? adminPrefix : prefix}/tags/groups`;
 export const tags = (admin = false) =>
     `${admin ? adminPrefix : prefix}/tags`;
+export const files = (admin = false) =>
+    `${admin ? adminPrefix : prefix}/disk/files`;
+export const folders = (admin = false) =>
+    `${admin ? adminPrefix : prefix}/disk/folders`;
+export const storages = (admin = false) =>
+    `${admin ? adminPrefix : prefix}/disk/storages`;
+
+export const shares = (admin = false) =>
+    `${admin ? adminPrefix : prefix}/shares`;
 
 export const getCurrentUserOperationLogs = `${prefix}/user/operations/logs`;
 export const getCurrentUserLoginLogs = `${prefix}/user/login/logs`;

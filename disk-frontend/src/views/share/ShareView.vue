@@ -149,7 +149,6 @@ import {useNotification, useMessage, useDialog} from "naive-ui";
 import api from "@/request/api";
 import {formatTimestamp} from "@/util/format";
 import {popUserErrorTemplate} from "@/views/util/error";
-import FileComponent from "@/components/file/FileComponent.vue";
 import FilePreviewer from "@/components/file/FilePreviewer.vue";
 import FileComponentsView from "@/views/file/FileComponentsView.vue";
 
@@ -187,9 +186,6 @@ const shareError = ref({
 })
 
 const showFilePreviewModal = ref(false)
-
-let showFileDropdownState = false
-let lastTarget = null
 const curTargetFile = ref({})
 
 const folderInfo = ref({

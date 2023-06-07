@@ -213,6 +213,15 @@ const router = createRouter({
                     }
                 },
                 {
+                    path: '/admin/storages/files',
+                    name: adminFileLists,
+                    component: () => import("@/views/admin/file/FileListsView.vue"),
+                    meta: {
+                        title: "文件列表",
+                        requireLogin: true
+                    }
+                },
+                {
                     path: '/admin/tags/groups',
                     name: adminTagGroups,
                     component: () => import("@/views/admin/tag/AdminTagGroupsView.vue"),
