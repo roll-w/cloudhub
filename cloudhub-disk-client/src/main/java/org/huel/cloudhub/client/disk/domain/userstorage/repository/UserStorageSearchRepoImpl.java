@@ -29,10 +29,12 @@ public class UserStorageSearchRepoImpl implements UserStorageSearchRepository {
             @NonNull UserStorageSearchCondition userStorageSearchCondition) {
         StorageType storageType =
                 userStorageSearchCondition.storageType();
-        if (storageType == null) {
+        if (storageType == null && userStorageSearchCondition.fileType() == null) {
             return findStoragesByAll(userStorageSearchCondition);
         }
-
+        if (storageType == null) {
+            return findFileStorages(userStorageSearchCondition);
+        }
         return switch (storageType) {
             case FILE -> findFileStorages(userStorageSearchCondition);
             case FOLDER -> findFolderStorages(userStorageSearchCondition);
