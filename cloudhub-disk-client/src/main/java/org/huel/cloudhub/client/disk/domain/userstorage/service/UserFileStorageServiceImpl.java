@@ -1,5 +1,6 @@
 package org.huel.cloudhub.client.disk.domain.userstorage.service;
 
+import org.huel.cloudhub.client.disk.database.repository.BaseRepository;
 import org.huel.cloudhub.client.disk.domain.operatelog.Operator;
 import org.huel.cloudhub.client.disk.domain.operatelog.context.OperationContextHolder;
 import org.huel.cloudhub.client.disk.domain.storage.StorageService;
@@ -20,6 +21,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author RollW
@@ -238,6 +240,44 @@ public class UserFileStorageServiceImpl implements
             case FOLDER -> findFolder(storageIdentity.getStorageId());
             default -> throw new StorageException(StorageErrorCode.ERROR_FILE_NOT_EXIST);
         };
+    }
+
+    @Override
+    public List<? extends AttributedStorage> findStorages(
+            List<? extends StorageIdentity> storageIdentity) throws StorageException {
+        List<StorageIdentity> folders =
+                selectByType(storageIdentity, StorageType.FOLDER);
+        List<StorageIdentity> files =
+                selectByType(storageIdentity, StorageType.FILE);
+        List<? extends AttributedStorage> userFolders =
+                findsBy(userFolderRepository, folders);
+        List<AttributedStorage> attributedStorages =
+                new ArrayList<>(userFolders);
+        List<? extends AttributedStorage> userFileStorages =
+                findsBy(userFileStorageRepository, files);
+        attributedStorages.addAll(userFileStorages);
+        return attributedStorages;
+    }
+
+    private List<StorageIdentity> selectByType(
+            List<? extends StorageIdentity> identities,
+            StorageType storageType) {
+        return identities.stream()
+                .filter(it -> it.getStorageType() == storageType)
+                .collect(Collectors.toList());
+    }
+
+    private List<? extends AttributedStorage> findsBy(
+            BaseRepository<? extends AttributedStorage> repository,
+            List<StorageIdentity> identities) {
+        if (identities.isEmpty()) {
+            return List.of();
+        }
+        List<Long> ids = identities.stream()
+                .map(StorageIdentity::getStorageId)
+                .distinct()
+                .collect(Collectors.toList());
+        return repository.getByIds(ids);
     }
 
     @Override

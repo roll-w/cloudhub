@@ -15,16 +15,14 @@ import org.springframework.stereotype.Service;
 import java.util.Collections;
 import java.util.List;
 
+import static org.huel.cloudhub.client.disk.domain.userstorage.common.ConditionNames.*;
+
 /**
  * @author RollW
  */
 @Service
 public class UserStorageSearchProvider implements StorageCategoryService,
         StorageSearchConditionProvider {
-    public static final String NAME = "name";
-    public static final String TIME = "time";
-    public static final String SIZE = "size";
-    public static final String TYPE = "type";
 
     private static final String[] SUPPORTED_CONDITIONS = {
             NAME, TIME, SIZE, TYPE

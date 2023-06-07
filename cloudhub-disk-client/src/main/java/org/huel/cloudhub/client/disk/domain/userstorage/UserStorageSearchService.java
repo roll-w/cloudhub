@@ -16,6 +16,9 @@ import java.util.List;
 public interface UserStorageSearchService {
     AttributedStorage findStorage(StorageIdentity storageIdentity) throws StorageException;
 
+    List<? extends AttributedStorage> findStorages(List<? extends StorageIdentity> storageIdentity)
+            throws StorageException;
+
     AttributedStorage findStorage(StorageIdentity storageIdentity,
                                   StorageOwner storageOwner) throws StorageException;
 
