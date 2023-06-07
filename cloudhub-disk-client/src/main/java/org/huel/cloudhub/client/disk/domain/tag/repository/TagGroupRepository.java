@@ -3,15 +3,19 @@ package org.huel.cloudhub.client.disk.domain.tag.repository;
 import org.huel.cloudhub.client.disk.database.DiskDatabase;
 import org.huel.cloudhub.client.disk.database.dao.TagGroupDao;
 import org.huel.cloudhub.client.disk.database.repository.BaseRepository;
+import org.huel.cloudhub.client.disk.domain.tag.InternalTagGroupRepository;
 import org.huel.cloudhub.client.disk.domain.tag.TagGroup;
 import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Repository;
+
+import java.util.List;
 
 /**
  * @author RollW
  */
 @Repository
-public class TagGroupRepository extends BaseRepository<TagGroup> {
+public class TagGroupRepository extends BaseRepository<TagGroup>
+        implements InternalTagGroupRepository {
     private final TagGroupDao tagGroupDao;
 
     public TagGroupRepository(DiskDatabase database,
@@ -27,5 +31,10 @@ public class TagGroupRepository extends BaseRepository<TagGroup> {
     @Override
     protected Class<TagGroup> getEntityClass() {
         return TagGroup.class;
+    }
+
+    @Override
+    public List<TagGroup> findAll() {
+        return get();
     }
 }

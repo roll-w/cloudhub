@@ -164,7 +164,13 @@ public class FileTagProcessServiceImpl implements StorageProcessor, TagEventList
             }
             buildMetadata(storage, keywordProcessor, ranks.get(0));
         }
+    }
 
+    @Override
+    public void onTagGroupDelete(String tagGroupName) {
+        keywordProcessors.removeIf(keywordProcessor ->
+                Objects.equals(keywordProcessor.tagGroupDto().name(), tagGroupName)
+        );
     }
 
     private void buildMetadata(Storage storage, KeywordProcessor keywordProcessor,
@@ -284,6 +290,5 @@ public class FileTagProcessServiceImpl implements StorageProcessor, TagEventList
                     "searchScope=" + searchScope + ", " +
                     "tagGroupDto=" + tagGroupDto + ']';
         }
-
-        }
+    }
 }

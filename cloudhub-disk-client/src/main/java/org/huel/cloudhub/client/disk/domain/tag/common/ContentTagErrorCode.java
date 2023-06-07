@@ -36,7 +36,7 @@ public enum ContentTagErrorCode implements ErrorCode, ErrorCodeFinder, ErrorCode
 
     @Override
     public String toString() {
-        return "StoragePermissionError: %s, code: %s".formatted(name(), getCode());
+        return "ContentTagError: %s, code: %s".formatted(name(), getCode());
     }
 
     @NonNull

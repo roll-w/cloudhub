@@ -6,5 +6,9 @@ import org.huel.cloudhub.client.disk.domain.tag.dto.TagGroupDto;
  * @author RollW
  */
 public interface TagEventListener {
-    void onTagGroupChanged(TagGroupDto tagGroupDto);
+    default void onTagGroupChanged(TagGroupDto tagGroupDto) {
+    }
+
+    default void onTagGroupDelete(String tagGroupName) {
+    }
 }
