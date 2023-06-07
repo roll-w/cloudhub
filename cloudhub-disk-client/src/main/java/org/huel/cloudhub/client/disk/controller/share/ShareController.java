@@ -11,27 +11,21 @@ import org.huel.cloudhub.client.disk.domain.share.ShareSearchService;
 import org.huel.cloudhub.client.disk.domain.share.ShareService;
 import org.huel.cloudhub.client.disk.domain.share.common.UserShareErrorCode;
 import org.huel.cloudhub.client.disk.domain.share.common.UserShareException;
+import org.huel.cloudhub.client.disk.domain.share.dto.SharePasswordInfo;
 import org.huel.cloudhub.client.disk.domain.share.dto.ShareStructureInfo;
 import org.huel.cloudhub.client.disk.domain.share.vo.ShareInfoVo;
-import org.huel.cloudhub.client.disk.domain.share.dto.SharePasswordInfo;
+import org.huel.cloudhub.client.disk.domain.share.vo.ShareStorageVo;
 import org.huel.cloudhub.client.disk.domain.share.vo.ShareStructureVo;
 import org.huel.cloudhub.client.disk.domain.user.AttributedUser;
 import org.huel.cloudhub.client.disk.domain.user.LegalUserType;
 import org.huel.cloudhub.client.disk.domain.user.UserIdentity;
 import org.huel.cloudhub.client.disk.domain.user.service.UserSearchService;
-import org.huel.cloudhub.client.disk.domain.userstorage.StorageIdentity;
-import org.huel.cloudhub.client.disk.domain.userstorage.StorageOwner;
-import org.huel.cloudhub.client.disk.domain.userstorage.StorageType;
+import org.huel.cloudhub.client.disk.domain.userstorage.*;
 import org.huel.cloudhub.client.disk.domain.userstorage.dto.SimpleStorageIdentity;
 import org.huel.cloudhub.client.disk.domain.userstorage.dto.SimpleStorageOwner;
 import org.huel.cloudhub.web.HttpResponseEntity;
 import org.huel.cloudhub.web.data.page.Pageable;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -42,13 +36,16 @@ import java.util.List;
 public class ShareController {
     private final ShareService shareService;
     private final ShareSearchService shareSearchService;
+    private final UserStorageSearchService userStorageSearchService;
     private final UserSearchService userSearchService;
 
     public ShareController(ShareService shareService,
                            ShareSearchService shareSearchService,
+                           UserStorageSearchService userStorageSearchService,
                            UserSearchService userSearchService) {
         this.shareService = shareService;
         this.shareSearchService = shareSearchService;
+        this.userStorageSearchService = userStorageSearchService;
         this.userSearchService = userSearchService;
     }
 
@@ -104,14 +101,42 @@ public class ShareController {
     }
 
     @GetMapping("/user/shares")
-    public HttpResponseEntity<List<SharePasswordInfo>> getUserShares(
+    public HttpResponseEntity<List<ShareStorageVo>> getUserShares(
             Pageable pageable) {
         UserIdentity userIdentity = ApiContextHolder.getContext().userInfo();
 
         List<SharePasswordInfo> sharePasswordInfos =
                 shareSearchService.findByUserId(userIdentity.getUserId(), pageable);
         // TODO: paging result
-        return HttpResponseEntity.success(sharePasswordInfos);
+        List<? extends StorageIdentity> storageIdentities = sharePasswordInfos.stream()
+                .map(sharePasswordInfo -> new SimpleStorageIdentity(
+                        sharePasswordInfo.storageId(),
+                        sharePasswordInfo.storageType()))
+                .toList();
+        List<? extends AttributedStorage> attributedStorages =
+                userStorageSearchService.findStorages(storageIdentities);
+
+        List<ShareStorageVo> shareStorageVos = pairWith(
+                sharePasswordInfos,
+                attributedStorages
+        );
+        return HttpResponseEntity.success(shareStorageVos);
+    }
+
+    private List<ShareStorageVo> pairWith(List<SharePasswordInfo> sharePasswordInfos,
+                                          List<? extends AttributedStorage> attributedStorages) {
+        return sharePasswordInfos.stream()
+                .map(sharePasswordInfo -> {
+                    AttributedStorage attributedStorage = attributedStorages.stream()
+                            .filter(storage -> storage.getStorageId() == sharePasswordInfo.storageId())
+                            .findFirst()
+                            .orElseThrow(() -> new UserShareException(UserShareErrorCode.ERROR_STORAGE_NOT_FOUND));
+                    return ShareStorageVo.from(
+                            sharePasswordInfo,
+                            attributedStorage
+                    );
+                })
+                .toList();
     }
 
     @GetMapping("/{ownerType}/{ownerId}/disk/{storageType}/{storageId}/shares/{shareId}")
