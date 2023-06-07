@@ -56,4 +56,7 @@ public interface UserStatisticsDao extends AutoPrimaryBaseDao<UserStatistics> {
     default String getTableName() {
         return "user_statistics";
     }
+
+    @Query("SELECT * FROM user_statistics WHERE owner_id = {ownerId} AND owner_type = {ownerType}")
+    UserStatistics getByOwnerIdAndOwnerType(long ownerId, LegalUserType ownerType);
 }

@@ -79,8 +79,9 @@ public abstract class BaseRepository<T extends DataItem> implements CountableDao
         if (ts.missedIds().isEmpty()) {
             return ts.ts();
         }
-        List<T> missed = primaryBaseDao.getByIds(ts.missedIds());
-        cacheResult(missed);
+        List<T> missed = cacheResult(
+                primaryBaseDao.getByIds(ts.missedIds())
+        );
 
         List<T> result = new ArrayList<>(ts.ts());
         result.addAll(missed);
@@ -101,8 +102,7 @@ public abstract class BaseRepository<T extends DataItem> implements CountableDao
     }
 
     public List<T> get() {
-        List<T> ts = primaryBaseDao.get();
-        return cacheResult(ts);
+        return cacheResult(primaryBaseDao.get());
     }
 
     public List<T> get(Offset offset) {

@@ -29,4 +29,8 @@ public class UserStatisticsRepository extends BaseRepository<UserStatistics> {
     protected Class<UserStatistics> getEntityClass() {
         return UserStatistics.class;
     }
+
+    public UserStatistics getByOwnerIdAndOwnerType(long ownerId, LegalUserType ownerType) {
+        return cacheResult(userStatisticsDao.getByOwnerIdAndOwnerType(ownerId, ownerType));
+    }
 }
