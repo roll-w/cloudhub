@@ -5,9 +5,32 @@
             <n-data-table :bordered="false"
                           :columns="columns"
                           :data="personalShares"
+                          :row-props="rowProps"
             />
 
         </div>
+
+        <n-modal
+                v-model:show="showShareDetailModal"
+                :show-icon="false"
+                preset="dialog"
+                title="分享详情"
+                transform-origin="center">
+            <div>
+                <div class="flex justify-center text-center py-5">
+                    <FileComponent
+                            :show-option="false"
+                            :file="currentShare.storage">
+                    </FileComponent>
+                </div>
+                <div>
+                    <StorageShareConfirm
+                            :show-cancel="true"
+                            :share-info="currentShare" />
+                </div>
+
+            </div>
+        </n-modal>
     </div>
 </template>
 
@@ -20,7 +43,8 @@ import api from "@/request/api";
 import {createConfig} from "@/request/axios_config";
 import {popUserErrorTemplate} from "@/views/util/error";
 import {formatTimestamp} from "@/util/format";
-import {driveShareTokenPage} from "@/router";
+import FileComponent from "@/components/file/FileComponent.vue";
+import StorageShareConfirm from "@/components/file/forms/StorageShareConfirm.vue";
 
 const router = useRouter()
 const {proxy} = getCurrentInstance()
@@ -28,15 +52,13 @@ const notification = useNotification()
 const message = useMessage()
 const dialog = useDialog()
 
+const showShareDetailModal = ref(false)
+
 const personalShares = ref([])
 const columns = [
     {
-        title: "分享ID",
-        key: "shareCode"
-    },
-    {
-        title: "分享密码",
-        key: "password"
+        title: "名称",
+        key: "storage.name"
     },
     {
         title: "创建时间",
@@ -46,43 +68,18 @@ const columns = [
         title: "到期时间",
         key: "expireTime",
     },
-    {
-        title: "操作",
-        key: "actions",
-        render(row) {
-            return h(
-                NButtonGroup,
-                {},
-                () => [
-                    h(NButton,
-                        {
-                            size: 'small',
-                            onClick: () => {
-                            }
-                        },
-                        {default: () => "取消分享"}),
-                    h(NButton,
-                        {
-                            size: 'small',
-                            onClick: () => {
-                                router.push({
-                                    name: driveShareTokenPage,
-                                    params: {
-                                        token: row.shareCode
-                                    },
-                                    query: {
-                                        pwd: row.password
-                                    }
-                                })
-                            }
-                        },
-                        {default: () => "打开"}),
-                ]
-            );
-        }
-    }
 ]
 
+const currentShare = ref({})
+
+const rowProps = (row, index) => {
+    return {
+        onClick: (e) => {
+            currentShare.value = row
+            showShareDetailModal.value = true
+        }
+    }
+}
 
 const requestPersonalShares = () => {
     const config = createConfig()
