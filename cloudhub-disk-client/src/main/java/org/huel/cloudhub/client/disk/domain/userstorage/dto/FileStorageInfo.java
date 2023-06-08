@@ -1,5 +1,6 @@
 package org.huel.cloudhub.client.disk.domain.userstorage.dto;
 
+import org.huel.cloudhub.client.disk.domain.operatelog.Operator;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageOwner;
 
 /**
@@ -8,6 +9,7 @@ import org.huel.cloudhub.client.disk.domain.userstorage.StorageOwner;
 public record FileStorageInfo(
         String fileName,
         long folderId,
-        StorageOwner storageOwner
+        StorageOwner storageOwner,
+        Operator operator
 ) {
 }

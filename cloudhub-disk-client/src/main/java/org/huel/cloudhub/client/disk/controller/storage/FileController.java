@@ -90,12 +90,13 @@ public class FileController {
         LegalUserType legalUserType = LegalUserType.from(type);
         StorageOwner storageOwner = new SimpleStorageOwner(ownerId, legalUserType);
         FileStorageInfo fileStorageInfo = new FileStorageInfo(
-                fileName, directoryId, storageOwner);
+                fileName, directoryId, storageOwner, userIdentity);
         String mimeType = file.getContentType();
 
         FileStreamInfo fileStreamInfo = new FileStreamInfo(
                 file.getInputStream(),
                 mimeType,
+                file.getSize(),
                 FileType.fromMimeType(mimeType)
         );
         AttributedStorage storage = userFileStorageService.uploadFile(
@@ -122,12 +123,13 @@ public class FileController {
         LegalUserType legalUserType = LegalUserType.from(type);
         StorageOwner storageOwner = new SimpleStorageOwner(ownerId, legalUserType);
         FileStorageInfo fileStorageInfo = new FileStorageInfo(
-                file.getOriginalFilename(), directoryId, storageOwner);
+                file.getOriginalFilename(), directoryId, storageOwner, userIdentity);
         String mimeType = file.getContentType();
 
         FileStreamInfo fileStreamInfo = new FileStreamInfo(
                 file.getInputStream(),
                 mimeType,
+                file.getSize(),
                 FileType.fromMimeType(mimeType)
         );
         AttributedStorage storage = userFileStorageService.uploadFile(

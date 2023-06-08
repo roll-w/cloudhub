@@ -8,6 +8,7 @@ import java.io.InputStream;
 public record FileStreamInfo(
         InputStream inputStream,
         String mimeType,
+        long length,
         FileType fileType
 ) {
 }

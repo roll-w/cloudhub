@@ -12,6 +12,7 @@ import org.huel.cloudhub.client.disk.domain.userstorage.dto.*;
 import org.huel.cloudhub.client.disk.domain.userstorage.repository.UserFileStorageRepository;
 import org.huel.cloudhub.client.disk.domain.userstorage.repository.UserFolderRepository;
 import org.huel.cloudhub.client.disk.domain.userstorage.util.StorageNameValidator;
+import org.huel.cloudhub.web.ErrorCode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -33,15 +34,18 @@ public class UserFileStorageServiceImpl implements
 
     private final StorageService storageService;
     private final List<StorageProcessor> storageProcessors;
+    private final List<StoragePreInterceptor> storagePreInterceptors;
     private final UserFolderRepository userFolderRepository;
     private final UserFileStorageRepository userFileStorageRepository;
 
     public UserFileStorageServiceImpl(StorageService storageService,
                                       List<StorageProcessor> storageProcessors,
+                                      List<StoragePreInterceptor> storagePreInterceptors,
                                       UserFolderRepository userFolderRepository,
                                       UserFileStorageRepository userFileStorageRepository) {
         this.storageService = storageService;
         this.storageProcessors = storageProcessors;
+        this.storagePreInterceptors = storagePreInterceptors;
         this.userFolderRepository = userFolderRepository;
         this.userFileStorageRepository = userFileStorageRepository;
     }
@@ -111,9 +115,19 @@ public class UserFileStorageServiceImpl implements
     @Override
     public AttributedStorage uploadFile(FileStorageInfo fileStorageInfo,
                                         FileStreamInfo fileStreamInfo) throws IOException {
-        CFSFile cfsFile = storageService.saveFile(fileStreamInfo.inputStream());
-        String fileName = StorageNameValidator.validate(fileStorageInfo.fileName());
+        FileAttributesInfo fileAttributesInfo = new FileAttributesInfo(
+                fileStorageInfo.fileName(),
+                fileStorageInfo.fileName(),
+                fileStreamInfo.fileType(),
+                fileStreamInfo.length()
+        );
 
+        checkFileCreate(
+                fileStorageInfo.storageOwner(),
+                fileStorageInfo.operator(),
+                fileAttributesInfo
+        );
+        String fileName = StorageNameValidator.validate(fileStorageInfo.fileName());
         checkDirectoryState(fileStorageInfo.folderId(), fileStorageInfo.storageOwner());
 
         UserFileStorage existUserFileStorage = userFileStorageRepository.getById(
@@ -122,7 +136,7 @@ public class UserFileStorageServiceImpl implements
                 fileStorageInfo.folderId(),
                 fileName
         );
-
+        CFSFile cfsFile = storageService.saveFile(fileStreamInfo.inputStream());
         long time = System.currentTimeMillis();
         if (existUserFileStorage == null) {
             UserFileStorage userFileStorage = UserFileStorage.builder()
@@ -147,7 +161,7 @@ public class UserFileStorageServiceImpl implements
 
             dispatchFileOnCreate(updatedStorage, fileStreamInfo,
                     cfsFile.size(),
-                    OperationContextHolder.getContext().getOperator());
+                    fileStorageInfo.operator());
             return updatedStorage;
         }
 
@@ -170,7 +184,7 @@ public class UserFileStorageServiceImpl implements
 
         dispatchFileOnCreate(updatedStorage, fileStreamInfo,
                 cfsFile.size(),
-                OperationContextHolder.getContext().getOperator());
+                fileStorageInfo.operator());
 
         return updatedStorage;
     }
@@ -429,5 +443,19 @@ public class UserFileStorageServiceImpl implements
     private void dispatchFileOnCreate(Storage storage, StorageAttr storageAttr) {
         storageProcessors.forEach(storageProcessor ->
                 storageProcessor.onStorageCreated(storage, storageAttr));
+    }
+
+    private void checkFileCreate(StorageOwner storageOwner,
+                                    Operator operator,
+                                    FileAttributesInfo fileAttributesInfo) {
+        for (StoragePreInterceptor storagePreInterceptor : storagePreInterceptors) {
+            ErrorCode errorCode = storagePreInterceptor.onBeforeStorageCreated(
+                    storageOwner,
+                    operator,
+                    fileAttributesInfo);
+            if (errorCode != null) {
+                throw new StorageException(errorCode);
+            }
+        }
     }
 }
