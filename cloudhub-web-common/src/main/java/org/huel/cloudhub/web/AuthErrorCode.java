@@ -49,6 +49,7 @@ public enum AuthErrorCode implements ErrorCode, ErrorCodeFinder, ErrorCodeMessag
     ERROR_IN_BLOCKLIST("A1011", 401),
 
     ERROR_NO_HANDLER("A1012", 404),
+    ERROR_UNKNOWN_AUTH("A1013", 401),
     ;
 
 

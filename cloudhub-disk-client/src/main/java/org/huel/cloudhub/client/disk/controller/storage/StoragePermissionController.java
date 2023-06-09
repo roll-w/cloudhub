@@ -35,7 +35,7 @@ public class StoragePermissionController {
         StorageIdentity storageIdentity =  ParameterHelper.buildStorageIdentity(storageId, storageType);
 
         StoragePermissionsInfo storagePermissionsInfo =
-                storagePermissionService.getPermissionOf(storageIdentity, storageOwner);
+                storagePermissionService.getPermissionOf(storageIdentity, storageOwner, false);
         return HttpResponseEntity.success(storagePermissionsInfo);
     }
 

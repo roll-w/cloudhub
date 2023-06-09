@@ -15,24 +15,26 @@ import java.util.List;
  */
 public interface StoragePermissionService {
     void setStoragePermission(StorageIdentity storage,
-                              PublicPermissionType permissionType);
+                              PublicPermissionType permissionType,
+                              boolean ignoreDelete);
 
     void setStoragePermission(StorageIdentity storage, Operator operator,
-                              List<PermissionType> permissionTypes);
+                              List<PermissionType> permissionTypes,
+                              boolean ignoreDelete);
 
     boolean checkPermissionOf(StorageIdentity storage,
                               Operator operator,
-                              Action action);
+                              Action action, boolean ignoreDelete);
 
     void checkPermissionOrThrows(StorageIdentity storage,
                                  Operator operator,
-                                 Action action) throws StoragePermissionException;
+                                 Action action, boolean ignoreDelete) throws StoragePermissionException;
 
     StoragePermissionDto getPermissionOf(StorageIdentity storage,
-                                         Operator operator);
+                                         Operator operator, boolean ignoreDelete);
 
-    StoragePermissionsInfo getPermissionOf(StorageIdentity storageIdentity);
+    StoragePermissionsInfo getPermissionOf(StorageIdentity storageIdentity, boolean ignoreDelete);
 
     StoragePermissionsInfo getPermissionOf(StorageIdentity storageIdentity,
-                                           StorageOwner storageOwner);
+                                           StorageOwner storageOwner, boolean ignoreDelete);
 }

@@ -49,20 +49,22 @@ public class StoragePermissionServiceImpl implements StoragePermissionService,
         this.userStorageSearchService = userStorageSearchService;
     }
 
-    private AttributedStorage preCheckStorage(StorageIdentity storageIdentity) {
+    private AttributedStorage preCheckStorage(StorageIdentity storageIdentity,
+                                              boolean ignoreDelete) {
         AttributedStorage storage =
                 userStorageSearchService.findStorage(storageIdentity);
-        if (storage.isDeleted()) {
+        if (storage.isDeleted() && !ignoreDelete) {
             throw new StoragePermissionException(StorageErrorCode.ERROR_FILE_ALREADY_DELETED);
         }
         return storage;
     }
 
     private AttributedStorage preCheckStorage(StorageIdentity storageIdentity,
-                                              StorageOwner storageOwner) {
+                                              StorageOwner storageOwner,
+                                              boolean ignoreDelete) {
         AttributedStorage storage =
                 userStorageSearchService.findStorage(storageIdentity, storageOwner);
-        if (storage.isDeleted()) {
+        if (storage.isDeleted() && !ignoreDelete) {
             throw new StoragePermissionException(StorageErrorCode.ERROR_FILE_ALREADY_DELETED);
         }
         return storage;
@@ -70,8 +72,9 @@ public class StoragePermissionServiceImpl implements StoragePermissionService,
 
     @Override
     public void setStoragePermission(StorageIdentity storageIdentity,
-                                     PublicPermissionType permissionType) {
-        AttributedStorage storage = preCheckStorage(storageIdentity);
+                                     PublicPermissionType permissionType,
+                                     boolean ignoreDelete) {
+        AttributedStorage storage = preCheckStorage(storageIdentity, ignoreDelete);
 
         StoragePermission storagePermission = tryFindPermission(storage);
         if (storagePermission != null) {
@@ -105,8 +108,9 @@ public class StoragePermissionServiceImpl implements StoragePermissionService,
     @Override
     public void setStoragePermission(StorageIdentity storageIdentity,
                                      Operator operator,
-                                     List<PermissionType> permissionTypes) {
-        AttributedStorage storage = preCheckStorage(storageIdentity);
+                                     List<PermissionType> permissionTypes,
+                                     boolean ignoreDelete) {
+        AttributedStorage storage = preCheckStorage(storageIdentity, ignoreDelete);
         if (operator.getOperatorId() == storage.getOwnerId()) {
             throw new StoragePermissionException(StoragePermissionErrorCode.ERROR_PERMISSION_NOT_ALLOW_USER);
         }
@@ -155,16 +159,17 @@ public class StoragePermissionServiceImpl implements StoragePermissionService,
     @Override
     public boolean checkPermissionOf(StorageIdentity storageIdentity,
                                      Operator operator,
-                                     Action action) {
+                                     Action action,
+                                     boolean ignoreDelete) {
         // TODO: supports inheriting permissions from parent storage
-        AttributedStorage storage = preCheckStorage(storageIdentity);
+        AttributedStorage storage = preCheckStorage(storageIdentity, ignoreDelete);
         if (storage.getOwnerId() == operator.getOperatorId()) {
             // TODO: now owner could only be USER type,
             //  but in the future, needs to check the type of owner
             return true;
         }
         StoragePermissionDto storagePermissionDto =
-                getPermissionOf(storageIdentity, operator);
+                getPermissionOf(storageIdentity, operator, ignoreDelete);
         if (action.isRead()) {
             return storagePermissionDto.allowRead();
         }
@@ -176,16 +181,16 @@ public class StoragePermissionServiceImpl implements StoragePermissionService,
 
     @Override
     public void checkPermissionOrThrows(StorageIdentity storageIdentity, Operator operator,
-                                        Action action) throws StoragePermissionException {
-        if (!checkPermissionOf(storageIdentity, operator, action)) {
+                                        Action action, boolean ignoreDelete) throws StoragePermissionException {
+        if (!checkPermissionOf(storageIdentity, operator, action, ignoreDelete)) {
             throw new StoragePermissionException(AuthErrorCode.ERROR_NOT_HAS_ROLE);
         }
     }
 
     @Override
     public StoragePermissionDto getPermissionOf(StorageIdentity storageIdentity,
-                                                Operator operator) {
-        AttributedStorage storage = preCheckStorage(storageIdentity);
+                                                Operator operator, boolean ignoreDelete) {
+        AttributedStorage storage = preCheckStorage(storageIdentity, ignoreDelete);
         StorageUserPermission storageUserPermission = tryFindUserPermission(storage, operator);
         if (storageUserPermission != null) {
             return StoragePermissionDto.of(
@@ -213,18 +218,19 @@ public class StoragePermissionServiceImpl implements StoragePermissionService,
 
     @Override
     public StoragePermissionsInfo getPermissionOf(
-            StorageIdentity storageIdentity) {
+            StorageIdentity storageIdentity, boolean ignoreDelete) {
         AttributedStorage storage =
-                preCheckStorage(storageIdentity);
+                preCheckStorage(storageIdentity, ignoreDelete);
         return getPermissionOf(storage);
     }
 
     @Override
     public StoragePermissionsInfo getPermissionOf(
             StorageIdentity storageIdentity,
-            StorageOwner storageOwner) {
+            StorageOwner storageOwner,
+            boolean ignoreDelete) {
         AttributedStorage storage =
-                preCheckStorage(storageIdentity, storageOwner);
+                preCheckStorage(storageIdentity, storageOwner, ignoreDelete);
         return getPermissionOf(storage);
     }
 
@@ -277,7 +283,8 @@ public class StoragePermissionServiceImpl implements StoragePermissionService,
                     systemResource,
                     operator
             );
-            default -> throw new IllegalArgumentException("Unsupported system resource kind: " + systemResource.getSystemResourceKind());
+            default ->
+                    throw new IllegalArgumentException("Unsupported system resource kind: " + systemResource.getSystemResourceKind());
         };
     }
 
