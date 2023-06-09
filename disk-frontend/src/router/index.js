@@ -2,8 +2,9 @@ import {createRouter, createWebHistory} from 'vue-router'
 import {useUserStore} from "@/stores/user";
 
 const layout = "layout"
-const adminLayout = "admin-layout"
-const headerLayout = "header-layout"
+const adminLayout = "layout-admin"
+const headerLayout = "layout-header"
+const loginLayout = "layout-login"
 
 export const index = "index"
 export const login = "login-page"
@@ -323,10 +324,10 @@ const router = createRouter({
             },
         },
         {
-            path: '/layout/header',
-            name: headerLayout,
-            redirect: '/',
-            component: () => import("@/views/HeaderLayout.vue"),
+            path: '/layout/header/login',
+            name: loginLayout,
+            redirect: '/error/404',
+            component: () => import("@/views/user/LoginBackgroundLayout.vue"),
             children: [
                 {
                     path: '/user/login',
@@ -344,6 +345,14 @@ const router = createRouter({
                         title: "注册"
                     }
                 },
+            ]
+        },
+        {
+            path: '/layout/header',
+            name: headerLayout,
+            redirect: '/',
+            component: () => import("@/views/HeaderLayout.vue"),
+            children: [
                 {
                     path: '/user/reset/password',
                     name: passwordResetPage,
