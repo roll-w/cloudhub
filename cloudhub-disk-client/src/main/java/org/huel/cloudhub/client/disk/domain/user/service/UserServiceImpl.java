@@ -67,7 +67,7 @@ public class UserServiceImpl implements UserSignatureProvider,
     @Override
     public AttributedUser createUser(String username, String password,
                                      String email, Role role, boolean enable) {
-        if (userRepository.isExistByEmail(username)) {
+        if (userRepository.isExistByName(username)) {
             throw new UserException(UserErrorCode.ERROR_EMAIL_EXISTED);
         }
         if (userRepository.isExistByEmail(email)) {
