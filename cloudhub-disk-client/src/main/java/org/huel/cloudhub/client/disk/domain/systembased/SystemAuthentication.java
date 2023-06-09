@@ -10,5 +10,8 @@ public interface SystemAuthentication {
 
     boolean isAllowAccess();
 
+    /**
+     * Throws an {@link AuthenticationException} if the user is not authenticated.
+     */
     void throwAuthenticationException() throws AuthenticationException;
 }

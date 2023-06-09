@@ -7,7 +7,7 @@ import org.huel.cloudhub.web.AuthErrorCode;
 /**
  * @author RollW
  */
-public class SimpleSystemAuthentication implements SystemAuthentication{
+public class SimpleSystemAuthentication implements SystemAuthentication {
     private final SystemResource systemResource;
     private final Operator operator;
     private final boolean allow;
@@ -45,8 +45,13 @@ public class SimpleSystemAuthentication implements SystemAuthentication{
     @Override
     public void throwAuthenticationException() throws AuthenticationException {
         if (!isAuthenticated()) {
+            throw new AuthenticationException(AuthErrorCode.ERROR_UNKNOWN_AUTH,
+                    "Cannot authenticate the current user with given resource: " + systemResource.getSystemResourceKind());
+        }
+
+        if (!isAllowAccess()) {
             throw new AuthenticationException(AuthErrorCode.ERROR_NOT_HAS_ROLE,
-                    "You do not have permission to access this resource.");
+                    "You have no permission to access this resource.");
         }
     }
 }
