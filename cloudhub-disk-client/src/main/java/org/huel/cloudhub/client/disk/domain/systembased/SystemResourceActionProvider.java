@@ -16,8 +16,8 @@ public interface SystemResourceActionProvider extends SystemResourceProvider,
 
     @NonNull
     @Override
-    SystemAuthentication authentication(SystemResource systemResource,
-                                        Operator operator, Action action);
+    SystemAuthentication authenticate(SystemResource systemResource,
+                                      Operator operator, Action action);
 
     @Override
     boolean supports(SystemResourceKind systemResourceKind);

@@ -134,8 +134,8 @@ public class ShareServiceImpl implements ShareService, ShareSearchService,
 
     @NonNull
     @Override
-    public SystemAuthentication authentication(SystemResource systemResource,
-                                               Operator operator, Action action) {
+    public SystemAuthentication authenticate(SystemResource systemResource,
+                                             Operator operator, Action action) {
         UserShare userShare =
                 userShareRepository.getById(systemResource.getResourceId());
         if (userShare.getUserId() == operator.getOperatorId()) {

@@ -63,8 +63,8 @@ public class ResourceAuthenticationServiceImpl implements SystemResourceAuthenti
 
         @NonNull
         @Override
-        public SystemAuthentication authentication(SystemResource systemResource,
-                                                   Operator operator, Action action) {
+        public SystemAuthentication authenticate(SystemResource systemResource,
+                                                 Operator operator, Action action) {
             return new SimpleSystemAuthentication(systemResource, operator, true);
         }
     }

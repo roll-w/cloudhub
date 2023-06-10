@@ -269,7 +269,7 @@ public class StoragePermissionServiceImpl implements StoragePermissionService,
 
     @NonNull
     @Override
-    public SystemAuthentication authentication(
+    public SystemAuthentication authenticate(
             SystemResource systemResource,
             Operator operator,
             Action action) {

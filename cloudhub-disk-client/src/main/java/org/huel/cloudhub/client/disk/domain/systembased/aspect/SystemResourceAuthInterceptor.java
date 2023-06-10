@@ -49,7 +49,7 @@ public class SystemResourceAuthInterceptor {
         SystemResourceAuthenticationProvider authenticationProvider = systemResourceAuthenticationProviderFactory
                 .getSystemResourceAuthenticationProvider(systemResourceKind);
         SystemResource systemResource = new SimpleSystemResource(resourceId, systemResourceKind);
-        SystemAuthentication systemAuthentication = authenticationProvider.authentication(
+        SystemAuthentication systemAuthentication = authenticationProvider.authenticate(
                 systemResource,
                 userIdentity, action
         );
@@ -126,9 +126,9 @@ public class SystemResourceAuthInterceptor {
     private Object findParamValueOf(JoinPoint joinPoint,
                                     Method method, String name) {
         Object[] args = joinPoint.getArgs();
-        Parameter[] paramNames = method.getParameters();
-        for (int i = 0; i < paramNames.length; i++) {
-            if (paramNames[i].getName().equals(name)) {
+        Parameter[] parameters = method.getParameters();
+        for (int i = 0; i < parameters.length; i++) {
+            if (parameters[i].getName().equals(name)) {
                 return args[i];
             }
         }

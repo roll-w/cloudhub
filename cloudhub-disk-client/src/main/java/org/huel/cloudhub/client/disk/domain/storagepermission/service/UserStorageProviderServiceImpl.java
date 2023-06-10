@@ -32,9 +32,9 @@ public class UserStorageProviderServiceImpl
 
     @NonNull
     @Override
-    public SystemAuthentication authentication(SystemResource systemResource,
-                                               Operator operator,
-                                               Action action) {
+    public SystemAuthentication authenticate(SystemResource systemResource,
+                                             Operator operator,
+                                             Action action) {
         StorageIdentity storageIdentity = tryGetStorageIdentity(systemResource);
         boolean allow = storagePermissionService.checkPermissionOf(
                 storageIdentity, operator,

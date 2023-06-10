@@ -30,6 +30,7 @@ public class SimpleSystemAuthentication implements SystemAuthentication {
         return allow;
     }
 
+    @Override
     public SystemResource getSystemResource() {
         return systemResource;
     }
