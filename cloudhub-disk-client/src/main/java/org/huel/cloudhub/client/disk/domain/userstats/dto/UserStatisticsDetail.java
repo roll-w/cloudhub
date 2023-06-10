@@ -13,7 +13,7 @@ public record UserStatisticsDetail(
         long id,
         long userId,
         LegalUserType userType,
-        Map<String, String> statistics
+        Map<String, Long> statistics
 ) {
 
     public static UserStatisticsDetail from(UserStatistics userStatistics) {

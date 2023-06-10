@@ -24,11 +24,11 @@ public class UserStatistics implements DataItem {
     private final LegalUserType userType;
 
     @DataColumn(name = "statistics", dataType = SQLDataType.LONGTEXT)
-    private final Map<String, String> statistics;
+    private final Map<String, Long> statistics;
 
     public UserStatistics(Long id, long userId,
                           LegalUserType userType,
-                          Map<String, String> statistics) {
+                          Map<String, Long> statistics) {
         this.id = id;
         this.userId = userId;
         this.userType = userType;
@@ -48,7 +48,7 @@ public class UserStatistics implements DataItem {
         return userType;
     }
 
-    public Map<String, String> getStatistics() {
+    public Map<String, Long> getStatistics() {
         return statistics;
     }
 
@@ -64,7 +64,7 @@ public class UserStatistics implements DataItem {
         private Long id;
         private long userId;
         private LegalUserType userType;
-        private Map<String, String> statistics;
+        private Map<String, Long> statistics;
 
         private Builder() {
         }
@@ -91,7 +91,7 @@ public class UserStatistics implements DataItem {
             return this;
         }
 
-        public Builder setStatistics(Map<String, String> statistics) {
+        public Builder setStatistics(Map<String, Long> statistics) {
             this.statistics = statistics;
             return this;
         }

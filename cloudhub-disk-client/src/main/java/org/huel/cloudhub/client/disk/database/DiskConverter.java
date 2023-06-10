@@ -72,6 +72,28 @@ public class DiskConverter {
         }
     }
 
+    public static Map<String, Long> convertLongMapFrom(String s) {
+        if (Strings.isNullOrEmpty(s)) {
+            return Map.of();
+        }
+        try {
+            return (Map<String, Long>) MAPPER.readValue(s, Map.class);
+        } catch (JsonProcessingException e) {
+            return Map.of();
+        }
+    }
+
+    public static String convertLongMapTo(Map<String, Long> map) {
+        if (map == null || map.isEmpty()) {
+            return "";
+        }
+        try {
+            return MAPPER.writeValueAsString(map);
+        } catch (JsonProcessingException e) {
+            return "";
+        }
+    }
+
     @DataConverter
     public static String convertToPermissionType(List<PermissionType> permissionTypes) {
         if (permissionTypes == null || permissionTypes.isEmpty()) {

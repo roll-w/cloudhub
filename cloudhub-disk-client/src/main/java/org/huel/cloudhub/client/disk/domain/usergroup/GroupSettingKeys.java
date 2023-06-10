@@ -10,9 +10,15 @@ public final class GroupSettingKeys {
     // by mb
     public static final String GROUP_QUOTA = "group_quota";
 
+    public static final String GROUP_FIL_NUM_LIMIT = "group_file-number_limit";
+
+
+    static final String NO_LIMIT = "-1";
+
     private static final Map<String, String> DEFAULT_GROUP_SETTINGS = new HashMap<>();
     static {
         DEFAULT_GROUP_SETTINGS.put(GROUP_QUOTA, "10240");
+        DEFAULT_GROUP_SETTINGS.put(GROUP_FIL_NUM_LIMIT, NO_LIMIT);
     }
 
     public static final UserGroup DEFAULT = new UserGroup(

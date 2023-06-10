@@ -2,7 +2,7 @@ package org.huel.cloudhub.client.disk.domain.userstats.vo;
 
 import org.huel.cloudhub.client.disk.domain.user.LegalUserType;
 import org.huel.cloudhub.client.disk.domain.userstats.dto.UserStatisticsDetail;
-import org.huel.cloudhub.web.KeyValue;
+import org.huel.cloudhub.web.LongKeyValue;
 
 import java.util.List;
 
@@ -13,7 +13,7 @@ public record UserStatisticsVo(
         long id,
         long userId,
         LegalUserType userType,
-        List<KeyValue> statistics
+        List<LongKeyValue> statistics
 ) {
 
     public static UserStatisticsVo from(
@@ -22,7 +22,7 @@ public record UserStatisticsVo(
                 userStatisticsDetail.id(),
                 userStatisticsDetail.userId(),
                 userStatisticsDetail.userType(),
-                KeyValue.from(userStatisticsDetail.statistics())
+                LongKeyValue.from(userStatisticsDetail.statistics())
         );
     }
 }
