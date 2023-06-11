@@ -14,11 +14,7 @@ import org.huel.cloudhub.client.disk.domain.storagepermission.dto.StoragePermiss
 import org.huel.cloudhub.client.disk.domain.storagepermission.dto.StoragePermissionsInfo;
 import org.huel.cloudhub.client.disk.domain.storagepermission.repository.StoragePermissionRepository;
 import org.huel.cloudhub.client.disk.domain.storagepermission.repository.StorageUserPermissionRepository;
-import org.huel.cloudhub.client.disk.domain.systembased.SimpleSystemAuthentication;
-import org.huel.cloudhub.client.disk.domain.systembased.SystemAuthentication;
-import org.huel.cloudhub.client.disk.domain.systembased.SystemResource;
-import org.huel.cloudhub.client.disk.domain.systembased.SystemResourceActionProvider;
-import org.huel.cloudhub.client.disk.domain.systembased.SystemResourceKind;
+import org.huel.cloudhub.client.disk.domain.systembased.*;
 import org.huel.cloudhub.client.disk.domain.userstorage.AttributedStorage;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageIdentity;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageOwner;
@@ -328,7 +324,7 @@ public class StoragePermissionServiceImpl implements StoragePermissionService,
         return switch (systemResourceKind) {
             case STORAGE_PERMISSION -> storagePermissionRepository.getById(resourceId);
             case STORAGE_USER_PERMISSION -> storageUserPermissionRepository.getById(resourceId);
-            default -> throw new IllegalArgumentException("Unsupported system resource kind: " + systemResourceKind);
+            default -> throw new UnsupportedKindException(systemResourceKind);
         };
     }
 }

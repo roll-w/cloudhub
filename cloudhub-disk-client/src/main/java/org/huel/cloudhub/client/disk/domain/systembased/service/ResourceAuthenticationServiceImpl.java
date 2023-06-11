@@ -25,7 +25,7 @@ public class ResourceAuthenticationServiceImpl implements SystemResourceAuthenti
 
     public ResourceAuthenticationServiceImpl(List<SystemResourceAuthenticationProvider> authenticationProviders) {
         this.authenticationProviders = authenticationProviders;
-        defaultSystemResourceAuthenticationProvider = new DefaultProvider();
+        defaultSystemResourceAuthenticationProvider = DefaultProvider.INSTANCE;
     }
 
     @Override
@@ -56,6 +56,9 @@ public class ResourceAuthenticationServiceImpl implements SystemResourceAuthenti
     }
 
     private static class DefaultProvider implements SystemResourceAuthenticationProvider {
+        private DefaultProvider() {
+        }
+
         @Override
         public boolean isAuthentication(SystemResourceKind resourceKind) {
             return true;
@@ -67,6 +70,12 @@ public class ResourceAuthenticationServiceImpl implements SystemResourceAuthenti
                                                  Operator operator, Action action) {
             return new SimpleSystemAuthentication(systemResource, operator, true);
         }
+
+        static final DefaultProvider INSTANCE = new DefaultProvider();
     }
 
+
+    public static SystemResourceAuthenticationProvider getDefaultProvider() {
+        return DefaultProvider.INSTANCE;
+    }
 }

@@ -16,7 +16,8 @@ public record UserGroupInfo(
         String description,
         Map<String, String> settings,
         long createTime,
-        long updateTime
+        long updateTime,
+        boolean deleted
 ) implements SystemResource {
 
     public static final UserGroupInfo DEFAULT =
@@ -29,7 +30,8 @@ public record UserGroupInfo(
                 userGroup.getDescription(),
                 userGroup.getSettings(),
                 userGroup.getCreateTime(),
-                userGroup.getUpdateTime()
+                userGroup.getUpdateTime(),
+                userGroup.isDeleted()
         );
     }
 

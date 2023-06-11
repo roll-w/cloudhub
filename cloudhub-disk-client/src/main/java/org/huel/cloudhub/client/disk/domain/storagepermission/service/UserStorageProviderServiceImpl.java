@@ -3,11 +3,7 @@ package org.huel.cloudhub.client.disk.domain.storagepermission.service;
 import org.huel.cloudhub.client.disk.domain.operatelog.Action;
 import org.huel.cloudhub.client.disk.domain.operatelog.Operator;
 import org.huel.cloudhub.client.disk.domain.storagepermission.StoragePermissionService;
-import org.huel.cloudhub.client.disk.domain.systembased.SimpleSystemAuthentication;
-import org.huel.cloudhub.client.disk.domain.systembased.SystemAuthentication;
-import org.huel.cloudhub.client.disk.domain.systembased.SystemResource;
-import org.huel.cloudhub.client.disk.domain.systembased.SystemResourceActionProvider;
-import org.huel.cloudhub.client.disk.domain.systembased.SystemResourceKind;
+import org.huel.cloudhub.client.disk.domain.systembased.*;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageIdentity;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageType;
 import org.huel.cloudhub.client.disk.domain.userstorage.UserStorageSearchService;
@@ -65,8 +61,7 @@ public class UserStorageProviderServiceImpl
                                   SystemResourceKind systemResourceKind) {
         StorageType storageType = StorageType.from(systemResourceKind);
         if (storageType == null) {
-            throw new IllegalArgumentException("Unsupported system resource kind: " +
-                    systemResourceKind);
+            throw new UnsupportedKindException(systemResourceKind);
         }
         return userStorageSearchService.findStorage(new SimpleStorageIdentity(resourceId, storageType));
     }

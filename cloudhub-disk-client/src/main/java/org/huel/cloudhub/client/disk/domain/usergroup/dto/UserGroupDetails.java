@@ -1,5 +1,7 @@
 package org.huel.cloudhub.client.disk.domain.usergroup.dto;
 
+import org.huel.cloudhub.client.disk.domain.systembased.SystemResource;
+import org.huel.cloudhub.client.disk.domain.systembased.SystemResourceKind;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageOwner;
 
 import java.util.List;
@@ -15,6 +17,16 @@ public record UserGroupDetails(
         Map<String, String> settings,
         long createTime,
         long updateTime,
+        boolean deleted,
         List<StorageOwner> members
-) {
+) implements SystemResource {
+    @Override
+    public long getResourceId() {
+        return id;
+    }
+
+    @Override
+    public SystemResourceKind getSystemResourceKind() {
+        return SystemResourceKind.USER_GROUP;
+    }
 }

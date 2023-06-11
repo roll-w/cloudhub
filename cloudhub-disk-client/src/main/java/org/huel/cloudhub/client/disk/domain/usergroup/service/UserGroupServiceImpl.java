@@ -2,6 +2,9 @@ package org.huel.cloudhub.client.disk.domain.usergroup.service;
 
 import com.google.common.base.Strings;
 import org.huel.cloudhub.client.disk.domain.operatelog.context.OperationContextHolder;
+import org.huel.cloudhub.client.disk.domain.systembased.SystemResourceKind;
+import org.huel.cloudhub.client.disk.domain.systembased.SystemResourceProvider;
+import org.huel.cloudhub.client.disk.domain.systembased.UnsupportedKindException;
 import org.huel.cloudhub.client.disk.domain.usergroup.UserGroup;
 import org.huel.cloudhub.client.disk.domain.usergroup.UserGroupMember;
 import org.huel.cloudhub.client.disk.domain.usergroup.UserGroupSearchService;
@@ -13,6 +16,7 @@ import org.huel.cloudhub.client.disk.domain.usergroup.repository.UserGroupMember
 import org.huel.cloudhub.client.disk.domain.usergroup.repository.UserGroupRepository;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageOwner;
 import org.huel.cloudhub.client.disk.domain.userstorage.dto.SimpleStorageOwner;
+import org.huel.cloudhub.web.BusinessRuntimeException;
 import org.huel.cloudhub.web.data.page.Pageable;
 import org.springframework.stereotype.Service;
 
@@ -24,7 +28,7 @@ import java.util.Map;
  */
 @Service
 public class UserGroupServiceImpl implements UserGroupService,
-        UserGroupSearchService {
+        UserGroupSearchService, SystemResourceProvider {
     private final UserGroupRepository userGroupRepository;
     private final UserGroupMemberRepository userGroupMemberRepository;
 
@@ -123,5 +127,17 @@ public class UserGroupServiceImpl implements UserGroupService,
                 .toList();
     }
 
+    @Override
+    public boolean supports(SystemResourceKind systemResourceKind) {
+        return systemResourceKind == SystemResourceKind.USER_GROUP;
+    }
 
+    @Override
+    public UserGroupInfo provide(long resourceId, SystemResourceKind systemResourceKind)
+            throws BusinessRuntimeException, UnsupportedKindException {
+        if (systemResourceKind != SystemResourceKind.USER_GROUP) {
+            throw new UnsupportedKindException(systemResourceKind);
+        }
+        return findUserGroup(resourceId);
+    }
 }

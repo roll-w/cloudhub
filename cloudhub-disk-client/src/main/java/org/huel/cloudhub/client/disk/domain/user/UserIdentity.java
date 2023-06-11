@@ -29,7 +29,7 @@ public interface UserIdentity extends Operator, StorageOwner, SystemResource {
 
     @Override
     default SystemResourceKind getSystemResourceKind() {
-        return SystemResourceKind.USER_SETTING;
+        return SystemResourceKind.USER;
     }
 
     @Override

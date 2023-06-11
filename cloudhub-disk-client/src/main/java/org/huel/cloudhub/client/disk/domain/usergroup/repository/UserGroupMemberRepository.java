@@ -17,8 +17,8 @@ import java.util.List;
 public class UserGroupMemberRepository extends BaseRepository<UserGroupMember> {
     private final UserGroupMemberDao userGroupMemberDao;
 
-    protected UserGroupMemberRepository(DiskDatabase database,
-                                        CacheManager cacheManager) {
+    public UserGroupMemberRepository(DiskDatabase database,
+                                     CacheManager cacheManager) {
         super(database.getUserGroupMemberDao(), cacheManager);
         this.userGroupMemberDao = database.getUserGroupMemberDao();
     }
@@ -29,6 +29,11 @@ public class UserGroupMemberRepository extends BaseRepository<UserGroupMember> {
     }
 
     public UserGroupMember getByUser(StorageOwner storageOwner) {
+        UserGroupMember userGroupMember = searchCacheByUser(storageOwner);
+        if (userGroupMember != null) {
+            return userGroupMember;
+        }
+
         return cacheResult(userGroupMemberDao.getByUser(
                 storageOwner.getOwnerId(),
                 storageOwner.getOwnerType()
@@ -39,4 +44,19 @@ public class UserGroupMemberRepository extends BaseRepository<UserGroupMember> {
         return cacheResult(userGroupMemberDao.getByGroup(id));
     }
 
+    private String toKey(StorageOwner storageOwner) {
+        return storageOwner.getOwnerType() + ":" + storageOwner.getOwnerId();
+    }
+
+    @Override
+    protected UserGroupMember cacheResult(UserGroupMember userGroupMember) {
+        String userKey = toKey(userGroupMember);
+        cache.put(userKey, userGroupMember);
+        return super.cacheResult(userGroupMember);
+    }
+
+    private UserGroupMember searchCacheByUser(StorageOwner storageOwner) {
+        String userKey = toKey(storageOwner);
+        return cache.get(userKey, UserGroupMember.class);
+    }
 }

@@ -13,11 +13,7 @@ import org.huel.cloudhub.client.disk.domain.share.common.UserShareException;
 import org.huel.cloudhub.client.disk.domain.share.dto.SharePasswordInfo;
 import org.huel.cloudhub.client.disk.domain.share.dto.ShareStructureInfo;
 import org.huel.cloudhub.client.disk.domain.share.repository.UserShareRepository;
-import org.huel.cloudhub.client.disk.domain.systembased.SimpleSystemAuthentication;
-import org.huel.cloudhub.client.disk.domain.systembased.SystemAuthentication;
-import org.huel.cloudhub.client.disk.domain.systembased.SystemResource;
-import org.huel.cloudhub.client.disk.domain.systembased.SystemResourceActionProvider;
-import org.huel.cloudhub.client.disk.domain.systembased.SystemResourceKind;
+import org.huel.cloudhub.client.disk.domain.systembased.*;
 import org.huel.cloudhub.client.disk.domain.user.LegalUserType;
 import org.huel.cloudhub.client.disk.domain.userstorage.AttributedStorage;
 import org.huel.cloudhub.client.disk.domain.userstorage.Storage;
@@ -156,6 +152,9 @@ public class ShareServiceImpl implements ShareService, ShareSearchService,
     @Override
     public SystemResource provide(long resourceId,
                                   SystemResourceKind systemResourceKind) {
+        if (systemResourceKind != SystemResourceKind.STORAGE_SHARE) {
+            throw new UnsupportedKindException(systemResourceKind);
+        }
         return userShareRepository.getById(resourceId);
     }
 

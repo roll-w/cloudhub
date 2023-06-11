@@ -1,5 +1,7 @@
 package org.huel.cloudhub.client.disk.domain.user.service;
 
+import org.huel.cloudhub.client.disk.domain.systembased.SystemResourceKind;
+import org.huel.cloudhub.client.disk.domain.systembased.SystemResourceProvider;
 import org.huel.cloudhub.client.disk.domain.user.AttributedUser;
 import org.huel.cloudhub.client.disk.domain.user.Role;
 import org.huel.cloudhub.client.disk.domain.user.User;
@@ -27,7 +29,7 @@ import java.util.List;
  */
 @Service
 public class UserServiceImpl implements UserSignatureProvider,
-        UserManageService, UserSearchService {
+        UserManageService, UserSearchService, SystemResourceProvider {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final UserInfoFilter userInfoFilter;
@@ -192,5 +194,19 @@ public class UserServiceImpl implements UserSignatureProvider,
     @Override
     public void setUserEnable(long userId, boolean enable) {
 
+    }
+
+    @Override
+    public boolean supports(SystemResourceKind systemResourceKind) {
+        return systemResourceKind == SystemResourceKind.USER;
+    }
+
+    @Override
+    public AttributedUser provide(long resourceId, SystemResourceKind systemResourceKind)
+            throws UserException {
+        if (systemResourceKind != SystemResourceKind.USER) {
+            return null;
+        }
+        return getUser(resourceId);
     }
 }
