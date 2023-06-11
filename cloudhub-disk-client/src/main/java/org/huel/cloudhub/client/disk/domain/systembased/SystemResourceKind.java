@@ -13,9 +13,9 @@ public enum SystemResourceKind {
     STORAGE_SHARE,
     TAG,
     TAG_GROUP,
-    USER_SETTING,
-    GROUP_SETTING,
-    ORGANIZATION_SETTING,
+    USER,
+    USER_GROUP,
+    ORGANIZATION,
     STORAGE_USER_PERMISSION,
     ;
 
