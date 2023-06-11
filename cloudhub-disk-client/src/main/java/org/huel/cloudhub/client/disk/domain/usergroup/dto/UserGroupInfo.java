@@ -1,5 +1,7 @@
 package org.huel.cloudhub.client.disk.domain.usergroup.dto;
 
+import org.huel.cloudhub.client.disk.domain.systembased.SystemResource;
+import org.huel.cloudhub.client.disk.domain.systembased.SystemResourceKind;
 import org.huel.cloudhub.client.disk.domain.usergroup.GroupSettingKeys;
 import org.huel.cloudhub.client.disk.domain.usergroup.UserGroup;
 
@@ -15,7 +17,7 @@ public record UserGroupInfo(
         Map<String, String> settings,
         long createTime,
         long updateTime
-) {
+) implements SystemResource {
 
     public static final UserGroupInfo DEFAULT =
             UserGroupInfo.from(GroupSettingKeys.DEFAULT);
@@ -29,5 +31,15 @@ public record UserGroupInfo(
                 userGroup.getCreateTime(),
                 userGroup.getUpdateTime()
         );
+    }
+
+    @Override
+    public long getResourceId() {
+        return id;
+    }
+
+    @Override
+    public SystemResourceKind getSystemResourceKind() {
+        return SystemResourceKind.USER_GROUP;
     }
 }

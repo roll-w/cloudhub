@@ -2,16 +2,16 @@ package org.huel.cloudhub.client.disk.domain.usergroup;
 
 import org.huel.cloudhub.client.disk.database.DataItem;
 import org.huel.cloudhub.client.disk.domain.user.LegalUserType;
+import org.huel.cloudhub.client.disk.domain.userstorage.StorageOwner;
 import space.lingu.light.DataColumn;
 import space.lingu.light.DataTable;
 import space.lingu.light.PrimaryKey;
-import space.lingu.light.SQLDataType;
 
 /**
  * @author RollW
  */
 @DataTable(name = "user_group_member")
-public class UserGroupMember implements DataItem {
+public class UserGroupMember implements DataItem, StorageOwner {
     @DataColumn(name = "id")
     @PrimaryKey(autoGenerate = true)
     private final Long id;
@@ -83,6 +83,16 @@ public class UserGroupMember implements DataItem {
 
     public Builder toBuilder() {
         return new Builder(this);
+    }
+
+    @Override
+    public long getOwnerId() {
+        return getUserId();
+    }
+
+    @Override
+    public LegalUserType getOwnerType() {
+        return getUserType();
     }
 
     public static final class Builder {

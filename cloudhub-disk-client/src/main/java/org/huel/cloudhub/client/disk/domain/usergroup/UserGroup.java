@@ -93,7 +93,7 @@ public class UserGroup implements DataItem, SystemResource {
 
     @Override
     public SystemResourceKind getSystemResourceKind() {
-        return SystemResourceKind.GROUP_SETTING;
+        return SystemResourceKind.USER_GROUP;
     }
 
     public static final class Builder {

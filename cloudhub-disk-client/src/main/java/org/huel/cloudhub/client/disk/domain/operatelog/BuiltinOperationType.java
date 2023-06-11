@@ -24,7 +24,7 @@ public enum BuiltinOperationType implements OperateType, OperateTypeFinder {
     UPDATE_TAG(-171L, Action.UPDATE, "更新标签", "更新标签", SystemResourceKind.TAG),
     UPDATE_TAG_GROUP(-181L, Action.UPDATE, "更新标签组", "更新标签组", SystemResourceKind.TAG_GROUP),
     UPDATE_STORAGE_SHARE(-161L, Action.UPDATE, "更新存储分享", "更新存储分享", SystemResourceKind.STORAGE_SHARE),
-    UPDATE_USER_SETTING(-191L, Action.UPDATE, "更新用户存储", "更新用户存储", SystemResourceKind.USER_SETTING),
+    UPDATE_USER_SETTING(-191L, Action.UPDATE, "更新用户存储", "更新用户存储", SystemResourceKind.USER),
 
     // id = (1, Action ordinal, ResourceKind ordinal)
 

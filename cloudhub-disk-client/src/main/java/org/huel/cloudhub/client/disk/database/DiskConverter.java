@@ -72,6 +72,7 @@ public class DiskConverter {
         }
     }
 
+    @DataConverter
     public static Map<String, Long> convertLongMapFrom(String s) {
         if (Strings.isNullOrEmpty(s)) {
             return Map.of();
@@ -83,6 +84,7 @@ public class DiskConverter {
         }
     }
 
+    @DataConverter
     public static String convertLongMapTo(Map<String, Long> map) {
         if (map == null || map.isEmpty()) {
             return "";
