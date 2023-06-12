@@ -1,6 +1,5 @@
 package org.huel.cloudhub.client.disk.domain.userstats.service;
 
-import com.google.common.base.Strings;
 import org.huel.cloudhub.client.disk.domain.user.LegalUserType;
 import org.huel.cloudhub.client.disk.domain.userstats.UserStatistics;
 import org.huel.cloudhub.client.disk.domain.userstats.UserStatisticsKeys;
@@ -45,7 +44,7 @@ public class UserStatsStorageProcessor implements StorageProcessor {
             return;
         }
         if (userStatistics.getStatistics().isEmpty()) {
-            Map<String, String> stats =
+            Map<String, Long> stats =
                     updateStorageStatistics(new HashMap<>(), storageAttr);
             UserStatistics updated = userStatistics.toBuilder()
                     .setStatistics(stats)
@@ -59,7 +58,7 @@ public class UserStatsStorageProcessor implements StorageProcessor {
 
     private void createUserStatistics(StorageOwner storageOwner,
                                       StorageAttr storageAttr) {
-        Map<String, String> stats = new HashMap<>();
+        Map<String, Long> stats = new HashMap<>();
         updateStorageStatistics(stats, storageAttr);
         UserStatistics userStatistics = UserStatistics.builder()
                 .setUserId(storageOwner.getOwnerId())
@@ -69,25 +68,25 @@ public class UserStatsStorageProcessor implements StorageProcessor {
         userStatisticsRepository.insert(userStatistics);
     }
 
-    private Map<String, String> updateStorageStatistics(Map<String, String> stats,
-                                                        StorageAttr storageAttr) {
+    private Map<String, Long> updateStorageStatistics(Map<String, Long> stats,
+                                                      StorageAttr storageAttr) {
         long totalSize = getByKey(stats, UserStatisticsKeys.USER_STORAGE_USED);
         long totalStorageCount = getByKey(stats, UserStatisticsKeys.USER_STORAGE_COUNT);
 
         stats.put(UserStatisticsKeys.USER_STORAGE_USED,
-                String.valueOf(totalSize + storageAttr.size()));
+                totalSize + storageAttr.size());
         stats.put(UserStatisticsKeys.USER_STORAGE_COUNT,
-                String.valueOf(totalStorageCount + 1));
+                totalStorageCount + 1);
 
         return stats;
     }
 
-    private long getByKey(Map<String, String> stats,
+    private long getByKey(Map<String, Long> stats,
                           String key) {
-        String value = stats.get(key);
-        if (Strings.isNullOrEmpty(value)) {
+        Long value = stats.get(key);
+        if (value == null) {
             return 0;
         }
-        return Long.parseLong(value);
+        return value;
     }
 }

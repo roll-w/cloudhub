@@ -9,4 +9,8 @@ import space.lingu.NonNull;
  */
 public interface UserStatisticsService {
     UserStatisticsDetail getUserStatistics(@NonNull StorageOwner storageOwner);
+
+    void rescanUserStatisticsOf(@NonNull StorageOwner storageOwner);
+
+    void rescanUserStatistics();
 }

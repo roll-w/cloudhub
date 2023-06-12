@@ -22,11 +22,11 @@ public record RestrictKey(
         return restrictKey;
     }
 
-    public long toValue(long strictValue) {
-        return toValue.apply(strictValue);
+    public long toValue(long restrictValue) {
+        return toValue.apply(restrictValue);
     }
 
-    public long toValue(String strictValue) {
-        return toValue.apply(Long.parseLong(strictValue));
+    public long toValue(String restrictValue) {
+        return toValue.apply(Long.parseLong(restrictValue));
     }
 }
