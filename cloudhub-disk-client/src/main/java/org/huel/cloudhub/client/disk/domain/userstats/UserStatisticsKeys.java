@@ -15,7 +15,7 @@ public final class UserStatisticsKeys {
 
     static final Map<String, RestrictKey> RESTRICT_KEYS = Map.of(
             USER_STORAGE_COUNT,
-            new RestrictKey(USER_STORAGE_COUNT, GroupSettingKeys.GROUP_FIL_NUM_LIMIT),
+            new RestrictKey(USER_STORAGE_COUNT, GroupSettingKeys.GROUP_FILE_NUM_LIMIT),
             USER_STORAGE_USED,
             new RestrictKey(USER_STORAGE_USED, GroupSettingKeys.GROUP_QUOTA,
                     (strictValue) -> strictValue * 1024 * 1024)// mb to bytes
