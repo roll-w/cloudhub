@@ -2,6 +2,10 @@
 
 import Footer from "@/components/Footer.vue";
 import TopNavBar from "@/components/TopNavBar.vue";
+import {useSiteStore} from "@/stores/site";
+
+const siteStore = useSiteStore()
+
 </script>
 
 <template>
@@ -15,15 +19,19 @@ import TopNavBar from "@/components/TopNavBar.vue";
                     :native-scrollbar="false"
                     content-style="min-height: calc(100vh - var(--header-height)); display: flex; flex-direction: column;"
                     position="absolute">
-                <div class="bg-img h-100vh w-100 bg-no-repeat bg-cover bg-center">
-                    <div class="h-100 w-100 backdrop-blur-3xl">
-                        <router-view v-slot="{ Component }">
-                            <transition mode="out-in" name="slide-fade">
-                                <component :is="Component" :key="$route.name"/>
-                            </transition>
-                        </router-view>
+                <div class="transition-all">
+                    <div :class="['h-100vh w-100 bg-no-repeat bg-cover bg-center ',
+                        siteStore.isDark ? 'bg-img-dark ' : 'bg-img ']">
+                        <div class="h-100 w-100 backdrop-blur-3xl">
+                            <router-view v-slot="{ Component }">
+                                <transition mode="out-in" name="slide-fade">
+                                    <component :is="Component" :key="$route.name"/>
+                                </transition>
+                            </router-view>
+                        </div>
                     </div>
                 </div>
+
                 <n-back-top :right="100"/>
                 <Footer/>
             </n-layout>
@@ -39,6 +47,15 @@ import TopNavBar from "@/components/TopNavBar.vue";
     #c1dafa 60%,
     #559af5 75%,
     #ffffff 80%);
+}
+
+.bg-img-dark {
+    background: radial-gradient(110vw 200vh ellipse at 50% 15%,
+    #cc5333 30%,
+    #745c96 35%,
+    #7349b7 60%,
+    #23074d 75%,
+    #363636 80%);
 }
 
 </style>

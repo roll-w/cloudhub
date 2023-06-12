@@ -77,8 +77,8 @@ const beian = ((window.cloudhub || {}).server || {}).beian
 <style scoped>
 .bg {
     background: radial-gradient(110vw 250vh ellipse at 0% 11%,
-    #dde6f6 46%,
-    #e1cbfc 55%,
+    #e7f0fc 46%,
+    #e3d0fc 55%,
     #f82edd 65%,
     #ff3378 70%,
     #fa7931 75%,
