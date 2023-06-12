@@ -50,6 +50,10 @@ export const shareTokenInfo = (token) =>
 export const shareToken = (token) =>
     `${prefix}/shares/${token}`;
 export const userShares = `${prefix}/user/shares`;
+export const restricts = (ownerType, ownerId) =>
+    `${prefix}/${ownerType}/${ownerId}/statistics/restricts`;
+export const restrictByKey = (ownerType, ownerId, key) =>
+    `${prefix}/${ownerType}/${ownerId}/statistics/restricts/${key}`;
 
 export const quickfire = (token) =>
     `${prefix}/quickfire/disk/${token}`;

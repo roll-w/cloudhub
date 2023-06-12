@@ -42,7 +42,9 @@
                                         backgroundColor: hexUserColor,
                                       }"
                             >
-                                {{ username }}
+                                <div class="select-none">
+                                    {{ username }}
+                                </div>
                             </n-avatar>
                         </n-dropdown>
                     </div>
@@ -59,15 +61,7 @@ import {useUserStore} from "@/stores/user";
 import {getCurrentInstance, h, onMounted, ref} from "vue";
 import {NAvatar, NText} from "naive-ui";
 import {useSiteStore} from "@/stores/site";
-import {
-    adminIndex,
-    driveFilePage,
-    driveFileSearchPage,
-    index,
-    login,
-    userSettingPage,
-    userSharePage
-} from "@/router";
+import {adminIndex, driveFilePage, driveFileSearchPage, index, login, userSettingPage, userSharePage} from "@/router";
 import {MD5} from "@/util/crypto";
 import Logo from "@/components/icon/Logo.vue";
 import {useFileStore} from "@/stores/files";
@@ -93,9 +87,8 @@ const hexUserColor = ref('#2876c7')
 
 const loadUsername = (newUsername, newRole) => {
     username.value = newUsername
-    const high6 = MD5(newUsername || '').substring(0, 6)
-    const originalColor = `#${high6}`
-    hexUserColor.value = originalColor
+    const colorExtracted = MD5(newUsername + newRole || '').substring(4, 10)
+    hexUserColor.value = `#${colorExtracted}`
     role.value = newRole
 }
 
@@ -133,6 +126,18 @@ const userOptions = [
                 {default: () => "个人主页"}
         ),
         key: "space",
+    },
+    {
+        label: () => h(
+                RouterLink,
+                {
+                    to: {
+                        name: userSharePage,
+                    }
+                },
+                {default: () => "个人分享"}
+        ),
+        key: "share",
     },
     {
         label: () => h(
@@ -184,6 +189,18 @@ const adminOptions = [
                 {default: () => "个人主页"}
         ),
         key: "space",
+    },
+    {
+        label: () => h(
+                RouterLink,
+                {
+                    to: {
+                        name: userSharePage,
+                    }
+                },
+                {default: () => "个人分享"}
+        ),
+        key: "share",
     },
     {
         label: () => h(
@@ -278,7 +295,7 @@ const handleClickOutside = () => {
 }
 
 fileStore.$subscribe((mutation, state) => {
-    showTransferDropdown.value = state.showUploadDialog
+    showTransferDropdown.value = true
 })
 
 const handleLogoClick = () => {

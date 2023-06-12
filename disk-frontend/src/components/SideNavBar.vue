@@ -1,5 +1,5 @@
 <template>
-  <!--  TODO: collapse sidebar -->
+    <!--  TODO: collapse sidebar -->
     <n-layout-sider :collapsed-width="0"
                     :native-scrollbar="false"
                     bordered
@@ -8,16 +8,23 @@
         <div>
             <n-menu :options="option" :value="chooseOn"/>
         </div>
+        <div class="pt-4 mx-2 ">
+            <UserUsageComponent />
+        </div>
+
     </n-layout-sider>
 </template>
 
 <script setup>
-
 import {useRouter} from "vue-router";
 import {onBeforeMount, ref} from "vue";
-
 import {useMessage} from "naive-ui";
 import {convertsToNMenuOptions, findMenuOptionByKey, keyUser} from "@/views/menu";
+import UserUsageLineChart from "@/components/charts/user/UserUsageLineChart.vue";
+import {useSiteStore} from "@/stores/site";
+import UserUsageComponent from "@/components/user/UserUsageComponent.vue";
+
+const siteStore = useSiteStore()
 
 const props = defineProps({
     optionKey: {
