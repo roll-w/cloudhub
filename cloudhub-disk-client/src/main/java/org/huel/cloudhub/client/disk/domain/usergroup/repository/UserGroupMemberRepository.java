@@ -50,6 +50,9 @@ public class UserGroupMemberRepository extends BaseRepository<UserGroupMember> {
 
     @Override
     protected UserGroupMember cacheResult(UserGroupMember userGroupMember) {
+        if (userGroupMember == null) {
+            return null;
+        }
         String userKey = toKey(userGroupMember);
         cache.put(userKey, userGroupMember);
         return super.cacheResult(userGroupMember);
