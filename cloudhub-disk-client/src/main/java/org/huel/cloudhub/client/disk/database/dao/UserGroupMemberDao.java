@@ -1,5 +1,6 @@
 package org.huel.cloudhub.client.disk.database.dao;
 
+import org.huel.cloudhub.client.disk.domain.user.LegalUserType;
 import org.huel.cloudhub.client.disk.domain.usergroup.UserGroupMember;
 import org.huel.cloudhub.web.data.page.Offset;
 import space.lingu.light.Dao;
@@ -52,4 +53,10 @@ public interface UserGroupMemberDao extends AutoPrimaryBaseDao<UserGroupMember> 
     default String getTableName() {
         return "user_group_member";
     }
+
+    @Query("SELECT * FROM user_group_member WHERE user_id = {userId} AND user_type = {userType}")
+    UserGroupMember getByUser(long userId, LegalUserType userType);
+
+    @Query("SELECT * FROM user_group_member WHERE group_id = {groupId}")
+    List<UserGroupMember> getByGroup(long groupId);
 }

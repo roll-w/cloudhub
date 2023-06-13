@@ -52,4 +52,7 @@ public interface UserGroupDao extends AutoPrimaryBaseDao<UserGroup> {
     default String getTableName() {
         return "user_group";
     }
+
+    @Query("SELECT * FROM user_group WHERE name = {name} LIMIT 1")
+    UserGroup getByName(String name);
 }
