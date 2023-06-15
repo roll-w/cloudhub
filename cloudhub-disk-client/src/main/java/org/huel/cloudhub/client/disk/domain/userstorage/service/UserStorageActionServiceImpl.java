@@ -1,20 +1,18 @@
 package org.huel.cloudhub.client.disk.domain.userstorage.service;
 
+import org.huel.cloudhub.client.disk.domain.systembased.SystemResource;
+import org.huel.cloudhub.client.disk.domain.systembased.SystemResourceKind;
+import org.huel.cloudhub.client.disk.domain.systembased.SystemResourceOperator;
 import org.huel.cloudhub.client.disk.domain.user.LegalUserType;
-import org.huel.cloudhub.client.disk.domain.userstorage.AttributedStorage;
-import org.huel.cloudhub.client.disk.domain.userstorage.Storage;
-import org.huel.cloudhub.client.disk.domain.userstorage.StorageAction;
-import org.huel.cloudhub.client.disk.domain.userstorage.StorageActionService;
-import org.huel.cloudhub.client.disk.domain.userstorage.StorageIdentity;
-import org.huel.cloudhub.client.disk.domain.userstorage.StorageOwner;
-import org.huel.cloudhub.client.disk.domain.userstorage.StorageType;
-import org.huel.cloudhub.client.disk.domain.userstorage.UserFolder;
-import org.huel.cloudhub.client.disk.domain.userstorage.UserFileStorage;
+import org.huel.cloudhub.client.disk.domain.userstorage.*;
 import org.huel.cloudhub.client.disk.domain.userstorage.common.StorageErrorCode;
 import org.huel.cloudhub.client.disk.domain.userstorage.common.StorageException;
-import org.huel.cloudhub.client.disk.domain.userstorage.repository.UserFolderRepository;
+import org.huel.cloudhub.client.disk.domain.userstorage.dto.SimpleStorageIdentity;
 import org.huel.cloudhub.client.disk.domain.userstorage.repository.UserFileStorageRepository;
+import org.huel.cloudhub.client.disk.domain.userstorage.repository.UserFolderRepository;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 /**
  * @author RollW
@@ -24,11 +22,14 @@ public class UserStorageActionServiceImpl implements StorageActionService,
         FolderActionDelegate, FileActionDelegate {
     private final UserFileStorageRepository userFileStorageRepository;
     private final UserFolderRepository userFolderRepository;
+    private final StorageEventListener storageEventListener;
 
     public UserStorageActionServiceImpl(UserFileStorageRepository userFileStorageRepository,
-                                        UserFolderRepository userFolderRepository) {
+                                        UserFolderRepository userFolderRepository,
+                                        List<StorageEventListener> storageEventListeners) {
         this.userFileStorageRepository = userFileStorageRepository;
         this.userFolderRepository = userFolderRepository;
+        this.storageEventListener = new CompositeStorageEventListener(storageEventListeners);
     }
 
     @Override
@@ -56,12 +57,13 @@ public class UserStorageActionServiceImpl implements StorageActionService,
                 storage.getOwnerType() == userType;
     }
 
-    private StorageAction createStorageAction(StorageIdentity storage) {
-        return switch (storage.getStorageType()) {
-            case FOLDER -> createDirectoryAction(storage);
-            case FILE -> createFileAction(storage);
+    private StorageAction createStorageAction(StorageIdentity storage, boolean checkDeleted) {
+        StorageAction storageAction = switch (storage.getStorageType()) {
+            case FOLDER -> createDirectoryAction(storage, checkDeleted);
+            case FILE -> createFileAction(storage, checkDeleted);
             default -> null;
         };
+        return new StorageActionWrapper(storageAction, storageEventListener);
     }
 
     private StorageAction createDirectoryAction(StorageIdentity storage, boolean checkDeleted) {

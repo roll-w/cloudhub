@@ -1,13 +1,14 @@
 package org.huel.cloudhub.client.disk.domain.versioned.service;
 
 import org.huel.cloudhub.client.disk.domain.userstorage.Storage;
-import org.huel.cloudhub.client.disk.domain.userstorage.StorageProcessor;
+import org.huel.cloudhub.client.disk.domain.userstorage.StorageEventListener;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageType;
 import org.huel.cloudhub.client.disk.domain.userstorage.dto.StorageAttr;
 import org.huel.cloudhub.client.disk.domain.versioned.VersionedFileService;
 import org.huel.cloudhub.client.disk.domain.versioned.VersionedFileStorage;
 import org.huel.cloudhub.client.disk.domain.versioned.repository.VersionedFileRepository;
 import org.springframework.stereotype.Service;
+import space.lingu.NonNull;
 
 import java.util.List;
 
@@ -16,7 +17,7 @@ import java.util.List;
  */
 @Service
 public class VersionedFileServiceImpl implements VersionedFileService,
-        StorageProcessor {
+        StorageEventListener {
     private final VersionedFileRepository versionedFileRepository;
 
     public VersionedFileServiceImpl(VersionedFileRepository versionedFileRepository) {
@@ -24,7 +25,7 @@ public class VersionedFileServiceImpl implements VersionedFileService,
     }
 
     @Override
-    public void onStorageCreated(Storage storage, StorageAttr storageAttr) {
+    public void onStorageCreated(@NonNull Storage storage, StorageAttr storageAttr) {
         if (storage.getStorageType() != StorageType.FILE) {
             return;
         }

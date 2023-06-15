@@ -1,35 +1,29 @@
 package org.huel.cloudhub.client.disk.domain.storageprocess.service;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudhub.util.Keywords;
 import org.cloudhub.util.KeywordsScorer;
-import org.huel.cloudhub.client.disk.domain.tag.ContentTag;
-import org.huel.cloudhub.client.disk.domain.tag.KeywordSearchScope;
-import org.huel.cloudhub.client.disk.domain.tag.TagEventListener;
-import org.huel.cloudhub.client.disk.domain.tag.TagGroup;
-import org.huel.cloudhub.client.disk.domain.tag.TagKeyword;
+import org.huel.cloudhub.client.disk.domain.tag.*;
 import org.huel.cloudhub.client.disk.domain.tag.dto.ContentTagDto;
 import org.huel.cloudhub.client.disk.domain.tag.dto.TagGroupDto;
 import org.huel.cloudhub.client.disk.domain.tag.repository.ContentTagRepository;
 import org.huel.cloudhub.client.disk.domain.tag.repository.TagGroupRepository;
 import org.huel.cloudhub.client.disk.domain.userstorage.Storage;
+import org.huel.cloudhub.client.disk.domain.userstorage.StorageEventListener;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageMetadata;
-import org.huel.cloudhub.client.disk.domain.userstorage.StorageProcessor;
 import org.huel.cloudhub.client.disk.domain.userstorage.dto.StorageAttr;
 import org.huel.cloudhub.client.disk.domain.userstorage.repository.StorageMetadataRepository;
 import org.springframework.stereotype.Service;
+import space.lingu.NonNull;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * @author RollW
  */
 @Service
-public class FileTagProcessServiceImpl implements StorageProcessor, TagEventListener {
+public class FileTagProcessServiceImpl implements StorageEventListener, TagEventListener {
     private final StorageMetadataRepository storageMetadataRepository;
     private final ContentTagRepository contentTagRepository;
     private final TagGroupRepository tagGroupRepository;
@@ -150,7 +144,12 @@ public class FileTagProcessServiceImpl implements StorageProcessor, TagEventList
     }
 
     @Override
-    public void onStorageCreated(Storage storage,
+    public void onStorageProcess(Storage storage, @Nullable StorageAttr storageAttr) {
+        onStorageCreated(storage, storageAttr);
+    }
+
+    @Override
+    public void onStorageCreated(@NonNull Storage storage,
                                  StorageAttr storageAttr) {
         String name = storage.getName();
         for (KeywordProcessor keywordProcessor : keywordProcessors) {

@@ -33,21 +33,21 @@ public class UserFileStorageServiceImpl implements
     private static final Logger logger = LoggerFactory.getLogger(UserFileStorageServiceImpl.class);
 
     private final StorageService storageService;
-    private final List<StorageProcessor> storageProcessors;
-    private final List<StoragePreInterceptor> storagePreInterceptors;
+    private final List<StorageEventListener> storageEventListeners;
+    private final CompositeStorageEventListener compositeStorageEventListener;
     private final UserFolderRepository userFolderRepository;
     private final UserFileStorageRepository userFileStorageRepository;
 
     public UserFileStorageServiceImpl(StorageService storageService,
-                                      List<StorageProcessor> storageProcessors,
-                                      List<StoragePreInterceptor> storagePreInterceptors,
+                                      List<StorageEventListener> storageEventListeners,
                                       UserFolderRepository userFolderRepository,
                                       UserFileStorageRepository userFileStorageRepository) {
         this.storageService = storageService;
-        this.storageProcessors = storageProcessors;
-        this.storagePreInterceptors = storagePreInterceptors;
+        this.storageEventListeners = storageEventListeners;
+        this.compositeStorageEventListener = new CompositeStorageEventListener(storageEventListeners);
         this.userFolderRepository = userFolderRepository;
         this.userFileStorageRepository = userFileStorageRepository;
+
     }
 
     @Override
@@ -441,21 +441,21 @@ public class UserFileStorageServiceImpl implements
     }
 
     private void dispatchFileOnCreate(Storage storage, StorageAttr storageAttr) {
-        storageProcessors.forEach(storageProcessor ->
-                storageProcessor.onStorageCreated(storage, storageAttr));
+       compositeStorageEventListener.onStorageCreated(
+               storage,
+               storageAttr
+       );
     }
 
     private void checkFileCreate(StorageOwner storageOwner,
-                                    Operator operator,
-                                    FileAttributesInfo fileAttributesInfo) {
-        for (StoragePreInterceptor storagePreInterceptor : storagePreInterceptors) {
-            ErrorCode errorCode = storagePreInterceptor.onBeforeStorageCreated(
-                    storageOwner,
-                    operator,
-                    fileAttributesInfo);
-            if (errorCode != null) {
-                throw new StorageException(errorCode);
-            }
+                                 Operator operator,
+                                 FileAttributesInfo fileAttributesInfo) {
+        ErrorCode errorCode = compositeStorageEventListener.onBeforeStorageCreated(
+                storageOwner,
+                operator,
+                fileAttributesInfo);
+        if (errorCode.failed()) {
+            throw new StorageException(errorCode);
         }
     }
 }

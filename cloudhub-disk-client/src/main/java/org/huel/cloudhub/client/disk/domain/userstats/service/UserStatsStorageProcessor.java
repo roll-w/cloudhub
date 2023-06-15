@@ -5,10 +5,11 @@ import org.huel.cloudhub.client.disk.domain.userstats.UserStatistics;
 import org.huel.cloudhub.client.disk.domain.userstats.UserStatisticsKeys;
 import org.huel.cloudhub.client.disk.domain.userstats.repository.UserStatisticsRepository;
 import org.huel.cloudhub.client.disk.domain.userstorage.Storage;
+import org.huel.cloudhub.client.disk.domain.userstorage.StorageEventListener;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageOwner;
-import org.huel.cloudhub.client.disk.domain.userstorage.StorageProcessor;
 import org.huel.cloudhub.client.disk.domain.userstorage.dto.StorageAttr;
 import org.springframework.stereotype.Service;
+import space.lingu.NonNull;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -17,7 +18,7 @@ import java.util.Map;
  * @author RollW
  */
 @Service
-public class UserStatsStorageProcessor implements StorageProcessor {
+public class UserStatsStorageProcessor implements StorageEventListener {
     private final UserStatisticsRepository userStatisticsRepository;
 
     public UserStatsStorageProcessor(UserStatisticsRepository userStatisticsRepository) {
@@ -25,7 +26,7 @@ public class UserStatsStorageProcessor implements StorageProcessor {
     }
 
     @Override
-    public void onStorageCreated(Storage storage,
+    public void onStorageCreated(@NonNull Storage storage,
                                  StorageAttr storageAttr) {
         LegalUserType userType = storage.getOwnerType();
         long userId = storage.getOwnerId();
@@ -83,10 +84,10 @@ public class UserStatsStorageProcessor implements StorageProcessor {
 
     private long getByKey(Map<String, Long> stats,
                           String key) {
-        Long value = stats.get(key);
+        Number value = stats.get(key);
         if (value == null) {
             return 0;
         }
-        return value;
+        return value.longValue();
     }
 }
