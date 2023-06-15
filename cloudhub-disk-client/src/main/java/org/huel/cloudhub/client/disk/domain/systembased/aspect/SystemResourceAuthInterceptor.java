@@ -82,13 +82,18 @@ public class SystemResourceAuthInterceptor {
         if (obj instanceof SystemResourceKind kind) {
             return checkKind(kind);
         }
+        if (obj instanceof String kind) {
+            return checkKind(SystemResourceKind.from(kind));
+        }
+
         throw new IllegalArgumentException("Cannot cast param value to SystemResourceKind: " + obj.getClass() +
                 ", parameter name: " + systemResourceAuthenticate.kindParam() + ", in " + method);
     }
 
     private SystemResourceKind checkKind(SystemResourceKind kind) {
         if (kind == null) {
-            throw new AuthenticationException(AuthErrorCode.ERROR_UNKNOWN_AUTH);
+            throw new AuthenticationException(AuthErrorCode.ERROR_UNKNOWN_AUTH,
+                    "SystemResourceKind is null or unknown");
         }
         return kind;
     }
@@ -118,7 +123,8 @@ public class SystemResourceAuthInterceptor {
 
     private BuiltinOperate checkNull(BuiltinOperate builtinOperate) {
         if (builtinOperate == null) {
-            throw new AuthenticationException(AuthErrorCode.ERROR_UNKNOWN_AUTH);
+            throw new AuthenticationException(AuthErrorCode.ERROR_UNKNOWN_AUTH,
+                    "BuiltinOperate is null");
         }
         return builtinOperate;
     }

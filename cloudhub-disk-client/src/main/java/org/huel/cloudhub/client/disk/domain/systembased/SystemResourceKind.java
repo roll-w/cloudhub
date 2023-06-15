@@ -14,10 +14,21 @@ public enum SystemResourceKind {
     TAG,
     TAG_GROUP,
     USER,
-    USER_GROUP,
+    USER_GROUP("group"),
     ORGANIZATION,
     STORAGE_USER_PERMISSION,
     ;
+
+    private final String alias;
+
+    SystemResourceKind() {
+        alias = null;
+    }
+
+    SystemResourceKind(String alias) {
+        this.alias = alias;
+    }
+
 
     public interface Kind {
         SystemResourceKind getSystemResourceKind();
@@ -27,6 +38,17 @@ public enum SystemResourceKind {
         if (nameIgnoreCase == null || nameIgnoreCase.isBlank()) {
             return null;
         }
-        return SystemResourceKind.valueOf(nameIgnoreCase.toUpperCase());
+        for (SystemResourceKind value : values()) {
+            if (value.name().equalsIgnoreCase(nameIgnoreCase)) {
+                return value;
+            }
+            if (value.alias == null) {
+                continue;
+            }
+            if (value.alias.equalsIgnoreCase(nameIgnoreCase)) {
+                return value;
+            }
+        }
+        return null;
     }
 }
