@@ -33,7 +33,7 @@ public class UserStorageActionServiceImpl implements StorageActionService,
 
     @Override
     public StorageAction openStorageAction(StorageIdentity storage) {
-        return createStorageAction(storage);
+        return createStorageAction(storage, false);
     }
 
     @Override
@@ -47,7 +47,7 @@ public class UserStorageActionServiceImpl implements StorageActionService,
                 storageOwner.getOwnerId(), storageOwner.getOwnerType())) {
             throw new StorageException(StorageErrorCode.ERROR_FILE_NOT_EXIST);
         }
-        return createStorageAction(storage);
+        return createStorageAction(storage, false);
     }
 
     private boolean checkStorageOwner(Storage storage, long ownerId,
@@ -64,30 +64,32 @@ public class UserStorageActionServiceImpl implements StorageActionService,
         };
     }
 
-    private StorageAction createDirectoryAction(StorageIdentity storage) {
+    private StorageAction createDirectoryAction(StorageIdentity storage, boolean checkDeleted) {
         if (storage.getStorageType() != StorageType.FOLDER) {
             throw new IllegalArgumentException("storage type must be folder");
         }
         if (!(storage instanceof UserFolder userFolder)) {
             return createDirectoryAction(
-                    findDirectory(storage.getStorageId())
+                    findDirectory(storage.getStorageId()),
+                    checkDeleted
             );
         }
 
-        return new FolderAction(userFolder, this);
+        return new FolderAction(userFolder, this, checkDeleted);
     }
 
-    private StorageAction createFileAction(StorageIdentity storage) {
+    private StorageAction createFileAction(StorageIdentity storage, boolean checkDeleted) {
         if (storage.getStorageType() != StorageType.FILE) {
             throw new IllegalArgumentException("storage type must be file");
         }
         if (!(storage instanceof UserFileStorage userFileStorage)) {
             return createFileAction(
-                    findFile(storage.getStorageId())
+                    findFile(storage.getStorageId()),
+                    checkDeleted
             );
         }
 
-        return new FileAction(userFileStorage, this);
+        return new FileAction(userFileStorage, this, checkDeleted);
     }
 
     private UserFileStorage findFile(long fileId) throws StorageException {
@@ -166,5 +168,27 @@ public class UserStorageActionServiceImpl implements StorageActionService,
             throw new StorageException(StorageErrorCode.ERROR_DIRECTORY_NOT_EXIST);
         }
         return userFolder;
+    }
+
+    @Override
+    public boolean supports(SystemResourceKind systemResourceKind) {
+        return systemResourceKind == SystemResourceKind.FILE ||
+                systemResourceKind == SystemResourceKind.FOLDER;
+    }
+
+    private static final Class<StorageAction> storageActionClass = StorageAction.class;
+
+    @Override
+    public boolean isAssignableTo(Class<? extends SystemResourceOperator> clazz) {
+        return storageActionClass.isAssignableFrom(clazz);
+    }
+
+    @Override
+    public StorageAction createResourceOperator(SystemResource systemResource,
+                                                boolean checkDelete) {
+        StorageIdentity storageIdentity = new SimpleStorageIdentity(
+                systemResource.getResourceId(),
+                StorageType.from(systemResource.getSystemResourceKind()));
+        return createStorageAction(storageIdentity, checkDelete);
     }
 }

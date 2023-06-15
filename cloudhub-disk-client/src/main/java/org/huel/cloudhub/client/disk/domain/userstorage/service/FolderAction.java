@@ -2,13 +2,10 @@ package org.huel.cloudhub.client.disk.domain.userstorage.service;
 
 import org.huel.cloudhub.client.disk.domain.operatelog.context.OperationContextHolder;
 import org.huel.cloudhub.client.disk.domain.user.LegalUserType;
-import org.huel.cloudhub.client.disk.domain.userstorage.AttributedStorage;
-import org.huel.cloudhub.client.disk.domain.userstorage.FileType;
-import org.huel.cloudhub.client.disk.domain.userstorage.StorageAction;
-import org.huel.cloudhub.client.disk.domain.userstorage.StorageType;
-import org.huel.cloudhub.client.disk.domain.userstorage.UserFolder;
+import org.huel.cloudhub.client.disk.domain.userstorage.*;
 import org.huel.cloudhub.client.disk.domain.userstorage.common.StorageErrorCode;
 import org.huel.cloudhub.client.disk.domain.userstorage.common.StorageException;
+import org.huel.cloudhub.web.BusinessRuntimeException;
 import space.lingu.NonNull;
 
 /**
@@ -19,12 +16,20 @@ public class FolderAction implements StorageAction {
     private final FolderActionDelegate folderActionDelegate;
 
     private UserFolder folder;
+    private boolean checkDelete;
 
     public FolderAction(UserFolder folder,
                         FolderActionDelegate folderActionDelegate) {
+        this(folder, folderActionDelegate, false);
+    }
+
+    public FolderAction(UserFolder folder,
+                        FolderActionDelegate folderActionDelegate,
+                        boolean checkDelete) {
         this.folderBuilder = folder.toBuilder();
         this.folder = folder;
         this.folderActionDelegate = folderActionDelegate;
+        this.checkDelete = checkDelete;
     }
 
     @Override
@@ -80,13 +85,18 @@ public class FolderAction implements StorageAction {
     }
 
     @Override
-    public void delete() throws StorageException {
+    public StorageAction update() throws BusinessRuntimeException {
+        return this;
+    }
+
+    @Override
+    public StorageAction delete() throws StorageException {
         if (folder.isDeleted()) {
             throw new StorageException(StorageErrorCode.ERROR_DIRECTORY_ALREADY_DELETED);
         }
 
         folderBuilder.setDeleted(true);
-        update();
+        return updateInternal();
     }
 
     @Override
@@ -100,14 +110,19 @@ public class FolderAction implements StorageAction {
     }
 
     @Override
-    public void rename(String newName) throws StorageException {
+    public StorageAction rename(String newName) throws StorageException {
         folderActionDelegate.checkExistsFolder(newName, folder.getParentId());
 
         folderBuilder.setName(newName);
         OperationContextHolder.getContext()
                 .setOriginContent(folder.getName())
                 .setChangedContent(newName);
-        update();
+        return updateInternal();
+    }
+
+    @Override
+    public StorageAction getSystemResource() {
+        return this;
     }
 
     @Override
@@ -123,7 +138,7 @@ public class FolderAction implements StorageAction {
         OperationContextHolder.getContext()
                 .setOriginContent(parent.getName())
                 .setChangedContent(storage.getName());
-        update();
+        updateInternal();
     }
 
     @Override
@@ -166,7 +181,7 @@ public class FolderAction implements StorageAction {
                 .setChangedContent(folder.getName());
     }
 
-    private void update() {
+    private StorageAction updateInternal() {
         UserFolder updatedDirectory = folderBuilder
                 .setUpdateTime(System.currentTimeMillis())
                 .build();
@@ -174,5 +189,16 @@ public class FolderAction implements StorageAction {
         folder = updatedDirectory;
         OperationContextHolder.getContext()
                 .addSystemResource(updatedDirectory);
+        return this;
+    }
+
+    @Override
+    public void setCheckDeleted(boolean checkDeleted) {
+        this.checkDelete = checkDeleted;
+    }
+
+    @Override
+    public boolean isCheckDeleted() {
+        return checkDelete;
     }
 }

@@ -2,13 +2,10 @@ package org.huel.cloudhub.client.disk.domain.userstorage.service;
 
 import org.huel.cloudhub.client.disk.domain.operatelog.context.OperationContextHolder;
 import org.huel.cloudhub.client.disk.domain.user.LegalUserType;
-import org.huel.cloudhub.client.disk.domain.userstorage.AttributedStorage;
-import org.huel.cloudhub.client.disk.domain.userstorage.FileType;
-import org.huel.cloudhub.client.disk.domain.userstorage.StorageAction;
-import org.huel.cloudhub.client.disk.domain.userstorage.StorageType;
-import org.huel.cloudhub.client.disk.domain.userstorage.UserFileStorage;
+import org.huel.cloudhub.client.disk.domain.userstorage.*;
 import org.huel.cloudhub.client.disk.domain.userstorage.common.StorageErrorCode;
 import org.huel.cloudhub.client.disk.domain.userstorage.common.StorageException;
+import org.huel.cloudhub.web.BusinessRuntimeException;
 import space.lingu.NonNull;
 
 /**
@@ -18,12 +15,21 @@ public class FileAction implements StorageAction {
     private final UserFileStorage.Builder fileBuilder;
     private final FileActionDelegate fileActionDelegate;
     private UserFileStorage file;
+    private boolean checkDelete;
 
 
-    public FileAction(UserFileStorage file, FileActionDelegate fileActionDelegate) {
+    public FileAction(UserFileStorage file,
+                      FileActionDelegate fileActionDelegate) {
+        this(file, fileActionDelegate, false);
+    }
+
+    public FileAction(UserFileStorage file,
+                      FileActionDelegate fileActionDelegate,
+                      boolean checkDelete) {
         this.fileBuilder = file.toBuilder();
         this.fileActionDelegate = fileActionDelegate;
         this.file = file;
+        this.checkDelete = checkDelete;
     }
 
     @Override
@@ -79,13 +85,13 @@ public class FileAction implements StorageAction {
     }
 
     @Override
-    public void delete() throws StorageException {
+    public StorageAction delete() throws StorageException {
         if (file.isDeleted()) {
             throw new StorageException(StorageErrorCode.ERROR_FILE_ALREADY_DELETED);
         }
 
         fileBuilder.setDeleted(true);
-        update();
+        return updateInternal();
     }
 
     @Override
@@ -95,7 +101,7 @@ public class FileAction implements StorageAction {
         }
 
         fileBuilder.setDeleted(false);
-        update();
+        updateInternal();
     }
 
     @Override
@@ -104,17 +110,24 @@ public class FileAction implements StorageAction {
     }
 
     @Override
-    public void rename(String newName) throws StorageException {
+    public StorageAction rename(String newName) throws StorageException {
+        checkDeleted();
         fileActionDelegate.checkExistsFile(newName, file.getParentId());
         fileBuilder.setName(newName);
         OperationContextHolder.getContext()
                 .setOriginContent(file.getName())
                 .setChangedContent(newName);
-        update();
+        return updateInternal();
+    }
+
+    @Override
+    public StorageAction getSystemResource() {
+        return this;
     }
 
     @Override
     public void move(long newParentId) throws StorageException {
+        checkDeleted();
         if (file.getParentId() == newParentId) {
             throw new StorageException(StorageErrorCode.ERROR_SAME_DIRECTORY);
         }
@@ -126,11 +139,12 @@ public class FileAction implements StorageAction {
         OperationContextHolder.getContext()
                 .setOriginContent(parent.getName())
                 .setChangedContent(storage.getName());
-        update();
+        updateInternal();
     }
 
     @Override
     public StorageAction copy(long newParentId) throws StorageException {
+        checkDeleted();
         if (file.getParentId() == newParentId) {
             throw new StorageException(StorageErrorCode.ERROR_SAME_DIRECTORY);
         }
@@ -167,7 +181,12 @@ public class FileAction implements StorageAction {
                 .setChangedContent(file.getName());
     }
 
-    private void update() {
+    @Override
+    public StorageAction update() throws BusinessRuntimeException {
+        return this;
+    }
+
+    private StorageAction updateInternal() {
         UserFileStorage updatedFile = fileBuilder
                 .setUpdateTime(System.currentTimeMillis())
                 .build();
@@ -175,5 +194,25 @@ public class FileAction implements StorageAction {
         file = updatedFile;
         OperationContextHolder.getContext()
                 .addSystemResource(file);
+        return this;
+    }
+
+    @Override
+    public void setCheckDeleted(boolean checkDeleted) {
+        this.checkDelete = checkDeleted;
+    }
+
+    @Override
+    public boolean isCheckDeleted() {
+        return checkDelete;
+    }
+
+    private void checkDeleted() throws StorageException {
+        if (!checkDelete) {
+            return;
+        }
+        if (file.isDeleted()) {
+            throw new StorageException(StorageErrorCode.ERROR_FILE_ALREADY_DELETED);
+        }
     }
 }
