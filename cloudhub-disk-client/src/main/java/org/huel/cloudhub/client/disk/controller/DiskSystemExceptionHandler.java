@@ -18,19 +18,15 @@ package org.huel.cloudhub.client.disk.controller;
 
 import com.google.common.base.Strings;
 import com.google.common.base.VerifyException;
+import io.grpc.Status;
+import io.grpc.StatusException;
+import io.grpc.StatusRuntimeException;
 import org.huel.cloudhub.client.disk.common.ApiContextHolder;
 import org.huel.cloudhub.client.disk.common.ParameterMissingException;
+import org.huel.cloudhub.client.disk.domain.storagesearch.common.SearchExpressionException;
 import org.huel.cloudhub.client.disk.system.ErrorRecord;
 import org.huel.cloudhub.client.disk.system.ErrorRecordVo;
-import org.huel.cloudhub.web.AuthErrorCode;
-import org.huel.cloudhub.web.BusinessRuntimeException;
-import org.huel.cloudhub.web.CommonErrorCode;
-import org.huel.cloudhub.web.ErrorCode;
-import org.huel.cloudhub.web.ErrorCodeFinder;
-import org.huel.cloudhub.web.HttpResponseEntity;
-import org.huel.cloudhub.web.IoErrorCode;
-import org.huel.cloudhub.web.UserErrorCode;
-import org.huel.cloudhub.web.WebCommonErrorCode;
+import org.huel.cloudhub.web.*;
 import org.huel.cloudhub.web.data.page.Offset;
 import org.huel.cloudhub.web.data.page.Page;
 import org.huel.cloudhub.web.data.page.Pageable;
@@ -92,6 +88,54 @@ public class DiskSystemExceptionHandler {
                 CommonErrorCode.ERROR_NOT_FOUND,
                 e.getMessage()
         );
+    }
+
+    @ExceptionHandler(SearchExpressionException.class)
+    public HttpResponseEntity<Void> handleExpressionException(SearchExpressionException expressionException) {
+        return HttpResponseEntity.of(
+                WebCommonErrorCode.ERROR_PARAM_FAILED,
+                expressionException.getMessage()
+        );
+    }
+
+    @ExceptionHandler({
+            StatusException.class,
+            StatusRuntimeException.class
+    })
+    public HttpResponseEntity<Void> handleGrpcStatusException(Exception exception) {
+        Status status = Status.fromThrowable(exception);
+        if (status.isOk()) {
+            return HttpResponseEntity.success();
+        }
+        ErrorCode errorCode = toErrorCode(status.getCode());
+        recordErrorLog(errorCode, exception);
+        return HttpResponseEntity.of(
+                errorCode,
+                exception.getMessage()
+        );
+    }
+
+
+    private ErrorCode toErrorCode(Status.Code status) {
+        return switch (status) {
+            case INVALID_ARGUMENT -> CommonErrorCode.ERROR_ILLEGAL_ARGUMENT;
+            case NOT_FOUND -> CommonErrorCode.ERROR_NOT_FOUND;
+            case ALREADY_EXISTS -> CommonErrorCode.ERROR_ALREADY_EXISTS;
+            case UNAUTHENTICATED -> AuthErrorCode.ERROR_UNAUTHORIZED_USE;
+            case PERMISSION_DENIED -> AuthErrorCode.ERROR_PERMISSION_DENIED;
+            case UNAVAILABLE -> CommonErrorCode.ERROR_SERVICE_UNAVAILABLE;
+            case INTERNAL -> CommonErrorCode.ERROR_INTERNAL;
+            case CANCELLED -> CommonErrorCode.ERROR_CANCELED;
+            case UNIMPLEMENTED -> CommonErrorCode.ERROR_NOT_IMPLEMENTED;
+            case ABORTED -> CommonErrorCode.ERROR_ABORTED;
+            case UNKNOWN -> CommonErrorCode.ERROR_UNKNOWN;
+            case DATA_LOSS -> CommonErrorCode.ERROR_DATA_LOSS;
+            case OUT_OF_RANGE -> CommonErrorCode.ERROR_OUT_OF_RANGE;
+            case DEADLINE_EXCEEDED -> CommonErrorCode.ERROR_TIMEOUT;
+            case RESOURCE_EXHAUSTED -> CommonErrorCode.ERROR_RESOURCE_EXHAUSTED;
+            case FAILED_PRECONDITION -> CommonErrorCode.ERROR_ILLEGAL_STATE;
+            case OK -> CommonErrorCode.SUCCESS;
+        };
     }
 
 
@@ -216,7 +260,6 @@ public class DiskSystemExceptionHandler {
     public HttpResponseEntity<Void> handleAuthException(DisabledException e) {
         return HttpResponseEntity.of(UserErrorCode.ERROR_USER_DISABLED);
     }
-
 
 
     @ExceptionHandler(AuthenticationException.class)
