@@ -41,6 +41,7 @@ export const adminFileLists = "admin-file-lists"
 
 export const adminTagGroups = "admin-tag-groups"
 export const adminTags = "admin-tags"
+export const adminTagInfo = "admin-tag-info"
 export const adminTagGroupInfo = "admin-tag-group-info"
 
 export const adminVisualData = "admin-visual-data"
@@ -232,11 +233,29 @@ const router = createRouter({
                     }
                 },
                 {
+                    path: '/admin/tags/groups/:id',
+                    name: adminTagGroupInfo,
+                    component: () => import("@/views/admin/tag/AdminTagGroupInfoView.vue"),
+                    meta: {
+                        title: "标签组信息",
+                        requireLogin: true
+                    }
+                },
+                {
                     path: '/admin/tags',
                     name: adminTags,
                     component: () => import("@/views/admin/tag/AdminTagsView.vue"),
                     meta: {
                         title: "标签列表",
+                        requireLogin: true
+                    }
+                },
+                {
+                    path: '/admin/tags/:id',
+                    name: adminTagInfo,
+                    component: () => import("@/views/admin/tag/AdminTagInfoView.vue"),
+                    meta: {
+                        title: "标签信息",
                         requireLogin: true
                     }
                 },

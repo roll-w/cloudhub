@@ -63,10 +63,12 @@ export const getOperationLogsByResource = (resourceType, resourceId) =>
 
 export const getOperationLogsAdmin =
     `${adminPrefix}/operations/logs`;
-export const tagGroups = (admin = false) =>
-    `${admin ? adminPrefix : prefix}/tags/groups`;
-export const tags = (admin = false) =>
-    `${admin ? adminPrefix : prefix}/tags`;
+export const tagGroups = (admin = false, id = null) =>
+    `${admin ? adminPrefix : prefix}/tags/groups${id ? `/${id}` : ''}`;
+export const tagGroupsFile = (admin = false, groupId) =>
+    `${admin ? adminPrefix : prefix}/tags/groups/${groupId}/infile`;
+export const tags = (admin = false, id) =>
+    `${admin ? adminPrefix : prefix}/tags${id ? `/${id}` : ''}`;
 export const files = (admin = false) =>
     `${admin ? adminPrefix : prefix}/disk/files`;
 export const folders = (admin = false) =>
