@@ -9,6 +9,7 @@ import api from "@/request/api";
 import {createConfig} from "@/request/axios_config";
 import {popUserErrorTemplate} from "@/views/util/error";
 import {useUserStore} from "@/stores/user";
+import {userStatsPage} from "@/router";
 
 const router = useRouter()
 const {proxy} = getCurrentInstance()
@@ -19,15 +20,14 @@ const dialog = useDialog()
 const userStore = useUserStore()
 const siteStore = useSiteStore()
 
-const userStats = ref([])
-
 const userUsage = ref({
-    used: 1234567890,
-    total: 10 * 1024 * 1024 * 1024
+    used: 0,
+    total: 0
 })
 
 
 const handleClick = () => {
+    router.push({name: userStatsPage})
 }
 
 const USER_USAGE = "user_storage_used"
@@ -40,7 +40,7 @@ const requestUserUsage = () => {
                 const usage = response.data
                 userUsage.value = {
                     used: usage.value,
-                    total: (usage.restrict < 0) ? 10240000000 : usage.restrict
+                    total: (usage.restrict < 0) ? Infinity : usage.restrict
                 }
             })
             .catch((error) => {
@@ -67,7 +67,7 @@ requestUserUsage()
             <div class="flex-fill select-none">
                 {{ formatFileSize(userUsage.used) }}
                 /
-                {{ formatFileSize(userUsage.total) }}
+                {{ formatFileSize(userUsage.total, "无限制") }}
             </div>
         </div>
 

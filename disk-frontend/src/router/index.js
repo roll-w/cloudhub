@@ -31,6 +31,7 @@ export const driveTagPage = "drive-tag-page"
 
 export const userSettingPage = "user-setting-page"
 export const userSharePage = "user-share-page"
+export const userStatsPage = "user-stats-page"
 
 export const adminIndex = "admin-index"
 
@@ -175,6 +176,15 @@ const router = createRouter({
                     component: () => import("@/views/user/UserSettingView.vue"),
                     meta: {
                         title: "用户设置",
+                        requireLogin: true
+                    }
+                },
+                {
+                    path: '/user/statistics',
+                    name: userStatsPage,
+                    component: () => import("@/views/user/UserStatsView.vue"),
+                    meta: {
+                        title: "个人统计数据",
                         requireLogin: true
                     }
                 },

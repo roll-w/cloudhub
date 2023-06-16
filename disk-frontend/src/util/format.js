@@ -22,9 +22,9 @@ const gb = 1024 * 1024 * 1024
 const mb = 1024 * 1024
 const kb = 1024
 
-export const formatFileSize = (sizeInBytes) => {
+export const formatFileSize = (sizeInBytes, infinity = '∞') => {
     if (sizeInBytes === Infinity) {
-        return '∞'
+        return infinity
     }
 
     if (sizeInBytes < kb) {

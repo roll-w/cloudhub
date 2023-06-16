@@ -8,6 +8,11 @@
             <n-form ref="userForm"
                     :model="userInfoFormValue"
                     :rules="userFormRules">
+                <n-form-item label="用户名">
+                    <n-text class="ml-1">
+                        {{ (userInfo || {}).username }}
+                    </n-text>
+                </n-form-item>
                 <n-form-item label="昵称（不填写昵称则默认使用用户名）"
                              path="nickname">
                     <n-input v-model:value="userInfoFormValue.nickname"
@@ -30,7 +35,15 @@
                 </n-button-group>
             </n-form>
         </div>
-        <n-divider />
+        <n-divider/>
+        <n-h2>
+            用户数据
+        </n-h2>
+        <n-button secondary type="primary"
+                  @click="$router.push({name: userStatsPage})">
+            点击跳转查看
+        </n-button>
+        <n-divider/>
         <n-h2>
             账户设置与安全
         </n-h2>
@@ -67,7 +80,7 @@
                         注销账户
                     </n-h3>
                     <div class="pt-3">
-                        <n-button tertiary type="error" disabled>
+                        <n-button disabled tertiary type="error">
                             注销账户
                         </n-button>
                     </div>
@@ -79,17 +92,17 @@
                         登录日志
                     </n-h3>
                     <div>
-                        <CurrentUserLoginLogs />
+                        <CurrentUserLoginLogs/>
                     </div>
                 </div>
             </n-grid-item>
         </n-grid>
-        <n-divider />
+        <n-divider/>
         <div class="py-3">
             <n-h2>
                 近期操作日志
             </n-h2>
-            <CurrentUserOprationLogs />
+            <CurrentUserOprationLogs/>
         </div>
 
         <n-modal v-model:show="showResetPasswordModal"
@@ -116,6 +129,7 @@ import {popUserErrorTemplate} from "@/views/util/error";
 import UserResetPasswordForm from "@/components/user/UserResetPasswordForm.vue";
 import CurrentUserLoginLogs from "@/components/user/personal/CurrentUserLoginLogs.vue";
 import CurrentUserOprationLogs from "@/components/user/personal/CurrentUserOprationLogs.vue";
+import {userStatsPage} from "@/router";
 
 const userStore = useUserStore()
 
