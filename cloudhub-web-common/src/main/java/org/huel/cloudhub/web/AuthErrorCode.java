@@ -50,7 +50,7 @@ public enum AuthErrorCode implements ErrorCode, ErrorCodeFinder, ErrorCodeMessag
 
     ERROR_NO_HANDLER("A1012", 404),
     ERROR_UNKNOWN_AUTH("A1013", 401),
-    ;
+    ERROR_PERMISSION_DENIED("A1014", 403);
 
 
     private final String value;

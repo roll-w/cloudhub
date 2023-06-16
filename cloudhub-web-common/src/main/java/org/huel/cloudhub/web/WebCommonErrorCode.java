@@ -32,7 +32,6 @@ public enum WebCommonErrorCode implements ErrorCode, ErrorCodeFinder, ErrorCodeM
 
     ERROR_HTTP_REQUEST("A0205", HttpStatus.BAD_REQUEST.value()),
     ERROR_METHOD_NOT_ALLOWED("A0206", HttpStatus.METHOD_NOT_ALLOWED.value()),
-
     ;
 
     private final String value;
