@@ -94,8 +94,12 @@ public class FolderAction implements StorageAction {
         if (folder.isDeleted()) {
             throw new StorageException(StorageErrorCode.ERROR_DIRECTORY_ALREADY_DELETED);
         }
-
+        if (folderActionDelegate.checkFolderHasActiveChildren(folder.getId())) {
+            throw new StorageException(StorageErrorCode.ERROR_DIRECTORY_NOT_EMPTY);
+        }
         folderBuilder.setDeleted(true);
+        OperationContextHolder.getContext()
+                .setOriginContent(folder.getName());
         return updateInternal();
     }
 

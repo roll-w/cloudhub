@@ -173,6 +173,25 @@ public class UserStorageActionServiceImpl implements StorageActionService,
     }
 
     @Override
+    public boolean checkFolderHasActiveChildren(long id) {
+        List<UserFolder> userFolders =
+                userFolderRepository.getByParentId(id);
+        if (checkHasNotDeleted(userFolders)) {
+            return true;
+        }
+        List<UserFileStorage> userFileStorages =
+                userFileStorageRepository.getByDirectoryId(id);
+        return checkHasNotDeleted(userFileStorages);
+    }
+
+    private boolean checkHasNotDeleted(List<? extends AttributedStorage> attributedStorages) {
+        if (attributedStorages.isEmpty()) {
+            return false;
+        }
+        return attributedStorages.stream().noneMatch(AttributedStorage::isDeleted);
+    }
+
+    @Override
     public boolean supports(SystemResourceKind systemResourceKind) {
         return systemResourceKind == SystemResourceKind.FILE ||
                 systemResourceKind == SystemResourceKind.FOLDER;

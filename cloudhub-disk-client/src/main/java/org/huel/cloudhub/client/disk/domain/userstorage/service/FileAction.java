@@ -91,6 +91,8 @@ public class FileAction implements StorageAction {
         }
 
         fileBuilder.setDeleted(true);
+        OperationContextHolder.getContext()
+                .setOriginContent(file.getName());
         return updateInternal();
     }
 
@@ -101,6 +103,8 @@ public class FileAction implements StorageAction {
         }
 
         fileBuilder.setDeleted(false);
+        OperationContextHolder.getContext()
+                .setChangedContent(file.getName());
         updateInternal();
     }
 

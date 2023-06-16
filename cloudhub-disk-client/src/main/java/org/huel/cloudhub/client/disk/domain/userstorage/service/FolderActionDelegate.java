@@ -14,4 +14,6 @@ public interface FolderActionDelegate {
     void checkExistsFolder(String name, long parentId);
 
     AttributedStorage checkParentExists(long parentId);
+
+    boolean checkFolderHasActiveChildren(long id);
 }
