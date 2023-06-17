@@ -53,8 +53,9 @@ public class UserStatsServiceImpl implements UserStatisticsService, UserDataView
                                        String key) {
         UserStatisticsDetail userStatisticsDetail =
                 getUserStatistics(storageOwner);
-        long userValue = userStatisticsDetail.statistics()
+        Number valueGet = userStatisticsDetail.statistics()
                 .getOrDefault(key, 0L);
+        long userValue = valueGet.longValue();
         RestrictKey restrictKey = UserStatisticsKeys.restrictKeyOf(key);
         if (restrictKey == null) {
             return null;
