@@ -1,9 +1,10 @@
 <template>
-    <div class="flex h-58 flex-col items-center p-6 cursor-pointer
-             rounded-2xl transition-all duration-300
-             ease-in-out w-[220px]
-             dark:bg-gray-800 dark:hover:bg-gray-700
-             hover:bg-gray-100 hover:bg-opacity-50 m-2"
+    <div :class="['flex h-58 flex-col items-center p-6 cursor-pointer '+
+             'rounded-2xl transition-all duration-300 ' +
+             'ease-in-out w-[220px] ' +
+             'dark:bg-gray-800 dark:hover:bg-gray-700 ' +
+             'hover:bg-opacity-30 m-2 ',
+              siteStore.isDark ? 'hover:bg-neutral-500' : 'hover:bg-neutral-200']"
          @mouseenter="fileMenuShowState = true"
          @mouseleave="fileMenuShowState = false"
     >
@@ -75,6 +76,7 @@ import {formatTimestamp} from "@/util/format";
 import ImageOutlined from "@/components/icon/ImageOutlined.vue";
 import AudioFileOutlined from "@/components/icon/AudioFileOutlined.vue";
 import VideoFileOutlined from "@/components/icon/VideoFileOutlined.vue";
+import {useSiteStore} from "@/stores/site";
 
 
 const props = defineProps({
@@ -96,6 +98,8 @@ const props = defineProps({
         }
     },
 })
+
+const siteStore = useSiteStore()
 
 const emits = defineEmits([
     'update:checked'
