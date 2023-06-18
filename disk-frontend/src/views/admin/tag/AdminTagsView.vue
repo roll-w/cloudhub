@@ -34,7 +34,7 @@ import {createConfig} from "@/request/axios_config";
 import api from "@/request/api";
 import {popAdminErrorTemplate} from "@/views/util/error";
 import {adminTagInfo, adminTags} from "@/router";
-import {getPage} from "@/views/util/pages";
+import {usePage} from "@/views/util/pages";
 
 const router = useRouter()
 const {proxy} = getCurrentInstance()
@@ -43,7 +43,7 @@ const message = useMessage()
 const dialog = useDialog()
 
 const tags = ref([])
-const page = ref(getPage())
+const page = usePage()
 
 const columns = [
     {

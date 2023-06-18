@@ -1,4 +1,5 @@
 import {useRouter} from "vue-router";
+import {ref} from "vue";
 
 const getPageInternal = (router) => {
     const page = router.currentRoute.value.query.page || '1'
@@ -10,6 +11,6 @@ const getPageInternal = (router) => {
     }
 }
 
-export const getPage = () => {
-    return getPageInternal(useRouter())
+export const usePage = () => {
+    return ref(getPageInternal(useRouter()))
 }

@@ -81,7 +81,6 @@ const data = ref([])
 
 const getLogs = () => {
     const config = createConfig()
-    console.log(page.value.page)
     config.params = {
         page: page.value.page
     }

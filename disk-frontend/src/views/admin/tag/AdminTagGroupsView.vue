@@ -65,7 +65,7 @@ import {adminTagGroupInfo, adminTagGroups} from "@/router";
 import {adminMenuTag} from "@/views/menu";
 import AdminTagGroupInfo from "@/views/admin/tag/AdminTagGroupInfoView.vue";
 import TagGroupCreateForm from "@/components/admin/tags/TagGroupCreateForm.vue";
-import {getPage} from "@/views/util/pages";
+import {usePage} from "@/views/util/pages";
 
 const router = useRouter()
 const {proxy} = getCurrentInstance()
@@ -78,7 +78,7 @@ const tagGroups = ref([])
 const tagGroupInfo = ref({})
 const showCreateTagGroupModal = ref(false)
 
-const page = ref(getPage())
+const page = usePage()
 
 
 const columns = [
