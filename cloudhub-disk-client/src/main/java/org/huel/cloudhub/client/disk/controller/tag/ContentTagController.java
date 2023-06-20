@@ -60,15 +60,16 @@ public class ContentTagController {
     }
 
     @GetMapping("/tags/groups")
-    public HttpResponseEntity<List<TagGroupDto>> getTagGroups(
+    public HttpResponseEntity<List<TagGroupVo>> getTagGroups(
             Pageable pageable) {
         List<TagGroupDto> tagGroupDtos =
                 contentTagService.getTagGroups(pageable);
 
-
         return HttpResponseEntity.success(
                 pageableInterceptor.interceptPageable(
-                        tagGroupDtos,
+                        tagGroupDtos.stream()
+                                .map(TagGroupVo::from)
+                                .toList(),
                         pageable,
                         ContentTag.class
                 )
