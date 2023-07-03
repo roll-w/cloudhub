@@ -6,7 +6,10 @@
                 {{ getFileType(fileInfo.storageType) }}信息
             </n-h2>
             <div class="flex flex-fill justify-end">
-                <n-button secondary type="primary" @click="handleBack">返回</n-button>
+                <n-button-group>
+                    <n-button secondary type="primary" @click="handleBack">返回</n-button>
+                    <n-button secondary @click="handleBackToFolder">跳转到所在文件夹</n-button>
+                </n-button-group>
             </div>
         </div>
         <div>
@@ -148,7 +151,7 @@ import {
     driveFilePageTypeAudio,
     driveFilePageTypeDocument,
     driveFilePageTypeImage,
-    driveFilePageTypeVideo
+    driveFilePageTypeVideo, driveFileSearchPage
 } from "@/router";
 import api from "@/request/api";
 import {createConfig} from "@/request/axios_config";
@@ -207,6 +210,21 @@ const urlSource = (source) => {
     }
 }
 
+const handleBackToFolder = () => {
+    if (error.value.message || fileInfo.value.parentId === 0) {
+        router.push({
+            name: driveFilePage
+        }).catch()
+        return
+    }
+    router.push({
+        name: driveFilePageFolder,
+        params: {
+            folder: fileInfo.value.parentId
+        }
+    }).catch()
+}
+
 const handleBack = () => {
     const refer = router.currentRoute.value.query.refer
     const source = router.currentRoute.value.query.source
@@ -214,7 +232,16 @@ const handleBack = () => {
         const url = urlSource(source)
         router.push({
             name: url
-        })
+        }).catch()
+        return;
+    }
+    if (refer === 'search') {
+        router.push({
+            name: driveFileSearchPage,
+            query: {
+                keyword: source
+            }
+        }).catch()
         return;
     }
 
@@ -222,6 +249,10 @@ const handleBack = () => {
     if (error.value.message || fileInfo.value.parentId === 0) {
         router.push({
             name: driveFilePage
+        }).then(() => {
+
+        }).catch(() => {
+
         })
         return
     }
@@ -230,52 +261,52 @@ const handleBack = () => {
         params: {
             folder: fileInfo.value.parentId
         }
-    })
+    }).catch()
 }
 
 const requestFileAttr = () => {
     const config = createConfig()
     proxy.$axios.get(api.getStorageAttributes(ownerType, ownerId, storageType, id), config)
-        .then(res => {
-            const index = res.data.findIndex(item => item.name === 'fileType')
-            if (index >= 0) {
-                res.data[index].name = '文件类型'
-                res.data[index].dataType = 'fileType'
-                res.data[index].value = getFileType(res.data[0].value)
-            }
-            fileAttrs.value = res.data
+            .then(res => {
+                const index = res.data.findIndex(item => item.name === 'fileType')
+                if (index >= 0) {
+                    res.data[index].name = '文件类型'
+                    res.data[index].dataType = 'fileType'
+                    res.data[index].value = getFileType(res.data[0].value)
+                }
+                fileAttrs.value = res.data
 
-        }).catch(err => {
+            }).catch(err => {
         popUserErrorTemplate(notification, err,
-            '获取文件属性失败', '文件请求错误')
+                '获取文件属性失败', '文件请求错误')
     })
 }
 
 const requestFileVersion = () => {
     const config = createConfig()
     proxy.$axios.get(api.getStorageVersions(ownerType, ownerId, storageType, id), config)
-        .then(res => {
-            fileVersionInfos.value = res.data
-        }).catch(err => {
+            .then(res => {
+                fileVersionInfos.value = res.data
+            }).catch(err => {
         popUserErrorTemplate(notification, err,
-            '获取文件版本信息失败', '文件请求错误')
+                '获取文件版本信息失败', '文件请求错误')
     })
 }
 
 const requestFileLogs = () => {
     const config = createConfig()
     proxy.$axios.get(api.getOperationLogsByResource(storageType, id), config)
-        .then(res => {
-            res.data.forEach(item => item.description =
-                item.description.format(
-                    item.originContent,
-                    item.changedContent
+            .then(res => {
+                res.data.forEach(item => item.description =
+                        item.description.format(
+                                item.originContent,
+                                item.changedContent
+                        )
                 )
-            )
-            fileLogs.value = res.data
-        }).catch(err => {
+                fileLogs.value = res.data
+            }).catch(err => {
         popUserErrorTemplate(notification, err,
-            '获取文件日志信息失败', '文件请求错误')
+                '获取文件日志信息失败', '文件请求错误')
     })
 }
 
@@ -291,16 +322,16 @@ const requestFileInfos = () => {
 const requestFileInfo = () => {
     const config = createConfig()
     proxy.$axios.get(api.getStorageInfo(ownerType, ownerId, storageType, id), config)
-        .then(res => {
-            fileInfo.value = res.data
-            requestFileInfos()
-        }).catch(err => {
+            .then(res => {
+                fileInfo.value = res.data
+                requestFileInfos()
+            }).catch(err => {
         error.value = {
             status: err.status,
             message: err.tip
         }
         popUserErrorTemplate(notification, err,
-            '获取文件信息失败', '文件请求错误')
+                '获取文件信息失败', '文件请求错误')
     })
 }
 

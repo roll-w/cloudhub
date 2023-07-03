@@ -7,7 +7,7 @@
             <div class="p-5">
                 <div class="min-h-[400px]">
                     <n-spin :show="loading" size="large">
-                        <div v-if="files.length" class="pb-[30vh]">
+                        <div>
                             <FileComponentsView :disable-click="false"
                                                 :disable-preview="false"
                                                 :file-options="fileOptions"
@@ -24,29 +24,31 @@
                                         {{ getFileType(nowOpenType.toUpperCase()) }}
                                     </div>
                                 </template>
-                            </FileComponentsView>
-                        </div>
 
-                        <div v-else class="w-100 h-100 flex flex-col flex-fill content-center justify-center">
-                            <div class="self-center">
-                                <n-empty description="暂无文件">
-                                    <template #extra>
-                                        <n-button-group v-if="!nowOpenType">
-                                            <n-space size="medium">
-                                                <n-button
-                                                        secondary size="large" type="primary"
-                                                        @click="showCreateFolderModal = true">
-                                                    新建文件夹
-                                                </n-button>
-                                                <n-button secondary size="large" type="primary"
-                                                          @click="showUploadFileModal = true">
-                                                    上传文件
-                                                </n-button>
-                                            </n-space>
-                                        </n-button-group>
-                                    </template>
-                                </n-empty>
-                            </div>
+                                <template #empty>
+                                    <div class="w-100 h-100 flex flex-col flex-fill content-center justify-center">
+                                        <div class="self-center">
+                                            <n-empty description="暂无文件">
+                                                <template #extra class="pb-[30vh]">
+                                                    <n-button-group v-if="!nowOpenType">
+                                                        <n-space size="medium">
+                                                            <n-button
+                                                                    secondary size="large" type="primary"
+                                                                    @click="showCreateFolderModal = true">
+                                                                新建文件夹
+                                                            </n-button>
+                                                            <n-button secondary size="large" type="primary"
+                                                                      @click="showUploadFileModal = true">
+                                                                上传文件
+                                                            </n-button>
+                                                        </n-space>
+                                                    </n-button-group>
+                                                </template>
+                                            </n-empty>
+                                        </div>
+                                    </div>
+                                </template>
+                            </FileComponentsView>
                         </div>
                     </n-spin>
                 </div>
@@ -104,9 +106,9 @@
             <StorageRenameForm
                     :file-name="curTargetFile.name"
                     :on-after-action="() => {
-                    loading = false
+                    refresh()
                 }"
-                    :on-before-action="() => loading = true"
+                    :on-before-action="() => {}"
                     :on-click-cancel="() => showRenameStorageModal = false"
                     :on-click-confirm="() => showRenameStorageModal = false"
                     :owner-id="userStore.user.id"
@@ -198,6 +200,7 @@ const showFilePreviewModal = ref(false)
 const showRenameStorageModal = ref(false)
 const showShareStorageModal = ref(false)
 const showShareConfirmStorageModal = ref(false)
+
 const shareInfo = ref()
 
 const getNowOpenType = () => {
@@ -469,7 +472,7 @@ const requestFolderInfo = () => {
             api.getStorageInfo('user', userStore.user.id, 'folder', curDirectoryId), config)
             .then(res => {
                 folderInfo.value = res.data
-                console.log(res)
+                console.log('文件夹', res)
             })
             .catch(err => {
                 popUserErrorTemplate(notification, err,

@@ -59,7 +59,7 @@
                 trigger="manual"
                 @select="handleFileOptionSelect"/>
         <Teleport to="body">
-            <FileViewToolbar :checked-list="getCheckedList()"/>
+            <FileViewToolbar :checked-list="getCheckedList()" :options="toolbarOptions"/>
         </Teleport>
 
         <n-modal v-model:show="showFilePreviewModal"
@@ -87,11 +87,12 @@
 
 <script setup>
 import FileComponent from "@/components/file/FileComponent.vue";
-import {ref, watch} from "vue";
+import {h, ref, watch} from "vue";
 import {driveFilePageFolder} from "@/router";
 import FileViewToolbar from "@/components/file/FileViewToolbar.vue";
 import FilePreviewer from "@/components/file/FilePreviewer.vue";
 import {useRouter} from "vue-router";
+import RefreshRound from "@/components/icon/RefreshRound.vue";
 
 const router = useRouter()
 
@@ -147,6 +148,26 @@ const props = defineProps({
         default: true
     },
 })
+
+
+const toolbarOptions = [
+    {
+        label: "刷新",
+        key: "refresh",
+        icon: () => h(RefreshRound),
+    },
+    {
+        label: "下载",
+        key: "download",
+        icon: () => h(RefreshRound),
+    },
+    {
+        label: "删除",
+        key: "delete",
+        icon: () => h(RefreshRound),
+    }
+]
+
 
 const xRef = ref(0)
 const yRef = ref(0)
