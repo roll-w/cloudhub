@@ -34,7 +34,9 @@ public class StorageSearchServiceImpl implements StorageSearchService {
         }
         Set<StorageSearchConditionProvider> collected =
                 getProviders(searchConditions);
-
+        if (collected.isEmpty()) {
+            return List.of();
+        }
         SearchConditionGroup conditionGroup = new SearchConditionGroup(searchConditions);
         if (conditionGroup.hasDuplicateConditionName()) {
             return List.of();
@@ -74,9 +76,10 @@ public class StorageSearchServiceImpl implements StorageSearchService {
         Set<StorageSearchConditionProvider> collected = new HashSet<>();
         for (SearchCondition searchCondition : searchConditions) {
             StorageSearchConditionProvider provider = findFirst(searchCondition.name());
-            if (provider != null) {
-                collected.add(provider);
+            if (provider == null) {
+                return Set.of();
             }
+            collected.add(provider);
         }
         return collected;
     }

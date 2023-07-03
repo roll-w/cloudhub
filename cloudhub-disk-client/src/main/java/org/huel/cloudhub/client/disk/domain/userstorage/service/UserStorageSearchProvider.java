@@ -146,7 +146,7 @@ public class UserStorageSearchProvider implements StorageCategoryService,
                 .stream()
                 .map(TagValue::name)
                 .distinct()
-                .count() == tagValues.size();
+                .count() != tagValues.size();
     }
 
 

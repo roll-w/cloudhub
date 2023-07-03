@@ -57,7 +57,7 @@ public interface UserFileStorageDao extends AutoPrimaryBaseDao<UserFileStorage> 
     UserFileStorage getById(long id);
 
     @Override
-    @Query("SELECT * FROM user_file_storage WHERE id IN {ids}")
+    @Query("SELECT * FROM user_file_storage WHERE id IN ({ids})")
     List<UserFileStorage> getByIds(List<Long> ids);
 
     @Override

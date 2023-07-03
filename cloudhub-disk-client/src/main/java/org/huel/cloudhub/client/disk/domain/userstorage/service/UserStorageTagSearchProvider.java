@@ -12,10 +12,7 @@ import org.huel.cloudhub.client.disk.domain.userstorage.*;
 import org.huel.cloudhub.client.disk.domain.userstorage.common.ConditionNames;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author RollW
@@ -43,11 +40,16 @@ public class UserStorageTagSearchProvider implements StorageSearchConditionProvi
     public List<? extends AttributedStorage> getStorages(
             SearchConditionGroup conditionGroup, StorageOwner storageOwner) throws SearchConditionException {
         SearchCondition typeCondition = conditionGroup.getCondition(ConditionNames.TYPE);
-        StorageType storageType = StorageType.valueOf(typeCondition.keyword());
+
+        StorageType storageType = StorageType.from(
+               typeCondition == null ? null : typeCondition.keyword()
+        );
         if (!isValidType(storageType)) {
             return List.of();
         }
-        FileType fileType = FileType.from(typeCondition.keyword());
+        FileType fileType = FileType.from(
+                typeCondition == null ? null : typeCondition.keyword()
+        );
         List<TagValue> tagValues = extractTagValues(conditionGroup);
         if (fileType == null) {
             return storageCategoryService.getByTags(storageOwner, tagValues);
