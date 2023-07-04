@@ -1,9 +1,13 @@
 package org.huel.cloudhub.client.disk.domain.userstorage.service;
 
+import com.google.common.base.Strings;
+import org.cloudhub.util.TimeParser;
+import org.cloudhub.util.TimeRange;
 import org.huel.cloudhub.client.disk.domain.storagesearch.SearchCondition;
 import org.huel.cloudhub.client.disk.domain.storagesearch.SearchConditionGroup;
 import org.huel.cloudhub.client.disk.domain.storagesearch.StorageSearchConditionProvider;
 import org.huel.cloudhub.client.disk.domain.storagesearch.common.SearchConditionException;
+import org.huel.cloudhub.client.disk.domain.storagesearch.common.SearchExpressionException;
 import org.huel.cloudhub.client.disk.domain.tag.dto.TagValue;
 import org.huel.cloudhub.client.disk.domain.userstorage.*;
 import org.huel.cloudhub.client.disk.domain.userstorage.repository.StorageMetadataRepository;
@@ -11,6 +15,7 @@ import org.huel.cloudhub.client.disk.domain.userstorage.repository.UserFileStora
 import org.huel.cloudhub.client.disk.domain.userstorage.repository.UserStorageSearchCondition;
 import org.huel.cloudhub.client.disk.domain.userstorage.repository.UserStorageSearchRepository;
 import org.springframework.stereotype.Service;
+import space.lingu.NonNull;
 
 import java.util.Collections;
 import java.util.List;
@@ -25,7 +30,7 @@ public class UserStorageSearchProvider implements StorageCategoryService,
         StorageSearchConditionProvider {
 
     private static final String[] SUPPORTED_CONDITIONS = {
-            NAME, TIME, SIZE, TYPE
+            NAME, TIME, LAST_MODIFIED_TIME, SIZE, TYPE
     };
 
     private final StorageMetadataRepository storageMetadataRepository;
@@ -45,21 +50,33 @@ public class UserStorageSearchProvider implements StorageCategoryService,
                                                          StorageOwner storageOwner)
             throws SearchConditionException {
         SearchCondition nameCondition = conditionGroup.getCondition(NAME);
-        SearchCondition timeCondition = conditionGroup.getCondition(TIME);
+        SearchCondition timeCondition = getTimeCondition(conditionGroup);
         SearchCondition typeCondition = conditionGroup.getCondition(TYPE);
 
         StorageType storageType = tryParseStorageType(typeCondition);
         FileType fileType = tryParseFileType(typeCondition);
+
+        TimeRange timeRange = tryParseTimeRange(timeCondition);
 
         UserStorageSearchCondition userStorageSearchCondition = new UserStorageSearchCondition(
                 storageType,
                 storageOwner,
                 nameCondition == null ? null : nameCondition.keyword(),
                 fileType,
-                null, null, null
+                null,
+                timeRange.end(),
+                timeRange.start()
         );
 
         return userStorageSearchRepository.findStoragesBy(userStorageSearchCondition);
+    }
+
+    private SearchCondition getTimeCondition(SearchConditionGroup conditionGroup) {
+        SearchCondition timeCondition = conditionGroup.getCondition(TIME);
+        if (timeCondition == null) {
+            return conditionGroup.getCondition(LAST_MODIFIED_TIME);
+        }
+        return timeCondition;
     }
 
     private StorageType tryParseStorageType(SearchCondition condition) {
@@ -76,12 +93,17 @@ public class UserStorageSearchProvider implements StorageCategoryService,
         return FileType.from(condition.keyword());
     }
 
-    private record TimePair(
-            Long before,
-            Long after
-    ) {
-    }
+    @NonNull
+    private TimeRange tryParseTimeRange(SearchCondition condition) {
+        if (condition == null) {
+            return TimeRange.NULL;
+        }
+        if (Strings.isNullOrEmpty(condition.keyword())) {
+            throw new SearchExpressionException("time condition keyword is null or empty");
+        }
 
+        return TimeParser.parseTimeRange(condition.keyword());
+    }
 
     @Override
     public boolean supportsCondition(String name) {

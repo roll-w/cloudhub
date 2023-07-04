@@ -60,7 +60,11 @@ public class UserFileStorageRepository extends BaseRepository<UserFileStorage> {
     public List<UserFileStorage> getByIds(
             List<Long> storageIds,
             StorageOwner storageOwner) {
-        List<UserFileStorage> storages = fileStorageDao.getByIds(storageIds);
+        List<UserFileStorage> storages = getByIds(storageIds);
+        if (storages.isEmpty()) {
+            return List.of();
+        }
+
         storages.removeIf(storage -> storage.getOwner() != storageOwner.getOwnerId()
                 || storage.getOwnerType() != storageOwner.getOwnerType());
         return storages;
