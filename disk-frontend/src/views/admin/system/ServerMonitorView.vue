@@ -6,9 +6,13 @@
         <n-h1 v-else-if="type === meta">
             元数据服务器监控
         </n-h1>
-        <n-h1 v-else-if="type === file">
-            <span class="text-amber-500">{{ fileServerId }}</span> 文件服务器监控
-        </n-h1>
+        <div v-else-if="type === file">
+            <n-h1>
+                <span class="text-amber-500">{{ fileServerId }}</span> 文件服务器监控
+            </n-h1>
+            <n-button secondary type="primary">返回</n-button>
+        </div>
+
         <div>
             系统数据每5秒更新一次。
         </div>
@@ -289,6 +293,13 @@
             </div>
         </div>
         <n-divider/>
+        <div v-if="type === file">
+            <n-h2>容器信息</n-h2>
+            <div v-for="group in containers">
+                <ContainerComponent :group="group" />
+            </div>
+        </div>
+
         <div v-if="type === meta">
             <n-h2>
                 文件服务器信息
@@ -335,6 +346,7 @@ import UsagePieChart from "@/components/charts/UsagePieChart.vue";
 import DoubleLineChart from "@/components/charts/DoubleLineChart.vue";
 import {adminClusterMonitor, adminFileServerMonitor, adminSystemMonitor} from "@/router";
 import {formatFileSize} from "@/util/format";
+import ContainerComponent from "@/views/admin/system/ContainerComponent.vue";
 
 const router = useRouter()
 const getType = (routerName) => {
@@ -359,6 +371,8 @@ const dialog = useDialog()
 
 const changeFlag = ref(false)
 const servers = ref([])
+const containers = ref([])
+
 const serverInfo = ref({
     cpu: {},
     jvm: {},
@@ -407,6 +421,38 @@ const getConnectedFileServers = () => {
     })
 }
 
+const getServerContainers = () => {
+    proxy.$axios.get(api.serverContainers(fileServerId), createConfig())
+            .then(resp => {
+                // map by locator and source
+                const map = new Map()
+                resp.data.forEach(cont => {
+                    const key = cont.containerId
+                    const existing = map.get(key)
+                    if (!existing) {
+                        map.set(key, [cont])
+                        return
+                    }
+                    existing.push(cont)
+                })
+
+                // map to array
+                const array = []
+                map.forEach((value, key) => {
+                    array.push({
+                        containerId: key,
+                        source: value[0].source,
+                        containers: value
+                    })
+                })
+
+                containers.value = array
+            })
+            .catch(error => {
+                popAdminErrorTemplate(notification, error, "获取容器信息失败")
+            })
+}
+
 const requestServerInfo = () => {
     proxy.$axios.get(getServerUrl(), createConfig()).then(resp => {
         serverInfo.value = resp.data
@@ -414,6 +460,7 @@ const requestServerInfo = () => {
         if (type.value === meta) {
             getConnectedFileServers()
         }
+
     }).catch(error => {
         popAdminErrorTemplate(notification, error, "获取服务器信息失败")
     })
@@ -421,6 +468,9 @@ const requestServerInfo = () => {
 
 
 requestServerInfo()
+if (type.value === file) {
+    getServerContainers()
+}
 
 const timer = setInterval(() => {
     requestServerInfo()
