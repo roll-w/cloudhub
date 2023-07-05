@@ -5,7 +5,7 @@ package org.huel.cloudhub.client.disk.domain.systembased;
  *
  * @author RollW
  */
-public interface SystemResource extends SystemResourceKind.Kind {
+public interface SystemResource extends SystemResourceKind.Kind, Castable {
     long getResourceId();
 
     @Override
