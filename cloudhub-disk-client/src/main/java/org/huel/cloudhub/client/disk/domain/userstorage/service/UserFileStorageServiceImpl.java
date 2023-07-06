@@ -11,6 +11,7 @@ import org.huel.cloudhub.client.disk.domain.userstorage.common.StorageException;
 import org.huel.cloudhub.client.disk.domain.userstorage.dto.*;
 import org.huel.cloudhub.client.disk.domain.userstorage.repository.UserFileStorageRepository;
 import org.huel.cloudhub.client.disk.domain.userstorage.repository.UserFolderRepository;
+import org.huel.cloudhub.client.disk.domain.userstorage.repository.UserStorageCompositeRepository;
 import org.huel.cloudhub.client.disk.domain.userstorage.util.StorageNameValidator;
 import org.huel.cloudhub.web.ErrorCode;
 import org.slf4j.Logger;
@@ -21,6 +22,7 @@ import space.lingu.NonNull;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -37,17 +39,20 @@ public class UserFileStorageServiceImpl implements
     private final CompositeStorageEventListener compositeStorageEventListener;
     private final UserFolderRepository userFolderRepository;
     private final UserFileStorageRepository userFileStorageRepository;
+    private final UserStorageCompositeRepository userStorageCompositeRepository;
 
     public UserFileStorageServiceImpl(StorageService storageService,
                                       List<StorageEventListener> storageEventListeners,
                                       UserFolderRepository userFolderRepository,
-                                      UserFileStorageRepository userFileStorageRepository) {
+                                      UserFileStorageRepository userFileStorageRepository,
+                                      UserStorageCompositeRepository userStorageCompositeRepository) {
         this.storageService = storageService;
         this.storageEventListeners = storageEventListeners;
         this.compositeStorageEventListener = new CompositeStorageEventListener(storageEventListeners);
         this.userFolderRepository = userFolderRepository;
         this.userFileStorageRepository = userFileStorageRepository;
 
+        this.userStorageCompositeRepository = userStorageCompositeRepository;
     }
 
     @Override
@@ -440,11 +445,45 @@ public class UserFileStorageServiceImpl implements
         return attributedStorages;
     }
 
+    @Override
+    public List<AttributedStorage> listStorages(StorageOwner storageOwner) {
+        return userStorageCompositeRepository.listStorages(storageOwner);
+    }
+
+    @Override
+    public List<AttributedStorage> listStorages() {
+        return userStorageCompositeRepository.listStorages();
+    }
+
+    @Override
+    public List<AttributedStorage> listOf(StorageType storageType) {
+        return switch (storageType) {
+            case FILE -> Collections.unmodifiableList(userFileStorageRepository.get());
+            case FOLDER -> Collections.unmodifiableList(userFolderRepository.get());
+            default -> List.of();
+        };
+    }
+
+    @Override
+    public List<AttributedStorage> listOf(
+            StorageOwner storageOwner,
+            StorageType storageType) {
+        return switch (storageType) {
+            case FILE -> Collections.unmodifiableList(
+                    userFileStorageRepository.getByOwner(storageOwner, null)
+            );
+            case FOLDER -> Collections.unmodifiableList(
+                    userFolderRepository.getByOwner(storageOwner, null)
+            );
+            default -> List.of();
+        };
+    }
+
     private void dispatchFileOnCreate(Storage storage, StorageAttr storageAttr) {
-       compositeStorageEventListener.onStorageCreated(
-               storage,
-               storageAttr
-       );
+        compositeStorageEventListener.onStorageCreated(
+                storage,
+                storageAttr
+        );
     }
 
     private void checkFileCreate(StorageOwner storageOwner,

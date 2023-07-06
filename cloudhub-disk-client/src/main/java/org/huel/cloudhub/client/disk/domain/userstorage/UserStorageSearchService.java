@@ -44,4 +44,12 @@ public interface UserStorageSearchService {
 
     // don't care about the owner
     List<AttributedStorage> listFiles(long folderId);
+
+    List<AttributedStorage> listStorages(StorageOwner storageOwner);
+
+    List<AttributedStorage> listStorages();
+
+    List<AttributedStorage> listOf(StorageType storageType);
+
+    List<AttributedStorage> listOf(StorageOwner storageOwner, StorageType storageType);
 }
