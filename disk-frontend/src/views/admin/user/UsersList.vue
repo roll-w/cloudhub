@@ -4,21 +4,37 @@
         <div class="flex items-baseline mt-5">
             <n-h1>用户列表</n-h1>
             <div class="flex flex-grow justify-end">
-                <n-button>创建新用户</n-button>
+                <n-button @click="showCreateUserModal = true">创建新用户</n-button>
             </div>
         </div>
-        <n-data-table
-                :bordered="false"
-                :columns="columns"
-                :data="data"
-                :pagination="false"
-                class="mt-5"
-        />
-        <div class="flex items-start justify-start mt-5">
-            <div>
-                <n-pagination v-model:page="page" :page-count="1"/>
+        <n-scrollbar x-scrollable trigger="none">
+            <div class="my-2">
+                <n-data-table
+                        :bordered="false"
+                        :columns="columns"
+                        :data="data"
+                        :pagination="false"
+                        class="mt-5"
+                />
             </div>
-        </div>
+
+        </n-scrollbar>
+        <FastPagination :page="page" :route-name="adminUserLists"/>
+
+        <n-modal v-model:show="showCreateUserModal"
+                 :show-icon="false"
+                 closable
+                 preset="dialog"
+                 title="创建用户"
+                 transform-origin="center">
+            <UserCreateForm
+                    :on-after-action="() => {
+                        showCreateUserModal = false
+                        refresh()
+                    }"
+                    :on-click-cancel="() => showCreateUserModal = false"
+            />
+        </n-modal>
     </div>
 </template>
 
@@ -34,6 +50,9 @@ import {adminMenuUser} from "@/views/menu";
 import {useRouter} from "vue-router";
 import {createConfig} from "@/request/axios_config";
 import {popAdminErrorTemplate} from "@/views/util/error";
+import {usePage} from "@/views/util/pages";
+import FastPagination from "@/components/FastPagination.vue";
+import UserCreateForm from "@/components/admin/user/UserCreateForm.vue";
 
 const {proxy} = getCurrentInstance()
 const dialog = useDialog()
@@ -41,36 +60,53 @@ const userStore = useUserStore()
 const router = useRouter()
 const notification = useNotification()
 
-const page = ref(1)
+const showCreateUserModal = ref(false)
+
+const page = usePage()
 
 const columns = [
     {
         title: "用户ID",
-        key: "userId"
+        key: "userId",
     },
     {
         title: "用户名",
-        key: "username"
+        key: "username",
     },
     {
         title: "昵称",
-        key: "nickname"
+        key: "nickname",
     },
     {
         title: "角色",
-        key: "role"
+        key: "role",
+        render(row) {
+            if (row.role === "ADMIN") {
+                return "管理员"
+            }
+            return "用户"
+        }
     },
     {
         title: "电子邮箱",
-        key: "email"
+        key: "email",
+        ellipsis: {
+            tooltip: true
+        }
     },
     {
         title: "注册时间",
-        key: "createdAt"
+        key: "createdAt",
+        ellipsis: {
+            tooltip: true
+        }
     },
     {
         title: "最后更新",
-        key: "updatedAt"
+        key: "updatedAt",
+        ellipsis: {
+            tooltip: true
+        }
     },
     {
         title: "已启用",
@@ -107,31 +143,29 @@ const columns = [
         key: "actions",
         render(row) {
             return h(
-                NButtonGroup,
-                {},
-                () => [
-                    h(NButton,
-                        {
-                            size: 'small',
-                            onClick: () => {
-                                router.push({
-                                  name: adminUserDetails,
-                                  params: {
-                                    userId: row.userId
-                                  }
-                                })
-                            }
-                        },
-                        {default: () => "查看/编辑"}),
-                    h(NButton,
-                        {
-                            size: 'small',
-                            onClick: () => {
-                                handleDeleteUser(row)
-                            }
-                        },
-                        {default: () => "删除"}),
-                ]
+                    NButtonGroup,
+                    {},
+                    () => [
+                        h(NButton,
+                                {
+                                    onClick: () => {
+                                        router.push({
+                                            name: adminUserDetails,
+                                            params: {
+                                                userId: row.userId
+                                            }
+                                        })
+                                    }
+                                },
+                                {default: () => "查看/编辑"}),
+                        h(NButton,
+                                {
+                                    onClick: () => {
+                                        handleDeleteUser(row)
+                                    }
+                                },
+                                {default: () => "删除"}),
+                    ]
             );
         }
     }
@@ -159,7 +193,7 @@ const requestForData = (page, size) => {
         page: page,
         size: size
     }
-    proxy.$axios.get(api.getUsers,  config).then((res) => {
+    proxy.$axios.get(api.getUsers, config).then((res) => {
         const recvData = res.data
         recvData.forEach((item) => {
             item.createdAt = formatTimestamp(item.createdAt)
@@ -168,11 +202,15 @@ const requestForData = (page, size) => {
         data.value = recvData
     }).catch((err) => {
         popAdminErrorTemplate(notification, err, "获取用户列表失败",
-            "用户请求错误")
+                "用户请求错误")
     })
 }
 
-requestForData(1, 10)
+const refresh = () => {
+    requestForData(page.value.page, 10)
+}
+
+refresh()
 
 </script>
 
