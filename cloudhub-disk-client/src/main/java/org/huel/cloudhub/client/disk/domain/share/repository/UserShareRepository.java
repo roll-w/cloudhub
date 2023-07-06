@@ -4,6 +4,8 @@ import org.huel.cloudhub.client.disk.database.DiskDatabase;
 import org.huel.cloudhub.client.disk.database.dao.UserShareDao;
 import org.huel.cloudhub.client.disk.database.repository.BaseRepository;
 import org.huel.cloudhub.client.disk.domain.share.UserShare;
+import org.huel.cloudhub.client.disk.domain.systembased.ContextThreadAware;
+import org.huel.cloudhub.client.disk.domain.systembased.paged.PageableContext;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageType;
 import org.huel.cloudhub.web.data.page.Offset;
 import org.springframework.cache.CacheManager;
@@ -19,8 +21,9 @@ public class UserShareRepository extends BaseRepository<UserShare> {
     private final UserShareDao userShareDao;
 
     protected UserShareRepository(DiskDatabase database,
+                                  ContextThreadAware<PageableContext> pageableContextThreadAware,
                                   CacheManager cacheManager) {
-        super(database.getUserShareDao(), cacheManager);
+        super(database.getUserShareDao(), pageableContextThreadAware, cacheManager);
         userShareDao = database.getUserShareDao();
     }
 

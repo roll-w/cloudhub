@@ -4,6 +4,8 @@ import org.huel.cloudhub.client.disk.common.CacheNames;
 import org.huel.cloudhub.client.disk.database.DiskDatabase;
 import org.huel.cloudhub.client.disk.database.dao.UserDao;
 import org.huel.cloudhub.client.disk.database.repository.BaseRepository;
+import org.huel.cloudhub.client.disk.domain.systembased.ContextThreadAware;
+import org.huel.cloudhub.client.disk.domain.systembased.paged.PageableContext;
 import org.huel.cloudhub.client.disk.domain.user.User;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
@@ -22,8 +24,9 @@ public class UserRepository extends BaseRepository<User> {
     private final Cache userCache;
 
     public UserRepository(DiskDatabase database,
+                          ContextThreadAware<PageableContext> pageableContextThreadAware,
                           CacheManager cacheManager) {
-        super(database.getUserDao(), cacheManager);
+        super(database.getUserDao(), pageableContextThreadAware, cacheManager);
         this.userDao = database.getUserDao();
         this.userCache = cacheManager.getCache(CacheNames.USERS);
     }

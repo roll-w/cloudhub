@@ -3,10 +3,14 @@ package org.huel.cloudhub.client.disk.domain.userstorage.repository;
 import org.huel.cloudhub.client.disk.database.DiskDatabase;
 import org.huel.cloudhub.client.disk.database.dao.UserFileStorageDao;
 import org.huel.cloudhub.client.disk.database.repository.BaseRepository;
+import org.huel.cloudhub.client.disk.domain.systembased.ContextThreadAware;
+import org.huel.cloudhub.client.disk.domain.systembased.paged.PageableContext;
 import org.huel.cloudhub.client.disk.domain.user.LegalUserType;
 import org.huel.cloudhub.client.disk.domain.userstorage.FileType;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageOwner;
 import org.huel.cloudhub.client.disk.domain.userstorage.UserFileStorage;
+import org.huel.cloudhub.web.data.page.Offset;
+import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -18,8 +22,10 @@ import java.util.List;
 public class UserFileStorageRepository extends BaseRepository<UserFileStorage> {
     private final UserFileStorageDao fileStorageDao;
 
-    public UserFileStorageRepository(DiskDatabase diskDatabase) {
-        super(diskDatabase.getUserFileStorageDao());
+    public UserFileStorageRepository(DiskDatabase diskDatabase,
+                                     ContextThreadAware<PageableContext> pageableContextThreadAware,
+                                     CacheManager cacheManager) {
+        super(diskDatabase.getUserFileStorageDao(), pageableContextThreadAware, cacheManager);
         this.fileStorageDao = diskDatabase.getUserFileStorageDao();
     }
 
@@ -126,4 +132,37 @@ public class UserFileStorageRepository extends BaseRepository<UserFileStorage> {
                 fileStorageDao.findFilesByConditions(storageOwner, name, fileType, before, after)
         );
     }
+
+    public List<UserFileStorage> getActiveByOwner(StorageOwner storageOwner, Offset offset) {
+        if (offset == null) {
+            return cacheResult(
+                    fileStorageDao.getActiveByOwner(storageOwner)
+            );
+        }
+
+        return cacheResult(
+                fileStorageDao.getActiveByOwner(storageOwner, offset)
+        );
+    }
+
+    public List<UserFileStorage> getByOwner(StorageOwner storageOwner, Offset offset) {
+        if (offset == null) {
+            return cacheResult(
+                    fileStorageDao.getByOwner(storageOwner)
+            );
+        }
+
+        return cacheResult(
+                fileStorageDao.getByOwner(storageOwner, offset)
+        );
+    }
+
+    public int countActiveByOwner(StorageOwner storageOwner) {
+        return fileStorageDao.countActiveByOwner(storageOwner);
+    }
+
+    public int countByOwner(StorageOwner storageOwner) {
+        return fileStorageDao.countByOwner(storageOwner);
+    }
+
 }

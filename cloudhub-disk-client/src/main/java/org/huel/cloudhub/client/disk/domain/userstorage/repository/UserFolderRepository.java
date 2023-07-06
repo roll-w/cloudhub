@@ -3,6 +3,8 @@ package org.huel.cloudhub.client.disk.domain.userstorage.repository;
 import org.huel.cloudhub.client.disk.database.DiskDatabase;
 import org.huel.cloudhub.client.disk.database.dao.UserFolderDao;
 import org.huel.cloudhub.client.disk.database.repository.BaseRepository;
+import org.huel.cloudhub.client.disk.domain.systembased.ContextThreadAware;
+import org.huel.cloudhub.client.disk.domain.systembased.paged.PageableContext;
 import org.huel.cloudhub.client.disk.domain.user.LegalUserType;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageOwner;
 import org.huel.cloudhub.client.disk.domain.userstorage.UserFolder;
@@ -20,8 +22,9 @@ public class UserFolderRepository extends BaseRepository<UserFolder> {
     private final UserFolderDao userFolderDao;
 
     public UserFolderRepository(DiskDatabase diskDatabase,
+                                ContextThreadAware<PageableContext> pageableContextThreadAware,
                                 CacheManager cacheManager) {
-        super(diskDatabase.getUserDirectoryDao(), cacheManager);
+        super(diskDatabase.getUserDirectoryDao(), pageableContextThreadAware, cacheManager);
         this.userFolderDao = diskDatabase.getUserDirectoryDao();
     }
 
@@ -93,5 +96,37 @@ public class UserFolderRepository extends BaseRepository<UserFolder> {
         return cacheResult(
                 userFolderDao.findFoldersByCondition(storageOwner, name, before, after)
         );
+    }
+
+    public List<UserFolder> getActiveByOwner(StorageOwner storageOwner, Offset offset) {
+        if (offset == null) {
+            return cacheResult(
+                    userFolderDao.getActiveByOwner(storageOwner)
+            );
+        }
+
+        return cacheResult(
+                userFolderDao.getActiveByOwner(storageOwner, offset)
+        );
+    }
+
+    public List<UserFolder> getByOwner(StorageOwner storageOwner, Offset offset) {
+        if (offset == null) {
+            return cacheResult(
+                    userFolderDao.getByOwner(storageOwner)
+            );
+        }
+
+        return cacheResult(
+                userFolderDao.getByOwner(storageOwner, offset)
+        );
+    }
+
+    public int countActiveByOwner(StorageOwner storageOwner) {
+        return userFolderDao.countActiveByOwner(storageOwner);
+    }
+
+    public int countByOwner(StorageOwner storageOwner) {
+        return userFolderDao.countByOwner(storageOwner);
     }
 }

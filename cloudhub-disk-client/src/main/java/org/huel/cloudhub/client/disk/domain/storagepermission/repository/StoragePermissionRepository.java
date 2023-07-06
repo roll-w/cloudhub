@@ -4,6 +4,8 @@ import org.huel.cloudhub.client.disk.database.DiskDatabase;
 import org.huel.cloudhub.client.disk.database.dao.StoragePermissionDao;
 import org.huel.cloudhub.client.disk.database.repository.BaseRepository;
 import org.huel.cloudhub.client.disk.domain.storagepermission.StoragePermission;
+import org.huel.cloudhub.client.disk.domain.systembased.ContextThreadAware;
+import org.huel.cloudhub.client.disk.domain.systembased.paged.PageableContext;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageType;
 import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Repository;
@@ -16,8 +18,9 @@ public class StoragePermissionRepository extends BaseRepository<StoragePermissio
     private final StoragePermissionDao storagePermissionDao;
 
     public StoragePermissionRepository(DiskDatabase database,
+                                       ContextThreadAware<PageableContext> pageableContextThreadAware,
                                        CacheManager cacheManager) {
-        super(database.getStoragePermissionDao(), cacheManager);
+        super(database.getStoragePermissionDao(), pageableContextThreadAware, cacheManager);
         storagePermissionDao = database.getStoragePermissionDao();
     }
 

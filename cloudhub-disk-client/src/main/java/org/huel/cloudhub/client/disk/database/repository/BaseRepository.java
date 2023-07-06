@@ -2,6 +2,9 @@ package org.huel.cloudhub.client.disk.database.repository;
 
 import org.huel.cloudhub.client.disk.database.DataItem;
 import org.huel.cloudhub.client.disk.database.dao.AutoPrimaryBaseDao;
+import org.huel.cloudhub.client.disk.domain.systembased.ContextThread;
+import org.huel.cloudhub.client.disk.domain.systembased.ContextThreadAware;
+import org.huel.cloudhub.client.disk.domain.systembased.paged.PageableContext;
 import org.huel.cloudhub.client.disk.system.pages.CountableDao;
 import org.huel.cloudhub.web.data.page.Offset;
 import org.springframework.cache.Cache;
@@ -15,16 +18,21 @@ import java.util.List;
  */
 public abstract class BaseRepository<T extends DataItem> implements CountableDao<T> {
     protected final AutoPrimaryBaseDao<T> primaryBaseDao;
+    protected final ContextThreadAware<PageableContext> pageableContextThreadAware;
     protected final Cache cache;
 
     protected BaseRepository(AutoPrimaryBaseDao<T> primaryBaseDao,
+                             ContextThreadAware<PageableContext> pageableContextThreadAware,
                              CacheManager cacheManager) {
         this.primaryBaseDao = primaryBaseDao;
+        this.pageableContextThreadAware = pageableContextThreadAware;
         this.cache = cacheManager.getCache("TB-" + primaryBaseDao.getTableName());
     }
 
-    protected BaseRepository(AutoPrimaryBaseDao<T> primaryBaseDao) {
+    protected BaseRepository(AutoPrimaryBaseDao<T> primaryBaseDao,
+                             ContextThreadAware<PageableContext> pageableContextThreadAware) {
         this.primaryBaseDao = primaryBaseDao;
+        this.pageableContextThreadAware = pageableContextThreadAware;
         this.cache = null;
     }
 
@@ -75,6 +83,9 @@ public abstract class BaseRepository<T extends DataItem> implements CountableDao
     }
 
     public List<T> getByIds(List<Long> ids) {
+        if (ids.isEmpty()) {
+            return List.of();
+        }
         CacheResult<T> ts = searchFromCache(ids);
         if (ts.missedIds().isEmpty()) {
             return ts.ts();
@@ -102,10 +113,24 @@ public abstract class BaseRepository<T extends DataItem> implements CountableDao
     }
 
     public List<T> get() {
-        return cacheResult(primaryBaseDao.get());
+        ContextThread<PageableContext> contextThread =
+                pageableContextThreadAware.getContextThread();
+        if (!contextThread.hasContext()) {
+            return cacheResult(primaryBaseDao.get());
+        }
+        PageableContext pageableContext = contextThread.getContext();
+        return get(pageableContext.toOffset());
     }
 
     public List<T> get(Offset offset) {
+        ContextThread<PageableContext> contextThread =
+                pageableContextThreadAware.getContextThread();
+        if (contextThread.hasContext()) {
+            PageableContext pageableContext = contextThread.getContext();
+            long count = getCount();
+            pageableContext.setTotal(count);
+        }
+
         return cacheResult(primaryBaseDao.get(offset));
     }
 

@@ -4,7 +4,9 @@ import org.huel.cloudhub.client.disk.database.DiskDatabase;
 import org.huel.cloudhub.client.disk.database.dao.OperationLogDao;
 import org.huel.cloudhub.client.disk.database.repository.BaseRepository;
 import org.huel.cloudhub.client.disk.domain.operatelog.OperationLog;
+import org.huel.cloudhub.client.disk.domain.systembased.ContextThreadAware;
 import org.huel.cloudhub.client.disk.domain.systembased.SystemResourceKind;
+import org.huel.cloudhub.client.disk.domain.systembased.paged.PageableContext;
 import org.huel.cloudhub.web.data.page.Pageable;
 import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Repository;
@@ -19,8 +21,9 @@ public class OperationLogRepository extends BaseRepository<OperationLog> {
     private final OperationLogDao operationLogDao;
 
     public OperationLogRepository(DiskDatabase database,
+                                  ContextThreadAware<PageableContext> pageableContextThreadAware,
                                   CacheManager cacheManager) {
-        super(database.getOperationLogDao(), cacheManager);
+        super(database.getOperationLogDao(), pageableContextThreadAware, cacheManager);
         operationLogDao = database.getOperationLogDao();
     }
 

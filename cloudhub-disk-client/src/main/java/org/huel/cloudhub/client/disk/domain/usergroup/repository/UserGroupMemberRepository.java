@@ -3,6 +3,8 @@ package org.huel.cloudhub.client.disk.domain.usergroup.repository;
 import org.huel.cloudhub.client.disk.database.DiskDatabase;
 import org.huel.cloudhub.client.disk.database.dao.UserGroupMemberDao;
 import org.huel.cloudhub.client.disk.database.repository.BaseRepository;
+import org.huel.cloudhub.client.disk.domain.systembased.ContextThreadAware;
+import org.huel.cloudhub.client.disk.domain.systembased.paged.PageableContext;
 import org.huel.cloudhub.client.disk.domain.usergroup.UserGroupMember;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageOwner;
 import org.springframework.cache.CacheManager;
@@ -18,8 +20,9 @@ public class UserGroupMemberRepository extends BaseRepository<UserGroupMember> {
     private final UserGroupMemberDao userGroupMemberDao;
 
     public UserGroupMemberRepository(DiskDatabase database,
+                                     ContextThreadAware<PageableContext> pageableContextThreadAware,
                                      CacheManager cacheManager) {
-        super(database.getUserGroupMemberDao(), cacheManager);
+        super(database.getUserGroupMemberDao(), pageableContextThreadAware, cacheManager);
         this.userGroupMemberDao = database.getUserGroupMemberDao();
     }
 

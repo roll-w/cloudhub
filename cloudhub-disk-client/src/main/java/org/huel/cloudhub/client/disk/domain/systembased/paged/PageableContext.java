@@ -15,7 +15,7 @@ public class PageableContext implements SystemContext, Pageable {
     private int size;
     private boolean includeDeleted = false;
 
-    private int total = 0;
+    private long total = 0;
 
     private Order order = Order.DESC;
     private String orderBy = "id";
@@ -29,7 +29,7 @@ public class PageableContext implements SystemContext, Pageable {
         this(0, 0);
     }
 
-    public int getTotal() {
+    public long getTotal() {
         return total;
     }
 
@@ -79,7 +79,11 @@ public class PageableContext implements SystemContext, Pageable {
         this.total += total;
     }
 
-    public void setTotal(int total) {
+    public void addTotal(long total) {
+        this.total += total;
+    }
+
+    public void setTotal(long total) {
         this.total = total;
     }
 

@@ -3,6 +3,8 @@ package org.huel.cloudhub.client.disk.domain.userstats.repository;
 import org.huel.cloudhub.client.disk.database.DiskDatabase;
 import org.huel.cloudhub.client.disk.database.dao.UserStatisticsDao;
 import org.huel.cloudhub.client.disk.database.repository.BaseRepository;
+import org.huel.cloudhub.client.disk.domain.systembased.ContextThreadAware;
+import org.huel.cloudhub.client.disk.domain.systembased.paged.PageableContext;
 import org.huel.cloudhub.client.disk.domain.user.LegalUserType;
 import org.huel.cloudhub.client.disk.domain.userstats.UserStatistics;
 import org.springframework.cache.CacheManager;
@@ -16,8 +18,9 @@ public class UserStatisticsRepository extends BaseRepository<UserStatistics> {
     private final UserStatisticsDao userStatisticsDao;
 
     public UserStatisticsRepository(DiskDatabase database,
+                                    ContextThreadAware<PageableContext> pageableContextThreadAware,
                                     CacheManager cacheManager) {
-        super(database.getUserStatisticsDao(), cacheManager);
+        super(database.getUserStatisticsDao(), pageableContextThreadAware, cacheManager);
         userStatisticsDao = database.getUserStatisticsDao();
     }
 
