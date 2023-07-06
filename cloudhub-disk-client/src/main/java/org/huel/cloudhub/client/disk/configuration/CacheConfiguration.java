@@ -19,7 +19,7 @@ public class CacheConfiguration {
     @Bean
     @Primary
     public CacheManager cacheManager() {
-        // TODO: allow set separately expire time for different caches
+        // TODO: allow setting separately expire time for different caches
         CaffeineCacheManager caffeineCacheManager = new CaffeineCacheManager();
         Caffeine<Object, Object> caffeine = Caffeine
                 .newBuilder()

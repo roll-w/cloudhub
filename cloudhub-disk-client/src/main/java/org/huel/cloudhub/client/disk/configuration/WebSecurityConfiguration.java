@@ -1,6 +1,7 @@
 package org.huel.cloudhub.client.disk.configuration;
 
 import org.huel.cloudhub.client.disk.configuration.compenent.WebDelegateSecurityHandler;
+import org.huel.cloudhub.client.disk.configuration.filter.ContextInitializeFilter;
 import org.huel.cloudhub.client.disk.configuration.filter.CorsConfigFilter;
 import org.huel.cloudhub.client.disk.configuration.filter.OperateLogFilter;
 import org.huel.cloudhub.client.disk.configuration.filter.TokenAuthenticationFilter;
@@ -45,6 +46,7 @@ public class WebSecurityConfiguration {
                                                    CorsConfigFilter corsConfigFilter,
                                                    TokenAuthenticationFilter tokenAuthenticationFilter,
                                                    OperateLogFilter operateLogFilter,
+                                                   ContextInitializeFilter contextInitializeFilter,
                                                    AuthenticationEntryPoint authenticationEntryPoint,
                                                    AccessDeniedHandler accessDeniedHandler) throws Exception {
 
@@ -78,6 +80,8 @@ public class WebSecurityConfiguration {
         security.addFilterBefore(tokenAuthenticationFilter,
                 UsernamePasswordAuthenticationFilter.class);
         security.addFilterBefore(corsConfigFilter,
+                TokenAuthenticationFilter.class);
+        security.addFilterBefore(contextInitializeFilter,
                 TokenAuthenticationFilter.class);
         security.addFilterAfter(operateLogFilter,
                 TokenAuthenticationFilter.class);
