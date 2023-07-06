@@ -1,12 +1,13 @@
 <template>
     <div class="flex-fill relative" @contextmenu="handleContextmenu">
         <div>
-            <div v-if="$slots.folder" class="text-xl py-2">
-                <slot name="folder"></slot>
-            </div>
             <div v-if="$slots.title" class="text-xl py-2">
                 <slot name="title"></slot>
             </div>
+            <div v-if="$slots.folder" class="text-xl py-2">
+                <slot name="folder"></slot>
+            </div>
+
             <div class="flex">
                 <div class="mr-3">
                     <n-checkbox
@@ -130,6 +131,10 @@ const props = defineProps({
     },
     // set to override default behavior
     onStorageClick: {
+        type: Function,
+        default: null
+    },
+    onFolderClick: {
         type: Function,
         default: null
     },
@@ -284,6 +289,11 @@ const handleStorageClick = (e, target) => {
         props.onStorageClick(e, target)
         return;
     }
+    if (props.onFolderClick && target.storageType === 'FOLDER') {
+        props.onFolderClick(e, target)
+        return;
+    }
+
     if (props.disableClick) {
         handleClickMoreOptions(e, target)
         return

@@ -468,11 +468,18 @@ const requestFilesByType = (type) => {
 
 const requestFolderInfo = () => {
     const config = createConfig()
+    if (curDirectoryId === 0) {
+        folderInfo.value = {
+            storageId: 0,
+            storageType: 'FOLDER',
+            parents: []
+        }
+        return
+    }
     proxy.$axios.get(
             api.getStorageInfo('user', userStore.user.id, 'folder', curDirectoryId), config)
             .then(res => {
                 folderInfo.value = res.data
-                console.log('文件夹', res)
             })
             .catch(err => {
                 popUserErrorTemplate(notification, err,
