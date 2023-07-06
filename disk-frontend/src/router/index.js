@@ -5,6 +5,7 @@ const layout = "layout"
 const adminLayout = "layout-admin"
 const headerLayout = "layout-header"
 const loginLayout = "layout-login"
+const userLayout = "layout-user"
 
 export const index = "index"
 export const login = "login-page"
@@ -29,6 +30,8 @@ export const driveShareTokenPage = "drive-share-token-page"
 export const page404 = "page-404"
 export const driveTagPage = "drive-tag-page"
 
+export const userPersonalPage = "user-personal-page"
+export const userPersonalPageWithFolder = "user-personal-page-with-folder"
 export const userSettingPage = "user-setting-page"
 export const userSharePage = "user-share-page"
 export const userStatsPage = "user-stats-page"
@@ -36,9 +39,14 @@ export const userStatsPage = "user-stats-page"
 export const adminIndex = "admin-index"
 
 export const adminUserLists = "admin-user-lists"
+export const adminUserGroupLists = "admin-user-group-lists"
+export const adminUserGroupDetails = "admin-user-group-details"
 export const adminUserDetails = "admin-user-details"
 
 export const adminFileLists = "admin-file-lists"
+export const adminFileDetails = "admin-file-details"
+export const adminFolderLists = "admin-folder-lists"
+export const adminFolderDetails = "admin-folder-details"
 
 export const adminTagGroups = "admin-tag-groups"
 export const adminTags = "admin-tags"
@@ -155,7 +163,7 @@ const router = createRouter({
                 {
                     path: '/:ownerType/:ownerId/drive/files/:type/:id/permission',
                     name: driveFilePermissionPage,
-                    component: () => import("@/views/file/FilePermissionPage.vue"),
+                    component: () => import("@/views/file/FilePermissionView.vue"),
                     meta: {
                         title: "文件权限",
                         requireLogin: true
@@ -170,6 +178,7 @@ const router = createRouter({
                         requireLogin: true
                     }
                 },
+
                 {
                     path: '/user/setting',
                     name: userSettingPage,
@@ -197,7 +206,6 @@ const router = createRouter({
                         requireLogin: true
                     }
                 },
-
             ]
         },
         {
@@ -225,11 +233,29 @@ const router = createRouter({
                     }
                 },
                 {
+                    path: '/admin/users/groups',
+                    name: adminUserGroupLists,
+                    component: () => import("@/views/admin/user/UserGroupListsView.vue"),
+                    meta: {
+                        title: "用户组列表",
+                        requireLogin: true
+                    }
+                },
+                {
                     path: '/admin/storages/files',
                     name: adminFileLists,
                     component: () => import("@/views/admin/file/FileListsView.vue"),
                     meta: {
                         title: "文件列表",
+                        requireLogin: true
+                    }
+                },
+                {
+                    path: '/admin/storages/folders',
+                    name: adminFolderLists,
+                    component: () => import("@/views/admin/file/FolderListsView.vue"),
+                    meta: {
+                        title: "文件夹列表",
                         requireLogin: true
                     }
                 },
@@ -342,6 +368,33 @@ const router = createRouter({
                     }
                 },
             ]
+        },
+
+        {
+            path: '/layout/side/user',
+            name: userLayout,
+            redirect: '/drive/files',
+            component: () => import("@/views/user/UserHomeHeaderLayout.vue"),
+            children: [
+                {
+                    path: '/user/:id/home',
+                    name: userPersonalPage,
+                    component: () => import("@/views/user/PersonalHomeView.vue"),
+                    meta: {
+                        title: "个人主页",
+                        requireLogin: true
+                    }
+                },
+                {
+                    path: '/user/:id/home/:folder',
+                    name: userPersonalPageWithFolder,
+                    component: () => import("@/views/user/PersonalHomeView.vue"),
+                    meta: {
+                        title: "个人主页",
+                        requireLogin: true
+                    }
+                },
+            ],
         },
         {
             path: '/',

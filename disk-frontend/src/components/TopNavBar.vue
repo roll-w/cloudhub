@@ -27,6 +27,11 @@
                                     </n-icon>
                                 </n-button>
                             </n-dropdown>
+                            <n-button circle quaternary >
+                                <n-icon size="22">
+                                    <UsersOutlined/>
+                                </n-icon>
+                            </n-button>
                         </n-space>
                     </div>
 
@@ -61,13 +66,23 @@ import {useUserStore} from "@/stores/user";
 import {getCurrentInstance, h, onMounted, ref} from "vue";
 import {NAvatar, NText} from "naive-ui";
 import {useSiteStore} from "@/stores/site";
-import {adminIndex, driveFilePage, driveFileSearchPage, index, login, userSettingPage, userSharePage} from "@/router";
+import {
+    adminIndex,
+    driveFilePage,
+    driveFileSearchPage,
+    index,
+    login,
+    userPersonalPage,
+    userSettingPage,
+    userSharePage
+} from "@/router";
 import {MD5} from "@/util/crypto";
 import Logo from "@/components/icon/Logo.vue";
 import {useFileStore} from "@/stores/files";
 import ArrowUpload16Filled from "@/components/icon/ArrowUpload16Filled.vue";
 import SearchFilled from "@/components/icon/SearchFilled.vue";
 import FileUploadStateView from "@/components/file/FileUploadStateView.vue";
+import UsersOutlined from "@/components/icon/UsersOutlined.vue";
 
 
 const router = useRouter();
@@ -120,7 +135,10 @@ const userOptions = [
                 RouterLink,
                 {
                     to: {
-                        name: userSharePage,
+                        name: userPersonalPage,
+                        params: {
+                            id: userStore.user.id
+                        }
                     }
                 },
                 {default: () => "个人主页"}
@@ -183,7 +201,10 @@ const adminOptions = [
                 RouterLink,
                 {
                     to: {
-                        name: userSharePage,
+                        name: userPersonalPage,
+                        params: {
+                            id: userStore.user.id
+                        }
                     }
                 },
                 {default: () => "个人主页"}
