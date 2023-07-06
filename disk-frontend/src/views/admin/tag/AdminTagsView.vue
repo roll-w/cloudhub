@@ -111,7 +111,7 @@ const requestTags = () => {
         page: page.value.page,
         size: 10
     }
-    proxy.$axios.get(api.tags(true), config).then((res) => {
+    proxy.$axios.get(api.tags(undefined, true), config).then((res) => {
         page.value.count = Math.ceil(res.total / res.size)
         page.value.page = res.page
 

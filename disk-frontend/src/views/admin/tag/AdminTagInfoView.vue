@@ -121,7 +121,7 @@ const tag = ref({})
 
 const requestTagInfo = () => {
     const config = createConfig()
-    proxy.$axios.get(api.tags(true, tagId.value), config).then(resp => {
+    proxy.$axios.get(api.tags(tagId.value, true), config).then(resp => {
         tag.value = resp.data
     }).catch(error => {
         popAdminErrorTemplate(notification, error,

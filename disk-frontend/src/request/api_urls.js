@@ -33,6 +33,11 @@ export const getStorageVersion = (ownerType, ownerId, storageType, id, version) 
 export const getStoragePermissions = (ownerType, ownerId, storageType, id) =>
     `${prefix}/${ownerType}/${ownerId}/disk/${storageType}/${id}/permissions`;
 
+export const storagePublicPermission = (ownerType, ownerId, storageType, id) =>
+    `${prefix}/${ownerType}/${ownerId}/disk/${storageType}/${id}/permissions/public`;
+export const storageUserPermission = (ownerType, ownerId, storageType, id, userId) =>
+    `${prefix}/${ownerType}/${ownerId}/disk/${storageType}/${id}/permissions/user/${userId}`;
+
 export const folder = (ownerType, ownerId, directory) =>
     `${prefix}/${ownerType}/${ownerId}/disk/folder/${directory}`;
 export const storage = (ownerType, ownerId, storageType, id) =>
@@ -65,9 +70,9 @@ export const getOperationLogsAdmin =
     `${adminPrefix}/operations/logs`;
 export const tagGroups = (admin = false, id = null) =>
     `${admin ? adminPrefix : prefix}/tags/groups${id ? `/${id}` : ''}`;
-export const tagGroupsFile = (admin = false, groupId) =>
+export const tagGroupsFile = (groupId, admin = false) =>
     `${admin ? adminPrefix : prefix}/tags/groups/${groupId}/infile`;
-export const tags = (admin = false, id) =>
+export const tags = (id, admin = false) =>
     `${admin ? adminPrefix : prefix}/tags${id ? `/${id}` : ''}`;
 export const files = (admin = false) =>
     `${admin ? adminPrefix : prefix}/disk/files`;
@@ -82,6 +87,9 @@ export const shares = (admin = false) =>
 export const getCurrentUserOperationLogs = `${prefix}/user/operations/logs`;
 export const getCurrentUserLoginLogs = `${prefix}/user/login/logs`;
 export const getCurrentUserInfo = `${prefix}/user`;
+
+export const users = (admin = false, id = null) =>
+    `${admin ? adminPrefix : prefix}/users${id ? `/${id}` : ''}`;
 
 export const userInfo = (userId, admin = false) =>
     `${admin ? adminPrefix : prefix}/users/${userId}`;

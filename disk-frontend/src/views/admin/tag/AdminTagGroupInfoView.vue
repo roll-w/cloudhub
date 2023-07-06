@@ -284,7 +284,7 @@ const handleUploadKeywordsFile = () => {
     const file = keywordFiles.value[0].file
     formData.append('file', file)
     showUploadKeywordsModal.value = false
-    proxy.$axios.post(api.tagGroupsFile(true, tagGroup.value.id), formData, config)
+    proxy.$axios.post(api.tagGroupsFile(tagGroup.value.id, true), formData, config)
             .then(res => {
                 onRefresh()
                 message.success('导入文件成功')
