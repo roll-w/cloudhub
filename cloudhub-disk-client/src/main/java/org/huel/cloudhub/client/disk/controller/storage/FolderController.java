@@ -1,32 +1,23 @@
 package org.huel.cloudhub.client.disk.controller.storage;
 
+import org.huel.cloudhub.client.disk.common.ApiContextHolder;
 import org.huel.cloudhub.client.disk.common.ParamValidate;
 import org.huel.cloudhub.client.disk.controller.Api;
 import org.huel.cloudhub.client.disk.controller.ParameterHelper;
+import org.huel.cloudhub.client.disk.domain.operatelog.Action;
 import org.huel.cloudhub.client.disk.domain.operatelog.BuiltinOperationType;
 import org.huel.cloudhub.client.disk.domain.operatelog.context.BuiltinOperate;
-import org.huel.cloudhub.client.disk.domain.user.LegalUserType;
-import org.huel.cloudhub.client.disk.domain.userstorage.AttributedStorage;
-import org.huel.cloudhub.client.disk.domain.userstorage.StorageAction;
-import org.huel.cloudhub.client.disk.domain.userstorage.StorageActionService;
-import org.huel.cloudhub.client.disk.domain.userstorage.StorageIdentity;
-import org.huel.cloudhub.client.disk.domain.userstorage.StorageOwner;
-import org.huel.cloudhub.client.disk.domain.userstorage.StorageType;
-import org.huel.cloudhub.client.disk.domain.userstorage.UserFolderService;
-import org.huel.cloudhub.client.disk.domain.userstorage.UserStorageSearchService;
+import org.huel.cloudhub.client.disk.domain.systembased.*;
+import org.huel.cloudhub.client.disk.domain.systembased.paged.PageableContext;
+import org.huel.cloudhub.client.disk.domain.user.UserIdentity;
+import org.huel.cloudhub.client.disk.domain.userstorage.*;
 import org.huel.cloudhub.client.disk.domain.userstorage.common.StorageErrorCode;
 import org.huel.cloudhub.client.disk.domain.userstorage.common.StorageException;
 import org.huel.cloudhub.client.disk.domain.userstorage.dto.FolderStructureInfo;
 import org.huel.cloudhub.client.disk.domain.userstorage.dto.SimpleStorageIdentity;
-import org.huel.cloudhub.client.disk.domain.userstorage.dto.SimpleStorageOwner;
 import org.huel.cloudhub.client.disk.domain.userstorage.vo.StorageVo;
 import org.huel.cloudhub.web.HttpResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -38,15 +29,22 @@ public class FolderController {
     private final UserFolderService userFolderService;
     private final StorageActionService storageActionService;
     private final UserStorageSearchService userStorageSearchService;
+    private final ContextThreadAware<PageableContext> pageableContextThreadAware;
+    private final SystemResourceAuthenticationProviderFactory systemResourceAuthenticationProviderFactory;
 
     public FolderController(UserFolderService userFolderService,
                             StorageActionService storageActionService,
-                            UserStorageSearchService userStorageSearchService) {
+                            UserStorageSearchService userStorageSearchService,
+                            ContextThreadAware<PageableContext> pageableContextThreadAware,
+                            SystemResourceAuthenticationProviderFactory systemResourceAuthenticationProviderFactory) {
         this.userFolderService = userFolderService;
         this.storageActionService = storageActionService;
         this.userStorageSearchService = userStorageSearchService;
+        this.pageableContextThreadAware = pageableContextThreadAware;
+        this.systemResourceAuthenticationProviderFactory = systemResourceAuthenticationProviderFactory;
     }
 
+    @SystemResourceAuthenticate(idParam = "folderId")
     @BuiltinOperate(BuiltinOperationType.CREATE_FOLDER)
     @PostMapping("/{ownerType}/{ownerId}/disk/folder/{folderId}")
     public HttpResponseEntity<StorageVo> createFolder(
@@ -65,6 +63,7 @@ public class FolderController {
         );
     }
 
+    @SystemResourceAuthenticate(idParam = "storageId")
     @BuiltinOperate(BuiltinOperationType.RENAME_FOLDER)
     @PutMapping("/{ownerType}/{ownerId}/disk/folder/{storageId}/name")
     public HttpResponseEntity<Void> renameFolder(
@@ -76,6 +75,7 @@ public class FolderController {
         return HttpResponseEntity.success();
     }
 
+    @SystemResourceAuthenticate(idParam = "storageId")
     @BuiltinOperate(BuiltinOperationType.MOVE_FOLDER)
     @PutMapping("/{ownerType}/{ownerId}/disk/folder/{storageId}/move")
     public HttpResponseEntity<Void> moveFolder(
@@ -85,6 +85,7 @@ public class FolderController {
         return HttpResponseEntity.success();
     }
 
+    @SystemResourceAuthenticate(idParam = "storageId")
     @BuiltinOperate(BuiltinOperationType.DELETE_FOLDER)
     @DeleteMapping("/{ownerType}/{ownerId}/disk/folder/{storageId}")
     public HttpResponseEntity<Void> deleteFolder(
@@ -104,24 +105,52 @@ public class FolderController {
         return HttpResponseEntity.success();
     }
 
+    @SystemResourceAuthenticate(
+            idParam = "directory",
+            kind = SystemResourceKind.FOLDER, inferredKind = false,
+            action = Action.ACCESS, inferredAction = false
+    )
     @GetMapping("/{ownerType}/{ownerId}/disk/folder/{storageId}")
     public HttpResponseEntity<List<StorageVo>> listFiles(
             @PathVariable("storageId") Long directory,
             @PathVariable("ownerId") Long ownerId,
             @PathVariable("ownerType") String type) {
+        StorageOwner storageOwner = ParameterHelper.buildStorageOwner(ownerId, type);
+        UserIdentity userIdentity = ApiContextHolder.getContext().userInfo();
+        ContextThread<PageableContext> contextThread =
+                pageableContextThreadAware.getContextThread();
+        PageableContext pageableContext = contextThread.getContext();
+        pageableContext.setIncludeDeleted(false);
+
         List<AttributedStorage> storages = userStorageSearchService.listFiles(
                 directory,
-                new SimpleStorageOwner(ownerId, LegalUserType.from(type))
+                storageOwner
         );
+        SystemResourceAuthenticationProvider systemAuthenticationProvider =
+                systemResourceAuthenticationProviderFactory.getSystemResourceAuthenticationProvider(SystemResourceKind.FILE);
+
+        List<SystemAuthentication> systemAuthentications =
+                systemAuthenticationProvider.authenticate(storages, userIdentity, Action.ACCESS);
+        List<AttributedStorage> authenticatedStorages =
+                systemAuthentications.stream()
+                        .filter(SystemAuthentication::isAllowAccess)
+                        .map(SystemAuthentication::getSystemResource)
+                        .map(resource -> resource.cast(AttributedStorage.class))
+                        .toList();
 
         return HttpResponseEntity.success(
-                storages.stream()
+                authenticatedStorages.stream()
                         .filter(storage -> !storage.isDeleted())
                         .map(StorageVo::from)
                         .toList()
         );
     }
 
+    @SystemResourceAuthenticate(
+            idParam = "storageId",
+            kind = SystemResourceKind.FOLDER, inferredKind = false,
+            action = Action.ACCESS, inferredAction = false
+    )
     @GetMapping("/{ownerType}/{ownerId}/disk/folder/{storageId}/info")
     public HttpResponseEntity<FolderStructureInfo> getFolderInfo(
             @PathVariable("storageId") Long storageId,
