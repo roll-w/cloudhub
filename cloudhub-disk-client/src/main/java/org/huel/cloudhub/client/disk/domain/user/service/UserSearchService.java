@@ -13,15 +13,17 @@ import java.util.List;
  *
  * @author RollW
  */
-public interface UserSearchService {
+public interface UserSearchService extends UserProvider {
     /**
      * Get user by id. And enables check if user is deleted or canceled.
      *
      * @throws UserException if user is deleted or canceled.
      */
+    @Override
     AttributedUser findUser(long userId) throws UserException;
 
 
+    @Override
     AttributedUser findUser(String username) throws UserException;
 
     List<? extends AttributedUser> findUsers(String username);

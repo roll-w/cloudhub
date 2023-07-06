@@ -21,6 +21,7 @@ import org.huel.cloudhub.web.data.page.Pageable;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import space.lingu.NonNull;
 
 import java.util.List;
 
@@ -137,6 +138,20 @@ public class UserServiceImpl implements UserSignatureProvider,
     }
 
     @Override
+    public AttributedUser tryFindUser(@NonNull String username) {
+        char firstChar = username.charAt(0);
+        if (Character.isDigit(firstChar)) {
+            try {
+                return findUser(Long.parseLong(username));
+            } catch (NumberFormatException e) {
+               throw new UserException(UserErrorCode.ERROR_USER_NOT_EXIST,
+                       "Cannot find user by id: " + username);
+            }
+        }
+        return findUser(username);
+    }
+
+    @Override
     public AttributedUser findUser(long userId) throws UserException {
         User user = userRepository.getById(userId);
         if (user == null) {
@@ -153,7 +168,17 @@ public class UserServiceImpl implements UserSignatureProvider,
 
     @Override
     public AttributedUser findUser(String username) throws UserException {
-        return null;
+        User user = userRepository.getUserByName(username);
+        if (user == null) {
+            throw new UserException(UserErrorCode.ERROR_USER_NOT_EXIST);
+        }
+        if (!user.isEnabled()) {
+            throw new UserException(UserErrorCode.ERROR_USER_DISABLED);
+        }
+        if (user.isCanceled()) {
+            throw new UserException(UserErrorCode.ERROR_USER_CANCELED);
+        }
+        return user;
     }
 
     @Override
