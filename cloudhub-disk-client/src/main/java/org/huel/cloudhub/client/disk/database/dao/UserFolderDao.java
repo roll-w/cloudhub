@@ -74,6 +74,27 @@ public interface UserFolderDao extends AutoPrimaryBaseDao<UserFolder> {
         return "user_folder";
     }
 
+    @Query("SELECT * FROM user_folder WHERE owner = {storageOwner.getOwnerId()} " +
+            "AND owner_type = {storageOwner.getOwnerType()} " +
+            "LIMIT {offset.limit()} OFFSET {offset.offset()}")
+    List<UserFolder> getByOwner(StorageOwner storageOwner, Offset offset);
+
+    @Query("SELECT * FROM user_folder WHERE owner = {storageOwner.getOwnerId()} " +
+            "AND owner_type = {storageOwner.getOwnerType()}")
+    List<UserFolder> getByOwner(StorageOwner storageOwner);
+
+    @Query("SELECT * FROM user_folder WHERE owner = {storageOwner.getOwnerId()} " +
+            "AND owner_type = {storageOwner.getOwnerType()} " +
+            "AND deleted = 0 " +
+            "LIMIT {offset.limit()} OFFSET {offset.offset()}")
+    List<UserFolder> getActiveByOwner(StorageOwner storageOwner, Offset offset);
+
+    @Query("SELECT * FROM user_folder WHERE owner = {storageOwner.getOwnerId()} " +
+            "AND owner_type = {storageOwner.getOwnerType()} " +
+            "AND deleted = 0")
+    List<UserFolder> getActiveByOwner(StorageOwner storageOwner);
+
+
     @Query("SELECT * FROM user_folder WHERE id = {directoryId} AND owner = {ownerId} AND owner_type = {ownerType}")
     UserFolder getById(long directoryId, long ownerId, LegalUserType ownerType);
 
@@ -119,6 +140,17 @@ public interface UserFolderDao extends AutoPrimaryBaseDao<UserFolder> {
     List<UserFolder> findFoldersBetween(StorageOwner storageOwner,
                                         long before, long after);
 
+    @Query("SELECT COUNT(*) FROM user_folder WHERE " +
+            "owner = {storageOwner.getOwnerId()} " +
+            "AND owner_type = {storageOwner.getOwnerType()} " +
+            "AND deleted = 0")
+    int countActiveByOwner(StorageOwner storageOwner);
+
+    @Query("SELECT COUNT(*) FROM user_folder WHERE " +
+            "owner = {storageOwner.getOwnerId()} " +
+            "AND owner_type = {storageOwner.getOwnerType()}")
+    int countByOwner(StorageOwner storageOwner);
+
     default List<UserFolder> findFolders(StorageOwner storageOwner,
                                          @NonNull String name,
                                          Long before, Long after) {
@@ -148,4 +180,5 @@ public interface UserFolderDao extends AutoPrimaryBaseDao<UserFolder> {
         }
         return findFolders(storageOwner, name, before, after);
     }
+
 }

@@ -180,4 +180,40 @@ public interface UserFileStorageDao extends AutoPrimaryBaseDao<UserFileStorage> 
         }
         return findFilesLikeAndBetween(storageOwner, name, fileType, before, after);
     }
+
+    @Query("SELECT * FROM user_file_storage " +
+            "WHERE owner = {storageOwner.getOwnerId()} " +
+            "AND owner_type = {storageOwner.getOwnerType()} " +
+            "AND deleted = 0 " +
+            "LIMIT {offset.limit()} OFFSET {offset.offset()}")
+    List<UserFileStorage> getActiveByOwner(StorageOwner storageOwner, Offset offset);
+
+    @Query("SELECT * FROM user_file_storage " +
+            "WHERE owner = {storageOwner.getOwnerId()} " +
+            "AND owner_type = {storageOwner.getOwnerType()} " +
+            "AND deleted = 0")
+    List<UserFileStorage> getActiveByOwner(StorageOwner storageOwner);
+
+    @Query("SELECT * FROM user_file_storage " +
+            "WHERE owner = {storageOwner.getOwnerId()} " +
+            "AND owner_type = {storageOwner.getOwnerType()} " +
+            "LIMIT {offset.limit()} OFFSET {offset.offset()}")
+    List<UserFileStorage> getByOwner(StorageOwner storageOwner, Offset offset);
+
+    @Query("SELECT * FROM user_file_storage " +
+            "WHERE owner = {storageOwner.getOwnerId()} " +
+            "AND owner_type = {storageOwner.getOwnerType()} ")
+    List<UserFileStorage> getByOwner(StorageOwner storageOwner);
+
+
+    @Query("SELECT COUNT(*) FROM user_file_storage " +
+            "WHERE owner = {storageOwner.getOwnerId()} " +
+            "AND owner_type = {storageOwner.getOwnerType()} " +
+            "AND deleted = 0")
+    int countActiveByOwner(StorageOwner storageOwner);
+
+    @Query("SELECT COUNT(*) FROM user_file_storage " +
+            "WHERE owner = {storageOwner.getOwnerId()} " +
+            "AND owner_type = {storageOwner.getOwnerType()} ")
+    int countByOwner(StorageOwner storageOwner);
 }
