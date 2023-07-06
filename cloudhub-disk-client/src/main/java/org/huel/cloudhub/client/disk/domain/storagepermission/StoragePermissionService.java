@@ -14,6 +14,8 @@ import java.util.List;
  * @author RollW
  */
 public interface StoragePermissionService {
+    // TODO: refactor, remove the ignoreDelete parameter
+
     void setStoragePermission(StorageIdentity storage,
                               PublicPermissionType permissionType,
                               boolean ignoreDelete);

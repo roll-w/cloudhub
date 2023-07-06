@@ -3,11 +3,7 @@ package org.huel.cloudhub.client.disk.domain.storagepermission.service;
 import org.huel.cloudhub.client.disk.domain.operatelog.Action;
 import org.huel.cloudhub.client.disk.domain.operatelog.Operator;
 import org.huel.cloudhub.client.disk.domain.operatelog.context.OperationContextHolder;
-import org.huel.cloudhub.client.disk.domain.storagepermission.PermissionType;
-import org.huel.cloudhub.client.disk.domain.storagepermission.PublicPermissionType;
-import org.huel.cloudhub.client.disk.domain.storagepermission.StoragePermission;
-import org.huel.cloudhub.client.disk.domain.storagepermission.StoragePermissionService;
-import org.huel.cloudhub.client.disk.domain.storagepermission.StorageUserPermission;
+import org.huel.cloudhub.client.disk.domain.storagepermission.*;
 import org.huel.cloudhub.client.disk.domain.storagepermission.common.StoragePermissionErrorCode;
 import org.huel.cloudhub.client.disk.domain.storagepermission.common.StoragePermissionException;
 import org.huel.cloudhub.client.disk.domain.storagepermission.dto.StoragePermissionDto;
@@ -15,10 +11,7 @@ import org.huel.cloudhub.client.disk.domain.storagepermission.dto.StoragePermiss
 import org.huel.cloudhub.client.disk.domain.storagepermission.repository.StoragePermissionRepository;
 import org.huel.cloudhub.client.disk.domain.storagepermission.repository.StorageUserPermissionRepository;
 import org.huel.cloudhub.client.disk.domain.systembased.*;
-import org.huel.cloudhub.client.disk.domain.userstorage.AttributedStorage;
-import org.huel.cloudhub.client.disk.domain.userstorage.StorageIdentity;
-import org.huel.cloudhub.client.disk.domain.userstorage.StorageOwner;
-import org.huel.cloudhub.client.disk.domain.userstorage.UserStorageSearchService;
+import org.huel.cloudhub.client.disk.domain.userstorage.*;
 import org.huel.cloudhub.client.disk.domain.userstorage.common.StorageErrorCode;
 import org.huel.cloudhub.web.AuthErrorCode;
 import org.springframework.stereotype.Service;
@@ -110,7 +103,9 @@ public class StoragePermissionServiceImpl implements StoragePermissionService,
         if (operator.getOperatorId() == storage.getOwnerId()) {
             throw new StoragePermissionException(StoragePermissionErrorCode.ERROR_PERMISSION_NOT_ALLOW_USER);
         }
-
+        if (permissionTypes == null || permissionTypes.isEmpty()) {
+            throw new StoragePermissionException(StoragePermissionErrorCode.ERROR_PERMISSION_TYPE_EMPTY);
+        }
         StorageUserPermission storageUserPermission = storageUserPermissionRepository.getByStorageIdAndUserId(
                 storageIdentity.getStorageId(),
                 storageIdentity.getStorageType(),
@@ -127,8 +122,9 @@ public class StoragePermissionServiceImpl implements StoragePermissionService,
                     .addSystemResource(storageIdentity);
             return;
         }
+        List<PermissionType> reduced = reducePermissionTypes(permissionTypes);
         StorageUserPermission updated = storageUserPermission.toBuilder()
-                .setPermissionTypes(permissionTypes)
+                .setPermissionTypes(reduced)
                 .setUpdateTime(System.currentTimeMillis())
                 .build();
         storageUserPermissionRepository.update(updated);
@@ -141,15 +137,25 @@ public class StoragePermissionServiceImpl implements StoragePermissionService,
                                                       Operator operator,
                                                       List<PermissionType> permissionTypes) {
         long time = System.currentTimeMillis();
+
+        List<PermissionType> reduced = reducePermissionTypes(permissionTypes);
+
         return StorageUserPermission.builder()
                 .setStorageId(attributedStorage.getStorageId())
                 .setStorageType(attributedStorage.getStorageType())
                 .setUserId(operator.getOperatorId())
-                .setPermissionTypes(permissionTypes)
+                .setPermissionTypes(reduced)
                 .setCreateTime(time)
                 .setUpdateTime(time)
                 .setDeleted(false)
                 .build();
+    }
+
+    private List<PermissionType> reducePermissionTypes(List<PermissionType> permissionTypes) {
+        if (permissionTypes.contains(PermissionType.DENIED)) {
+            return List.of(PermissionType.DENIED);
+        }
+        return permissionTypes.stream().distinct().toList();
     }
 
     @Override
@@ -164,6 +170,11 @@ public class StoragePermissionServiceImpl implements StoragePermissionService,
             //  but in the future, needs to check the type of owner
             return true;
         }
+        if (storage.getStorageId() == 0 &&
+                storage.getStorageType() == StorageType.FOLDER) {
+            return true;
+        }
+
         StoragePermissionDto storagePermissionDto =
                 getPermissionOf(storageIdentity, operator, ignoreDelete);
         if (action.isRead()) {

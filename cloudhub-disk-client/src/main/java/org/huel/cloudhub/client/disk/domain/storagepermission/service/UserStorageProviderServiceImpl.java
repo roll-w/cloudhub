@@ -32,9 +32,11 @@ public class UserStorageProviderServiceImpl
                                              Operator operator,
                                              Action action) {
         StorageIdentity storageIdentity = tryGetStorageIdentity(systemResource);
+
         boolean allow = storagePermissionService.checkPermissionOf(
                 storageIdentity, operator,
-                action, true);
+                action, true
+        );
 
         return new SimpleSystemAuthentication(systemResource, operator, allow);
     }

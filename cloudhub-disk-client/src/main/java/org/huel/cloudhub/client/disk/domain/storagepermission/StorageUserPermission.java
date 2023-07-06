@@ -103,7 +103,7 @@ public class StorageUserPermission implements SystemResource, DataItem, StorageI
 
     @Override
     public SystemResourceKind getSystemResourceKind() {
-        return SystemResourceKind.STORAGE_PERMISSION;
+        return SystemResourceKind.STORAGE_USER_PERMISSION;
     }
 
     public Builder toBuilder() {

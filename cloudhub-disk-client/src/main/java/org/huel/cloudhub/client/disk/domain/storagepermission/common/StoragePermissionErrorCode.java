@@ -26,6 +26,7 @@ public enum StoragePermissionErrorCode implements ErrorCode, ErrorCodeFinder, Er
     ERROR_PERMISSION_ASSIGN_NOT_ALLOWED("B3315", 403),
     ERROR_PERMISSION_NOT_ALLOW_USER("B3316", 403),
 
+    ERROR_PERMISSION_TYPE_EMPTY("B3320", 400),
     ;
 
     private final String value;
