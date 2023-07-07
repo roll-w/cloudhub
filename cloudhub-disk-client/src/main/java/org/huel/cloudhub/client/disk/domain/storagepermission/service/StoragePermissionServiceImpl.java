@@ -2,9 +2,7 @@ package org.huel.cloudhub.client.disk.domain.storagepermission.service;
 
 import org.huel.cloudhub.client.disk.domain.operatelog.Action;
 import org.huel.cloudhub.client.disk.domain.operatelog.Operator;
-import org.huel.cloudhub.client.disk.domain.operatelog.context.OperationContextHolder;
 import org.huel.cloudhub.client.disk.domain.storagepermission.*;
-import org.huel.cloudhub.client.disk.domain.storagepermission.common.StoragePermissionErrorCode;
 import org.huel.cloudhub.client.disk.domain.storagepermission.common.StoragePermissionException;
 import org.huel.cloudhub.client.disk.domain.storagepermission.dto.StoragePermissionDto;
 import org.huel.cloudhub.client.disk.domain.storagepermission.dto.StoragePermissionsInfo;
@@ -13,6 +11,7 @@ import org.huel.cloudhub.client.disk.domain.storagepermission.repository.Storage
 import org.huel.cloudhub.client.disk.domain.systembased.*;
 import org.huel.cloudhub.client.disk.domain.userstorage.*;
 import org.huel.cloudhub.client.disk.domain.userstorage.common.StorageErrorCode;
+import org.huel.cloudhub.client.disk.domain.userstorage.dto.SimpleStorageIdentity;
 import org.huel.cloudhub.web.AuthErrorCode;
 import org.springframework.stereotype.Service;
 import space.lingu.NonNull;
@@ -25,7 +24,7 @@ import java.util.Objects;
  */
 @Service
 public class StoragePermissionServiceImpl implements StoragePermissionService,
-        SystemResourceActionProvider {
+        SystemResourceActionProvider, SystemResourceOperatorFactory, StoragePermissionActionDelegate {
     private final StoragePermissionRepository storagePermissionRepository;
     private final StorageUserPermissionRepository storageUserPermissionRepository;
     private final UserStorageSearchService userStorageSearchService;
@@ -57,105 +56,6 @@ public class StoragePermissionServiceImpl implements StoragePermissionService,
             throw new StoragePermissionException(StorageErrorCode.ERROR_FILE_ALREADY_DELETED);
         }
         return storage;
-    }
-
-    @Override
-    public void setStoragePermission(StorageIdentity storageIdentity,
-                                     PublicPermissionType permissionType,
-                                     boolean ignoreDelete) {
-        AttributedStorage storage = preCheckStorage(storageIdentity, ignoreDelete);
-
-        StoragePermission storagePermission = tryFindPermission(storage);
-        if (storagePermission != null) {
-            StoragePermission updated = storagePermission.toBuilder()
-                    .setPermissionType(permissionType)
-                    .setUpdateTime(System.currentTimeMillis())
-                    .build();
-            storagePermissionRepository.update(updated);
-            OperationContextHolder.getContext()
-                    .addSystemResource(updated)
-                    .addSystemResource(storageIdentity);
-            return;
-        }
-        StoragePermission.Builder builder = StoragePermission.builder();
-        StoragePermission newStoragePermission = builder
-                .setStorageId(storageIdentity.getStorageId())
-                .setStorageType(storageIdentity.getStorageType())
-                .setPermissionType(permissionType)
-                .setCreateTime(System.currentTimeMillis())
-                .setUpdateTime(System.currentTimeMillis())
-                .build();
-        long id = storagePermissionRepository.insert(newStoragePermission);
-        StoragePermission inserted = builder
-                .setId(id)
-                .build();
-        OperationContextHolder.getContext()
-                .addSystemResource(inserted)
-                .addSystemResource(storageIdentity);
-    }
-
-    @Override
-    public void setStoragePermission(StorageIdentity storageIdentity,
-                                     Operator operator,
-                                     List<PermissionType> permissionTypes,
-                                     boolean ignoreDelete) {
-        AttributedStorage storage = preCheckStorage(storageIdentity, ignoreDelete);
-        if (operator.getOperatorId() == storage.getOwnerId()) {
-            throw new StoragePermissionException(StoragePermissionErrorCode.ERROR_PERMISSION_NOT_ALLOW_USER);
-        }
-        if (permissionTypes == null || permissionTypes.isEmpty()) {
-            throw new StoragePermissionException(StoragePermissionErrorCode.ERROR_PERMISSION_TYPE_EMPTY);
-        }
-        StorageUserPermission storageUserPermission = storageUserPermissionRepository.getByStorageIdAndUserId(
-                storageIdentity.getStorageId(),
-                storageIdentity.getStorageType(),
-                operator.getOperatorId()
-        );
-        if (storageUserPermission == null) {
-            StorageUserPermission built = buildUserPermission(storage, operator, permissionTypes);
-            long id = storageUserPermissionRepository.insert(built);
-            StorageUserPermission inserted = built.toBuilder()
-                    .setId(id)
-                    .build();
-            OperationContextHolder.getContext()
-                    .addSystemResource(inserted)
-                    .addSystemResource(storageIdentity);
-            return;
-        }
-        List<PermissionType> reduced = reducePermissionTypes(permissionTypes);
-        StorageUserPermission updated = storageUserPermission.toBuilder()
-                .setPermissionTypes(reduced)
-                .setUpdateTime(System.currentTimeMillis())
-                .build();
-        storageUserPermissionRepository.update(updated);
-        OperationContextHolder.getContext()
-                .addSystemResource(updated)
-                .addSystemResource(storageIdentity);
-    }
-
-    private StorageUserPermission buildUserPermission(AttributedStorage attributedStorage,
-                                                      Operator operator,
-                                                      List<PermissionType> permissionTypes) {
-        long time = System.currentTimeMillis();
-
-        List<PermissionType> reduced = reducePermissionTypes(permissionTypes);
-
-        return StorageUserPermission.builder()
-                .setStorageId(attributedStorage.getStorageId())
-                .setStorageType(attributedStorage.getStorageType())
-                .setUserId(operator.getOperatorId())
-                .setPermissionTypes(reduced)
-                .setCreateTime(time)
-                .setUpdateTime(time)
-                .setDeleted(false)
-                .build();
-    }
-
-    private List<PermissionType> reducePermissionTypes(List<PermissionType> permissionTypes) {
-        if (permissionTypes.contains(PermissionType.DENIED)) {
-            return List.of(PermissionType.DENIED);
-        }
-        return permissionTypes.stream().distinct().toList();
     }
 
     @Override
@@ -199,7 +99,7 @@ public class StoragePermissionServiceImpl implements StoragePermissionService,
                                                 Operator operator, boolean ignoreDelete) {
         AttributedStorage storage = preCheckStorage(storageIdentity, ignoreDelete);
         StorageUserPermission storageUserPermission = tryFindUserPermission(storage, operator);
-        if (storageUserPermission != null) {
+        if (storageUserPermission != null && !storageUserPermission.isDeleted()) {
             return StoragePermissionDto.of(
                     storage,
                     operator.getOperatorId(),
@@ -330,6 +230,74 @@ public class StoragePermissionServiceImpl implements StoragePermissionService,
     }
 
     @Override
+    public boolean isAssignableTo(Class<? extends SystemResourceOperator> clazz) {
+        return StoragePermissionAction.class.isAssignableFrom(clazz);
+    }
+
+    @Override
+    public SystemResourceOperator createResourceOperator(SystemResource systemResource,
+                                                         boolean checkDelete) {
+        return switch (systemResource.getSystemResourceKind()) {
+            case STORAGE_PERMISSION -> openStoragePermissionOperator(
+                    systemResource,
+                    checkDelete
+            );
+            default -> throw new UnsupportedKindException(systemResource.getSystemResourceKind());
+        };
+    }
+
+    private SystemResourceOperator openStoragePermissionOperator(
+            SystemResource systemResource,
+            boolean checkDelete) {
+        return switch (systemResource.getSystemResourceKind()) {
+            case FILE, FOLDER -> {
+                StorageIdentity storageIdentity = SimpleStorageIdentity.of(
+                        systemResource
+                );
+                AttributedStorage attributedStorage =
+                        userStorageSearchService.findStorage(storageIdentity);
+                StoragePermission storagePermission =
+                        storagePermissionRepository.getStoragePermission(
+                                attributedStorage.getStorageId(),
+                                attributedStorage.getStorageType()
+                        );
+                yield new StoragePermissionOperatorImpl(
+                        this,
+                        attributedStorage,
+                        storagePermission,
+                        checkDelete
+                );
+            }
+            case STORAGE_PERMISSION -> {
+                StoragePermission storagePermission =
+                        storagePermissionRepository.getById(systemResource.getResourceId());
+                AttributedStorage attributedStorage =
+                        userStorageSearchService.findStorage(storagePermission);
+                yield new StoragePermissionOperatorImpl(
+                        this,
+                        attributedStorage,
+                        storagePermission,
+                        checkDelete
+                );
+            }
+            default -> throw new UnsupportedKindException(systemResource.getSystemResourceKind());
+        };
+    }
+
+    @Override
+    public SystemResourceOperator createResourceOperator(SystemResource systemResource,
+                                                         SystemResourceKind targetSystemResourceKind,
+                                                         boolean checkDelete) {
+        if (targetSystemResourceKind == SystemResourceKind.STORAGE_PERMISSION) {
+            return openStoragePermissionOperator(
+                    systemResource,
+                    checkDelete
+            );
+        }
+        throw new UnsupportedKindException(targetSystemResourceKind);
+    }
+
+    @Override
     public SystemResource provide(long resourceId,
                                   SystemResourceKind systemResourceKind) {
         return switch (systemResourceKind) {
@@ -337,5 +305,35 @@ public class StoragePermissionServiceImpl implements StoragePermissionService,
             case STORAGE_USER_PERMISSION -> storageUserPermissionRepository.getById(resourceId);
             default -> throw new UnsupportedKindException(systemResourceKind);
         };
+    }
+
+
+    @Override
+    public void updateStoragePermission(StoragePermission permission) {
+        storagePermissionRepository.update(permission);
+    }
+
+    @Override
+    public void updateUserStoragePermission(StorageUserPermission permission) {
+        storageUserPermissionRepository.update(permission);
+    }
+
+    @Override
+    public StorageUserPermission getUserStoragePermission(Operator operator, StorageIdentity storageIdentity) {
+        return storageUserPermissionRepository.getByStorageIdAndUserId(
+                storageIdentity.getStorageId(),
+                storageIdentity.getStorageType(),
+                operator.getOperatorId()
+        );
+    }
+
+    @Override
+    public long createUserStoragePermission(StorageUserPermission storageUserPermission) {
+        return storageUserPermissionRepository.insert(storageUserPermission);
+    }
+
+    @Override
+    public long createStoragePermission(StoragePermission permission) {
+        return storagePermissionRepository.insert(permission);
     }
 }

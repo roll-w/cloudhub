@@ -8,21 +8,11 @@ import org.huel.cloudhub.client.disk.domain.storagepermission.dto.StoragePermiss
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageIdentity;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageOwner;
 
-import java.util.List;
-
 /**
  * @author RollW
  */
 public interface StoragePermissionService {
     // TODO: refactor, remove the ignoreDelete parameter
-
-    void setStoragePermission(StorageIdentity storage,
-                              PublicPermissionType permissionType,
-                              boolean ignoreDelete);
-
-    void setStoragePermission(StorageIdentity storage, Operator operator,
-                              List<PermissionType> permissionTypes,
-                              boolean ignoreDelete);
 
     boolean checkPermissionOf(StorageIdentity storage,
                               Operator operator,
