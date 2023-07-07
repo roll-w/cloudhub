@@ -18,39 +18,86 @@ public class ResourceOperatorService implements SystemResourceOperatorProvider {
 
     @Override
     public <T extends SystemResourceOperator> T getSystemResourceOperator(
-            SystemResource systemResource, Class<T> clazz) {
-        return getSystemResourceOperator(systemResource, clazz, false);
+            SystemResource systemResource) {
+        return getSystemResourceOperator(systemResource, true);
     }
 
     @Override
     public <T extends SystemResourceOperator> T getSystemResourceOperator(
-            SystemResource systemResource, Class<T> clazz, boolean checkDelete) {
+            SystemResource systemResource, boolean checkDelete) {
         SystemResourceOperatorFactory systemResourceOperatorFactory =
-                findFirstOf(systemResource.getSystemResourceKind(), clazz);
+                findFirstOf(systemResource.getSystemResourceKind());
         SystemResourceOperator systemResourceOperator =
                 systemResourceOperatorFactory.createResourceOperator(systemResource, checkDelete);
         try {
-            return clazz.cast(systemResourceOperator);
+            return (T) systemResourceOperator;
         } catch (ClassCastException e) {
             throw noFactoryConfiguredForKindAndType(
                     systemResource.getSystemResourceKind(),
-                    clazz
+                    systemResourceOperator.getClass(),
+                    e.getMessage()
             );
         }
     }
 
-    private SystemResourceOperatorFactory findFirstOf(SystemResourceKind kind,
-                                                      Class<? extends SystemResourceOperator> clazz) {
+    @Override
+    public <T extends SystemResourceOperator> T getSystemResourceOperator(
+            SystemResource systemResource,
+            SystemResourceKind targetSystemResourceKind,
+            boolean checkDelete) {
+        SystemResourceOperatorFactory systemResourceOperatorFactory = findFirstOf(
+                targetSystemResourceKind
+        );
+        SystemResourceOperator systemResourceOperator = systemResourceOperatorFactory.createResourceOperator(
+                systemResource,
+                targetSystemResourceKind,
+                checkDelete
+        );
+        try {
+            return (T) systemResourceOperator;
+        } catch (ClassCastException e) {
+            throw noFactoryConfiguredForKindAndType(
+                    systemResource.getSystemResourceKind(),
+                    systemResourceOperator.getClass(),
+                    e.getMessage()
+            );
+        }
+    }
+
+    @Override
+    public <T extends SystemResourceOperator> T getSystemResourceOperator(
+            SystemResource systemResource,
+            SystemResourceKind targetSystemResourceKind) {
+        return getSystemResourceOperator(
+                systemResource,
+                targetSystemResourceKind,
+                true
+        );
+    }
+
+    private SystemResourceOperatorFactory findFirstOf(SystemResourceKind kind) {
         return systemResourceOperatorFactories.stream()
                 .filter(factory -> factory.supports(kind))
-                .filter(factory -> factory.isAssignableTo(clazz))
                 .findFirst()
-                .orElseThrow((() -> noFactoryConfiguredForKindAndType(kind, clazz)));
+                .orElseThrow((() -> noFactoryConfiguredForKind(kind)));
     }
 
     private IllegalArgumentException noFactoryConfiguredForKindAndType(
-            SystemResourceKind kind, Class<? extends SystemResourceOperator> clazz) {
+            SystemResourceKind kind, Class<? extends SystemResourceOperator> clazz,
+            String message) {
         return new IllegalArgumentException("No system resource operator factory configured for kind:"
-                + kind + " and type:" + clazz + ".");
+                + kind + " and type:" + clazz + ". " + message);
+    }
+
+    private IllegalArgumentException noFactoryConfiguredForKind(
+            SystemResourceKind kind) {
+        return new IllegalArgumentException("No system resource operator factory configured for kind:"
+                + kind + ".");
+    }
+
+    private IllegalArgumentException noFactoryConfiguredForBothKind(
+            SystemResourceKind kind, SystemResourceKind targetSystemResourceKind) {
+        return new IllegalArgumentException("No system resource operator factory configured for kind:"
+                + kind + " and target kind:" + targetSystemResourceKind + ".");
     }
 }

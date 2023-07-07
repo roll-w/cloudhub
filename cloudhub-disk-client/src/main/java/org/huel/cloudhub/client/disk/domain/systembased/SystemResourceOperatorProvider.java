@@ -5,8 +5,17 @@ package org.huel.cloudhub.client.disk.domain.systembased;
  */
 public interface SystemResourceOperatorProvider {
     <T extends SystemResourceOperator> T
-    getSystemResourceOperator(SystemResource systemResource, Class<T> clazz);
+    getSystemResourceOperator(SystemResource systemResource);
 
     <T extends SystemResourceOperator> T
-    getSystemResourceOperator(SystemResource systemResource, Class<T> clazz, boolean checkDelete);
+    getSystemResourceOperator(SystemResource systemResource, boolean checkDelete);
+
+    <T extends SystemResourceOperator> T
+    getSystemResourceOperator(SystemResource systemResource,
+                              SystemResourceKind targetSystemResourceKind,
+                              boolean checkDelete);
+
+    <T extends SystemResourceOperator> T
+    getSystemResourceOperator(SystemResource systemResource,
+                              SystemResourceKind targetSystemResourceKind);
 }

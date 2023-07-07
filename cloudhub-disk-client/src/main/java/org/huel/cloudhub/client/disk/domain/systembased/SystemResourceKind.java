@@ -17,6 +17,8 @@ public enum SystemResourceKind {
     USER_GROUP("group"),
     ORGANIZATION,
     STORAGE_USER_PERMISSION,
+    FAVORITE_GROUP,
+    FAVORITE_ITEM,
     ;
 
     private final String alias;

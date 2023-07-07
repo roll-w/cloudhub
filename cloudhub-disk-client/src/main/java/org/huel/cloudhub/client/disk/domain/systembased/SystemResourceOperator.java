@@ -5,7 +5,12 @@ import org.huel.cloudhub.web.BusinessRuntimeException;
 /**
  * @author RollW
  */
-public interface SystemResourceOperator extends ByStatusProvider {
+public interface SystemResourceOperator extends ByStatusProvider, Castable {
+    /**
+     * For some system resources that may not be updated automatically
+     * (such as some batch operations), you need to call this method
+     * to update.
+     */
     SystemResource update() throws BusinessRuntimeException;
 
     SystemResource delete() throws BusinessRuntimeException;
