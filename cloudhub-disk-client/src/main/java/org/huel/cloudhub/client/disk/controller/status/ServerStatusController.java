@@ -4,6 +4,7 @@ import org.huel.cloudhub.client.CFSClient;
 import org.huel.cloudhub.client.disk.common.CloudhubBizRuntimeException;
 import org.huel.cloudhub.client.disk.controller.AdminApi;
 import org.huel.cloudhub.client.disk.domain.cfsserver.ServerStatusService;
+import org.huel.cloudhub.client.disk.domain.cfsserver.ServerStatusSummary;
 import org.huel.cloudhub.client.server.ConnectedServers;
 import org.huel.cloudhub.client.server.ContainerStatus;
 import org.huel.cloudhub.server.DiskUsageInfo;
@@ -34,6 +35,11 @@ public class ServerStatusController {
     @GetMapping("/server/status/time")
     public HttpResponseEntity<Long> getRunTimeFromStart() {
         return HttpResponseEntity.success(serverStatusService.getRunTimeLength());
+    }
+
+    @GetMapping("/server/status/summary")
+    public HttpResponseEntity<ServerStatusSummary> getServerStatusSummary() {
+        return HttpResponseEntity.success(serverStatusService.getSummary());
     }
 
     @GetMapping("/server/cfs/connected")

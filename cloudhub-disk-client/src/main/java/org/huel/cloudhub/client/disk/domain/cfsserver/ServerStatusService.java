@@ -1,5 +1,7 @@
 package org.huel.cloudhub.client.disk.domain.cfsserver;
 
+import org.huel.cloudhub.client.CFSClient;
+import org.huel.cloudhub.client.server.ConnectedServers;
 import org.huel.cloudhub.server.NetworkUsageInfo;
 import org.huel.cloudhub.server.ServerHostInfo;
 import org.huel.cloudhub.server.ServerStatusMonitor;
@@ -15,9 +17,11 @@ import java.util.concurrent.atomic.AtomicLong;
 @Service
 public class ServerStatusService {
     private final ServerStatusMonitor serverStatusMonitor;
+    private final CFSClient cfsClient;
     private final AtomicLong runSecs = new AtomicLong(0);
 
-    public ServerStatusService() {
+    public ServerStatusService(CFSClient cfsClient) {
+        this.cfsClient = cfsClient;
         serverStatusMonitor = new ServerStatusMonitor(".");
         serverStatusMonitor.setLimit(100);
         serverStatusMonitor.setRecordFrequency(1000);
@@ -41,5 +45,15 @@ public class ServerStatusService {
 
     public long getRunTimeLength() {
         return runSecs.get();
+    }
+
+    public ServerStatusSummary getSummary() {
+        ConnectedServers connectedServers =
+                cfsClient.getConnectedServers();
+        return new ServerStatusSummary(
+                runSecs.get(),
+                connectedServers.activeServers().size(),
+                connectedServers.deadServers().size()
+        );
     }
 }
