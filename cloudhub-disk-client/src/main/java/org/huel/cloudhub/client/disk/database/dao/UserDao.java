@@ -56,6 +56,15 @@ public interface UserDao extends AutoPrimaryBaseDao<User> {
     @Query("SELECT * FROM user WHERE username = {name}")
     User getUserByName(String name);
 
+    @Query("SELECT * FROM user WHERE nickname = {nickname}")
+    List<User> getUsersByNickname(String nickname);
+
+    @Query("SELECT * FROM user WHERE nickname LIKE CONCAT('%', {nickname}, '%')")
+    List<User> getUsersLikeNickname(String nickname);
+
+    @Query("SELECT * FROM user WHERE username LIKE CONCAT('%', {username}, '%')")
+    List<User> getUsersLikeUsername(String username);
+
     @Query("SELECT id FROM user WHERE username = {name}")
     Long getUserIdByName(String name);
 

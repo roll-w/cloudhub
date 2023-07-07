@@ -4,6 +4,7 @@ import org.huel.cloudhub.client.disk.common.CacheNames;
 import org.huel.cloudhub.client.disk.database.DiskDatabase;
 import org.huel.cloudhub.client.disk.database.dao.UserDao;
 import org.huel.cloudhub.client.disk.database.repository.BaseRepository;
+import org.huel.cloudhub.client.disk.domain.systembased.ContextThread;
 import org.huel.cloudhub.client.disk.domain.systembased.ContextThreadAware;
 import org.huel.cloudhub.client.disk.domain.systembased.paged.PageableContext;
 import org.huel.cloudhub.client.disk.domain.user.User;
@@ -12,8 +13,12 @@ import org.springframework.cache.CacheManager;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Repository;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 /**
  * @author RollW
@@ -94,6 +99,49 @@ public class UserRepository extends BaseRepository<User> {
         return userDao.getAll();
     }
 
+    public List<User> searchBy(String keyword) {
+        List<User> searchByUsername = userDao.getUsersLikeUsername(keyword);
+        List<User> res = new ArrayList<>(searchByUsername);
+        List<User> searchByNickname = userDao.getUsersLikeNickname(keyword);
+        res.addAll(searchByNickname);
+
+        res = deduplicateById(res);
+
+        ContextThread<PageableContext> contextThread =
+                pageableContextThreadAware.getContextThread();
+        if (contextThread.hasContext()) {
+            PageableContext context = contextThread.getContext();
+            if (context.isIncludeDeleted()) {
+                return res;
+            }
+        }
+        return filterUsers(res);
+    }
+
+    private List<User> filterUsers(List<User> users) {
+        if (users == null || users.isEmpty()) {
+            return users;
+        }
+        return users.stream()
+                .filter(user -> !user.isCanceled())
+                .toList();
+    }
+
+    private List<User> deduplicateById(List<User> users) {
+        if (users == null || users.isEmpty()) {
+            return users;
+        }
+
+        return users.stream().collect(
+                Collectors.collectingAndThen(
+                        Collectors.toCollection(
+                                () -> new TreeSet<>(Comparator.comparing(User::getId))
+                        ),
+                        ArrayList::new
+                )
+        );
+    }
+
     private final AtomicBoolean hasUsers = new AtomicBoolean(false);
 
     public boolean hasUsers() {
@@ -106,12 +154,19 @@ public class UserRepository extends BaseRepository<User> {
     }
 
     private void updateCache(User user) {
-        if (user == null) {
+        if (user == null || user.getId() == null) {
             return;
         }
         userCache.put(user.getId(), user);
         userCache.put(user.getUsername(), user);
         userCache.put(user.getEmail(), user);
+    }
+
+    private void updateCache(List<User> users) {
+        if (users == null || users.isEmpty()) {
+            return;
+        }
+        users.forEach(this::updateCache);
     }
 
 }

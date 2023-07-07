@@ -4,6 +4,7 @@ import org.huel.cloudhub.client.disk.domain.user.AttributedUser;
 import org.huel.cloudhub.client.disk.domain.user.UserIdentity;
 import org.huel.cloudhub.client.disk.domain.user.common.UserException;
 import org.huel.cloudhub.web.data.page.Pageable;
+import space.lingu.NonNull;
 
 import java.util.List;
 
@@ -26,7 +27,7 @@ public interface UserSearchService extends UserProvider {
     @Override
     AttributedUser findUser(String username) throws UserException;
 
-    List<? extends AttributedUser> findUsers(String username);
+    List<AttributedUser> findUsers(@NonNull String keyword);
 
     /**
      * Get user by id. And enables check if user is deleted or canceled.

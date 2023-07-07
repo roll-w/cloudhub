@@ -1,8 +1,12 @@
 package org.huel.cloudhub.client.disk.controller.user;
 
 import org.huel.cloudhub.client.disk.common.ApiContextHolder;
+import org.huel.cloudhub.client.disk.common.ParamValidate;
 import org.huel.cloudhub.client.disk.controller.Api;
 import org.huel.cloudhub.client.disk.domain.authentication.AuthenticationException;
+import org.huel.cloudhub.client.disk.domain.systembased.ContextThread;
+import org.huel.cloudhub.client.disk.domain.systembased.ContextThreadAware;
+import org.huel.cloudhub.client.disk.domain.systembased.paged.PageableContext;
 import org.huel.cloudhub.client.disk.domain.user.AttributedUser;
 import org.huel.cloudhub.client.disk.domain.user.LoginLogService;
 import org.huel.cloudhub.client.disk.domain.user.UserIdentity;
@@ -16,6 +20,7 @@ import org.huel.cloudhub.web.data.page.Page;
 import org.huel.cloudhub.web.data.page.Pageable;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 
@@ -26,11 +31,14 @@ import java.util.List;
 public class UserController {
     private final UserSearchService userSearchService;
     private final LoginLogService loginLogService;
+    private final ContextThreadAware<PageableContext> pageableContextThreadAware;
 
     public UserController(UserSearchService userSearchService,
-                          LoginLogService loginLogService) {
+                          LoginLogService loginLogService,
+                          ContextThreadAware<PageableContext> pageableContextThreadAware) {
         this.userSearchService = userSearchService;
         this.loginLogService = loginLogService;
+        this.pageableContextThreadAware = pageableContextThreadAware;
     }
 
     @GetMapping("/user")
@@ -47,7 +55,7 @@ public class UserController {
         );
     }
 
-    @GetMapping("/user/{userId}")
+    @GetMapping("/users/{userId}")
     public HttpResponseEntity<UserCommonDetailsVo> getUserInfo(
             @PathVariable("userId") Long userId) {
         AttributedUser attributedUser = userSearchService.findUser(userId);
@@ -56,9 +64,29 @@ public class UserController {
         );
     }
 
+    @GetMapping("/users/search")
+    public HttpResponseEntity<List<UserCommonDetailsVo>> searchUsers(
+            @RequestParam("keyword") String keyword) {
+        ParamValidate.notEmpty(keyword, "keyword");
+        ContextThread<PageableContext> contextThread =
+                pageableContextThreadAware.getContextThread();
+        PageableContext pageableContext = contextThread.getContext();
+        pageableContext.setIncludeDeleted(false);
+
+        List<AttributedUser> attributedUsers =
+                userSearchService.findUsers(keyword);
+
+        List<UserCommonDetailsVo> userCommonDetailsVos =
+                attributedUsers.stream()
+                        .map(UserCommonDetailsVo::of)
+                        .toList();
+        return HttpResponseEntity.success(
+                pageableContext.toPage(userCommonDetailsVos)
+        );
+    }
+
     @GetMapping("/user/login/logs")
-    public HttpResponseEntity<List<LoginLog>> getUserLoginLogs(
-            Pageable pageable) {
+    public HttpResponseEntity<List<LoginLog>> getUserLoginLogs(Pageable pageable) {
         UserIdentity userIdentity =
                 ApiContextHolder.getContext().userInfo();
         if (userIdentity == null) {

@@ -23,6 +23,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import space.lingu.NonNull;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -182,8 +183,25 @@ public class UserServiceImpl implements UserSignatureProvider,
     }
 
     @Override
-    public List<? extends AttributedUser> findUsers(String username) {
-        return null;
+    public List<AttributedUser> findUsers(@NonNull String keyword) {
+        List<AttributedUser> res = new ArrayList<>();
+        AttributedUser user = tryGetUserById(keyword);
+        if (user != null) {
+            res.add(user);
+        }
+        res.addAll(userRepository.searchBy(keyword));
+
+        return res.stream()
+                .distinct()
+                .toList();
+    }
+
+    private AttributedUser tryGetUserById(String s) {
+        try {
+            return findUser(Long.parseLong(s));
+        } catch (NumberFormatException | UserException e) {
+            return null;
+        }
     }
 
     @Override
