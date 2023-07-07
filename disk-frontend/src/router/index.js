@@ -33,6 +33,7 @@ export const driveTagPage = "drive-tag-page"
 export const userPersonalPage = "user-personal-page"
 export const userPersonalPageWithFolder = "user-personal-page-with-folder"
 export const userSettingPage = "user-setting-page"
+export const userSearchPage = "user-search-page"
 export const userSharePage = "user-share-page"
 export const userStatsPage = "user-stats-page"
 
@@ -178,13 +179,21 @@ const router = createRouter({
                         requireLogin: true
                     }
                 },
-
                 {
                     path: '/user/setting',
                     name: userSettingPage,
                     component: () => import("@/views/user/UserSettingView.vue"),
                     meta: {
                         title: "用户设置",
+                        requireLogin: true
+                    }
+                },
+                {
+                    path: '/user/search',
+                    name: userSearchPage,
+                    component: () => import("@/views/user/UserSearchView.vue"),
+                    meta: {
+                        title: "用户搜索",
                         requireLogin: true
                     }
                 },
@@ -207,6 +216,32 @@ const router = createRouter({
                     }
                 },
             ]
+        },
+        {
+            path: '/layout/side/user',
+            name: userLayout,
+            redirect: '/drive/files',
+            component: () => import("@/views/user/UserHomeHeaderLayout.vue"),
+            children: [
+                {
+                    path: '/user/:id/home',
+                    name: userPersonalPage,
+                    component: () => import("@/views/user/PersonalHomeView.vue"),
+                    meta: {
+                        title: "个人主页",
+                        requireLogin: true
+                    }
+                },
+                {
+                    path: '/user/:id/home/:folder',
+                    name: userPersonalPageWithFolder,
+                    component: () => import("@/views/user/PersonalHomeView.vue"),
+                    meta: {
+                        title: "个人主页",
+                        requireLogin: true
+                    }
+                },
+            ],
         },
         {
             path: '/layout/admin',
@@ -368,33 +403,6 @@ const router = createRouter({
                     }
                 },
             ]
-        },
-
-        {
-            path: '/layout/side/user',
-            name: userLayout,
-            redirect: '/drive/files',
-            component: () => import("@/views/user/UserHomeHeaderLayout.vue"),
-            children: [
-                {
-                    path: '/user/:id/home',
-                    name: userPersonalPage,
-                    component: () => import("@/views/user/PersonalHomeView.vue"),
-                    meta: {
-                        title: "个人主页",
-                        requireLogin: true
-                    }
-                },
-                {
-                    path: '/user/:id/home/:folder',
-                    name: userPersonalPageWithFolder,
-                    component: () => import("@/views/user/PersonalHomeView.vue"),
-                    meta: {
-                        title: "个人主页",
-                        requireLogin: true
-                    }
-                },
-            ],
         },
         {
             path: '/',

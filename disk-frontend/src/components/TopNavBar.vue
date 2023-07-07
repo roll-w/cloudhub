@@ -12,7 +12,8 @@
                 <n-space class="flex items-center">
                     <div v-if="userStore.isLogin" class="pr-3">
                         <n-space>
-                            <n-button circle quaternary @click="$router.push({name: driveFileSearchPage})">
+                            <n-button circle quaternary
+                                      @click="$router.push({name: driveFileSearchPage})">
                                 <n-icon size="22">
                                     <SearchFilled/>
                                 </n-icon>
@@ -27,7 +28,8 @@
                                     </n-icon>
                                 </n-button>
                             </n-dropdown>
-                            <n-button circle quaternary >
+                            <n-button circle quaternary
+                                      @click="$router.push({name: userSearchPage})">
                                 <n-icon size="22">
                                     <UsersOutlined/>
                                 </n-icon>
@@ -72,7 +74,7 @@ import {
     driveFileSearchPage,
     index,
     login,
-    userPersonalPage,
+    userPersonalPage, userSearchPage,
     userSettingPage,
     userSharePage
 } from "@/router";

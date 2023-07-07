@@ -91,6 +91,9 @@ export const getCurrentUserInfo = `${prefix}/user`;
 export const users = (admin = false, id = null) =>
     `${admin ? adminPrefix : prefix}/users${id ? `/${id}` : ''}`;
 
+export const searchUsers = (admin = false) =>
+    `${admin ? adminPrefix : prefix}/users/search`;
+
 export const userInfo = (userId, admin = false) =>
     `${admin ? adminPrefix : prefix}/users/${userId}`;
 
@@ -102,6 +105,7 @@ export const getLoginLogs = `${adminPrefix}/users/login/logs`;
 export const getErrorLogs = `${adminPrefix}/system/errors`;
 
 export const serverStatus = `${adminPrefix}/server/cfs/status`;
+export const serverStatusSummary = `${adminPrefix}/server/status/summary`;
 export const cfsStatus = (serverId) =>
     `${adminPrefix}/server/cfs/status/${serverId}`;
 export const serverContainers = (serverId) =>
