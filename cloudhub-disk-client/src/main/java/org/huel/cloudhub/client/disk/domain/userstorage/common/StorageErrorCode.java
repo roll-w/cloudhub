@@ -37,7 +37,12 @@ public enum StorageErrorCode implements ErrorCode, ErrorCodeFinder, ErrorCodeMes
     ERROR_FILE_ALREADY_DELETED("B3161", 400),
     ERROR_DIRECTORY_NOT_DELETED("B3162", 400),
     ERROR_DIRECTORY_ALREADY_DELETED("B3163", 400),
+
+    ERROR_STORAGE_SIZE_LIMIT("B3164", 400),
+    ERROR_STORAGE_COUNT_LIMIT("B3165", 400),
+
     ;
+
 
     private final String value;
     private final int status;

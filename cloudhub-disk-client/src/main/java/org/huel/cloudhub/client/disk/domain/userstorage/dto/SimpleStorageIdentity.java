@@ -1,5 +1,6 @@
 package org.huel.cloudhub.client.disk.domain.userstorage.dto;
 
+import org.huel.cloudhub.client.disk.domain.systembased.SystemResource;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageIdentity;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageType;
 import space.lingu.NonNull;
@@ -22,4 +23,14 @@ public record SimpleStorageIdentity(
         return storageType;
     }
 
+    public static SimpleStorageIdentity of(long storageId, StorageType storageType) {
+        return new SimpleStorageIdentity(storageId, storageType);
+    }
+
+    public static SimpleStorageIdentity of(SystemResource systemResource) {
+        return new SimpleStorageIdentity(
+                systemResource.getResourceId(),
+                StorageType.from(systemResource.getSystemResourceKind())
+        );
+    }
 }
