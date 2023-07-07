@@ -4,6 +4,7 @@ import org.huel.cloudhub.client.conf.ClientConfigLoader;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -13,6 +14,7 @@ import java.util.Map;
  * @author RollW
  */
 @SpringBootApplication
+@EnableScheduling
 public class DiskClientApplication {
     private static ConfigurableApplicationContext sContext;
 
