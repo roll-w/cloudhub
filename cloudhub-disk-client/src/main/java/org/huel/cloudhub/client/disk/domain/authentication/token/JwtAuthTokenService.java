@@ -6,6 +6,7 @@ import io.jsonwebtoken.Header;
 import io.jsonwebtoken.Jwt;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import io.jsonwebtoken.security.SignatureException;
 import org.huel.cloudhub.web.AuthErrorCode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
+import java.time.Duration;
 import java.util.Date;
 
 /**
@@ -23,15 +25,18 @@ public class JwtAuthTokenService implements AuthenticationTokenService {
     private static final String TOKEN_HEAD = "Bearer ";
 
     private static final Logger logger = LoggerFactory.getLogger(JwtAuthTokenService.class);
+
     public JwtAuthTokenService() {
+        // no-op
     }
 
     @Override
-    public String generateAuthToken(long userId, String signature) {
+    public String generateAuthToken(long userId, String signature,
+                                    Duration duration) {
         Key key = Keys.hmacShaKeyFor(signature.getBytes(StandardCharsets.UTF_8));
         String rawToken = Jwts.builder()
                 .setSubject(String.valueOf(userId))
-                .setExpiration(getExpirationDateFromNow())
+                .setExpiration(getExpirationDateFromNow(duration))
                 .setIssuer("Team HUEL.")
                 .signWith(key)
                 .compact();
@@ -58,10 +63,12 @@ public class JwtAuthTokenService implements AuthenticationTokenService {
         } catch (ExpiredJwtException e) {
             return TokenAuthResult.failure(AuthErrorCode.ERROR_TOKEN_EXPIRED);
         } catch (NumberFormatException e) {
-            logger.error("Invalid jwt token number format: " + rawToken);
+            logger.error("Invalid jwt token number format: {}", rawToken);
+            return TokenAuthResult.failure(AuthErrorCode.ERROR_INVALID_TOKEN);
+        } catch (SignatureException e) {
             return TokenAuthResult.failure(AuthErrorCode.ERROR_INVALID_TOKEN);
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.info("JWT verify error, unhandled error. Defaults to invalid token, consider to handle it.", e);
             return TokenAuthResult.failure(AuthErrorCode.ERROR_INVALID_TOKEN);
         }
     }
@@ -96,13 +103,6 @@ public class JwtAuthTokenService implements AuthenticationTokenService {
         return untrusted.getBody();
     }
 
-    private long expireTimeInSecond = DAYS_7;
-
-    @Override
-    public void setTokenExpireTime(long expireTimeInSecond) {
-        this.expireTimeInSecond = expireTimeInSecond;
-    }
-
 
     private static final Date VERIFYDATE = new Date(1);
 
@@ -110,15 +110,10 @@ public class JwtAuthTokenService implements AuthenticationTokenService {
         return VERIFYDATE;
     }
 
-    private Date getExpirationDateFromNow() {
+    private Date getExpirationDateFromNow(Duration duration) {
         long now = System.currentTimeMillis();
-        long exp = now + expireTimeInSecond * 1000;
+        long exp = now + duration.toMillis();
         return new Date(exp);
-        // TODO: allow set expiration date.
     }
 
-    //
-    private static final long DAYS_7 = 60 * 60 * 24 * 7L;
-    private static final long MINUTES_5 = 60 * 5L;
-    private static final long SECONDS_5 = 5L;
 }
