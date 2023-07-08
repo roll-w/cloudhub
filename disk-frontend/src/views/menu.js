@@ -2,10 +2,16 @@ import {h} from "vue";
 import {RouterLink} from "vue-router";
 import {
     adminClusterMonitor,
+    adminFileLists,
+    adminFolderLists,
     adminIndex,
     adminLoginLogs,
     adminOperationLogs,
-    adminSystemLogs, adminSystemMonitor, adminTagGroups, adminTags,
+    adminSystemLogs,
+    adminSystemMonitor,
+    adminTagGroups,
+    adminTags,
+    adminUserGroupLists,
     adminUserLists,
     adminVisualData,
     driveFilePage,
@@ -159,7 +165,12 @@ const menuOptions = [
                         name: "登录日志",
                         key: adminLoginLogs,
                         linked: true
-                    }
+                    },
+                    {
+                        name: "用户组列表",
+                        key: adminUserGroupLists,
+                        linked: true
+                    },
                 ]
             },
             {
@@ -168,7 +179,13 @@ const menuOptions = [
                 children: [
                     {
                         name: "文件列表",
-                        key: "file-management-list"
+                        key: adminFileLists,
+                        linked: true
+                    },
+                    {
+                        name: "文件夹列表",
+                        key: adminFolderLists,
+                        linked: true
                     },
                     {
                         name: "分享管理",
@@ -190,16 +207,6 @@ const menuOptions = [
                         key: adminTags,
                         linked: true
                     }
-                ]
-            },
-            {
-                name: "用户组管理",
-                key: "user-group-management",
-                children: [
-                    {
-                        name: "用户组列表",
-                        key: "user-group-management-list"
-                    },
                 ]
             },
             {

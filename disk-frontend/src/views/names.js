@@ -92,12 +92,21 @@ export const getSystemResourceKindName = (kind = 'UNKNOWN') => {
             return '标签'
         case 'TAG_GROUP':
             return '标签组'
+        case 'USER':
         case 'USER_SETTING':
-            return '用户设置'
+            return '用户'
+        case 'GROUP':
         case 'GROUP_SETTING':
-            return '组设置'
-        case 'ORGANIZATION_SETTING':
-            return '组织设置'
+            return '用户组'
+        case 'ORGANIZATION':
+            return '组织'
+        case 'STORAGE_USER_PERMISSION':
+            return '存储用户权限'
+        case 'FAVORITE_GROUP':
+            return '收藏夹'
+        case 'FAVORITE_ITEM':
+            return '收藏'
+        default:
         case 'UNKNOWN':
             return '未知'
     }
