@@ -43,11 +43,14 @@ public interface UserSearchService extends UserProvider {
     List<? extends AttributedUser> findUsers(List<Long> ids);
 
     static AttributedUser binarySearch(long id, List<? extends AttributedUser> attributedUsers) {
+        List<? extends AttributedUser> sorted = attributedUsers.stream()
+                .sorted((o1, o2) -> (int) (o1.getUserId() - o2.getUserId()))
+                .toList();
         int low = 0;
-        int high = attributedUsers.size() - 1;
+        int high = sorted.size() - 1;
         while (low <= high) {
             int mid = (low + high) >>> 1;
-            AttributedUser attributedUser = attributedUsers.get(mid);
+            AttributedUser attributedUser = sorted.get(mid);
             if (attributedUser.getUserId() < id) {
                 low = mid + 1;
             } else if (attributedUser.getUserId() > id) {

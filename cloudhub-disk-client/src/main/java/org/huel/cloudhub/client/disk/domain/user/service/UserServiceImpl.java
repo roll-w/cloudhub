@@ -16,7 +16,6 @@ import org.huel.cloudhub.client.disk.domain.user.repository.UserRepository;
 import org.huel.cloudhub.web.CommonErrorCode;
 import org.huel.cloudhub.web.ErrorCode;
 import org.huel.cloudhub.web.UserErrorCode;
-import org.huel.cloudhub.web.data.page.PageHelper;
 import org.huel.cloudhub.web.data.page.Pageable;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -129,8 +128,8 @@ public class UserServiceImpl implements UserSignatureProvider,
     }
 
     @Override
-    public List<User> getUsers(int page, int size) {
-        return userRepository.get(PageHelper.offset(page, size));
+    public List<User> getUsers(Pageable pageable) {
+        return userRepository.get(pageable.toOffset());
     }
 
     @Override
@@ -227,16 +226,6 @@ public class UserServiceImpl implements UserSignatureProvider,
     @Override
     public List<? extends AttributedUser> findUsers(List<Long> ids) {
         return userRepository.getByIds(ids);
-    }
-
-    @Override
-    public void deleteUser(long userId) {
-
-    }
-
-    @Override
-    public void setUserEnable(long userId, boolean enable) {
-
     }
 
     @Override

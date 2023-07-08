@@ -23,8 +23,15 @@ public class UserInfoFormatValidateFilter implements UserInfoFilter {
             case EMAIL -> UserChecker.checkEmail(userFilteringInfo.value())
                     ? CommonErrorCode.SUCCESS
                     : UserErrorCode.ERROR_EMAIL_NON_COMPLIANCE;
+            case NICKNAME ->  checkNickname(userFilteringInfo.value())
+                    ? CommonErrorCode.SUCCESS
+                    : UserErrorCode.ERROR_NICKNAME_NON_COMPLIANCE;
             // TODO: phone number & other check
             default -> CommonErrorCode.SUCCESS;
         };
+    }
+
+    private boolean checkNickname(String nickname) {
+        return nickname.length() <= 20 && nickname.length() >= 1;
     }
 }

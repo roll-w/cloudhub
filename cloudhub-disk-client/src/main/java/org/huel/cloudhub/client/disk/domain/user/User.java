@@ -181,19 +181,7 @@ public class User implements UserDetails, AttributedUser, StorageOwner, DataItem
     }
 
     public Builder toBuilder() {
-        return new Builder()
-                .setId(id)
-                .setUsername(username)
-                .setNickname(nickname)
-                .setPassword(password)
-                .setRole(role)
-                .setRegisterTime(registerTime)
-                .setUpdateTime(updateTime)
-                .setEmail(email)
-                .setEnabled(enabled)
-                .setLocked(locked)
-                .setAccountExpired(accountExpired)
-                .setCanceled(canceled);
+        return new Builder(this);
     }
 
     @Override
@@ -245,6 +233,24 @@ public class User implements UserDetails, AttributedUser, StorageOwner, DataItem
         private boolean locked = false;
         private boolean accountExpired = false;
         private boolean canceled = false;
+
+        public Builder() {
+        }
+
+        public Builder(User user) {
+            this.id = user.id;
+            this.username = user.username;
+            this.nickname = user.nickname;
+            this.password = user.password;
+            this.role = user.role;
+            this.registerTime = user.registerTime;
+            this.updateTime = user.updateTime;
+            this.email = user.email;
+            this.enabled = user.enabled;
+            this.locked = user.locked;
+            this.accountExpired = user.accountExpired;
+            this.canceled = user.canceled;
+        }
 
         public Builder setId(Long id) {
             this.id = id;
