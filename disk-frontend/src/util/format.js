@@ -38,3 +38,49 @@ export const formatFileSize = (sizeInBytes, infinity = '∞') => {
     }
     return (sizeInBytes / gb).toFixed(2) + ' GB'
 }
+
+export const UNIT_MILLISECOND = 'millisecond'
+export const UNIT_SECOND = 'second'
+export const UNIT_MINUTE = 'minute'
+
+
+export const formatDuration = (time, inUnit = UNIT_SECOND) => {
+    switch (inUnit) {
+        case UNIT_MILLISECOND:
+            time = time / 1000
+            break
+        case UNIT_MINUTE:
+            time = time * 60
+            break
+        default:
+            break
+    }
+    const days = Math.floor(time / (3600 * 24));
+    time -= days * 3600 * 24;
+    const hours = Math.floor(time / 3600);
+    time -= hours * 3600;
+    const minutes = Math.floor(time / 60);
+    time -= minutes * 60;
+    const parts = [];
+    if (days > 0) {
+        parts.push(`${days} 天`);
+    }
+    if (hours > 0) {
+        parts.push(`${hours} 小时`);
+    }
+    if (minutes > 0) {
+        parts.push(`${minutes} 分`);
+    }
+    if (time > 0) {
+        parts.push(`${time} 秒`);
+    }
+    if (parts.length === 0) {
+        return '0 秒';
+    }
+    if (parts.length === 1) {
+        return parts[0];
+    }
+    // const last = parts.pop();
+    // return `${parts.join(', ')} and ${last}`;
+    return `${parts.join(' ')}`;
+}

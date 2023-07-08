@@ -88,6 +88,9 @@ export const getCurrentUserOperationLogs = `${prefix}/user/operations/logs`;
 export const getCurrentUserLoginLogs = `${prefix}/user/login/logs`;
 export const getCurrentUserInfo = `${prefix}/user`;
 
+export const user = (admin = false) =>
+    `${admin ? adminPrefix : prefix}/user`;
+
 export const users = (admin = false, id = null) =>
     `${admin ? adminPrefix : prefix}/users${id ? `/${id}` : ''}`;
 
