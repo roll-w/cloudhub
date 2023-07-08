@@ -26,7 +26,7 @@
                              type="text"/>
                 </n-form-item>
                 <n-button-group>
-                    <n-button type="primary">
+                    <n-button type="primary" @click="handleUpdateUserInfo()">
                         更新信息
                     </n-button>
                     <n-button secondary type="default" @click="resetUserInfoForm">
@@ -122,7 +122,7 @@
 <script setup>
 import {useUserStore} from "@/stores/user";
 import {getCurrentInstance, ref} from "vue";
-import {useNotification} from "naive-ui";
+import {useNotification, useMessage, useDialog} from "naive-ui";
 import {createConfig} from "@/request/axios_config";
 import api from "@/request/api";
 import {popUserErrorTemplate} from "@/views/util/error";
@@ -130,11 +130,13 @@ import UserResetPasswordForm from "@/components/user/UserResetPasswordForm.vue";
 import CurrentUserLoginLogs from "@/components/user/personal/CurrentUserLoginLogs.vue";
 import CurrentUserOprationLogs from "@/components/user/personal/CurrentUserOprationLogs.vue";
 import {userStatsPage} from "@/router";
+import {useRouter} from "vue-router";
 
+const router = useRouter()
+const message = useMessage()
+const dialog = useDialog()
 const userStore = useUserStore()
-
 const {proxy} = getCurrentInstance()
-
 const notification = useNotification()
 
 const showResetPasswordModal = ref(false)
@@ -150,16 +152,11 @@ const userForm = ref()
 const userFormRules = {
     nickname: [
         {
-            min: 3,
+            min: 1,
             max: 20,
-            message: "昵称长度在3-20个字符之间",
+            message: "昵称长度在1-20个字符之间",
             trigger: ["blur", "input"]
         },
-        {
-            pattern: /^\S+$/,
-            message: "昵称不能包含空格",
-            trigger: ["blur", "input"]
-        }
     ],
     email: [
         {
@@ -172,14 +169,28 @@ const userFormRules = {
             message: "请输入正确的邮箱",
             trigger: ["blur", "input"]
         },
-
     ]
-
 }
 
 const resetUserInfoForm = () => {
     userInfoFormValue.value.nickname = userInfo.value.nickname
     userInfoFormValue.value.email = userInfo.value.email
+}
+
+const handleUpdateUserInfo = () => {
+    userForm.value.validate().then(() => {
+        const config = createConfig()
+        const data = {
+            nickname: userInfoFormValue.value.nickname,
+            email: userInfoFormValue.value.email,
+        }
+        proxy.$axios.put(api.user(), data, config).then((res) => {
+            message.success("更新用户信息成功")
+            getUserInfo()
+        }).catch((err) => {
+            popUserErrorTemplate(notification, err, "更新用户信息失败")
+        })
+    })
 }
 
 const getUserInfo = () => {
@@ -189,6 +200,11 @@ const getUserInfo = () => {
         userInfo.value = res.data
         userInfoFormValue.value.nickname = res.data.nickname
         userInfoFormValue.value.email = res.data.email
+
+        userStore.setUserData({
+            avatar: null,
+            nickname: res.data.nickname,
+        })
     }).catch((err) => {
         popUserErrorTemplate(notification, err, "获取用户信息失败")
     })

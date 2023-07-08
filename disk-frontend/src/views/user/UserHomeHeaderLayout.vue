@@ -1,7 +1,7 @@
 <script setup>
 // for optimizing page flashes in changing routes
 
-import {getCurrentInstance, ref} from "vue";
+import {getCurrentInstance, ref, watch} from "vue";
 import {useRouter} from "vue-router";
 import {useNotification, useMessage, useDialog} from "naive-ui";
 import UserPageHeader from "@/components/user/personal/UserPageHeader.vue";
@@ -17,11 +17,11 @@ const message = useMessage()
 const dialog = useDialog()
 
 const userInfo = ref({})
-const userId = router.currentRoute.value.params.id
+const userId = ref(router.currentRoute.value.params.id)
 
 const requestUserInfo = () => {
     const config = createConfig()
-    proxy.$axios.get(api.userInfo(userId), config).then(resp => {
+    proxy.$axios.get(api.userInfo(userId.value), config).then(resp => {
         userInfo.value = resp.data
     }).catch(error => {
         popUserErrorTemplate(notification, error)
@@ -29,6 +29,11 @@ const requestUserInfo = () => {
 }
 
 requestUserInfo()
+
+watch(() => router.currentRoute.value.params.id, () => {
+    userId.value = router.currentRoute.value.params.id
+    requestUserInfo()
+})
 
 </script>
 

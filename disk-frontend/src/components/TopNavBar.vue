@@ -50,7 +50,7 @@
                                       }"
                             >
                                 <div class="select-none">
-                                    {{ username }}
+                                    {{ nickname }}
                                 </div>
                             </n-avatar>
                         </n-dropdown>
@@ -95,6 +95,7 @@ const userStore = useUserStore()
 const fileStore = useFileStore()
 
 const username = ref('')
+const nickname = ref('')
 const role = ref(userStore.user.role)
 
 const showTransferDropdown = ref(false)
@@ -102,20 +103,20 @@ const transferDropdownOutside = ref(false)
 
 const hexUserColor = ref('#2876c7')
 
-const loadUsername = (newUsername, newRole) => {
+const loadUsername = (newUsername, newRole, newNickname) => {
     username.value = newUsername
+    nickname.value = newNickname || newUsername
+    role.value = newRole
+
     const colorExtracted = MD5(newUsername + newRole || '').substring(4, 10)
     hexUserColor.value = `#${colorExtracted}`
-    role.value = newRole
 }
 
-onMounted(() => {
-    if (!userStore.userData.setup) {
-        // requestPersonalData()
-    }
-})
-
-loadUsername(userStore.userData.nickname || userStore.user.username, userStore.user.role)
+loadUsername(
+        userStore.user.username,
+        userStore.user.role,
+        userStore.userData.nickname
+)
 
 const uploadViewOptions = [
     {
@@ -294,11 +295,11 @@ chooseOptions(userStore.user.username, userStore.user.role, userStore.user.id)
 
 userStore.$subscribe((mutation, state) => {
     if (!state.user) {
-        loadUsername(null, 'USER')
+        loadUsername(null, 'USER', null)
         chooseOptions(null, null, 0)
         return
     }
-    loadUsername(state.userData.nickname || state.user.username, state.user.role)
+    loadUsername(state.user.username, state.user.role, state.userData.nickname)
     chooseOptions(state.user.username, state.user.role, state.user.id)
 })
 

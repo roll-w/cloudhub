@@ -26,7 +26,7 @@
                           }"
                               class="mr-5">
                         <div class="select-none text-2xl">
-                            {{ username }}
+                            {{ nickname }}
                         </div>
                     </n-avatar>
                 </div>
