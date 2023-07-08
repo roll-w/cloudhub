@@ -12,13 +12,16 @@
              :class="['w-100 flex justify-start transition-all duration-300 items-start align-baseline ',
           fileMenuShowState || checkedState ? 'opacity-100' : 'opacity-0']">
             <n-checkbox
+                    v-if="showCheckbox"
                     v-model:checked="checkedState"
                     @click="stopPropagation"
                     @dblclick="preventDefault"
                     @update:checked="$emit('update:checked', checkedState)"/>
             <div class="pl-3 flex flex-fill justify-end">
-                <n-button circle @click="handleMoreOptionsClick($event, file)"
-                          @dblclick="preventDefault">
+                <n-button
+                        v-if="showMoreOptions"
+                        circle @click="handleMoreOptionsClick($event, file)"
+                        @dblclick="preventDefault">
                     <template #icon>
                         <n-icon size="20">
                             <MoreHorizonal20Regular/>
@@ -97,6 +100,14 @@ const props = defineProps({
         default: (event, file) => {
         }
     },
+    showCheckbox: {
+        type: Boolean,
+        default: true
+    },
+    showMoreOptions: {
+        type: Boolean,
+        default: true
+    }
 })
 
 const siteStore = useSiteStore()

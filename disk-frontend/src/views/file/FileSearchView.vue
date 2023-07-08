@@ -57,10 +57,16 @@
                         :file-options="fileOptions"
                         :files="result"
                         :menu-options="contextMenuOptions"
+                        :on-menu-select="handleMenuSelect"
                         :on-show-file-option="hackFileOptions"
                 >
                     <template #title>
                         共搜索到 {{ result.length }} 个结果
+                    </template>
+                    <template #empty>
+                        <div class="py-5">
+                            <n-empty description="没有搜索到文件"/>
+                        </div>
                     </template>
                 </FileComponentsView>
             </div>
@@ -165,7 +171,6 @@ const fileOptions = [
 ]
 
 const hackFileOptions = (file) => {
-
     fileOptions.find(option => option.key === 'log').label = () => {
         return h(RouterLink, {
             to: {
@@ -195,6 +200,10 @@ const hackFileOptions = (file) => {
                     id: file.storageId,
                     type: file.storageType.toLowerCase()
                 },
+                query: {
+                    refer: 'search',
+                    source: encodeURI(inputRef.value)
+                }
             },
         }, {
             default: () => '权限'
@@ -325,7 +334,7 @@ const replaceSearchExpression = (original) => {
             .replace(/创建时间:/g, 'time:')
             .replace(/修改时间:/g, 'last_modified:')
             .replace(/创建者:/g, 'owner:')
-            .replace(/最后修改者:/g, 'last_modified_by:')
+            .replace(/最后修改者:/g, 'last_modifier:')
     const parsed = parseInput(replaced)
     const index = parsed.findIndex(item => item.key === 'type')
     if (index < 0) {
@@ -372,6 +381,14 @@ const requestSearch = () => {
         popAdminErrorTemplate(notification, error, "搜索失败")
     })
 }
+
+const handleMenuSelect = (key) => {
+    if (key === 'refresh') {
+        requestSearch()
+        message.success('刷新成功')
+    }
+}
+
 
 onInputChange()
 requestSearch()

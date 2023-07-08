@@ -9,8 +9,9 @@
             </div>
 
             <div class="flex">
-                <div class="mr-3">
+                <div v-if="allowSelect" class="mr-3">
                     <n-checkbox
+
                             v-model:checked="selectAllCheckBox"
                             @update:checked="onSelectAllCheckBox">
                     </n-checkbox>
@@ -33,6 +34,8 @@
                                v-model:checked="checkedState[i]"
                                :file="file"
                                :on-click-more-options="handleClickMoreOptions"
+                               :show-checkbox="allowSelect"
+                               :show-more-options="fileOptions.length"
                                @click="handleStorageClick($event, file)"
                                @contextmenu="handleFileOptionContextMenu($event, file)"/>
             </div>
@@ -113,6 +116,10 @@ const props = defineProps({
     menuOptions: {
         type: Array,
         default: () => []
+    },
+    allowSelect: {
+        type: Boolean,
+        default: true
     },
     onMenuSelect: {
         type: Function,
