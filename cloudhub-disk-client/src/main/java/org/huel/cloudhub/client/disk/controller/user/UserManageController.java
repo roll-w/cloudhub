@@ -35,8 +35,7 @@ public class UserManageController {
     @GetMapping("/users")
     public HttpResponseEntity<List<UserDetailsVo>> getUserList(Pageable pageRequest) {
         List<? extends AttributedUser> userIdentities = userManageService.getUsers(
-                pageRequest.getPage(),
-                pageRequest.getSize()
+               pageRequest
         );
         return HttpResponseEntity.success(
                 userIdentities.stream().map(
