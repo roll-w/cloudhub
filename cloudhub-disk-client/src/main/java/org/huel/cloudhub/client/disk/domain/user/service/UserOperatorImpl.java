@@ -165,7 +165,9 @@ public class UserOperatorImpl implements UserOperator {
         }
 
         checkRule(password, UserFilteringInfoType.PASSWORD);
-        userBuilder.setPassword(password);
+        userBuilder.setPassword(
+                delegate.encodePassword(password)
+        );
         return updateInternal();
     }
 
@@ -194,7 +196,7 @@ public class UserOperatorImpl implements UserOperator {
             throw new UserException(UserErrorCode.ERROR_PASSWORD_NOT_CORRECT);
         }
         checkRule(password, UserFilteringInfoType.PASSWORD);
-        userBuilder.setPassword(password);
+        userBuilder.setPassword(delegate.encodePassword(password));
 
         return updateInternal();
     }
