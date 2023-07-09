@@ -119,6 +119,7 @@ const requestCreateUser = () => {
         message.success("创建成功")
         props.onAfterAction()
     }).catch((e) => {
+        props.onAfterAction()
         popAdminErrorTemplate(notification, e)
     })
 }
