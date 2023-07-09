@@ -1,4 +1,7 @@
 export function formatTimestamp(timestamp) {
+    if (timestamp === 0) {
+        return "从未"
+    }
     let date = new Date(timestamp)
     let Y = date.getFullYear() + '-'
     let M = (date.getMonth() + 1 < 10
@@ -23,7 +26,7 @@ const mb = 1024 * 1024
 const kb = 1024
 
 export const formatFileSize = (sizeInBytes, infinity = '∞') => {
-    if (sizeInBytes === Infinity) {
+    if (sizeInBytes === Infinity || sizeInBytes < 0) {
         return infinity
     }
 

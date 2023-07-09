@@ -277,6 +277,15 @@ const router = createRouter({
                     }
                 },
                 {
+                    path: '/admin/users/groups/:id',
+                    name: adminUserGroupDetails,
+                    component: () => import("@/views/admin/user/UserGroupDetailsView.vue"),
+                    meta: {
+                        title: "用户组详情",
+                        requireLogin: true
+                    }
+                },
+                {
                     path: '/admin/storages/files',
                     name: adminFileLists,
                     component: () => import("@/views/admin/file/FileListsView.vue"),

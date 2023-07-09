@@ -40,12 +40,18 @@ export const storageUserPermission = (ownerType, ownerId, storageType, id, userI
 
 export const folder = (ownerType, ownerId, directory) =>
     `${prefix}/${ownerType}/${ownerId}/disk/folder/${directory}`;
+
+export const foldersIn = (ownerType, ownerId, directory) =>
+    `${prefix}/${ownerType}/${ownerId}/disk/folder/${directory}/folders`;
 export const storage = (ownerType, ownerId, storageType, id) =>
     `${prefix}/${ownerType}/${ownerId}/disk/${storageType}/${id}`;
 export const storageName = (ownerType, ownerId, storageType, id) =>
-    `${prefix}/${ownerType}/${ownerId}/disk/${storageType}/${id}/info/name`;
+    `${prefix}/${ownerType}/${ownerId}/disk/${storageType}/${id}/name`;
 export const storageParent = (ownerType, ownerId, storageType, id) =>
-    `${prefix}/${ownerType}/${ownerId}/disk/${storageType}/${id}/info/parent`;
+    storageAction(ownerType, ownerId, storageType, id, "parent");
+
+export const storageAction = (ownerType, ownerId, storageType, id, action) =>
+    `${prefix}/${ownerType}/${ownerId}/disk/${storageType}/${id}/info/${action}`;
 export const search = (ownerType, ownerId) =>
     `${prefix}/${ownerType}/${ownerId}/disk/search`;
 export const storageShare = (ownerType, ownerId, storageType, id) =>
@@ -100,8 +106,14 @@ export const searchUsers = (admin = false) =>
 export const userInfo = (userId, admin = false) =>
     `${admin ? adminPrefix : prefix}/users/${userId}`;
 
-export const userGroups = (id = null) =>
-    `${adminPrefix}/groups${id !== null ? `/${id}` : ''}`;
+export const currentUserPassword =
+    `${prefix}/user/password`;
+
+export const userGroups = (admin = false, id = null) =>
+    `${admin ? adminPrefix : prefix}/groups${id !== null ? `/${id}` : ''}`;
+
+export const ownerUserGroup = (id, type = 'user', admin = false) =>
+    `${admin ? adminPrefix : prefix}/${type}/${id}/groups`;
 
 export const getUsers = `${adminPrefix}/users`;
 export const getLoginLogs = `${adminPrefix}/users/login/logs`;
