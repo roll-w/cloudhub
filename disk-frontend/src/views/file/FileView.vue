@@ -86,6 +86,7 @@
                 <FolderCreateForm
                         :folder-id="curDirectoryId"
                         :on-after-action="() => {
+                            showCreateFolderModal = false
                             loading = false
                             refresh()
                         }"
@@ -93,6 +94,30 @@
                         :on-click-cancel="() => showCreateFolderModal = false"
                         :on-click-confirm="() => showCreateFolderModal = false"
                         :owner-id="userStore.user.id"
+                        owner-type="user"
+                />
+            </div>
+        </n-modal>
+
+        <n-modal v-model:show="showMoveStorageModal"
+                 :show-icon="false"
+                 :title="storageCopyOrMove === 'copy' ? '复制文件' : '移动文件'"
+                 preset="dialog"
+                 transform-origin="center">
+            <div>
+                <StorageMoveOrCopyForm
+                        :folder-id="curDirectoryId"
+                        :on-after-action="() => {
+                            showMoveStorageModal = false
+                            loading = false
+                            refresh()
+                        }"
+                        :on-before-action="() => loading = true"
+                        :on-click-cancel="() => showMoveStorageModal = false"
+                        :owner-id="userStore.user.id"
+                        :storage-id="curTargetFile.storageId"
+                        :storage-type="curTargetFile.storageType"
+                        :type="storageCopyOrMove"
                         owner-type="user"
                 />
             </div>
@@ -176,6 +201,8 @@ import {options, getFileViewMenuOptions} from "@/views/file/options";
 import StorageShareForm from "@/components/file/forms/StorageShareForm.vue";
 import StorageShareConfirm from "@/components/file/forms/StorageShareConfirm.vue";
 import FileComponentsView from "@/views/file/FileComponentsView.vue";
+import StorageMoveForm from "@/components/file/forms/StorageMoveOrCopyForm.vue";
+import StorageMoveOrCopyForm from "@/components/file/forms/StorageMoveOrCopyForm.vue";
 
 const {proxy} = getCurrentInstance()
 const notification = useNotification()
@@ -199,6 +226,8 @@ const showCreateFolderModal = ref(false)
 const showFilePreviewModal = ref(false)
 const showRenameStorageModal = ref(false)
 const showShareStorageModal = ref(false)
+const showMoveStorageModal = ref(false)
+const storageCopyOrMove = ref('move')
 const showShareConfirmStorageModal = ref(false)
 
 const shareInfo = ref()
@@ -397,7 +426,13 @@ const handleFileOptionSelect = (key, options, target) => {
         case 'rename':
             showRenameStorageModal.value = true
             break;
+        case 'copy':
+            storageCopyOrMove.value = "copy"
+            showMoveStorageModal.value = true
+            break;
         case 'move':
+            storageCopyOrMove.value = "move"
+            showMoveStorageModal.value = true
             break;
         case 'delete':
             dialog.error({

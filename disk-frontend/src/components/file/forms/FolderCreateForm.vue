@@ -99,6 +99,7 @@ const createFolder = (name) => {
         message.success('创建文件夹成功')
         props.onAfterAction()
     }).catch(err => {
+        props.onAfterAction()
         popUserErrorTemplate(notification, err,
             '创建文件夹失败', '文件夹请求失败')
     })

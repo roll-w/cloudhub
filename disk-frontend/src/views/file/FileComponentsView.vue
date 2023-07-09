@@ -35,7 +35,7 @@
                                :file="file"
                                :on-click-more-options="handleClickMoreOptions"
                                :show-checkbox="allowSelect"
-                               :show-more-options="fileOptions.length"
+                               :show-more-options="(fileOptions.length > 0)"
                                @click="handleStorageClick($event, file)"
                                @contextmenu="handleFileOptionContextMenu($event, file)"/>
             </div>
