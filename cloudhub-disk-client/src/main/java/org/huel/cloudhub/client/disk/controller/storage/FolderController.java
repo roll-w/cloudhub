@@ -64,28 +64,6 @@ public class FolderController {
     }
 
     @SystemResourceAuthenticate(idParam = "storageId")
-    @BuiltinOperate(BuiltinOperationType.RENAME_FOLDER)
-    @PutMapping("/{ownerType}/{ownerId}/disk/folder/{storageId}/name")
-    public HttpResponseEntity<Void> renameFolder(
-            @PathVariable("ownerType") String type,
-            @PathVariable("ownerId") Long ownerId,
-            @PathVariable("storageId") Long storageId) {
-        StorageOwner storageOwner = ParameterHelper.buildStorageOwner(ownerId, type);
-
-        return HttpResponseEntity.success();
-    }
-
-    @SystemResourceAuthenticate(idParam = "storageId")
-    @BuiltinOperate(BuiltinOperationType.MOVE_FOLDER)
-    @PutMapping("/{ownerType}/{ownerId}/disk/folder/{storageId}/move")
-    public HttpResponseEntity<Void> moveFolder(
-            @PathVariable("ownerType") String type,
-            @PathVariable("ownerId") Long ownerId,
-            @PathVariable("storageId") Long storageId) {
-        return HttpResponseEntity.success();
-    }
-
-    @SystemResourceAuthenticate(idParam = "storageId")
     @BuiltinOperate(BuiltinOperationType.DELETE_FOLDER)
     @DeleteMapping("/{ownerType}/{ownerId}/disk/folder/{storageId}")
     public HttpResponseEntity<Void> deleteFolder(
@@ -140,6 +118,36 @@ public class FolderController {
 
         return HttpResponseEntity.success(
                 authenticatedStorages.stream()
+                        .filter(storage -> !storage.isDeleted())
+                        .map(StorageVo::from)
+                        .toList()
+        );
+    }
+
+    @SystemResourceAuthenticate(
+            idParam = "directory",
+            kind = SystemResourceKind.FOLDER, inferredKind = false,
+            action = Action.ACCESS, inferredAction = false
+    )
+    @GetMapping("/{ownerType}/{ownerId}/disk/folder/{storageId}/folders")
+    public HttpResponseEntity<List<StorageVo>> listFolders(
+            @PathVariable("storageId") Long directory,
+            @PathVariable("ownerId") Long ownerId,
+            @PathVariable("ownerType") String type) {
+        StorageOwner storageOwner = ParameterHelper.buildStorageOwner(ownerId, type);
+        UserIdentity userIdentity = ApiContextHolder.getContext().userInfo();
+        ContextThread<PageableContext> contextThread =
+                pageableContextThreadAware.getContextThread();
+        PageableContext pageableContext = contextThread.getContext();
+        pageableContext.setIncludeDeleted(false);
+
+        List<AttributedStorage> storages = userStorageSearchService.listFolders(
+                directory,
+                storageOwner
+        );
+
+        return HttpResponseEntity.success(
+                storages.stream()
                         .filter(storage -> !storage.isDeleted())
                         .map(StorageVo::from)
                         .toList()

@@ -39,6 +39,8 @@ public interface UserStorageSearchService {
     @NonNull
     FileInfo findFile(FileStorageInfo fileStorageInfo) throws StorageException;
 
+    List<AttributedStorage> listFolders(long folderId, StorageOwner storageOwner);
+
     // include directories
     List<AttributedStorage> listFiles(long folderId, StorageOwner storageOwner);
 
@@ -52,4 +54,5 @@ public interface UserStorageSearchService {
     List<AttributedStorage> listOf(StorageType storageType);
 
     List<AttributedStorage> listOf(StorageOwner storageOwner, StorageType storageType);
+
 }

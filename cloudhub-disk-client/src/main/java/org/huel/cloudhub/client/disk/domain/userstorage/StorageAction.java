@@ -21,6 +21,7 @@ public interface StorageAction extends AttributedStorage, SystemResourceOperator
 
     void create() throws StorageException;
 
+    @Override
     StorageAction rename(String newName) throws StorageException;
 
     void move(long newParentId) throws StorageException;

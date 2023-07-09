@@ -170,10 +170,6 @@ public class UserFileStorageServiceImpl implements
             return updatedStorage;
         }
 
-        if (existUserFileStorage.getFileId().equals(cfsFile) && !existUserFileStorage.isDeleted()) {
-            return existUserFileStorage;
-        }
-
         UserFileStorage updatedStorage = existUserFileStorage.toBuilder()
                 .setUpdateTime(time)
                 .setDeleted(false)
@@ -207,7 +203,10 @@ public class UserFileStorageServiceImpl implements
                 size,
                 operator
         );
-        dispatchFileOnCreate(userFileStorage, storageAttr);
+        compositeStorageEventListener.onStorageCreated(
+                userFileStorage,
+                storageAttr
+        );
     }
 
     private void checkDirectoryState(long directoryId, StorageOwner storageOwner) {
@@ -422,6 +421,12 @@ public class UserFileStorageServiceImpl implements
     }
 
     @Override
+    public List<AttributedStorage> listFolders(long folderId, StorageOwner storageOwner) {
+        List<UserFolder> userDirectories = listDirectories(folderId, storageOwner);
+        return new ArrayList<>(userDirectories);
+    }
+
+    @Override
     public List<AttributedStorage> listFiles(long folderId,
                                              StorageOwner storageOwner) {
         List<UserFileStorage> userFileStorages = listOnlyFiles(folderId, storageOwner);
@@ -477,13 +482,6 @@ public class UserFileStorageServiceImpl implements
             );
             default -> List.of();
         };
-    }
-
-    private void dispatchFileOnCreate(Storage storage, StorageAttr storageAttr) {
-        compositeStorageEventListener.onStorageCreated(
-                storage,
-                storageAttr
-        );
     }
 
     private void checkFileCreate(StorageOwner storageOwner,

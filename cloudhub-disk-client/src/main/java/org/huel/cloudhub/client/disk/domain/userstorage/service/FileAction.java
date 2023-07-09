@@ -139,6 +139,8 @@ public class FileAction implements StorageAction {
                 fileActionDelegate.checkParentExists(newParentId);
         AttributedStorage parent =
                 fileActionDelegate.checkParentExists(file.getParentId());
+        fileActionDelegate.checkExistsFile(file.getName(), newParentId);
+
         fileBuilder.setFolderId(newParentId);
         OperationContextHolder.getContext()
                 .setOriginContent(parent.getName())
@@ -152,11 +154,15 @@ public class FileAction implements StorageAction {
         if (file.getParentId() == newParentId) {
             throw new StorageException(StorageErrorCode.ERROR_SAME_DIRECTORY);
         }
-        UserFileStorage copiedFile = fileBuilder
-                .setFolderId(newParentId)
-                .setCreateTime(System.currentTimeMillis())
-                .setUpdateTime(System.currentTimeMillis())
-                .build();
+        fileActionDelegate.checkParentExists(newParentId);
+        fileActionDelegate.checkExistsFile(file.getName(), newParentId);
+        long time = System.currentTimeMillis();
+        UserFileStorage.Builder copiedBuilder = file.toBuilder()
+                .setId(null)
+                .setFolderId(newParentId).setCreateTime(time)
+                .setUpdateTime(time);
+        // TODO: add storage create event callback
+        UserFileStorage copiedFile = copiedBuilder.build();
         Long id = fileActionDelegate.createFile(copiedFile);
         copiedFile = copiedFile.toBuilder()
                 .setId(id)

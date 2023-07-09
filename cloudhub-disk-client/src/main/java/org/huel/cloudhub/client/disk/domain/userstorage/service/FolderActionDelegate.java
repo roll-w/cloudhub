@@ -9,6 +9,8 @@ import org.huel.cloudhub.client.disk.domain.userstorage.UserFolder;
 public interface FolderActionDelegate {
     Long createDirectory(UserFolder userFolder);
 
+    void onDeleteDirectory(UserFolder userFolder);
+
     void updateDirectory(UserFolder userFolder);
 
     void checkExistsFolder(String name, long parentId);

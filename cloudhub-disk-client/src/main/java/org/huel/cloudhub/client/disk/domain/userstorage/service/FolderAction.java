@@ -138,6 +138,8 @@ public class FolderAction implements StorageAction {
                 folderActionDelegate.checkParentExists(newParentId);
         AttributedStorage parent =
                 folderActionDelegate.checkParentExists(folder.getParentId());
+        folderActionDelegate.checkExistsFolder(folder.getName(), newParentId);
+
         folderBuilder.setParentId(newParentId);
         OperationContextHolder.getContext()
                 .setOriginContent(parent.getName())
@@ -151,6 +153,10 @@ public class FolderAction implements StorageAction {
         if (folder.getParentId() == newParentId) {
             throw new StorageException(StorageErrorCode.ERROR_SAME_DIRECTORY);
         }
+        AttributedStorage storage =
+                folderActionDelegate.checkParentExists(newParentId);
+        folderActionDelegate.checkExistsFolder(folder.getName(), newParentId);
+
         UserFolder copy = folderBuilder.build().toBuilder()
                 .setId(null)
                 .setParentId(newParentId)

@@ -122,6 +122,11 @@ public class UserStorageActionServiceImpl implements StorageActionService,
     }
 
     @Override
+    public void onDeleteDirectory(UserFolder userFolder) {
+
+    }
+
+    @Override
     public void updateDirectory(UserFolder userFolder) {
         userFolderRepository.update(userFolder);
     }
@@ -138,6 +143,11 @@ public class UserStorageActionServiceImpl implements StorageActionService,
     @Override
     public Long createFile(UserFileStorage userFileStorage) {
         return userFileStorageRepository.insert(userFileStorage);
+    }
+
+    @Override
+    public void onDeleteFile(UserFileStorage userFileStorage) {
+
     }
 
     @Override

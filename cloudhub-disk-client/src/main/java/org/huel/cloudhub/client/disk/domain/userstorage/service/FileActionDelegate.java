@@ -9,6 +9,8 @@ import org.huel.cloudhub.client.disk.domain.userstorage.UserFileStorage;
 public interface FileActionDelegate {
     Long createFile(UserFileStorage userFileStorage);
 
+    void onDeleteFile(UserFileStorage userFileStorage);
+
     void updateFile(UserFileStorage userFileStorage);
 
     void checkExistsFile(String name, long parentId);
