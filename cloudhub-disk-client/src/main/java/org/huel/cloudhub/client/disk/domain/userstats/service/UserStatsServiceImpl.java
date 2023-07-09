@@ -1,5 +1,6 @@
 package org.huel.cloudhub.client.disk.domain.userstats.service;
 
+import org.huel.cloudhub.client.disk.domain.usergroup.GroupSettingKeys;
 import org.huel.cloudhub.client.disk.domain.usergroup.UserGroupSearchService;
 import org.huel.cloudhub.client.disk.domain.usergroup.dto.UserGroupInfo;
 import org.huel.cloudhub.client.disk.domain.userstats.*;
@@ -79,8 +80,10 @@ public class UserStatsServiceImpl implements UserStatisticsService, UserDataView
         UserGroupInfo userGroupInfo =
                 userGroupSearchService.findUserGroupsByUser(storageOwner);
         return restrictKeys.stream().map(restrictKey -> {
-            String restrictValue =
-                    userGroupInfo.settings().get(restrictKey.getRestrictKey());
+            String defaultValue = GroupSettingKeys.DEFAULT.getSettings()
+                    .get(restrictKey.getRestrictKey());
+            String restrictValue = userGroupInfo.settings()
+                    .getOrDefault(restrictKey.getRestrictKey(), defaultValue);
             long value = restrictKey.toValue(restrictValue);
             Number number = userStatisticsDetail.statistics()
                     .getOrDefault(restrictKey.getKey(), 1L);
