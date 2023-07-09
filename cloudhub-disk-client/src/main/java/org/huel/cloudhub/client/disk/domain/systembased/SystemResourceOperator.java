@@ -18,6 +18,18 @@ public interface SystemResourceOperator extends ByStatusProvider, Castable {
     SystemResource rename(String newName) throws BusinessRuntimeException,
             UnsupportedOperationException;
 
+    default SystemResourceOperator disableAutoUpdate() {
+        return this;
+    }
+
+    default SystemResourceOperator enableAutoUpdate() {
+        return this;
+    }
+
+    default boolean isAutoUpdateEnabled() {
+        return true;
+    }
+
     SystemResource getSystemResource();
 
     default <T extends SystemResource> T getSystemResource(Class<T> type) {
