@@ -46,10 +46,19 @@
 <script setup>
 
 import {getCurrentInstance, ref} from "vue";
-import {useNotification} from "naive-ui";
+import {useNotification, useMessage} from "naive-ui";
+import {createConfig} from "@/request/axios_config";
+import {popUserErrorTemplate} from "@/views/util/error";
+import api from "@/request/api";
+import {useUserStore} from "@/stores/user";
+import {login} from "@/router";
+import {useRouter} from "vue-router";
 
 const notification = useNotification()
+const message = useMessage()
 const {proxy} = getCurrentInstance()
+const userStore = useUserStore()
+const router = useRouter()
 
 const props = defineProps({
     onCancel: {
@@ -129,7 +138,6 @@ const handleConfirm = () => {
     form.value.validate().then(() => {
         props.onConfirm(formValue.value)
         sendResetPasswordRequest()
-
     })
 }
 
@@ -138,7 +146,24 @@ const handleCancel = () => {
 }
 
 const sendResetPasswordRequest = () => {
-    props.onAfterConfirm()
+    const config = createConfig(true)
+
+    proxy.$axios.put(api.currentUserPassword, {
+        first: formValue.value.oldPassword,
+        second: formValue.value.newPassword
+    }, config).then(response => {
+        props.onAfterConfirm()
+        message.success('修改密码成功，请重新登录')
+        userStore.logout()
+        router.push({
+            name: login
+        })
+    }).catch(error => {
+        props.onAfterConfirm()
+        popUserErrorTemplate(notification, error, '修改密码失败')
+    })
+
+
 }
 
 </script>
