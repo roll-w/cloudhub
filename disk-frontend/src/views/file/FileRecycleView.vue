@@ -1,8 +1,8 @@
 <template>
     <div class="p-5">
-        <n-h2>
+        <n-h1>
             回收站
-        </n-h2>
+        </n-h1>
         <div class="py-3 min-h-[30vh]">
             <FileComponentsView :file-options="fileOptions"
                                 :disable-click="true"

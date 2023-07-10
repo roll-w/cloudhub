@@ -1,8 +1,8 @@
 <template>
     <div class="p-5">
-        <div class="text-3xl py-2">
+        <n-h1 class="py-2">
             文件搜索
-        </div>
+        </n-h1>
         <div>
             <n-alert type="info">
                 <div class="text-xl">

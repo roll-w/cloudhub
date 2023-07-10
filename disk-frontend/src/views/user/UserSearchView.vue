@@ -57,9 +57,9 @@ requestSearch()
 
 <template>
     <div class="p-5">
-        <div class="text-3xl py-2">
+        <n-h1 class="pt-2">
             用户搜索
-        </div>
+        </n-h1>
         <div class="py-2">
             <n-input-group>
                 <n-input v-model:value="inputRef" clearable

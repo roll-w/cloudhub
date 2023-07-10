@@ -1,6 +1,6 @@
 <template>
     <div class="p-5">
-        <n-h2>个人分享</n-h2>
+        <n-h1>个人分享</n-h1>
         <div>
             <n-data-table :bordered="false"
                           :columns="columns"
