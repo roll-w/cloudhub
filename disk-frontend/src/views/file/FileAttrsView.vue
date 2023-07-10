@@ -25,12 +25,45 @@
             </div>
 
             <div v-else>
+
                 <div class="flex items-stretch">
                     <div class="w-2/5 max-w-[40%] min-w-[40%] mr-4">
                         <div class="mb-4 text-xl">
                             属性
                         </div>
-                        <div class="h-100 flex flex-col items-stretch place-items-stretch">
+                        <div class="py-2">
+                            <n-grid cols="6" y-gap="10">
+                                <n-gi span="1">
+                                    <div class="text-neutral-500">
+                                        创建时间
+                                    </div>
+                                </n-gi>
+                                <n-gi span="5">
+                                    {{ formatTimestamp(fileInfo.createTime) }}
+                                </n-gi>
+                            </n-grid>
+                            <n-grid cols="6" y-gap="10">
+                                <n-gi span="1">
+                                    <div class="text-neutral-500">
+                                        修改时间
+                                    </div>
+                                </n-gi>
+                                <n-gi span="5">
+                                    {{ formatTimestamp(fileInfo.updateTime) }}
+                                </n-gi>
+                            </n-grid>
+                            <n-grid v-if="fileInfo.size" cols="6" y-gap="10">
+                                <n-gi span="1">
+                                    <div class="text-neutral-500">
+                                        文件大小
+                                    </div>
+                                </n-gi>
+                                <n-gi span="5">
+                                    {{ formatFileSize(fileInfo.size) }}
+                                </n-gi>
+                            </n-grid>
+                        </div>
+                        <div class="pt-2 h-100 flex flex-col items-stretch place-items-stretch">
                             <div>
                                 <n-table :bordered="false">
                                     <thead>
@@ -128,6 +161,7 @@
             <div>
                 <FileAttrsRelableForm
                         :attributes="fileAttrs"
+                        :on-click-cancel="() => showFileRelabelAttrsModal = false"
                         :owner-id="fileInfo.ownerId"
                         :owner-type="fileInfo.ownerType"
                         :storage-id="fileInfo.storageId"
@@ -157,7 +191,7 @@ import api from "@/request/api";
 import {createConfig} from "@/request/axios_config";
 import {popUserErrorTemplate} from "@/views/util/error";
 import {getFileType} from "@/views/names";
-import {formatTimestamp} from "@/util/format";
+import {formatFileSize, formatTimestamp} from "@/util/format";
 import FileAttrsRelableForm from "@/components/file/forms/FileAttrsRelableForm.vue";
 
 const router = useRouter();
@@ -187,7 +221,7 @@ const dialog = useDialog()
 const onDeleteVersion = (versionInfo) => {
     dialog.error({
         title: '删除版本',
-        content: '确定删除版本 ' + versionInfo.version + ' 吗？',
+        content: '确定删除版本 ' + versionInfo.version + ' 吗？注意：删除后无法恢复！',
         positiveText: '删除',
         negativeText: '取消',
         onPositiveClick: () => {
@@ -293,14 +327,39 @@ const requestFileVersion = () => {
     })
 }
 
+const tryTranslate = (content) => {
+    switch (content) {
+        case 'FILE':
+            return '文件'
+        case 'FOLDER':
+            return '文件夹'
+        case 'AUDIO':
+            return '音频'
+        case 'VIDEO':
+            return '视频'
+        case 'IMAGE':
+            return '图片'
+        case 'DOCUMENT':
+            return '文档'
+        case 'PUBLIC_READ':
+            return '公开读'
+        case 'PUBLIC_READ_WRITE':
+            return '公开读写'
+        case 'PRIVATE':
+            return '私有'
+        default:
+            return content
+    }
+}
+
 const requestFileLogs = () => {
     const config = createConfig()
     proxy.$axios.get(api.getOperationLogsByResource(storageType, id), config)
             .then(res => {
                 res.data.forEach(item => item.description =
                         item.description.format(
-                                item.originContent,
-                                item.changedContent
+                                tryTranslate(item.originContent),
+                                tryTranslate(item.changedContent)
                         )
                 )
                 fileLogs.value = res.data

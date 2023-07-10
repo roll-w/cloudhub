@@ -22,16 +22,16 @@ export const fileToken = (ownerType, ownerId, fileId) =>
     `${prefix}/${ownerType}/${ownerId}/disk/file/${fileId}/token`;
 export const uploadFile = (ownerType, ownerId, folderId) =>
     `${prefix}/${ownerType}/${ownerId}/disk/${folderId}`;
-export const getStorageInfo = (ownerType, ownerId, storageType, storageId) =>
-    `${prefix}/${ownerType}/${ownerId}/disk/${storageType}/${storageId}/info`;
-export const getStorageAttributes = (ownerType, ownerId, storageType, storageId) =>
-    `${prefix}/${ownerType}/${ownerId}/disk/${storageType}/${storageId}/tags`;
-export const getStorageVersions = (ownerType, ownerId, storageType, id) =>
-    `${prefix}/${ownerType}/${ownerId}/disk/${storageType}/${id}/versions`;
-export const getStorageVersion = (ownerType, ownerId, storageType, id, version) =>
-    `${prefix}/${ownerType}/${ownerId}/disk/${storageType}/${id}/versions/${version}`;
-export const getStoragePermissions = (ownerType, ownerId, storageType, id) =>
-    `${prefix}/${ownerType}/${ownerId}/disk/${storageType}/${id}/permissions`;
+export const getStorageInfo = (ownerType, ownerId, storageType, storageId, admin = false) =>
+    `${admin ? adminPrefix : prefix}/${ownerType}/${ownerId}/disk/${storageType}/${storageId}/info`;
+export const getStorageAttributes = (ownerType, ownerId, storageType, storageId, admin = false) =>
+    `${admin ? adminPrefix : prefix}/${ownerType}/${ownerId}/disk/${storageType}/${storageId}/tags`;
+export const getStorageVersions = (ownerType, ownerId, storageType, id, admin = false) =>
+    `${admin ? adminPrefix : prefix}/${ownerType}/${ownerId}/disk/${storageType}/${id}/versions`;
+export const getStorageVersion = (ownerType, ownerId, storageType, id, version, admin = false) =>
+    `${admin ? adminPrefix : prefix}/${ownerType}/${ownerId}/disk/${storageType}/${id}/versions/${version}`;
+export const getStoragePermissions = (ownerType, ownerId, storageType, id, admin = false) =>
+    `${admin ? adminPrefix : prefix}/${ownerType}/${ownerId}/disk/${storageType}/${id}/permissions`;
 
 export const storagePublicPermission = (ownerType, ownerId, storageType, id) =>
     `${prefix}/${ownerType}/${ownerId}/disk/${storageType}/${id}/permissions/public`;
@@ -43,8 +43,8 @@ export const folder = (ownerType, ownerId, directory) =>
 
 export const foldersIn = (ownerType, ownerId, directory) =>
     `${prefix}/${ownerType}/${ownerId}/disk/folder/${directory}/folders`;
-export const storage = (ownerType, ownerId, storageType, id) =>
-    `${prefix}/${ownerType}/${ownerId}/disk/${storageType}/${id}`;
+export const storage = (ownerType, ownerId, storageType, id, admin = false) =>
+    `${admin ? adminPrefix : prefix}/${ownerType}/${ownerId}/disk/${storageType}/${id}`;
 export const storageName = (ownerType, ownerId, storageType, id) =>
     `${prefix}/${ownerType}/${ownerId}/disk/${storageType}/${id}/name`;
 export const storageParent = (ownerType, ownerId, storageType, id) =>
