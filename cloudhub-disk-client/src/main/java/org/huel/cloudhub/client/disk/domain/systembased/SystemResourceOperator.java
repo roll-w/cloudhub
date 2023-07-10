@@ -19,11 +19,15 @@ public interface SystemResourceOperator extends ByStatusProvider, Castable {
             UnsupportedOperationException;
 
     default SystemResourceOperator disableAutoUpdate() {
-        return this;
+        throw new UnsupportedOperationException("The system resource operator "
+                + getSystemResource().getSystemResourceKind()
+                + " does not support switch auto update.");
     }
 
     default SystemResourceOperator enableAutoUpdate() {
-        return this;
+        throw new UnsupportedOperationException("The system resource operator "
+                + getSystemResource().getSystemResourceKind()
+                + " does not support switch auto update.");
     }
 
     default boolean isAutoUpdateEnabled() {
