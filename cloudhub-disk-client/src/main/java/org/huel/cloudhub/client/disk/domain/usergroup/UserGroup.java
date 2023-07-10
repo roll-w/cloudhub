@@ -8,6 +8,7 @@ import space.lingu.light.DataTable;
 import space.lingu.light.PrimaryKey;
 import space.lingu.light.SQLDataType;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -106,6 +107,7 @@ public class UserGroup implements DataItem, SystemResource {
         private boolean deleted;
 
         private Builder() {
+            this.settings = new HashMap<>();
         }
 
         private Builder(UserGroup usergroup) {
@@ -135,6 +137,11 @@ public class UserGroup implements DataItem, SystemResource {
 
         public Builder setSettings(Map<String, String> settings) {
             this.settings = settings;
+            return this;
+        }
+
+        public Builder setSetting(String key, String value) {
+            this.settings.put(key, value);
             return this;
         }
 

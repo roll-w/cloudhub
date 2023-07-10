@@ -1,10 +1,12 @@
 package org.huel.cloudhub.client.disk.domain.usergroup.service;
 
-import com.google.common.base.Strings;
 import org.huel.cloudhub.client.disk.domain.operatelog.context.OperationContextHolder;
 import org.huel.cloudhub.client.disk.domain.systembased.SystemResourceKind;
 import org.huel.cloudhub.client.disk.domain.systembased.SystemResourceProvider;
 import org.huel.cloudhub.client.disk.domain.systembased.UnsupportedKindException;
+import org.huel.cloudhub.client.disk.domain.systembased.validate.FieldType;
+import org.huel.cloudhub.client.disk.domain.systembased.validate.Validator;
+import org.huel.cloudhub.client.disk.domain.systembased.validate.ValidatorProvider;
 import org.huel.cloudhub.client.disk.domain.usergroup.UserGroup;
 import org.huel.cloudhub.client.disk.domain.usergroup.UserGroupMember;
 import org.huel.cloudhub.client.disk.domain.usergroup.UserGroupSearchService;
@@ -31,21 +33,21 @@ public class UserGroupServiceImpl implements UserGroupService,
         UserGroupSearchService, SystemResourceProvider {
     private final UserGroupRepository userGroupRepository;
     private final UserGroupMemberRepository userGroupMemberRepository;
+    private final Validator groupValidator;
 
     public UserGroupServiceImpl(UserGroupRepository userGroupRepository,
-                                UserGroupMemberRepository userGroupMemberRepository) {
+                                UserGroupMemberRepository userGroupMemberRepository,
+                                ValidatorProvider validatorProvider) {
         this.userGroupRepository = userGroupRepository;
         this.userGroupMemberRepository = userGroupMemberRepository;
+        this.groupValidator = validatorProvider.getValidator(SystemResourceKind.USER_GROUP);
     }
 
     @Override
     public void createUserGroup(String name, String description) {
-        if ("default".equals(name)) {
-            throw new UserGroupException(UserGroupErrorCode.ERROR_GROUP_NAME_INVALID);
-        }
-        if (Strings.isNullOrEmpty(name) || name.length() > 32) {
-            throw new UserGroupException(UserGroupErrorCode.ERROR_GROUP_NAME_INVALID);
-        }
+        groupValidator.validateThrows(name, FieldType.NAME);
+        groupValidator.validateThrows(description, FieldType.DESCRIPTION);
+
         UserGroup userGroup = userGroupRepository.getByName(name);
         if (userGroup != null && !userGroup.isDeleted()) {
             throw new UserGroupException(UserGroupErrorCode.ERROR_GROUP_NAME_EXIST);
@@ -106,8 +108,14 @@ public class UserGroupServiceImpl implements UserGroupService,
 
     @Override
     public List<? extends StorageOwner> findUserGroupMembers(long userGroupId) {
+        if (userGroupId == 0) {
+            return List.of();
+        }
         List<UserGroupMember> userGroupMembers =
                 userGroupMemberRepository.getByGroup(userGroupId);
+        if (userGroupMembers.isEmpty()) {
+            return List.of();
+        }
 
         return userGroupMembers.stream()
                 .map(userGroupMember -> new SimpleStorageOwner(
