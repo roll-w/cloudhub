@@ -1,13 +1,8 @@
 <template>
     <div class="p-5">
-        <n-h2>
+        <n-h1 class="py-2">
             文件标签
-        </n-h2>
-        <div class="pb-4">
-            <n-alert type="info">
-                仅展示当前文件中存在的标签，不会展示当前文件不存在的标签。
-            </n-alert>
-        </div>
+        </n-h1>
         <n-card class="mb-5">
             <template #header>
                 <div class="text-2xl">
@@ -35,109 +30,214 @@
                 </n-steps>
             </template>
         </n-card>
-        <n-tree
-                :data="tagTreeOption"
-                expand-on-click
-        />
+        <div class="flex">
+            <div class="w-1/2">
+                <n-tree
+                        :data="tagTreeOption"
+                        :node-props="nodeProps"
+                        expand-on-click
+                        key-field="label"
+                />
+            </div>
+
+            <div class="w-full">
+                <n-card class="w-full h-full">
+                    <n-h2>
+                        已选择标签
+                    </n-h2>
+                    <div class="flex flex-wrap min-h-[30px]">
+                        <n-tag
+                                v-for="tag in selectedTags"
+                                :key="tag.key"
+                                class="m-1"
+                                round
+                                type="primary"
+                                size="large"
+                                closable
+                                @close="handleClose(tag)"
+                        >
+                            {{ tag.label }}
+                        </n-tag>
+                    </div>
+                    <div class="pt-4">
+                        <n-button
+                                class="mt-2"
+                                type="primary"
+                                @click="handleConfirm"
+                        >
+                            打开相关文件
+                        </n-button>
+                    </div>
+
+                </n-card>
+            </div>
+        </div>
     </div>
 
 </template>
 
 <script setup>
+import {reactive} from "vue";
+import {useRouter} from "vue-router";
+import {driveFileSearchPage} from "@/router";
+import {getCurrentInstance} from "vue";
+import {useNotification, useMessage, useDialog} from "naive-ui";
 
+const {proxy} = getCurrentInstance()
+const notification = useNotification()
+const message = useMessage()
+const dialog = useDialog()
 
 const tagTreeOption = [
     {
         label: '文件类型',
-        key: 'type',
         children: [
             {
                 label: '文档',
-                key: 'type_1'
             },
             {
                 label: '图片',
-                key: 'type_2'
             },
             {
                 label: '视频',
-                key: 'type_3'
             },
             {
                 label: '音频',
-                key: 'type_4'
             },
             {
-                label: '其他',
-                key: 'type_5'
+                label: '文本'
             }
         ]
     },
     {
-        label: '案件类型',
-        key: 'type_case',
+        label: '诉讼类型',
         children: [
             {
-                label: '民事案件',
-                key: 'type_case_1'
+                label: '民事诉讼',
             },
             {
-                label: '刑事案件',
-                key: 'type_case_2'
+                label: '刑事诉讼',
             },
             {
                 label: '行政案件',
-                key: 'type_case_3'
             },
             {
-                label: '其他',
-                key: 'type_case_4'
+                label: '税务诉讼'
             }
         ]
     },
     {
         label: '文书类型',
-        key: 'type_ar',
         children: [
             {
+                label: '通知书'
+            },
+            {
                 label: '裁定书',
-                key: 'type_ar_1'
             },
             {
                 label: '调解书',
-                key: 'type_ar_2'
             },
             {
                 label: '判决书',
-                key: 'type_ar_3'
             },
-            {
-                label: '其他',
-                key: 'type_ar_4'
-            }
         ]
     },
     {
         label: '审理阶段',
-        key: 'stage_ar',
         children: [
             {
                 label: '一审',
-                key: 'stage_ar_1'
             },
             {
                 label: '二审',
-                key: 'stage_ar_2'
             },
             {
-                label: '再审',
-                key: 'stage_ar_3'
-            },
-            {
-                label: '其他',
-                key: 'stage_ar_4'
+                label: '复核'
             }
         ]
     }
 ]
+
+const nodeProps = ({option}) => {
+    return {
+        onClick() {
+            if (option.children) {
+                return
+            }
+            if (selectedTags.find(tag => tag.label === option.label)) {
+                message.error('标签已选择')
+                return
+            }
+            const parent = findParent(option)
+            if (parent) {
+                const parentTag = selectedTags
+                        .map(tag => {
+                            return {
+                                parent: findParent(tag),
+                                tag: tag
+                            }
+                        })
+                        .find(tag => tag.parent.label === parent.label)
+                if (parentTag) {
+                    handleClose(parentTag.tag)
+                }
+            }
+
+            selectedTags.push(option)
+        }
+    }
+}
+
+const router = useRouter()
+
+const selectedTags = reactive([])
+const handleClose = (tag) => {
+    selectedTags.splice(selectedTags.indexOf(tag), 1)
+}
+
+const findParent = (tag) => {
+    for (let i = 0; i < tagTreeOption.length; i++) {
+        const parent = tagTreeOption[i]
+        if (parent.children) {
+            for (let j = 0; j < parent.children.length; j++) {
+                const child = parent.children[j]
+                if (child.label === tag.label) {
+                    return parent
+                }
+            }
+        }
+    }
+    return null
+}
+
+const handleConfirm = () => {
+    if (selectedTags.length === 0) {
+        message.error('请选择标签')
+        return
+    }
+
+    toSearchView()
+}
+
+const toSearchView = () => {
+    const parentsWithTag = selectedTags.map(tag => {
+        return {
+            label: findParent(tag).label,
+            value: tag.label
+        }
+    })
+    const expression = parentsWithTag.map(tag => {
+        return `${tag.label}：${tag.value}`
+    }).join(' ')
+
+    router.push({
+        name: driveFileSearchPage,
+        query: {
+            keyword: encodeURI(expression)
+        }
+    })
+}
+
+
 </script>
