@@ -1,5 +1,5 @@
 export const getFileType = (type = 'OTHER') => {
-    switch (type) {
+    switch (type.toUpperCase()) {
         case 'IMAGE':
             return '图片'
         case 'VIDEO':
@@ -50,7 +50,7 @@ export const toFileType = (type = '其他') => {
 
 
 export const getActionName = (action = 'UNKNOWN') => {
-    switch (action) {
+    switch (action.toUpperCase()) {
         case 'CREATE':
             return '创建'
         case 'UPDATE':
@@ -73,7 +73,7 @@ export const getActionName = (action = 'UNKNOWN') => {
 }
 
 export const getSystemResourceKindName = (kind = 'UNKNOWN') => {
-    switch (kind) {
+    switch (kind.toUpperCase()) {
         case 'FILE':
             return '文件'
         case 'FOLDER':
@@ -113,7 +113,10 @@ export const getSystemResourceKindName = (kind = 'UNKNOWN') => {
 }
 
 export const getKeywordSearchScopeName = (name) => {
-    switch (name) {
+    if (!name) {
+        return 'null'
+    }
+    switch (name.toUpperCase()) {
         case 'NAME':
             return '名称'
         case 'DESCRIPTION':
@@ -122,5 +125,22 @@ export const getKeywordSearchScopeName = (name) => {
             return '内容'
         case 'ALL':
             return '所有'
+    }
+}
+
+export const getUserTypeName = (name) => {
+    if (!name) {
+        return 'null'
+    }
+
+    switch (name.toUpperCase()) {
+        case 'USER':
+            return '用户'
+        case 'GROUP':
+            return '用户组'
+        case 'ORGANIZATION':
+            return '组织'
+        default:
+            return name
     }
 }

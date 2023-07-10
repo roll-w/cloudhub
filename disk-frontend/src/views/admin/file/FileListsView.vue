@@ -14,7 +14,7 @@
 </template>
 
 <script setup>
-import {adminFileLists} from "@/router";
+import {adminFileLists, adminStorageDetails} from "@/router";
 import {adminMenuFile} from "@/views/menu";
 import AdminBreadcrumb from "@/components/admin/AdminBreadcrumb.vue";
 import {getCurrentInstance, h, ref} from "vue";
@@ -100,6 +100,15 @@ const columns = [
                         h(NButton,
                                 {
                                     onClick: () => {
+                                        router.push({
+                                            name: adminStorageDetails,
+                                            params: {
+                                                id: row.storageId,
+                                                type: 'file',
+                                                ownerId: row.ownerId,
+                                                ownerType: row.ownerType.toLowerCase()
+                                            }
+                                        })
                                     }
                                 },
                                 {default: () => "查看/编辑"}),

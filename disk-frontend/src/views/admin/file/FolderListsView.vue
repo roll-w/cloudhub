@@ -2,7 +2,7 @@
 import {getCurrentInstance, h, ref} from "vue";
 import {useRouter} from "vue-router";
 import {useNotification, useMessage, useDialog, NButtonGroup, NButton} from "naive-ui";
-import {adminFolderLists} from "@/router";
+import {adminFolderLists, adminStorageDetails} from "@/router";
 import {adminMenuFile} from "@/views/menu";
 import AdminBreadcrumb from "@/components/admin/AdminBreadcrumb.vue";
 import FastPagination from "@/components/FastPagination.vue";
@@ -73,6 +73,15 @@ const columns = [
                         h(NButton,
                                 {
                                     onClick: () => {
+                                        router.push({
+                                            name: adminStorageDetails,
+                                            params: {
+                                                id: row.storageId,
+                                                type: 'folder',
+                                                ownerId: row.ownerId,
+                                                ownerType: row.ownerType.toLowerCase()
+                                            }
+                                        })
                                     }
                                 },
                                 {default: () => "查看/编辑"}),

@@ -45,9 +45,9 @@ export const adminUserGroupDetails = "admin-user-group-details"
 export const adminUserDetails = "admin-user-details"
 
 export const adminFileLists = "admin-file-lists"
-export const adminFileDetails = "admin-file-details"
 export const adminFolderLists = "admin-folder-lists"
-export const adminFolderDetails = "admin-folder-details"
+
+export const adminStorageDetails = "admin-storage-details"
 
 export const adminTagGroups = "admin-tag-groups"
 export const adminTags = "admin-tags"
@@ -300,6 +300,16 @@ const router = createRouter({
                     component: () => import("@/views/admin/file/FolderListsView.vue"),
                     meta: {
                         title: "文件夹列表",
+                        requireLogin: true
+                    }
+                },
+
+                {
+                    path: '/admin/storages/:ownerType/:ownerId/:type/:id',
+                    name: adminStorageDetails,
+                    component: () => import("@/views/admin/file/StorageDetailsView.vue"),
+                    meta: {
+                        title: "存储详情",
                         requireLogin: true
                     }
                 },
