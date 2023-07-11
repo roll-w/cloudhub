@@ -5,17 +5,16 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.cloudhub.util.Keywords;
 import org.huel.cloudhub.client.disk.common.ParamValidate;
 import org.huel.cloudhub.client.disk.domain.operatelog.context.OperationContextHolder;
-import org.huel.cloudhub.client.disk.domain.tag.ContentTag;
-import org.huel.cloudhub.client.disk.domain.tag.ContentTagService;
-import org.huel.cloudhub.client.disk.domain.tag.TagEventListener;
-import org.huel.cloudhub.client.disk.domain.tag.TagGroup;
-import org.huel.cloudhub.client.disk.domain.tag.TagKeyword;
+import org.huel.cloudhub.client.disk.domain.systembased.SystemResourceKind;
+import org.huel.cloudhub.client.disk.domain.systembased.validate.FieldType;
+import org.huel.cloudhub.client.disk.domain.systembased.validate.Validator;
+import org.huel.cloudhub.client.disk.domain.systembased.validate.ValidatorProvider;
+import org.huel.cloudhub.client.disk.domain.tag.*;
 import org.huel.cloudhub.client.disk.domain.tag.common.ContentTagErrorCode;
 import org.huel.cloudhub.client.disk.domain.tag.common.ContentTagException;
-import org.huel.cloudhub.client.disk.domain.tag.dto.ContentTagDto;
-import org.huel.cloudhub.client.disk.domain.tag.dto.ContentTagGroupInfo;
 import org.huel.cloudhub.client.disk.domain.tag.dto.ContentTagInfo;
 import org.huel.cloudhub.client.disk.domain.tag.dto.TagGroupDto;
+import org.huel.cloudhub.client.disk.domain.tag.dto.TagGroupInfo;
 import org.huel.cloudhub.client.disk.domain.tag.repository.ContentTagRepository;
 import org.huel.cloudhub.client.disk.domain.tag.repository.TagGroupRepository;
 import org.huel.cloudhub.web.data.page.Pageable;
@@ -36,24 +35,27 @@ public class ContentTagServiceImpl implements ContentTagService {
     private final ContentTagRepository contentTagRepository;
     private final TagGroupRepository tagGroupRepository;
     private final List<TagEventListener> tagEventListeners;
+    private final Validator contentTagValidator;
 
     public ContentTagServiceImpl(ContentTagRepository contentTagRepository,
                                  TagGroupRepository tagGroupRepository,
-                                 List<TagEventListener> tagEventListeners) {
+                                 List<TagEventListener> tagEventListeners,
+                                 ValidatorProvider validatorProvider) {
         this.contentTagRepository = contentTagRepository;
         this.tagGroupRepository = tagGroupRepository;
         this.tagEventListeners = tagEventListeners;
+        this.contentTagValidator = validatorProvider.getValidator(SystemResourceKind.TAG);
     }
 
     @Override
-    public ContentTagDto getTagById(long id) {
+    public ContentTagInfo getTagById(long id) {
         ContentTag contentTag =
                 contentTagRepository.getById(id);
         if (contentTag == null) {
             throw new ContentTagException(ContentTagErrorCode.ERROR_TAG_NOT_EXIST);
         }
 
-        return ContentTagDto.of(contentTag);
+        return ContentTagInfo.of(contentTag);
     }
 
     @Override
@@ -70,6 +72,17 @@ public class ContentTagServiceImpl implements ContentTagService {
         return pairWith(tagGroup, contentTags);
     }
 
+    @Override
+    public TagGroupInfo getTagGroupInfoById(long id) {
+        TagGroup tagGroup =
+                tagGroupRepository.getById(id);
+        if (tagGroup == null) {
+            throw new ContentTagException(
+                    ContentTagErrorCode.ERROR_TAG_GROUP_NOT_EXIST);
+        }
+        return TagGroupInfo.of(tagGroup);
+    }
+
     private List<TagGroupDto> matchWith(List<TagGroup> tagGroups,
                                         List<ContentTag> contentTags) {
         List<TagGroupDto> tagGroupDtos = new ArrayList<>();
@@ -83,39 +96,22 @@ public class ContentTagServiceImpl implements ContentTagService {
     private TagGroupDto pairWith(TagGroup tagGroup,
                                  List<ContentTag> contentTags) {
         long[] tagIds = tagGroup.getTags();
-        List<ContentTagDto> tags = new ArrayList<>();
+        List<ContentTagInfo> tags = new ArrayList<>();
         for (long tagId : tagIds) {
             for (ContentTag contentTag : contentTags) {
                 if (contentTag.getId() == tagId) {
-                    tags.add(new ContentTagDto(
-                            contentTag.getId(),
-                            contentTag.getName(),
-                            contentTag.getKeywords(),
-                            contentTag.getDescription(),
-                            contentTag.getCreateTime(),
-                            contentTag.getUpdateTime())
-                    );
+                    tags.add(ContentTagInfo.of(contentTag));
                 }
             }
         }
-        return new TagGroupDto(
-                tagGroup.getId(),
-                tagGroup.getParentId() == null ? 0 : tagGroup.getParentId(),
-                tagGroup.getName(),
-                tagGroup.getDescription(),
-                tags,
-                tagGroup.getKeywordSearchScope(),
-                List.of(),
-                tagGroup.getCreateTime(),
-                tagGroup.getUpdateTime()
-        );
+        return TagGroupDto.of(tagGroup, tags);
     }
 
     @Override
-    public List<ContentTagDto> getTags(Pageable pageable) {
+    public List<ContentTagInfo> getTags(Pageable pageable) {
         return contentTagRepository.get(pageable.toOffset())
                 .stream()
-                .map(ContentTagDto::of)
+                .map(ContentTagInfo::of)
                 .toList();
     }
 
@@ -138,17 +134,38 @@ public class ContentTagServiceImpl implements ContentTagService {
     }
 
     @Override
-    public ContentTagDto getByName(String name) {
-        return null;
-        // return ContentTagDto.of(contentTagRepository.getByName(name));
+    public ContentTagInfo getByName(String name) {
+        ContentTag contentTag = contentTagRepository.getByName(name);
+        if (contentTag == null) {
+            throw new ContentTagException(ContentTagErrorCode.ERROR_TAG_NOT_EXIST);
+        }
+        return ContentTagInfo.of(contentTag);
     }
 
     @Override
-    public void createContentTagGroup(ContentTagGroupInfo tagGroupInfo) {
-        ParamValidate.notEmpty(tagGroupInfo.name(), "name");
-        ParamValidate.notNull(tagGroupInfo.keywordSearchScope(), "keywordSearchScope");
+    public List<TagGroupInfo> getTagGroupInfos(List<Long> tagGroupIds) {
+        return tagGroupRepository.getByIds(tagGroupIds)
+                .stream()
+                .map(TagGroupInfo::of)
+                .toList();
+    }
 
-        TagGroup exist = tagGroupRepository.getTagGroupByName(tagGroupInfo.name());
+    @Override
+    public List<ContentTagInfo> getTags(List<Long> tagIds) {
+        return contentTagRepository.getByIds(tagIds)
+                .stream()
+                .map(ContentTagInfo::of)
+                .toList();
+    }
+
+    @Override
+    public void createContentTagGroup(String name,
+                                      String description,
+                                      KeywordSearchScope searchScope) {
+        ParamValidate.notEmpty(name, "name");
+        ParamValidate.notNull(searchScope, "keywordSearchScope");
+
+        TagGroup exist = tagGroupRepository.getTagGroupByName(name);
         if (exist != null) {
             throw new ContentTagException(
                     ContentTagErrorCode.ERROR_TAG_GROUP_NAME_EXIST);
@@ -157,10 +174,10 @@ public class ContentTagServiceImpl implements ContentTagService {
         long now = System.currentTimeMillis();
         TagGroup tagGroup = TagGroup.builder()
                 .setTags(new long[0])
-                .setName(tagGroupInfo.name())
-                .setDescription(tagGroupInfo.description())
-                .setKeywordSearchScope(tagGroupInfo.keywordSearchScope())
-                .setParentId(tagGroupInfo.parent())
+                .setName(name)
+                .setDescription(description)
+                .setKeywordSearchScope(searchScope)
+                .setParentId(null)
                 .setCreateTime(now)
                 .setUpdateTime(now)
                 .build();
@@ -177,12 +194,23 @@ public class ContentTagServiceImpl implements ContentTagService {
     }
 
     @Override
-    public void createContentTag(ContentTagInfo contentTagInfo) {
+    public void createContentTag(String name,
+                                 String description,
+                                 List<TagKeyword> keywords) {
+        contentTagValidator.validateThrows(name, FieldType.NAME);
+        contentTagValidator.validateThrows(description, FieldType.DESCRIPTION);
+
+        ContentTag exist = contentTagRepository.getByName(name);
+        if (exist != null) {
+            throw new ContentTagException(
+                    ContentTagErrorCode.ERROR_TAG_EXIST);
+        }
+
         long now = System.currentTimeMillis();
         ContentTag contentTag = ContentTag.builder()
-                .setName(contentTagInfo.name())
-                .setKeywords(contentTagInfo.keywords())
-                .setDescription(contentTagInfo.description())
+                .setName(name)
+                .setKeywords(keywords)
+                .setDescription(description)
                 .setCreateTime(now)
                 .setUpdateTime(now)
                 .build();

@@ -1,11 +1,11 @@
-package org.huel.cloudhub.client.disk.domain.tag.dto;
+package org.huel.cloudhub.client.disk.controller.tag.vo;
 
 import org.huel.cloudhub.client.disk.domain.tag.KeywordSearchScope;
 
 /**
  * @author RollW
  */
-public record ContentTagGroupInfo(
+public record CreateTagGroupRequest(
         Long parent,
         String name,
         String description,

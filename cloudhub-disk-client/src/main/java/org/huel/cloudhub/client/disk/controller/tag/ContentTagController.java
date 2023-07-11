@@ -1,22 +1,18 @@
 package org.huel.cloudhub.client.disk.controller.tag;
 
 import org.huel.cloudhub.client.disk.controller.AdminApi;
+import org.huel.cloudhub.client.disk.controller.tag.vo.CreateTagGroupRequest;
+import org.huel.cloudhub.client.disk.controller.tag.vo.TagGroupVo;
 import org.huel.cloudhub.client.disk.domain.operatelog.BuiltinOperationType;
 import org.huel.cloudhub.client.disk.domain.operatelog.context.BuiltinOperate;
 import org.huel.cloudhub.client.disk.domain.tag.ContentTag;
 import org.huel.cloudhub.client.disk.domain.tag.ContentTagService;
-import org.huel.cloudhub.client.disk.domain.tag.dto.ContentTagDto;
-import org.huel.cloudhub.client.disk.domain.tag.dto.ContentTagGroupInfo;
+import org.huel.cloudhub.client.disk.domain.tag.dto.ContentTagInfo;
 import org.huel.cloudhub.client.disk.domain.tag.dto.TagGroupDto;
 import org.huel.cloudhub.client.disk.system.pages.PageableInterceptor;
 import org.huel.cloudhub.web.HttpResponseEntity;
 import org.huel.cloudhub.web.data.page.Pageable;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
@@ -38,13 +34,13 @@ public class ContentTagController {
     }
 
     @GetMapping("/tags")
-    public HttpResponseEntity<List<ContentTagDto>> getTags(
+    public HttpResponseEntity<List<ContentTagInfo>> getTags(
             Pageable pageable) {
-        List<ContentTagDto> contentTagDtos =
+        List<ContentTagInfo> contentTagInfos =
                 contentTagService.getTags(pageable);
         return HttpResponseEntity.success(
                 pageableInterceptor.interceptPageable(
-                        contentTagDtos,
+                        contentTagInfos,
                         pageable,
                         ContentTag.class
                 )
@@ -52,7 +48,7 @@ public class ContentTagController {
     }
 
     @GetMapping("/tags/{tagId}")
-    public HttpResponseEntity<ContentTagDto> getTag(
+    public HttpResponseEntity<ContentTagInfo> getTag(
             @PathVariable("tagId") Long id) {
         return HttpResponseEntity.success(
                 contentTagService.getTagById(id)
@@ -88,9 +84,12 @@ public class ContentTagController {
     @PostMapping("/tags/groups")
     @BuiltinOperate(BuiltinOperationType.CREATE_TAG_GROUP)
     public HttpResponseEntity<Void> createTagGroup(
-            @RequestBody ContentTagGroupInfo contentTagGroupInfo) {
-
-        contentTagService.createContentTagGroup(contentTagGroupInfo);
+            @RequestBody CreateTagGroupRequest request) {
+        contentTagService.createContentTagGroup(
+                request.name(),
+                request.description(),
+                request.keywordSearchScope()
+        );
         return HttpResponseEntity.success();
     }
 

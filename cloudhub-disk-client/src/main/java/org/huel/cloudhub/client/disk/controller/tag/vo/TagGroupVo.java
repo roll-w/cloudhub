@@ -1,4 +1,4 @@
-package org.huel.cloudhub.client.disk.controller.tag;
+package org.huel.cloudhub.client.disk.controller.tag.vo;
 
 import org.huel.cloudhub.client.disk.domain.tag.KeywordSearchScope;
 import org.huel.cloudhub.client.disk.domain.tag.dto.TagGroupDto;

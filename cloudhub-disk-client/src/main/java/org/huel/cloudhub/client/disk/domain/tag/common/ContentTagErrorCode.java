@@ -23,7 +23,8 @@ public enum ContentTagErrorCode implements ErrorCode, ErrorCodeFinder, ErrorCode
     ERROR_TAG_GROUP_NAME_EMPTY("B3506", 400),
     ERROR_TAG_GROUP_NAME_EXIST("B3507", 400),
 
-
+    ERROR_NAME_INVALID("B3508", 400),
+    ERROR_DESCRIPTION_TOO_LONG("B3509", 400),
     ;
 
     private final String value;

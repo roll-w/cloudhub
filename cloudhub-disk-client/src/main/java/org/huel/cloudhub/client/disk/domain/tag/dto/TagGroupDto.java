@@ -13,28 +13,32 @@ public record TagGroupDto(
         long parent,
         String name,
         String description,
-        List<ContentTagDto> tags,
+        List<ContentTagInfo> tags,
         KeywordSearchScope keywordSearchScope,
         List<TagGroupDto> children,
         long createTime,
         long updateTime
 ) {
 
-    public static TagGroupDto of(TagGroup inserted) {
+    public static TagGroupDto of(TagGroup tagGroup, List<ContentTagInfo> tags) {
         return new TagGroupDto(
-                inserted.getId(),
-                inserted.getParentId() == null ? 0 : inserted.getParentId(),
-                inserted.getName(),
-                inserted.getDescription(),
+                tagGroup.getId(),
+                tagGroup.getParentId() == null ? 0 : tagGroup.getParentId(),
+                tagGroup.getName(),
+                tagGroup.getDescription(),
+                tags,
+                tagGroup.getKeywordSearchScope(),
                 List.of(),
-                inserted.getKeywordSearchScope(),
-                null,
-                inserted.getCreateTime(),
-                inserted.getUpdateTime()
+                tagGroup.getCreateTime(),
+                tagGroup.getUpdateTime()
         );
     }
 
-    public ContentTagDto findByName(String name) {
+    public static TagGroupDto of(TagGroup tagGroup) {
+        return TagGroupDto.of(tagGroup, List.of());
+    }
+
+    public ContentTagInfo findByName(String name) {
         return tags.stream()
                 .filter(tag -> tag.name().equals(name))
                 .findFirst()
