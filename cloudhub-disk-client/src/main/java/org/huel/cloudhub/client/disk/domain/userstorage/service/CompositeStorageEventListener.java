@@ -2,7 +2,7 @@ package org.huel.cloudhub.client.disk.domain.userstorage.service;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.huel.cloudhub.client.disk.domain.operatelog.Operator;
-import org.huel.cloudhub.client.disk.domain.userstorage.Storage;
+import org.huel.cloudhub.client.disk.domain.userstorage.AttributedStorage;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageEventListener;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageOwner;
 import org.huel.cloudhub.client.disk.domain.userstorage.dto.FileAttributesInfo;
@@ -35,21 +35,21 @@ public class CompositeStorageEventListener implements StorageEventListener {
     }
 
     @Override
-    public void onStorageCreated(@NonNull Storage storage, StorageAttr storageAttr) {
+    public void onStorageCreated(@NonNull AttributedStorage storage, StorageAttr storageAttr) {
         for (StorageEventListener storageEventListener : storageEventListeners) {
             storageEventListener.onStorageCreated(storage, storageAttr);
         }
     }
 
     @Override
-    public void onStorageProcess(Storage storage, @Nullable StorageAttr storageAttr) {
+    public void onStorageProcess(AttributedStorage storage, @Nullable StorageAttr storageAttr) {
         for (StorageEventListener storageEventListener : storageEventListeners) {
             storageEventListener.onStorageProcess(storage, storageAttr);
         }
     }
 
     @Override
-    public void onStorageDeleted(@NonNull Storage storage, @Nullable FileAttributesInfo fileAttributesInfo) {
+    public void onStorageDeleted(@NonNull AttributedStorage storage, @Nullable FileAttributesInfo fileAttributesInfo) {
         for (StorageEventListener storageEventListener : storageEventListeners) {
             storageEventListener.onStorageDeleted(storage, fileAttributesInfo);
         }

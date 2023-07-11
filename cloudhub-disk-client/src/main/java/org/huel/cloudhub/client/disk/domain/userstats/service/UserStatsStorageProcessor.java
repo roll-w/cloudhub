@@ -8,6 +8,7 @@ import org.huel.cloudhub.client.disk.domain.userstats.UserStatistics;
 import org.huel.cloudhub.client.disk.domain.userstats.UserStatisticsKeys;
 import org.huel.cloudhub.client.disk.domain.userstats.dto.RestrictInfo;
 import org.huel.cloudhub.client.disk.domain.userstats.repository.UserStatisticsRepository;
+import org.huel.cloudhub.client.disk.domain.userstorage.AttributedStorage;
 import org.huel.cloudhub.client.disk.domain.userstorage.Storage;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageEventListener;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageOwner;
@@ -36,6 +37,9 @@ public class UserStatsStorageProcessor implements StorageEventListener {
         this.userStatisticsRepository = userStatisticsRepository;
         this.userDataViewService = userDataViewService;
     }
+
+    // TODO: only preserve pre-checks of storage creation,
+    //  move the statistics methods to the new job APIs.
 
     @Override
     public ErrorCode onBeforeStorageCreated(@NonNull StorageOwner storageOwner,
@@ -78,7 +82,7 @@ public class UserStatsStorageProcessor implements StorageEventListener {
     }
 
     @Override
-    public void onStorageCreated(@NonNull Storage storage,
+    public void onStorageCreated(@NonNull AttributedStorage storage,
                                  StorageAttr storageAttr) {
         LegalUserType userType = storage.getOwnerType();
         long userId = storage.getOwnerId();

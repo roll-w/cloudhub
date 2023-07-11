@@ -18,15 +18,15 @@ public interface StorageEventListener {
         return CommonErrorCode.SUCCESS;
     }
 
-    default void onStorageCreated(@NonNull Storage storage,
+    default void onStorageCreated(@NonNull AttributedStorage storage,
                                   @Nullable StorageAttr storageAttr) {
     }
 
-    default void onStorageDeleted(@NonNull Storage storage,
+    default void onStorageDeleted(@NonNull AttributedStorage storage,
                                   @Nullable FileAttributesInfo fileAttributesInfo) {
     }
 
-    default void onStorageProcess(Storage storage,
+    default void onStorageProcess(AttributedStorage storage,
                                   @Nullable StorageAttr storageAttr) {
     }
 }

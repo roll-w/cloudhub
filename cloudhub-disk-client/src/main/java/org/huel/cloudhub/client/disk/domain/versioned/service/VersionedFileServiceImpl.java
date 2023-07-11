@@ -1,6 +1,6 @@
 package org.huel.cloudhub.client.disk.domain.versioned.service;
 
-import org.huel.cloudhub.client.disk.domain.userstorage.Storage;
+import org.huel.cloudhub.client.disk.domain.userstorage.AttributedStorage;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageEventListener;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageType;
 import org.huel.cloudhub.client.disk.domain.userstorage.dto.StorageAttr;
@@ -25,7 +25,7 @@ public class VersionedFileServiceImpl implements VersionedFileService,
     }
 
     @Override
-    public void onStorageCreated(@NonNull Storage storage, StorageAttr storageAttr) {
+    public void onStorageCreated(@NonNull AttributedStorage storage, StorageAttr storageAttr) {
         if (storage.getStorageType() != StorageType.FILE) {
             return;
         }
