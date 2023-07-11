@@ -105,6 +105,7 @@ const onLoginClick = (e) => {
             /**
              * @type {{ user: {
              * username: string, id: number,
+             * nickname: string,
              * role: string, email: string },
              * token: string
              * }}
@@ -116,6 +117,10 @@ const onLoginClick = (e) => {
                 role: recvData.user.role,
             }
             userStore.loginUser(user, recvData.token, formValue.value.rememberMe)
+            userStore.setUserData({
+                avatar: null,
+                nickname: recvData.user.nickname,
+            })
             router.push({
                 name: driveFilePage
             })

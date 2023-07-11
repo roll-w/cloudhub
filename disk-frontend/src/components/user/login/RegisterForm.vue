@@ -85,6 +85,17 @@ const formRules = ref({
             required: true,
             message: "请输入用户名",
             trigger: ["input"]
+        },
+        {
+            min: 3,
+            max: 20,
+            message: "用户名长度在3-20之间",
+            trigger: ['input', 'blur']
+        },
+        {
+            pattern: /^[a-zA-Z_\-][\w\-]{3,20}$/,
+            message: "用户名只能包含字母、数字、下划线和横线，且不能以数字开头",
+            trigger: ['input', 'blur']
         }
     ],
     email: [
@@ -92,6 +103,11 @@ const formRules = ref({
             required: true,
             message: "请输入邮箱",
             trigger: ["input"]
+        },
+        {
+            type: "email",
+            message: "请输入正确的邮箱",
+            trigger: ["input", "blur"]
         }
     ],
     password: [
@@ -148,13 +164,13 @@ const validateFormValue = (callback) => {
 const onRegisterClick = () => {
     validateFormValue(() => {
         proxy.$axios.post(api.register, formValue.value)
-            .then((response) => {
-                message.success('注册成功')
-                router.push({name: login})
-            })
-            .catch((error) => {
-                message.error(error.tip)
-            })
+                .then((response) => {
+                    message.success('注册成功')
+                    router.push({name: login})
+                })
+                .catch((error) => {
+                    message.error(error.tip)
+                })
     })
 };
 
