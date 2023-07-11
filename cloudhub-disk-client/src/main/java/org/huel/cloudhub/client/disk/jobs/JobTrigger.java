@@ -12,5 +12,15 @@ public interface JobTrigger {
 
     void setJobTask(JobTask jobTask);
 
-    TriggerType getTriggerType();
+    JobExecutor getJobExecutor();
+
+    void setJobExecutor(JobExecutor jobExecutor);
+
+    JobStatus getJobStatus();
+
+    long lastExecuteTime();
+
+    long nextExecuteTime();
+
+    String getName();
 }
