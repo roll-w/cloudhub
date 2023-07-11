@@ -1,6 +1,6 @@
 package org.huel.cloudhub.client.disk.domain.userstorage;
 
-import org.huel.cloudhub.client.disk.domain.tag.dto.TagValue;
+import org.huel.cloudhub.client.disk.domain.tag.NameValue;
 
 import java.util.List;
 
@@ -14,9 +14,9 @@ public interface StorageCategoryService {
 
     List<? extends AttributedStorage> getByTags(
             StorageOwner storageOwner,
-            List<TagValue> tagValues);
+            List<NameValue> nameValues);
 
     List<? extends AttributedStorage> getByTypeAndTags(
             StorageOwner storageOwner,
-            FileType fileType, List<TagValue> tagValues);
+            FileType fileType, List<NameValue> nameValues);
 }

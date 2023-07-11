@@ -7,7 +7,7 @@ import org.huel.cloudhub.client.disk.domain.storagesearch.common.SearchCondition
 import org.huel.cloudhub.client.disk.domain.tag.InternalTagGroupRepository;
 import org.huel.cloudhub.client.disk.domain.tag.TagEventListener;
 import org.huel.cloudhub.client.disk.domain.tag.dto.TagGroupDto;
-import org.huel.cloudhub.client.disk.domain.tag.dto.TagValue;
+import org.huel.cloudhub.client.disk.domain.tag.NameValue;
 import org.huel.cloudhub.client.disk.domain.userstorage.*;
 import org.huel.cloudhub.client.disk.domain.userstorage.common.ConditionNames;
 import org.springframework.stereotype.Service;
@@ -50,11 +50,11 @@ public class UserStorageTagSearchProvider implements StorageSearchConditionProvi
         FileType fileType = FileType.from(
                 typeCondition == null ? null : typeCondition.keyword()
         );
-        List<TagValue> tagValues = extractTagValues(conditionGroup);
+        List<NameValue> nameValues = extractTagValues(conditionGroup);
         if (fileType == null) {
-            return storageCategoryService.getByTags(storageOwner, tagValues);
+            return storageCategoryService.getByTags(storageOwner, nameValues);
         }
-        return storageCategoryService.getByTypeAndTags(storageOwner, fileType, tagValues);
+        return storageCategoryService.getByTypeAndTags(storageOwner, fileType, nameValues);
     }
 
     private boolean isValidType(StorageType storageType) {
@@ -64,15 +64,15 @@ public class UserStorageTagSearchProvider implements StorageSearchConditionProvi
         return storageType == StorageType.FILE;
     }
 
-    private List<TagValue> extractTagValues(SearchConditionGroup conditionGroup) {
-        List<TagValue> result = new ArrayList<>();
+    private List<NameValue> extractTagValues(SearchConditionGroup conditionGroup) {
+        List<NameValue> result = new ArrayList<>();
         for (String supportedTagName : supportedTagNames) {
             SearchCondition searchCondition =
                     conditionGroup.getCondition(supportedTagName);
             if (searchCondition == null) {
                 continue;
             }
-            result.add(new TagValue(supportedTagName, searchCondition.keyword()));
+            result.add(new NameValue(supportedTagName, searchCondition.keyword()));
         }
 
         return result;

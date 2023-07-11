@@ -5,7 +5,7 @@ import org.huel.cloudhub.client.disk.database.dao.StorageMetadataDao;
 import org.huel.cloudhub.client.disk.database.repository.BaseRepository;
 import org.huel.cloudhub.client.disk.domain.systembased.ContextThreadAware;
 import org.huel.cloudhub.client.disk.domain.systembased.paged.PageableContext;
-import org.huel.cloudhub.client.disk.domain.tag.dto.TagValue;
+import org.huel.cloudhub.client.disk.domain.tag.NameValue;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageMetadata;
 import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Repository;
@@ -44,9 +44,9 @@ public class StorageMetadataRepository extends BaseRepository<StorageMetadata> {
         return cacheResult(storageMetadata);
     }
 
-    public List<StorageMetadata> getByTagValues(List<TagValue> tagValues) {
+    public List<StorageMetadata> getByTagValues(List<NameValue> nameValues) {
         List<StorageMetadata> storageMetadata =
-                storageMetadataDao.getByTagValues(tagValues);
+                storageMetadataDao.getByTagValues(nameValues);
         return cacheResult(storageMetadata);
     }
 

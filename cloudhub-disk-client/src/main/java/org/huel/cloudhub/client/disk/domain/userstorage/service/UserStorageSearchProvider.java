@@ -8,7 +8,7 @@ import org.huel.cloudhub.client.disk.domain.storagesearch.SearchConditionGroup;
 import org.huel.cloudhub.client.disk.domain.storagesearch.StorageSearchConditionProvider;
 import org.huel.cloudhub.client.disk.domain.storagesearch.common.SearchConditionException;
 import org.huel.cloudhub.client.disk.domain.storagesearch.common.SearchExpressionException;
-import org.huel.cloudhub.client.disk.domain.tag.dto.TagValue;
+import org.huel.cloudhub.client.disk.domain.tag.NameValue;
 import org.huel.cloudhub.client.disk.domain.userstorage.*;
 import org.huel.cloudhub.client.disk.domain.userstorage.repository.StorageMetadataRepository;
 import org.huel.cloudhub.client.disk.domain.userstorage.repository.UserFileStorageRepository;
@@ -128,12 +128,12 @@ public class UserStorageSearchProvider implements StorageCategoryService,
     }
 
     @Override
-    public List<AttributedStorage> getByTags(StorageOwner storageOwner, List<TagValue> tagValues) {
-        if (checkDuplicateTag(tagValues)) {
+    public List<AttributedStorage> getByTags(StorageOwner storageOwner, List<NameValue> nameValues) {
+        if (checkDuplicateTag(nameValues)) {
             return List.of();
         }
         List<StorageMetadata> storageMetadata =
-                storageMetadataRepository.getByTagValues(tagValues);
+                storageMetadataRepository.getByTagValues(nameValues);
         List<Long> storageIds = storageMetadata.stream()
                 .map(StorageMetadata::getStorageId)
                 .distinct()
@@ -147,12 +147,12 @@ public class UserStorageSearchProvider implements StorageCategoryService,
     @Override
     public List<AttributedStorage> getByTypeAndTags(StorageOwner storageOwner,
                                                     FileType fileType,
-                                                    List<TagValue> tagValues) {
-        if (checkDuplicateTag(tagValues)) {
+                                                    List<NameValue> nameValues) {
+        if (checkDuplicateTag(nameValues)) {
             return List.of();
         }
         List<StorageMetadata> storageMetadata =
-                storageMetadataRepository.getByTagValues(tagValues);
+                storageMetadataRepository.getByTagValues(nameValues);
         List<Long> storageIds = storageMetadata.stream()
                 .map(StorageMetadata::getStorageId)
                 .distinct()
@@ -163,12 +163,12 @@ public class UserStorageSearchProvider implements StorageCategoryService,
         return Collections.unmodifiableList(storages);
     }
 
-    private boolean checkDuplicateTag(List<TagValue> tagValues) {
-        return tagValues
+    private boolean checkDuplicateTag(List<NameValue> nameValues) {
+        return nameValues
                 .stream()
-                .map(TagValue::name)
+                .map(NameValue::name)
                 .distinct()
-                .count() != tagValues.size();
+                .count() != nameValues.size();
     }
 
 

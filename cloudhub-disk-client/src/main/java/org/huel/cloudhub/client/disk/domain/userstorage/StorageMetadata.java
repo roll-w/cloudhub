@@ -22,12 +22,6 @@ public class StorageMetadata implements DataItem {
     @DataColumn(name = "storage_id")
     private final long storageId;
 
-    @DataColumn(name = "name")
-    private final String name;
-
-    @DataColumn(name = "value")
-    private final String value;
-
     @DataColumn(name = "tag_group_id")
     private final long tagGroupId;
 
@@ -44,13 +38,11 @@ public class StorageMetadata implements DataItem {
     private final long updateTime;
 
     public StorageMetadata(Long id, long storageId,
-                           String name, String value,
                            long tagGroupId, long tagId,
-                           boolean deleted, long createTime, long updateTime) {
+                           boolean deleted,
+                           long createTime, long updateTime) {
         this.id = id;
         this.storageId = storageId;
-        this.name = name;
-        this.value = value;
         this.tagGroupId = tagGroupId;
         this.tagId = tagId;
         this.deleted = deleted;
@@ -65,14 +57,6 @@ public class StorageMetadata implements DataItem {
 
     public long getStorageId() {
         return storageId;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public String getValue() {
-        return value;
     }
 
     public long getTagGroupId() {
@@ -106,8 +90,6 @@ public class StorageMetadata implements DataItem {
     public static final class Builder {
         private Long id;
         private long storageId;
-        private String name;
-        private String value;
         private long tagGroupId;
         private long tagId;
         private boolean deleted;
@@ -120,8 +102,6 @@ public class StorageMetadata implements DataItem {
         public Builder(StorageMetadata storageMetadata) {
             this.id = storageMetadata.id;
             this.storageId = storageMetadata.storageId;
-            this.name = storageMetadata.name;
-            this.value = storageMetadata.value;
             this.tagGroupId = storageMetadata.tagGroupId;
             this.tagId = storageMetadata.tagId;
             this.deleted = storageMetadata.deleted;
@@ -136,16 +116,6 @@ public class StorageMetadata implements DataItem {
 
         public Builder setStorageId(long storageId) {
             this.storageId = storageId;
-            return this;
-        }
-
-        public Builder setName(String name) {
-            this.name = name;
-            return this;
-        }
-
-        public Builder setValue(String value) {
-            this.value = value;
             return this;
         }
 
@@ -176,7 +146,7 @@ public class StorageMetadata implements DataItem {
 
         public StorageMetadata build() {
             return new StorageMetadata(
-                    id, storageId, name, value,
+                    id, storageId,
                     tagGroupId, tagId,
                     deleted, createTime, updateTime);
         }

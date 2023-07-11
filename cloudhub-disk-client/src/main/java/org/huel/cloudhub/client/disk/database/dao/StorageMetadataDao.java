@@ -1,6 +1,6 @@
 package org.huel.cloudhub.client.disk.database.dao;
 
-import org.huel.cloudhub.client.disk.domain.tag.dto.TagValue;
+import org.huel.cloudhub.client.disk.domain.tag.NameValue;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageMetadata;
 import org.huel.cloudhub.web.data.page.Offset;
 import space.lingu.light.Dao;
@@ -33,29 +33,29 @@ public interface StorageMetadataDao
     @Query("SELECT * FROM storage_metadata WHERE storage_id = {storageId} AND name = {name}")
     StorageMetadata getByStorageIdAndName(long storageId, String name);
 
-    default List<StorageMetadata> getByTagValues(List<TagValue> tagValues) {
-        if (tagValues.isEmpty()) {
+    default List<StorageMetadata> getByTagValues(List<NameValue> nameValues) {
+        if (nameValues.isEmpty()) {
             return List.of();
         }
         StringBuilder sql = new StringBuilder("SELECT " +
-                "id, storage_id, name, value, tag_group_id, tag_id, deleted, create_time, update_time " +
+                "id, storage_id, tag_group_id, tag_id, deleted, create_time, update_time " +
                 "FROM storage_metadata WHERE ");
-        for (int i = 0; i < tagValues.size(); i++) {
+        for (int i = 0; i < nameValues.size(); i++) {
             sql.append("name = ")
                     .append("?")
                     .append(" AND value = ")
                     .append("?");
-            if (i != tagValues.size() - 1) {
+            if (i != nameValues.size() - 1) {
                 sql.append(" OR ");
             }
         }
         ManagedConnection connection = getConnection();
         PreparedStatement statement = connection.acquire(sql.toString());
         int index = 1;
-        for (TagValue tagValue : tagValues) {
+        for (NameValue nameValue : nameValues) {
             try {
-                statement.setString(index++, tagValue.name());
-                statement.setString(index++, tagValue.value());
+                statement.setString(index++, nameValue.name());
+                statement.setString(index++, nameValue.value());
             } catch (Exception e) {
                 throw new LightRuntimeException(e);
             }
@@ -66,8 +66,6 @@ public interface StorageMetadataDao
                 storageMetadata.add(new StorageMetadata(
                         resultSet.getLong(1),
                         resultSet.getLong(2),
-                        resultSet.getString(3),
-                        resultSet.getString(4),
                         resultSet.getLong(5),
                         resultSet.getLong(6),
                         resultSet.getBoolean(7),
