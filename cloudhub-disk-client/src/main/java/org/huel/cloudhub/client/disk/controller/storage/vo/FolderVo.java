@@ -1,4 +1,4 @@
-package org.huel.cloudhub.client.disk.domain.userstorage.vo;
+package org.huel.cloudhub.client.disk.controller.storage.vo;
 
 import org.huel.cloudhub.client.disk.domain.user.LegalUserType;
 import org.huel.cloudhub.client.disk.domain.userstorage.UserFolder;

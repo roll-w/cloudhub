@@ -1,5 +1,6 @@
-package org.huel.cloudhub.client.disk.domain.userstorage.vo;
+package org.huel.cloudhub.client.disk.controller.storage.vo;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import org.huel.cloudhub.client.disk.domain.user.LegalUserType;
 import org.huel.cloudhub.client.disk.domain.userstorage.AttributedStorage;
 import org.huel.cloudhub.client.disk.domain.userstorage.FileType;
@@ -16,15 +17,24 @@ public record StorageVo(
         LegalUserType ownerType,
         Long parentId,
         FileType fileType,
-        long size,
+        @JsonInclude(JsonInclude.Include.NON_NULL)
+        Long size,
         long createTime,
-        long updateTime
+        long updateTime,
+        @JsonInclude(JsonInclude.Include.NON_NULL)
+        String fileId
 ) {
     public static StorageVo from(AttributedStorage storage) {
-        return from(storage, 0);
+        return from(storage, null, null);
     }
 
-    public static StorageVo from(AttributedStorage storage, long size) {
+    public static StorageVo from(AttributedStorage storage, Long size) {
+        return from(storage, size, null);
+    }
+
+    public static StorageVo from(AttributedStorage storage,
+                                 Long size,
+                                 String fileId) {
         if (storage == null) {
             return null;
         }
@@ -39,7 +49,8 @@ public record StorageVo(
                 storage.getFileType(),
                 size,
                 storage.getCreateTime(),
-                storage.getUpdateTime()
+                storage.getUpdateTime(),
+                fileId
         );
     }
 }

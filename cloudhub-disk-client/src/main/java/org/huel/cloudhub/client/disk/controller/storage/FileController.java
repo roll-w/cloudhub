@@ -17,7 +17,7 @@ import org.huel.cloudhub.client.disk.domain.userstorage.common.StorageException;
 import org.huel.cloudhub.client.disk.domain.userstorage.dto.FileInfo;
 import org.huel.cloudhub.client.disk.domain.userstorage.dto.FileStorageInfo;
 import org.huel.cloudhub.client.disk.domain.userstorage.dto.SimpleStorageOwner;
-import org.huel.cloudhub.client.disk.domain.userstorage.vo.StorageVo;
+import org.huel.cloudhub.client.disk.controller.storage.vo.StorageVo;
 import org.huel.cloudhub.web.AuthErrorCode;
 import org.huel.cloudhub.web.HttpResponseEntity;
 import org.springframework.http.HttpRange;
@@ -88,7 +88,9 @@ public class FileController {
         AttributedStorage storage = userFileStorageService.uploadFile(
                 fileStorageInfo, fileStreamInfo);
 
-        return HttpResponseEntity.success(StorageVo.from(storage, 0));
+        return HttpResponseEntity.success(
+                StorageVo.from(storage)
+        );
     }
 
     @BuiltinOperate(BuiltinOperationType.CREATE_FILE)
@@ -121,7 +123,9 @@ public class FileController {
         AttributedStorage storage = userFileStorageService.uploadFile(
                 fileStorageInfo, fileStreamInfo);
 
-        return HttpResponseEntity.success(StorageVo.from(storage, 0));
+        return HttpResponseEntity.success(
+                StorageVo.from(storage)
+        );
     }
 
 

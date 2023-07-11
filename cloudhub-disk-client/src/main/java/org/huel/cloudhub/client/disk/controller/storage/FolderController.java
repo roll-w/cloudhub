@@ -15,7 +15,7 @@ import org.huel.cloudhub.client.disk.domain.userstorage.common.StorageErrorCode;
 import org.huel.cloudhub.client.disk.domain.userstorage.common.StorageException;
 import org.huel.cloudhub.client.disk.domain.userstorage.dto.FolderStructureInfo;
 import org.huel.cloudhub.client.disk.domain.userstorage.dto.SimpleStorageIdentity;
-import org.huel.cloudhub.client.disk.domain.userstorage.vo.StorageVo;
+import org.huel.cloudhub.client.disk.controller.storage.vo.StorageVo;
 import org.huel.cloudhub.web.HttpResponseEntity;
 import org.springframework.web.bind.annotation.*;
 

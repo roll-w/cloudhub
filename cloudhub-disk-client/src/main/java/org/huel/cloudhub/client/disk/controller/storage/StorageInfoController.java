@@ -9,11 +9,14 @@ import org.huel.cloudhub.client.disk.controller.StringActionRequest;
 import org.huel.cloudhub.client.disk.domain.operatelog.Action;
 import org.huel.cloudhub.client.disk.domain.operatelog.BuiltinOperationType;
 import org.huel.cloudhub.client.disk.domain.operatelog.context.OperationContextHolder;
+import org.huel.cloudhub.client.disk.domain.storage.StorageService;
 import org.huel.cloudhub.client.disk.domain.systembased.SystemResourceAuthenticate;
 import org.huel.cloudhub.client.disk.domain.userstorage.*;
-import org.huel.cloudhub.client.disk.domain.userstorage.vo.StorageVo;
+import org.huel.cloudhub.client.disk.domain.userstorage.dto.FileInfo;
+import org.huel.cloudhub.client.disk.controller.storage.vo.StorageVo;
 import org.huel.cloudhub.web.HttpResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import space.lingu.NonNull;
 
 /**
  * @author RollW
@@ -21,11 +24,14 @@ import org.springframework.web.bind.annotation.*;
 @Api
 public class StorageInfoController {
     private final UserStorageSearchService userStorageSearchService;
+    private final StorageService storageService;
     private final StorageActionService storageActionService;
 
     public StorageInfoController(UserStorageSearchService userStorageSearchService,
+                                 StorageService storageService,
                                  StorageActionService storageActionService) {
         this.userStorageSearchService = userStorageSearchService;
+        this.storageService = storageService;
         this.storageActionService = storageActionService;
     }
 
@@ -43,11 +49,24 @@ public class StorageInfoController {
     ) {
         StorageOwner storageOwner = ParameterHelper.buildStorageOwner(ownerId, type);
         StorageIdentity storageIdentity = ParameterHelper.buildStorageIdentity(storageId, storageType);
+        return HttpResponseEntity.success(
+                getStorageVo(storageOwner, storageIdentity)
+        );
+    }
+
+    @NonNull
+    private StorageVo getStorageVo(StorageOwner storageOwner,
+                                   StorageIdentity storageIdentity) {
+        if (storageIdentity.getStorageType().isFile()) {
+            FileInfo fileInfo = userStorageSearchService.findFile(
+                    storageIdentity.getStorageId(), storageOwner
+            );
+            long size = storageService.getFileSize(fileInfo.getFileId());
+            return StorageVo.from(fileInfo, size);
+        }
         AttributedStorage attributedStorage =
                 userStorageSearchService.findStorage(storageIdentity, storageOwner);
-        return HttpResponseEntity.success(
-                StorageVo.from(attributedStorage)
-        );
+        return StorageVo.from(attributedStorage);
     }
 
     @SystemResourceAuthenticate(
@@ -112,7 +131,8 @@ public class StorageInfoController {
                 .getContext()
                 .setOperateType(builtinOperationType);
         StorageAction storageAction = storageActionService
-                .openStorageAction(storageIdentity, storageOwner);    storageAction.move(actionRequest.value());
+                .openStorageAction(storageIdentity, storageOwner);
+        storageAction.move(actionRequest.value());
         return HttpResponseEntity.success();
     }
 

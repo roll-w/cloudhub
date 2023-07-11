@@ -7,7 +7,7 @@ import org.huel.cloudhub.client.disk.domain.userstorage.FileRecycleService;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageActionService;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageOwner;
 import org.huel.cloudhub.client.disk.domain.userstorage.UserStorageSearchService;
-import org.huel.cloudhub.client.disk.domain.userstorage.vo.StorageVo;
+import org.huel.cloudhub.client.disk.controller.storage.vo.StorageVo;
 import org.huel.cloudhub.web.HttpResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
