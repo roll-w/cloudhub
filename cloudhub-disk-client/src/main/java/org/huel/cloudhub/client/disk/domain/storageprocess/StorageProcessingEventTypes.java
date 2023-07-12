@@ -15,4 +15,11 @@ public record StorageProcessingEventTypes(
     public String toString() {
         return storageProcessingEventTypes.toString();
     }
+
+    public static StorageProcessingEventTypes of(
+            StorageProcessingEventType... storageProcessingEventTypes) {
+        return new StorageProcessingEventTypes(
+                Set.of(storageProcessingEventTypes)
+        );
+    }
 }

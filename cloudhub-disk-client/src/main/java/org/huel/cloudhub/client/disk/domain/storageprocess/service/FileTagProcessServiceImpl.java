@@ -14,8 +14,11 @@ import org.huel.cloudhub.client.disk.domain.userstorage.AttributedStorage;
 import org.huel.cloudhub.client.disk.domain.userstorage.Storage;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageEventListener;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageMetadata;
+import org.huel.cloudhub.client.disk.domain.userstorage.dto.FileAttributesInfo;
 import org.huel.cloudhub.client.disk.domain.userstorage.dto.StorageAttr;
 import org.huel.cloudhub.client.disk.domain.userstorage.repository.StorageMetadataRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import space.lingu.NonNull;
 
@@ -28,6 +31,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
 @Service
 public class FileTagProcessServiceImpl implements
         StorageEventListener, TagEventListener {
+    private static final Logger logger = LoggerFactory.getLogger(FileTagProcessServiceImpl.class);
+
     private final StorageMetadataRepository storageMetadataRepository;
     private final ContentTagRepository contentTagRepository;
     private final TagGroupRepository tagGroupRepository;
@@ -135,15 +140,22 @@ public class FileTagProcessServiceImpl implements
     }
 
     @Override
-    public void onStorageProcess(AttributedStorage storage, @Nullable StorageAttr storageAttr) {
+    public void onStorageProcess(AttributedStorage storage,
+                                 @Nullable StorageAttr storageAttr) {
         onStorageCreated(storage, storageAttr);
     }
 
     @Override
     public void onStorageCreated(@NonNull AttributedStorage storage,
                                  StorageAttr storageAttr) {
+        if (!storage.getStorageType().isFile()) {
+            return;
+        }
+
         String name = storage.getName();
         List<TaggedValue> taggedValues = new ArrayList<>();
+
+        List<StorageMetadata> storageMetadatas = new ArrayList<>();
 
         for (KeywordProcessor keywordProcessor : keywordProcessors) {
             if (!allowName(keywordProcessor.searchScope())) {
@@ -157,7 +169,7 @@ public class FileTagProcessServiceImpl implements
             KeywordsScorer.Rank rank = ranks.get(0);
             StorageMetadata storageMetadata =
                     buildMetadata(storage, keywordProcessor, rank);
-
+            storageMetadatas.add(storageMetadata);
 
             TagGroupDto tagGroupDto = keywordProcessor.tagGroupDto();
             ContentTagInfo contentTagInfo =
@@ -169,11 +181,61 @@ public class FileTagProcessServiceImpl implements
                     contentTagInfo.name()
             ));
         }
+        clearUnusedMetadata(storage, storageMetadatas);
 
         onProcessed(
                 StorageProcessingEventType.CREATE,
                 storage,
                 storageAttr.size(),
+                taggedValues
+        );
+    }
+
+    private void clearUnusedMetadata(AttributedStorage storage,
+                                     List<StorageMetadata> newStorageMetadatas) {
+        List<StorageMetadata> unusedMetadatas = new ArrayList<>();
+        // TODO: remove unused metadata
+    }
+
+    @Override
+    public void onStorageDeleted(@NonNull AttributedStorage storage,
+                                 @Nullable FileAttributesInfo fileAttributesInfo) {
+        if (!storage.getStorageType().isFile()) {
+            return;
+        }
+        if (fileAttributesInfo == null) {
+            logger.error("FileAttributesInfo is null, storage: {}.",
+                    storage.getStorageId());
+            return;
+        }
+
+        List<StorageMetadata> storageMetadata = storageMetadataRepository.getByStorageId(
+                storage.getStorageId()
+        );
+        List<TaggedValue> taggedValues = new ArrayList<>();
+
+        List<StorageMetadata> updatedMetas = new ArrayList<>();
+        long now = System.currentTimeMillis();
+        for (StorageMetadata storageMetadatum : storageMetadata) {
+            StorageMetadata updated = storageMetadatum.toBuilder()
+                    .setDeleted(true)
+                    .setUpdateTime(now)
+                    .build();
+            TaggedValue taggedValue = TaggedValue.of(
+                    updated.getTagGroupId(),
+                    updated.getTagId(),
+                    null, null
+                    // TODO: get tag group name and tag name
+            );
+            taggedValues.add(taggedValue);
+            updatedMetas.add(updated);
+        }
+        storageMetadataRepository.update(updatedMetas);
+
+        onProcessed(
+                StorageProcessingEventType.DELETE,
+                storage,
+                fileAttributesInfo.size(),
                 taggedValues
         );
     }

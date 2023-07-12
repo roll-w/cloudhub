@@ -41,7 +41,7 @@ public class StorageProcessingRegistryService
         String name = eventCallback.getClass().getSimpleName();
         Integer index = idToIndex.getOrDefault(name, 0) + 1;
         idToIndex.put(name, index);
-        return name + index;
+        return name + "-" + index;
     }
 
     @Override
