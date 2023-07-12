@@ -33,7 +33,7 @@ public class SearchExpressionParserImpl implements SearchExpressionParser {
         for (String condition : conditions) {
             String trimmed = condition.trim();
             if (trimmed.isEmpty()) {
-                throw new SearchExpressionException("Empty condition.");
+                continue;
             }
             SearchCondition searchCondition = parseCondition(trimmed);
             searchConditions.add(searchCondition);
