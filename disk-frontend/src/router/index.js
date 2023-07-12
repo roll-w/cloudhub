@@ -58,8 +58,10 @@ export const adminVisualData = "admin-visual-data"
 
 export const adminSystemLogs = "admin-system-logs"
 export const adminLoginLogs = "admin-login-logs"
+export const adminSystemJobs = "admin-system-jobs"
 export const adminOperationLogs = "admin-operation-logs"
 export const adminSystemMonitor = "admin-system-monitor"
+
 export const adminClusterMonitor = "admin-cluster-monitor"
 export const adminFileServerMonitor = "admin-file-server-monitor"
 
@@ -395,6 +397,15 @@ const router = createRouter({
                     }
                 },
                 {
+                    path: '/admin/system/jobs',
+                    name: adminSystemJobs,
+                    component: () => import("@/views/admin/system/SystemJobsView.vue"),
+                    meta: {
+                        title: "系统任务",
+                        requireLogin: true
+                    }
+                },
+                {
                     path: '/admin/system/monitor',
                     name: adminSystemMonitor,
                     component: () => import("@/views/admin/system/ServerMonitorView.vue"),
@@ -479,14 +490,6 @@ const router = createRouter({
                     }
                 },
                 {
-                    path: '/error/404',
-                    name: page404,
-                    component: () => import('@/views/NotFound.vue'),
-                    meta: {
-                        title: "404"
-                    }
-                },
-                {
                     path: '/s/:token',
                     name: driveShareTokenPage,
                     component: () => import("@/views/share/ShareView.vue"),
@@ -495,6 +498,15 @@ const router = createRouter({
                         requireLogin: false
                     }
                 },
+                {
+                    path: '/error/404',
+                    name: page404,
+                    component: () => import('@/views/NotFound.vue'),
+                    meta: {
+                        title: "404"
+                    }
+                },
+
                 {
                     path: '/:path(.*)*',
                     redirect: '/error/404'

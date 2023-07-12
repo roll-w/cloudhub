@@ -89,6 +89,8 @@ export const storages = (admin = false) =>
 
 export const shares = (admin = false) =>
     `${admin ? adminPrefix : prefix}/shares`;
+export const favorites = (admin = false, id = null) =>
+    `${admin ? adminPrefix : prefix}/favorites${id ? `/${id}` : ''}`;
 
 export const getCurrentUserOperationLogs = `${prefix}/user/operations/logs`;
 export const getCurrentUserLoginLogs = `${prefix}/user/login/logs`;
@@ -118,6 +120,8 @@ export const ownerUserGroup = (id, type = 'user', admin = false) =>
 export const getUsers = `${adminPrefix}/users`;
 export const getLoginLogs = `${adminPrefix}/users/login/logs`;
 export const getErrorLogs = `${adminPrefix}/system/errors`;
+
+export const jobs = `${adminPrefix}/jobs`;
 
 export const serverStatus = `${adminPrefix}/server/cfs/status`;
 export const serverStatusSummary = `${adminPrefix}/server/status/summary`;

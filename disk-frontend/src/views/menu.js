@@ -6,7 +6,7 @@ import {
     adminFolderLists,
     adminIndex,
     adminLoginLogs,
-    adminOperationLogs,
+    adminOperationLogs, adminSystemJobs,
     adminSystemLogs,
     adminSystemMonitor,
     adminTagGroups,
@@ -19,8 +19,10 @@ import {
     driveFilePageTypeAudio,
     driveFilePageTypeDocument,
     driveFilePageTypeImage,
-    driveFilePageTypeVideo, driveFileRecycleBinPage,
-    driveTagPage, userSharePage,
+    driveFilePageTypeVideo,
+    driveFileRecycleBinPage,
+    driveTagPage,
+    userSharePage,
 } from "@/router";
 
 import {NIcon} from "naive-ui";
@@ -231,6 +233,11 @@ const menuOptions = [
                     {
                         name: "系统日志",
                         key: adminSystemLogs,
+                        linked: true
+                    },
+                    {
+                        name: "系统任务",
+                        key: adminSystemJobs,
                         linked: true
                     },
                     {

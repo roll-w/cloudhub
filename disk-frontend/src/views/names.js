@@ -144,3 +144,26 @@ export const getUserTypeName = (name) => {
             return name
     }
 }
+
+export const getJobStatusName = (name) => {
+    if (!name) {
+        return 'null'
+    }
+
+    switch (name.toUpperCase()) {
+        case 'NOT_STARTED':
+            return '未开始'
+        case 'RUNNING':
+            return '运行中'
+        case 'PAUSED':
+            return '暂停'
+        case 'FINISHED':
+            return '完成'
+        case 'FAILED':
+            return '失败'
+        case 'CANCELED':
+            return '取消'
+        case 'UNKNOWN':
+            return '未知'
+    }
+}

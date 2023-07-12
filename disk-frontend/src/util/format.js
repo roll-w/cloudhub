@@ -1,6 +1,6 @@
-export function formatTimestamp(timestamp) {
+export function formatTimestamp(timestamp, zero = '从未') {
     if (timestamp === 0) {
-        return "从未"
+        return zero
     }
     let date = new Date(timestamp)
     let Y = date.getFullYear() + '-'
