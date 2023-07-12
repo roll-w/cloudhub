@@ -1,6 +1,7 @@
 package org.huel.cloudhub.client.disk.domain.cfsserver;
 
 import org.huel.cloudhub.client.CFSClient;
+import org.huel.cloudhub.client.CFSStatus;
 import org.huel.cloudhub.client.server.ConnectedServers;
 import org.huel.cloudhub.server.NetworkUsageInfo;
 import org.huel.cloudhub.server.ServerHostInfo;
@@ -48,12 +49,49 @@ public class ServerStatusService {
     }
 
     public ServerStatusSummary getSummary() {
-        ConnectedServers connectedServers =
-                cfsClient.getConnectedServers();
-        return new ServerStatusSummary(
+        ConnectedServers connectedServers;
+        ServerHostInfo serverHostInfo =
+                serverStatusMonitor.getLatest();
+        try {
+            connectedServers = cfsClient.getConnectedServers();
+        } catch (Exception e) {
+            return getSummaryOf(
+                    runSecs.get(),
+                    CFSStatus.UNAVAILABLE,
+                    0,
+                    0,
+                    serverHostInfo
+            );
+        }
+        return getSummaryOf(
                 runSecs.get(),
+                CFSStatus.SUCCESS,
                 connectedServers.activeServers().size(),
-                connectedServers.deadServers().size()
+                connectedServers.deadServers().size(),
+                serverHostInfo
+        );
+    }
+
+    private static ServerStatusSummary getSummaryOf(long runtime,
+                                                    CFSStatus cfsStatus,
+                                                    int activeFileServers,
+                                                    int deadFileServers,
+                                                    ServerHostInfo serverHostInfo) {
+        long diskUsed = serverHostInfo.getDiskUsageInfo().getTotal() -
+                serverHostInfo.getDiskUsageInfo().getFree();
+        return new ServerStatusSummary(
+                runtime,
+                cfsStatus,
+                activeFileServers,
+                deadFileServers,
+                new UsageInfo(
+                        serverHostInfo.getDiskUsageInfo().getTotal(),
+                        diskUsed
+                ),
+                new UsageInfo(
+                        serverHostInfo.getMemoryUsageInfo().getTotal(),
+                        serverHostInfo.getMemoryUsageInfo().getUsed()
+                )
         );
     }
 }
