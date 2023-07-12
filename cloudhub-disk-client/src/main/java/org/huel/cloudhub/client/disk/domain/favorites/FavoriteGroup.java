@@ -14,6 +14,10 @@ public class FavoriteGroup implements DataItem {
             0L, "default", 0, true,
             0, 0, false
     );
+    public static final FavoriteGroup RECYCLE_BIN = new FavoriteGroup(
+            -1L, "recycle", 0, false,
+            0, 0, false
+    );
 
     @DataColumn(name = "id")
     @PrimaryKey(autoGenerate = true)
@@ -37,8 +41,10 @@ public class FavoriteGroup implements DataItem {
     @DataColumn(name = "deleted")
     private final boolean deleted;
 
-    public FavoriteGroup(Long id, String name, long userId, boolean isPublic,
-                         long createTime, long updateTime, boolean deleted) {
+    public FavoriteGroup(Long id, String name, long userId,
+                         boolean isPublic,
+                         long createTime, long updateTime,
+                         boolean deleted) {
         this.id = id;
         this.name = name;
         this.userId = userId;

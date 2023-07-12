@@ -16,7 +16,7 @@ public class FavoriteItem implements DataItem {
     @DataColumn(name = "favorite_group_id")
     private final long favoriteGroupId;
 
-    @DataColumn(name = "name")
+    @DataColumn(name = "userId")
     private final long userId;
 
     @DataColumn(name = "storage_id")
