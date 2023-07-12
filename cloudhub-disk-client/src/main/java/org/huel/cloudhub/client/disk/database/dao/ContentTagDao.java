@@ -65,4 +65,7 @@ public interface ContentTagDao extends AutoPrimaryBaseDao<ContentTag> {
 
     @Query("SELECT * FROM content_tag WHERE name = {name}")
     ContentTag getByName(String name);
+
+    @Query("SELECT * FROM content_tag WHERE name IN ({names})")
+    List<ContentTag> getByNames(List<String> names);
 }

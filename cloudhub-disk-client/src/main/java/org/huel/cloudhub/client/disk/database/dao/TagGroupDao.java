@@ -68,4 +68,7 @@ public interface TagGroupDao extends AutoPrimaryBaseDao<TagGroup> {
     default String getTableName() {
         return "tag_group";
     }
+
+    @Query("SELECT * FROM tag_group WHERE name IN ({names})")
+    List<TagGroup> getByNames(List<String> names);
 }

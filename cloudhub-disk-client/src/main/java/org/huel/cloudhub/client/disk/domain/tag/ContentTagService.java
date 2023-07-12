@@ -11,18 +11,13 @@ import java.util.List;
 /**
  * @author RollW
  */
-public interface ContentTagService extends ContentTagProvider {
+public interface ContentTagService {
     // TODO: refactor this interface
 
-    ContentTagInfo getTagById(long id);
-
-    TagGroupDto getTagGroupById(long id);
-
+    // TODO: not use Pageable parameter in this method
     List<ContentTagInfo> getTags(Pageable pageable);
 
     List<TagGroupDto> getTagGroups(Pageable pageable);
-
-    ContentTagInfo getByName(String name);
 
     void createContentTagGroup(String name,
                                String description,

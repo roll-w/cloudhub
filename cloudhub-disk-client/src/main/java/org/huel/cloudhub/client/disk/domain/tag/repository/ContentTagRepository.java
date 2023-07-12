@@ -9,6 +9,8 @@ import org.huel.cloudhub.client.disk.domain.tag.ContentTag;
 import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 /**
  * @author RollW
  */
@@ -29,8 +31,14 @@ public class ContentTagRepository extends BaseRepository<ContentTag> {
     }
 
     public ContentTag getByName(String name) {
-        ContentTag contentTag =
-                contentTagDao.getByName(name);
-        return cacheResult(contentTag);
+        return cacheResult(contentTagDao.getByName(name));
+    }
+
+    public List<ContentTag> getByNames(List<String> names) {
+        if (names == null || names.isEmpty()) {
+            return List.of();
+        }
+
+        return cacheResult(contentTagDao.getByNames(names));
     }
 }

@@ -14,7 +14,6 @@ import org.huel.cloudhub.client.disk.domain.tag.common.ContentTagErrorCode;
 import org.huel.cloudhub.client.disk.domain.tag.common.ContentTagException;
 import org.huel.cloudhub.client.disk.domain.tag.dto.ContentTagInfo;
 import org.huel.cloudhub.client.disk.domain.tag.dto.TagGroupDto;
-import org.huel.cloudhub.client.disk.domain.tag.dto.TagGroupInfo;
 import org.huel.cloudhub.client.disk.domain.tag.repository.ContentTagRepository;
 import org.huel.cloudhub.client.disk.domain.tag.repository.TagGroupRepository;
 import org.huel.cloudhub.web.data.page.Pageable;
@@ -45,42 +44,6 @@ public class ContentTagServiceImpl implements ContentTagService {
         this.tagGroupRepository = tagGroupRepository;
         this.tagEventListeners = tagEventListeners;
         this.contentTagValidator = validatorProvider.getValidator(SystemResourceKind.TAG);
-    }
-
-    @Override
-    public ContentTagInfo getTagById(long id) {
-        ContentTag contentTag =
-                contentTagRepository.getById(id);
-        if (contentTag == null) {
-            throw new ContentTagException(ContentTagErrorCode.ERROR_TAG_NOT_EXIST);
-        }
-
-        return ContentTagInfo.of(contentTag);
-    }
-
-    @Override
-    public TagGroupDto getTagGroupById(long id) {
-        TagGroup tagGroup =
-                tagGroupRepository.getById(id);
-        if (tagGroup == null) {
-            throw new ContentTagException(
-                    ContentTagErrorCode.ERROR_TAG_GROUP_NOT_EXIST);
-        }
-        List<ContentTag> contentTags = contentTagRepository.getByIds(
-                Longs.asList(tagGroup.getTags())
-        );
-        return pairWith(tagGroup, contentTags);
-    }
-
-    @Override
-    public TagGroupInfo getTagGroupInfoById(long id) {
-        TagGroup tagGroup =
-                tagGroupRepository.getById(id);
-        if (tagGroup == null) {
-            throw new ContentTagException(
-                    ContentTagErrorCode.ERROR_TAG_GROUP_NOT_EXIST);
-        }
-        return TagGroupInfo.of(tagGroup);
     }
 
     private List<TagGroupDto> matchWith(List<TagGroup> tagGroups,
@@ -131,31 +94,6 @@ public class ContentTagServiceImpl implements ContentTagService {
         List<ContentTag> contentTags = contentTagRepository.getByIds(ids);
 
         return matchWith(tagGroups, contentTags);
-    }
-
-    @Override
-    public ContentTagInfo getByName(String name) {
-        ContentTag contentTag = contentTagRepository.getByName(name);
-        if (contentTag == null) {
-            throw new ContentTagException(ContentTagErrorCode.ERROR_TAG_NOT_EXIST);
-        }
-        return ContentTagInfo.of(contentTag);
-    }
-
-    @Override
-    public List<TagGroupInfo> getTagGroupInfos(List<Long> tagGroupIds) {
-        return tagGroupRepository.getByIds(tagGroupIds)
-                .stream()
-                .map(TagGroupInfo::of)
-                .toList();
-    }
-
-    @Override
-    public List<ContentTagInfo> getTags(List<Long> tagIds) {
-        return contentTagRepository.getByIds(tagIds)
-                .stream()
-                .map(ContentTagInfo::of)
-                .toList();
     }
 
     @Override

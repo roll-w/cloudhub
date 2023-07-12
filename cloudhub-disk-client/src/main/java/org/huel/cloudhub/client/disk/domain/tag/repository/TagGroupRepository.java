@@ -40,4 +40,11 @@ public class TagGroupRepository extends BaseRepository<TagGroup>
     public List<TagGroup> findAll() {
         return get();
     }
+
+    public List<TagGroup> getByNames(List<String> names) {
+        if (names == null || names.isEmpty()) {
+            return List.of();
+        }
+        return cacheResult(tagGroupDao.getByNames(names));
+    }
 }
