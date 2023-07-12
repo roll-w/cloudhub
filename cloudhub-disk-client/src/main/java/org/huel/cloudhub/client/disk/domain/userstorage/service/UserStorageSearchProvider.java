@@ -8,7 +8,11 @@ import org.huel.cloudhub.client.disk.domain.storagesearch.SearchConditionGroup;
 import org.huel.cloudhub.client.disk.domain.storagesearch.StorageSearchConditionProvider;
 import org.huel.cloudhub.client.disk.domain.storagesearch.common.SearchConditionException;
 import org.huel.cloudhub.client.disk.domain.storagesearch.common.SearchExpressionException;
+import org.huel.cloudhub.client.disk.domain.tag.ContentTagProvider;
 import org.huel.cloudhub.client.disk.domain.tag.NameValue;
+import org.huel.cloudhub.client.disk.domain.tag.TaggedValue;
+import org.huel.cloudhub.client.disk.domain.tag.dto.ContentTagInfo;
+import org.huel.cloudhub.client.disk.domain.tag.dto.TagGroupInfo;
 import org.huel.cloudhub.client.disk.domain.userstorage.*;
 import org.huel.cloudhub.client.disk.domain.userstorage.repository.StorageMetadataRepository;
 import org.huel.cloudhub.client.disk.domain.userstorage.repository.UserFileStorageRepository;
@@ -35,13 +39,15 @@ public class UserStorageSearchProvider implements StorageCategoryService,
 
     private final StorageMetadataRepository storageMetadataRepository;
     private final UserFileStorageRepository userFileStorageRepository;
+    private final ContentTagProvider contentTagProvider;
     private final UserStorageSearchRepository userStorageSearchRepository;
 
     public UserStorageSearchProvider(StorageMetadataRepository storageMetadataRepository,
                                      UserFileStorageRepository userFileStorageRepository,
-                                     UserStorageSearchRepository userStorageSearchRepository) {
+                                     ContentTagProvider contentTagProvider, UserStorageSearchRepository userStorageSearchRepository) {
         this.storageMetadataRepository = storageMetadataRepository;
         this.userFileStorageRepository = userFileStorageRepository;
+        this.contentTagProvider = contentTagProvider;
         this.userStorageSearchRepository = userStorageSearchRepository;
     }
 
@@ -127,13 +133,33 @@ public class UserStorageSearchProvider implements StorageCategoryService,
         );
     }
 
+    private List<TaggedValue> toTaggedValues(List<NameValue> nameValues) {
+        List<String> groupNames = nameValues.stream()
+                .map(NameValue::name)
+                .distinct()
+                .toList();
+        List<String> tagNames = nameValues.stream()
+                .map(NameValue::value)
+                .distinct()
+                .toList();
+
+        List<TagGroupInfo> tagGroupInfos =
+                contentTagProvider.getTagGroupInfosByNames(groupNames);
+        List<ContentTagInfo> tagInfos =
+                contentTagProvider.getTagsByNames(tagNames);
+        return TaggedValue.pairWithTags(tagGroupInfos, tagInfos);
+    }
+
+
     @Override
     public List<AttributedStorage> getByTags(StorageOwner storageOwner, List<NameValue> nameValues) {
         if (checkDuplicateTag(nameValues)) {
             return List.of();
         }
+        List<TaggedValue> taggedValues = toTaggedValues(nameValues);
+
         List<StorageMetadata> storageMetadata =
-                storageMetadataRepository.getByTagValues(nameValues);
+                storageMetadataRepository.getByTagValues(taggedValues);
         List<Long> storageIds = storageMetadata.stream()
                 .map(StorageMetadata::getStorageId)
                 .distinct()
@@ -151,8 +177,10 @@ public class UserStorageSearchProvider implements StorageCategoryService,
         if (checkDuplicateTag(nameValues)) {
             return List.of();
         }
+        List<TaggedValue> taggedValues = toTaggedValues(nameValues);
+
         List<StorageMetadata> storageMetadata =
-                storageMetadataRepository.getByTagValues(nameValues);
+                storageMetadataRepository.getByTagValues(taggedValues);
         List<Long> storageIds = storageMetadata.stream()
                 .map(StorageMetadata::getStorageId)
                 .distinct()

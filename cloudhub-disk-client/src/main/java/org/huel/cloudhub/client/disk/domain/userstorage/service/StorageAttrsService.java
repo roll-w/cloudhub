@@ -1,8 +1,8 @@
 package org.huel.cloudhub.client.disk.domain.userstorage.service;
 
 import org.huel.cloudhub.client.disk.domain.tag.ContentTagProvider;
-import org.huel.cloudhub.client.disk.domain.tag.dto.ContentTagInfo;
 import org.huel.cloudhub.client.disk.domain.tag.TaggedValue;
+import org.huel.cloudhub.client.disk.domain.tag.dto.ContentTagInfo;
 import org.huel.cloudhub.client.disk.domain.tag.dto.TagGroupInfo;
 import org.huel.cloudhub.client.disk.domain.userstorage.*;
 import org.huel.cloudhub.client.disk.domain.userstorage.dto.StorageTagValue;
@@ -10,8 +10,6 @@ import org.huel.cloudhub.client.disk.domain.userstorage.repository.StorageMetada
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -90,35 +88,8 @@ public class StorageAttrsService implements StorageAttributesService {
                 contentTagProvider.getTagGroupInfos(tagGroupIds);
         List<ContentTagInfo> tags =
                 contentTagProvider.getTags(tagIds);
-        return pairWithTags(tagGroupInfos, tags);
+        return TaggedValue.pairWithTags(tagGroupInfos, tags);
     }
-
-    private List<TaggedValue> pairWithTags(List<TagGroupInfo> tagGroupInfos,
-                                           List<ContentTagInfo> tags) {
-        List<TaggedValue> tagValues = new ArrayList<>();
-        List<ContentTagInfo> sortedTags = tags.stream()
-                .sorted(Comparator.comparingLong(ContentTagInfo::id))
-                .toList();
-        for (TagGroupInfo tagGroupInfo : tagGroupInfos) {
-            ContentTagInfo tag = findInTags(sortedTags, tagGroupInfo.tags());
-            tagValues.add(new TaggedValue(
-                    tagGroupInfo.id(),
-                    tag.id(),
-                    tagGroupInfo.name(),
-                    tag.name()
-            ));
-        }
-        return tagValues;
-    }
-
-    private ContentTagInfo findInTags(List<ContentTagInfo> tags,
-                                      long[] tagIds) {
-        return tags.stream()
-                .filter(tag -> Arrays.stream(tagIds).anyMatch(tagId -> tag.id() == tagId))
-                .findFirst()
-                .orElse(null);
-    }
-
 
     private StorageTagValue getStorageTagValue(AttributedStorage storage) {
         if (!storage.getStorageType().isFile()) {

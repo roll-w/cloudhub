@@ -1,13 +1,9 @@
 package org.huel.cloudhub.client.disk.database.dao;
 
-import org.huel.cloudhub.client.disk.domain.tag.NameValue;
+import org.huel.cloudhub.client.disk.domain.tag.TaggedValue;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageMetadata;
 import org.huel.cloudhub.web.data.page.Offset;
-import space.lingu.light.Dao;
-import space.lingu.light.DaoConnectionGetter;
-import space.lingu.light.LightRuntimeException;
-import space.lingu.light.ManagedConnection;
-import space.lingu.light.Query;
+import space.lingu.light.*;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -33,29 +29,29 @@ public interface StorageMetadataDao
     @Query("SELECT * FROM storage_metadata WHERE storage_id = {storageId} AND name = {name}")
     StorageMetadata getByStorageIdAndName(long storageId, String name);
 
-    default List<StorageMetadata> getByTagValues(List<NameValue> nameValues) {
-        if (nameValues.isEmpty()) {
+    default List<StorageMetadata> getByTagValues(List<TaggedValue> taggedValues) {
+        if (taggedValues.isEmpty()) {
             return List.of();
         }
         StringBuilder sql = new StringBuilder("SELECT " +
                 "id, storage_id, tag_group_id, tag_id, deleted, create_time, update_time " +
                 "FROM storage_metadata WHERE ");
-        for (int i = 0; i < nameValues.size(); i++) {
-            sql.append("name = ")
+        for (int i = 0; i < taggedValues.size(); i++) {
+            sql.append("tag_group_id = ")
                     .append("?")
-                    .append(" AND value = ")
+                    .append(" AND tag_id = ")
                     .append("?");
-            if (i != nameValues.size() - 1) {
+            if (i != taggedValues.size() - 1) {
                 sql.append(" OR ");
             }
         }
         ManagedConnection connection = getConnection();
         PreparedStatement statement = connection.acquire(sql.toString());
         int index = 1;
-        for (NameValue nameValue : nameValues) {
+        for (TaggedValue taggedValue : taggedValues) {
             try {
-                statement.setString(index++, nameValue.name());
-                statement.setString(index++, nameValue.value());
+                statement.setLong(index++, taggedValue.groupId());
+                statement.setLong(index++, taggedValue.tagId());
             } catch (Exception e) {
                 throw new LightRuntimeException(e);
             }
@@ -66,10 +62,11 @@ public interface StorageMetadataDao
                 storageMetadata.add(new StorageMetadata(
                         resultSet.getLong(1),
                         resultSet.getLong(2),
-                        resultSet.getLong(5),
+                        resultSet.getLong(3),
+                        resultSet.getLong(4),
+                        resultSet.getBoolean(5),
                         resultSet.getLong(6),
-                        resultSet.getBoolean(7),
-                        0, 0
+                        resultSet.getLong(7)
                 ));
             }
         } catch (Exception e) {
