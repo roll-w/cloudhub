@@ -28,12 +28,19 @@
             </n-h2>
             <n-grid cols="3" x-gap="10" y-gap="10">
                 <n-gi v-for="option in dataOptions">
-                    <n-card :bordered="false" embedded>
+                    <n-card v-if="!option.hide" :bordered="false" embedded>
                         <div class="text-md">
                             {{ option.name }}
                         </div>
                         <div class="pt-5 text-3xl text-amber-500">
-                            {{ option.value }}
+                            <div v-if="option.value !== null">
+                                {{ option.value }}
+                            </div>
+                            <div class="pb-2" v-else>
+                                <n-skeleton
+                                        height="1.875rem"
+                                        width="55%" :sharp="false"/>
+                            </div>
                         </div>
                     </n-card>
                 </n-gi>
@@ -59,7 +66,7 @@ import {useNotification, useMessage, useDialog} from "naive-ui";
 import api from "@/request/api";
 import {createConfig} from "@/request/axios_config";
 import {popAdminErrorTemplate} from "@/views/util/error";
-import {formatDuration} from "@/util/format";
+import {formatDuration, formatFileSize} from "@/util/format";
 import StatusIndicator from "@/components/StatusIndicator.vue";
 
 const router = useRouter()
@@ -68,6 +75,16 @@ const notification = useNotification()
 const message = useMessage()
 const dialog = useDialog()
 
+const getCFSStatusName = (name) => {
+    switch (name) {
+        case "SUCCESS":
+            return "正常"
+        case "UNAVAILABLE":
+            return "不可用"
+        default:
+            return "出现错误"
+    }
+}
 
 const dataOptions = ref([
     {
@@ -81,28 +98,54 @@ const dataOptions = ref([
         value: 3
     },
     {
-        key: "fileSize",
-        name: "文件总占用",
-        value: "1.2 GB"
+        key: "runtime",
+        name: "系统运行时间",
+        value: "",
+        format: (value) => {
+            return formatDuration(value)
+        }
+    },
+    {
+        key: "memoryUsage",
+        name: "内存总占用",
+        value: '',
+        format: (value) => {
+            console.log('formatMemoryUsage', value)
+            if (!value) {
+                return ''
+            }
+            return formatFileSize(value.used)
+        }
+    },
+    {
+        key: "diskUsage",
+        name: "当前磁盘使用",
+        value: '',
+        format: (value) => {
+            if (!value) {
+                return ''
+            }
+            return formatFileSize(value.used)
+        }
+    },
+    {
+        key: "cfsStatus",
+        name: "CFS集群状态",
+        value: "",
+        format: (value) => {
+            return getCFSStatusName(value)
+        }
     },
     {
         key: "activeFileServers",
         name: "在线文件服务器",
-        value: "1"
+        value: ""
     },
     {
         key: "deadFileServers",
         name: "离线文件服务器",
-        value: "0"
+        value: ""
     },
-    {
-        key: "runtime",
-        name: "系统运行时间",
-        value: "1 天 2 小时",
-        format: (value) => {
-            return formatDuration(value)
-        }
-    }
 ])
 
 const warningChecks = ref([])
@@ -153,9 +196,11 @@ const requestSystemStatusSummary = () => {
                 return
             }
             if (option.format) {
-                option.value = option.format(data[option.key])
+                option.rawValue = data[option.key]
+                option.value = option.format(option.rawValue)
             } else {
                 option.value = data[option.key]
+                option.rawValue = option.value
             }
             checkAndPushMessage(option)
         })
@@ -165,9 +210,21 @@ const requestSystemStatusSummary = () => {
 }
 
 const checkAndPushMessage = (option) => {
+    console.log(option)
     switch (option.key) {
+        case "cfsStatus":
+            if (option.rawValue !== "SUCCESS") {
+                errorChecks.value.push({
+                    key: option.key,
+                    message: "CFS集群状态异常"
+                })
+            } else {
+                removeByKey(errorChecks, option.key)
+            }
+            break
+
         case "deadFileServers":
-            if (option.value > 0) {
+            if (option.rawValue > 0) {
                 warningChecks.value.push({
                     key: option.key,
                     message: "有 " + option.value + " 个文件服务器处于离线状态"
@@ -177,7 +234,7 @@ const checkAndPushMessage = (option) => {
             }
             break
         case "activeFileServers":
-            if (option.value === 0) {
+            if (option.rawValue === 0) {
                 errorChecks.value.push({
                     key: option.key,
                     message: "没有可用的文件服务器"
@@ -185,6 +242,43 @@ const checkAndPushMessage = (option) => {
             } else {
                 removeByKey(errorChecks, option.key)
             }
+            break
+        case "diskUsage":
+            const usage = (option.rawValue.used / option.rawValue.total) * 100
+            if (usage > 80) {
+                warningChecks.value.push({
+                    key: option.key,
+                    message: `系统磁盘使用率已达到 ${usage.toFixed(1)}%，可能会影响存储服务`
+                })
+                return
+            }
+            if (usage > 90) {
+                errorChecks.value.push({
+                    key: option.key,
+                    message: `系统磁盘使用率已达到 ${usage.toFixed(1)}%，将影响存储服务`
+                })
+                return
+            }
+            removeByKey(warningChecks, option.key)
+            break
+
+        case "memoryUsage":
+            const memoryUsage = (option.rawValue.used / option.rawValue.total) * 100
+            if (memoryUsage > 80) {
+                warningChecks.value.push({
+                    key: option.key,
+                    message: `系统内存使用率已达到 ${memoryUsage.toFixed(1)}%，可能会影响系统性能`
+                })
+                return
+            }
+            if (memoryUsage > 90) {
+                errorChecks.value.push({
+                    key: option.key,
+                    message: `系统内存使用率已达到 ${memoryUsage.toFixed(1)}%，可能严重影响系统性能`
+                })
+                return
+            }
+            removeByKey(warningChecks, option.key)
             break
     }
 
