@@ -35,6 +35,8 @@ export const userPersonalPageWithFolder = "user-personal-page-with-folder"
 export const userSettingPage = "user-setting-page"
 export const userSearchPage = "user-search-page"
 export const userSharePage = "user-share-page"
+export const userFavoritePage = "user-favorite-page"
+export const userFavoritePageWithId = "user-favorite-page-with-id"
 export const userStatsPage = "user-stats-page"
 
 export const adminIndex = "admin-index"
@@ -214,6 +216,24 @@ const router = createRouter({
                     component: () => import("@/views/user/PersonalShareView.vue"),
                     meta: {
                         title: "用户分享",
+                        requireLogin: true
+                    }
+                },
+                {
+                    path: '/user/favorites',
+                    name: userFavoritePage,
+                    component: () => import("@/views/user/PersonalFavoriteView.vue"),
+                    meta: {
+                        title: "收藏夹",
+                        requireLogin: true
+                    }
+                },
+                {
+                    path: '/user/favorites/:id',
+                    name: userFavoritePageWithId,
+                    component: () => import("@/views/user/PersonalFavoriteView.vue"),
+                    meta: {
+                        title: "收藏夹",
                         requireLogin: true
                     }
                 },

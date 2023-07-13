@@ -6,7 +6,8 @@ import {
     adminFolderLists,
     adminIndex,
     adminLoginLogs,
-    adminOperationLogs, adminSystemJobs,
+    adminOperationLogs,
+    adminSystemJobs,
     adminSystemLogs,
     adminSystemMonitor,
     adminTagGroups,
@@ -21,7 +22,7 @@ import {
     driveFilePageTypeImage,
     driveFilePageTypeVideo,
     driveFileRecycleBinPage,
-    driveTagPage,
+    driveTagPage, userFavoritePage, userFavoritePageWithId,
     userSharePage,
 } from "@/router";
 
@@ -126,7 +127,11 @@ const menuOptions = [
             },
             {
                 name: "收藏",
-                key: "Fav",
+                key: userFavoritePage,
+                alias: [
+                    userFavoritePageWithId
+                ],
+                linked: true
             },
             {
                 name: "分享",

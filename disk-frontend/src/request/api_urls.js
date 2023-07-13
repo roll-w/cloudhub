@@ -60,7 +60,15 @@ export const shareTokenInfo = (token) =>
     `${prefix}/shares/${token}/metadata`;
 export const shareToken = (token) =>
     `${prefix}/shares/${token}`;
-export const userShares = `${prefix}/user/shares`;
+
+export const shares = (admin = false) =>
+    `${admin ? adminPrefix : prefix}/user/shares`;
+export const favorites = (admin = false, id = null) =>
+    `${admin ? adminPrefix : prefix}/user/favorites${id !== null ? `/${id}` : ''}`;
+export const userFavorites = (userId, admin = false, id = null) =>
+    `${admin ? adminPrefix : prefix}/users/${userId}/favorites${id !== null ? `/${id}` : ''}`;
+
+export const userShares = shares(false)
 export const restricts = (ownerType, ownerId) =>
     `${prefix}/${ownerType}/${ownerId}/statistics/restricts`;
 export const restrictByKey = (ownerType, ownerId, key) =>
@@ -86,11 +94,6 @@ export const folders = (admin = false) =>
     `${admin ? adminPrefix : prefix}/disk/folders`;
 export const storages = (admin = false) =>
     `${admin ? adminPrefix : prefix}/disk/storages`;
-
-export const shares = (admin = false) =>
-    `${admin ? adminPrefix : prefix}/shares`;
-export const favorites = (admin = false, id = null) =>
-    `${admin ? adminPrefix : prefix}/favorites${id ? `/${id}` : ''}`;
 
 export const getCurrentUserOperationLogs = `${prefix}/user/operations/logs`;
 export const getCurrentUserLoginLogs = `${prefix}/user/login/logs`;
