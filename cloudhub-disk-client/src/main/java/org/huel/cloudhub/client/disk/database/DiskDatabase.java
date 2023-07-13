@@ -1,9 +1,13 @@
 package org.huel.cloudhub.client.disk.database;
 
 import org.huel.cloudhub.client.disk.database.dao.*;
+import org.huel.cloudhub.client.disk.domain.favorites.FavoriteGroup;
+import org.huel.cloudhub.client.disk.domain.favorites.FavoriteItem;
 import org.huel.cloudhub.client.disk.domain.operatelog.OperationLog;
 import org.huel.cloudhub.client.disk.domain.operatelog.OperationLogAssociation;
 import org.huel.cloudhub.client.disk.domain.share.UserShare;
+import org.huel.cloudhub.client.disk.domain.statistics.DatedStatistics;
+import org.huel.cloudhub.client.disk.domain.statistics.Statistics;
 import org.huel.cloudhub.client.disk.domain.storage.DiskFileStorage;
 import org.huel.cloudhub.client.disk.domain.storagepermission.StoragePermission;
 import org.huel.cloudhub.client.disk.domain.storagepermission.StorageUserPermission;
@@ -30,6 +34,8 @@ import space.lingu.light.LightDatabase;
         UserGroup.class, UserGroupMember.class, UserStatistics.class,
         DiskFileStorage.class, UserFileStorage.class, UserFolder.class,
         UserShare.class,
+        Statistics.class, DatedStatistics.class,
+        FavoriteGroup.class, FavoriteItem.class,
         StorageMetadata.class, VersionedFileStorage.class,
         StoragePermission.class, StorageUserPermission.class,
         OperationLog.class, OperationLogAssociation.class,
@@ -52,7 +58,15 @@ public abstract class DiskDatabase extends LightDatabase {
 
     public abstract UserFolderDao getUserDirectoryDao();
 
+    public abstract StatisticsDao getStatisticsDao();
+
+    public abstract DatedStatisticsDao getDatedStatisticsDao();
+
     public abstract UserShareDao getUserShareDao();
+
+    public abstract FavoriteGroupDao getFavoriteGroupDao();
+
+    public abstract FavoriteItemDao getFavoriteItemDao();
 
     public abstract StorageMetadataDao getStorageMetadataDao();
 
