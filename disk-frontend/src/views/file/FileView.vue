@@ -143,6 +143,21 @@
             />
         </n-modal>
 
+        <n-modal v-model:show="showFavoriteStorageModal"
+                 :show-icon="false"
+                 :title="'收藏 ' + curTargetFile.name"
+                 preset="dialog"
+                 transform-origin="center">
+            <StorageFavoriteForm
+                    :on-after-action="() => {
+                        showFavoriteStorageModal = false
+                    }"
+                    :on-click-cancel="() => showFavoriteStorageModal = false"
+                    :owner-id="userStore.user.id"
+                    :storage-id="curTargetFile.storageId"
+                    :storage-type="curTargetFile.storageType"
+            />
+        </n-modal>
 
         <n-modal v-model:show="showShareStorageModal"
                  :show-icon="false"
@@ -170,6 +185,7 @@
                  transform-origin="center">
             <StorageShareConfirm :share-info="shareInfo"/>
         </n-modal>
+
     </div>
 </template>
 
@@ -203,6 +219,7 @@ import StorageShareConfirm from "@/components/file/forms/StorageShareConfirm.vue
 import FileComponentsView from "@/views/file/FileComponentsView.vue";
 import StorageMoveForm from "@/components/file/forms/StorageMoveOrCopyForm.vue";
 import StorageMoveOrCopyForm from "@/components/file/forms/StorageMoveOrCopyForm.vue";
+import StorageFavoriteForm from "@/components/file/forms/StorageFavoriteForm.vue";
 
 const {proxy} = getCurrentInstance()
 const notification = useNotification()
@@ -226,6 +243,7 @@ const showCreateFolderModal = ref(false)
 const showFilePreviewModal = ref(false)
 const showRenameStorageModal = ref(false)
 const showShareStorageModal = ref(false)
+const showFavoriteStorageModal = ref(false)
 const showMoveStorageModal = ref(false)
 const storageCopyOrMove = ref('move')
 const showShareConfirmStorageModal = ref(false)
@@ -271,7 +289,7 @@ const fileOptions = [
     },
     {
         label: "收藏",
-        key: "collect",
+        key: "favorite",
     },
     {
         key: 'header-divider',
@@ -421,7 +439,8 @@ const handleFileOptionSelect = (key, options, target) => {
         case 'share':
             showShareStorageModal.value = true
             break;
-        case 'collect':
+        case 'favorite':
+            showFavoriteStorageModal.value = true
             break;
         case 'rename':
             showRenameStorageModal.value = true
