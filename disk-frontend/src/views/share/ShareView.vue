@@ -9,12 +9,12 @@
                     <div class="pt-10">
                         <n-button class="" secondary
                                   style="height: 3rem"
-                                  type="primary" @click="handleBack">
+                                  type="primary" @click="() => $router.push('/')">
                             返回首页
                         </n-button>
                     </div>
                 </div>
-                <div v-if="showPasswordView" class="w-[30vw] m-auto">
+                <div v-else-if="showPasswordView" class="w-[30vw] m-auto">
                     <div class="text-2xl pt-10 pb-16">
                         {{ getUsername() }} 给您分享了文件
                     </div>
@@ -151,6 +151,7 @@ import {formatTimestamp} from "@/util/format";
 import {popUserErrorTemplate} from "@/views/util/error";
 import FilePreviewer from "@/components/file/FilePreviewer.vue";
 import FileComponentsView from "@/views/file/FileComponentsView.vue";
+import {driveFilePage, index} from "@/router";
 
 const router = useRouter()
 const {proxy} = getCurrentInstance()
@@ -210,16 +211,6 @@ const curFolderId = ref(folder)
 const setCurFolderId = (folder) => {
     curFolderId.value = folder
     requestGetShareInfoWithinPassword()
-    // router.push({
-    //     name: driveShareTokenPage,
-    //     params: {
-    //         token: token
-    //     },
-    //     query: {
-    //         pwd: sharePassword.value
-    //     },
-    //     // hash: '#path=' + folder
-    // })
 }
 
 const fileOptions = [
@@ -260,10 +251,6 @@ const getShareMetaInfo = () => {
         shareError.value = err
         showPasswordView.value = false
     })
-}
-
-const handleBack = () => {
-    router.push({path: '/'})
 }
 
 const getExpireTime = () => {
