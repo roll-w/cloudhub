@@ -67,6 +67,14 @@ public class FavoriteOperatorFactoryService implements
             return new FavoriteOperatorImpl(
                     this, favoriteGroup, checkDelete);
         }
+
+        if (systemResource.getResourceId() <= 0) {
+            FavoriteGroup favoriteGroup =
+                    getDefaultGroup(systemResource.getResourceId());
+            return new FavoriteOperatorImpl(
+                    this, favoriteGroup, checkDelete);
+        }
+
         FavoriteGroup favoriteGroup = favoriteGroupRepository
                 .getById(systemResource.getResourceId());
         if (favoriteGroup == null) {
@@ -74,5 +82,13 @@ public class FavoriteOperatorFactoryService implements
         }
         return new FavoriteOperatorImpl(
                 this, favoriteGroup, checkDelete);
+    }
+
+    private FavoriteGroup getDefaultGroup(long id) {
+        return switch ((int) id) {
+            case 0 -> FavoriteGroup.SYSTEM_FAVORITE_GROUP;
+            case -1 -> FavoriteGroup.RECYCLE_BIN;
+            default -> throw new FavoriteException(FavoriteErrorCode.ERROR_FAVORITE_NOT_FOUND);
+        };
     }
 }

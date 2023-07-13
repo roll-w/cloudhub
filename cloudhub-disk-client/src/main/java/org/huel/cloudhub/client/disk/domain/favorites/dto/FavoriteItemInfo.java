@@ -16,6 +16,7 @@ public record FavoriteItemInfo(
         StorageType storageType,
         long createTime,
         long updateTime,
+
         boolean deleted
 ) implements SystemResource {
     @Override

@@ -132,6 +132,10 @@ public class FavoriteOperatorImpl implements FavoriteOperator {
     }
 
     private FavoriteOperator updateInternal() {
+        if (favoriteGroup.getId() <= 0) {
+            return this;
+        }
+
         if (favoriteGroupBuilder != null) {
             favoriteGroup = favoriteGroupBuilder
                     .setUpdateTime(System.currentTimeMillis())

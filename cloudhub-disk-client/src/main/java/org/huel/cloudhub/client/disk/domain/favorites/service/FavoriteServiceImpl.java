@@ -52,13 +52,19 @@ public class FavoriteServiceImpl implements
 
     @Override
     public List<FavoriteGroupInfo> getFavoriteGroups(StorageOwner storageOwner) {
-        return List.of();
+        return favoriteGroupRepository.getGroupsOf(storageOwner)
+                .stream()
+                .map(FavoriteGroupInfo::of)
+                .toList();
     }
 
     @Override
     public List<FavoriteItemInfo> getFavoriteItems(
             long favoriteGroupId) {
-        return List.of();
+        return favoriteItemRepository.getByGroup(favoriteGroupId)
+                .stream()
+                .map(FavoriteItemInfo::of)
+                .toList();
     }
 
     @Override

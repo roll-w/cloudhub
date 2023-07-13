@@ -9,6 +9,8 @@ import org.huel.cloudhub.client.disk.domain.systembased.paged.PageableContext;
 import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 /**
  * @author RollW
  */
@@ -27,5 +29,9 @@ public class FavoriteItemRepository extends BaseRepository<FavoriteItem> {
     @Override
     protected Class<FavoriteItem> getEntityClass() {
         return FavoriteItem.class;
+    }
+
+    public List<FavoriteItem> getByGroup(long groupId) {
+        return cacheResult(favoriteItemDao.getByGroup(groupId));
     }
 }

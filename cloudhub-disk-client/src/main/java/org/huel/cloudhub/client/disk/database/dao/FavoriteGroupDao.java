@@ -56,4 +56,7 @@ public interface FavoriteGroupDao extends AutoPrimaryBaseDao<FavoriteGroup> {
 
     @Query("SELECT * FROM favorite_group WHERE name = {name} AND user_id = {operator.getOperatorId()} ")
     FavoriteGroup getByName(String name, Operator operator);
+
+    @Query("SELECT * FROM favorite_group WHERE user_id = {operator.getOperatorId()}")
+    List<FavoriteGroup> getGroupsOf(Operator operator);
 }

@@ -4,6 +4,7 @@ import org.huel.cloudhub.client.disk.database.DataItem;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageType;
 import space.lingu.light.DataColumn;
 import space.lingu.light.DataTable;
+import space.lingu.light.PrimaryKey;
 
 /**
  * @author RollW
@@ -11,12 +12,13 @@ import space.lingu.light.DataTable;
 @DataTable(name = "favorite_item")
 public class FavoriteItem implements DataItem {
     @DataColumn(name = "id")
+    @PrimaryKey(autoGenerate = true)
     private final Long id;
 
-    @DataColumn(name = "favorite_group_id")
+    @DataColumn(name = "group_id")
     private final long favoriteGroupId;
 
-    @DataColumn(name = "userId")
+    @DataColumn(name = "user_id")
     private final long userId;
 
     @DataColumn(name = "storage_id")
