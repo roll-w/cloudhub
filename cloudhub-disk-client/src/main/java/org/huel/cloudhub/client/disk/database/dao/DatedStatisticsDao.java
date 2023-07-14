@@ -5,6 +5,7 @@ import org.huel.cloudhub.web.data.page.Offset;
 import space.lingu.light.Dao;
 import space.lingu.light.Query;
 
+import java.time.LocalDate;
 import java.util.List;
 
 /**
@@ -52,5 +53,12 @@ public interface DatedStatisticsDao extends AutoPrimaryBaseDao<DatedStatistics> 
     default String getTableName() {
         return "dated_statistics";
     }
+
+    @Query("SELECT * FROM dated_statistics WHERE `key` = {statisticsKey} ORDER BY id DESC LIMIT 1")
+    DatedStatistics getLatestOfKey(String statisticsKey);
+
+    @Query("SELECT * FROM dated_statistics WHERE `key` = {statisticsKey} AND `date` = {date}")
+    DatedStatistics getByKeyAndDate(String statisticsKey,
+                                    LocalDate date);
 }
 

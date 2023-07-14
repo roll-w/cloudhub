@@ -9,6 +9,8 @@ import org.huel.cloudhub.client.disk.domain.systembased.paged.PageableContext;
 import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
+
 /**
  * @author RollW
  */
@@ -26,5 +28,18 @@ public class DatedStatisticsRepository extends BaseRepository<DatedStatistics> {
     @Override
     protected Class<DatedStatistics> getEntityClass() {
         return DatedStatistics.class;
+    }
+
+    public DatedStatistics getByKeyAndDate(String statisticsKey,
+                                           LocalDate date) {
+        return cacheResult(
+                datedStatisticsDao.getByKeyAndDate(statisticsKey, date)
+        );
+    }
+
+    public DatedStatistics getLatestOfKey(String statisticsKey) {
+        return cacheResult(
+                datedStatisticsDao.getLatestOfKey(statisticsKey)
+        );
     }
 }

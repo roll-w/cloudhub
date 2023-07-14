@@ -53,6 +53,6 @@ public interface StatisticsDao extends AutoPrimaryBaseDao<Statistics> {
         return "statistics";
     }
 
-    @Query("SELECT * FROM statistics WHERE statistics_key = {statisticsKey}")
+    @Query("SELECT * FROM statistics WHERE `key` = {statisticsKey}")
     Statistics getByKey(String statisticsKey);
 }

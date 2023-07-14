@@ -9,11 +9,16 @@ import org.huel.cloudhub.client.disk.domain.systembased.paged.PageableContext;
 import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Repository;
 
+import java.util.Map;
+
 /**
  * @author RollW
  */
 @Repository
 public class StatisticsRepository extends BaseRepository<Statistics> {
+    private static final Statistics DUMMY =
+            new Statistics(-1L, null, Map.of());
+
     private final StatisticsDao statisticsDao;
 
     protected StatisticsRepository(DiskDatabase database,
@@ -29,6 +34,39 @@ public class StatisticsRepository extends BaseRepository<Statistics> {
     }
 
     public Statistics getByKey(String statisticsKey) {
-        return cacheResult(statisticsDao.getByKey(statisticsKey));
+        if (statisticsKey == null) {
+            return null;
+        }
+        Statistics cached = cache.get(statisticsKey, Statistics.class);
+        if (cached == DUMMY) {
+            return null;
+        }
+        if (cached != null) {
+            return cached;
+        }
+        Statistics statistics = statisticsDao.getByKey(statisticsKey);
+        if (statistics == null) {
+            cache.put(statisticsKey, DUMMY);
+            return null;
+        }
+        return cacheResult(statistics);
+    }
+
+    @Override
+    protected Statistics cacheResult(Statistics statistics) {
+        if (statistics == null) {
+            return null;
+        }
+        cache.put(statistics.getKey(), statistics);
+        return super.cacheResult(statistics);
+    }
+
+    @Override
+    protected void invalidateCache(Statistics statistics) {
+        super.invalidateCache(statistics);
+        if (statistics == null) {
+            return;
+        }
+        cache.evict(statistics.getKey());
     }
 }

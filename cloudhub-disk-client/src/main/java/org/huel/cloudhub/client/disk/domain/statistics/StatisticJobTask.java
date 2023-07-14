@@ -18,6 +18,8 @@ public interface StatisticJobTask extends JobTask {
 
     void rescanStatistics();
 
+    /**
+     */
     @NonNull
     Map<String, Object> getStatistics(Map<String, String> rawStatistics);
 }

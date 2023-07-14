@@ -37,18 +37,13 @@ public abstract class BaseRepository<T extends DataItem> implements CountableDao
     }
 
     public long insert(T t) {
-        if (t.getId() != null) {
-            invalidateCache(t.getId());
-        }
-
+        invalidateCache(t);
         return primaryBaseDao.insertReturns(t);
     }
 
     public long[] insert(List<T> ts) {
         for (T t : ts) {
-            if (t.getId() != null) {
-                invalidateCache(t.getId());
-            }
+            invalidateCache(t);
         }
         return primaryBaseDao.insertReturns(ts);
     }
@@ -149,11 +144,14 @@ public abstract class BaseRepository<T extends DataItem> implements CountableDao
         cache.clear();
     }
 
-    protected void invalidateCache(long id) {
+    protected void invalidateCache(T t) {
         if (cache == null) {
             return;
         }
-        cache.evict(id);
+        if (t == null) {
+            return;
+        }
+        cache.evict(t.getId());
     }
 
     protected T cacheResult(T t) {
