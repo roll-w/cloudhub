@@ -29,7 +29,7 @@ public interface StorageMetadataDao
     @Query("SELECT * FROM storage_metadata WHERE storage_id = {storageId} AND name = {name}")
     StorageMetadata getByStorageIdAndName(long storageId, String name);
 
-    default List<StorageMetadata> getByTagValues(List<TaggedValue> taggedValues) {
+    default List<StorageMetadata> getByTagValues(List<? extends TaggedValue> taggedValues) {
         if (taggedValues.isEmpty()) {
             return List.of();
         }
