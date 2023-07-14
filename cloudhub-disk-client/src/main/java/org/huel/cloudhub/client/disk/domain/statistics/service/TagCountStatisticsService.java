@@ -75,7 +75,7 @@ public class TagCountStatisticsService implements StatisticJobTask, StatisticsPe
             return;
         }
         logger.debug("Got storage processing event: status: {}, storage: {}, size: {}, taggedValues: {}",
-                storageProcessingEvent.getStorageProcessEventType(),
+                storageProcessingEvent.getStorageProcessingEventType(),
                 storageProcessingEvent.getStorage(),
                 storageProcessingEvent.getSize(),
                 storageProcessingEvent.getTaggedValues()
@@ -90,7 +90,7 @@ public class TagCountStatisticsService implements StatisticJobTask, StatisticsPe
             return;
         }
 
-        switch (storageProcessingEvent.getStorageProcessEventType()) {
+        switch (storageProcessingEvent.getStorageProcessingEventType()) {
             case CREATE -> taggedValues.forEach(taggedValue -> addTaggedValue(taggedValue, tagCounts));
             case DELETE -> taggedValues.forEach(taggedValue -> removeTaggedValue(taggedValue, tagCounts));
             default -> {
@@ -152,12 +152,12 @@ public class TagCountStatisticsService implements StatisticJobTask, StatisticsPe
 
     @NonNull
     @Override
-    public String getStatisticsKey() {
-        return StatisticsKeys.TAG_COUNT;
+    public List<String> getStatisticsKeys() {
+        return List.of(StatisticsKeys.TAG_COUNT);
     }
 
     @Override
-    public Map<String, String> getStatistics() {
+    public Map<String, String> getStatistics(String key) {
         Map<String, String> statistics = new HashMap<>();
         Map<Long, List<ImmutableTagCount>>
                 snapshot = takeSnapshot();
@@ -265,11 +265,38 @@ public class TagCountStatisticsService implements StatisticJobTask, StatisticsPe
     @NonNull
     @Override
     public Map<String, Object> getStatistics(
+            String key,
             Map<String, String> rawStatistics) {
-        Map<Long, List<ImmutableTagCount>> tagCounts = new HashMap<>();
-        Map<String, TagGroupValueCount> statistics = getTaggedValuesFromRaw(
-                rawStatistics, tagCounts);
+        Map<String, TagGroupValueCount> statistics =
+                getTaggedValuesFromRaw(rawStatistics);
         return new HashMap<>(statistics);
+    }
+
+    @NonNull
+    private Map<String, TagGroupValueCount> getTaggedValuesFromRaw(
+            Map<String, String> rawStatistics) {
+        Map<Long, List<ImmutableTagCount>> tagCountsMap
+                = new HashMap<>();
+
+        for (Map.Entry<String, String> entry : rawStatistics.entrySet()) {
+            long tagGroupId = Long.parseLong(entry.getKey());
+            String tagCountStr = entry.getValue();
+            List<ImmutableTagCount> immutableTagCounts =
+                    deserializeTagCount(tagCountStr);
+            tagCountsMap.put(tagGroupId, immutableTagCounts);
+        }
+
+        List<Long> tagGroupIds = new ArrayList<>(tagCountsMap.keySet());
+        List<Long> tagIds = tagCountsMap.values().stream()
+                .flatMap(Collection::stream)
+                .map(ImmutableTagCount::tagId)
+                .distinct()
+                .toList();
+        List<TagGroupInfo> tagGroupInfos =
+                contentTagProvider.getTagGroupInfos(tagGroupIds);
+        List<ContentTagInfo> tagInfos =
+                contentTagProvider.getTags(tagIds);
+        return pairToValueCount(tagCountsMap, tagGroupInfos, tagInfos);
     }
 
     @NonNull
@@ -315,29 +342,6 @@ public class TagCountStatisticsService implements StatisticJobTask, StatisticsPe
         });
         return tagValueCounts;
     }
-
-    @NonNull
-    private Map<String, TagGroupValueCount> getTaggedValuesFromRaw(Map<String, String> rawStatistics, Map<Long, List<ImmutableTagCount>> tagCounts) {
-        for (Map.Entry<String, String> entry : rawStatistics.entrySet()) {
-            long tagGroupId = Long.parseLong(entry.getKey());
-            String tagCountStr = entry.getValue();
-            List<ImmutableTagCount> immutableTagCounts =
-                    deserializeTagCount(tagCountStr);
-            tagCounts.put(tagGroupId, immutableTagCounts);
-        }
-        List<Long> tagGroupIds = new ArrayList<>(tagCounts.keySet());
-        List<Long> tagIds = tagCounts.values().stream()
-                .flatMap(Collection::stream)
-                .map(ImmutableTagCount::tagId)
-                .distinct()
-                .toList();
-        List<TagGroupInfo> tagGroupInfos =
-                contentTagProvider.getTagGroupInfos(tagGroupIds);
-        List<ContentTagInfo> tagInfos =
-                contentTagProvider.getTags(tagIds);
-        return pairToValueCount(tagCounts, tagGroupInfos, tagInfos);
-    }
-
 
     private static final class TagCount {
         private final long tagId;

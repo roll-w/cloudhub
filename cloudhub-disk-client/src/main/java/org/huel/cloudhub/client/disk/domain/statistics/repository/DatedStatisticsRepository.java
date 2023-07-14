@@ -10,6 +10,7 @@ import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
+import java.util.List;
 
 /**
  * @author RollW
@@ -40,6 +41,20 @@ public class DatedStatisticsRepository extends BaseRepository<DatedStatistics> {
     public DatedStatistics getLatestOfKey(String statisticsKey) {
         return cacheResult(
                 datedStatisticsDao.getLatestOfKey(statisticsKey)
+        );
+    }
+
+    public DatedStatistics getLatestOfKey(String statisticsKey, LocalDate date) {
+        return cacheResult(
+                datedStatisticsDao.getLatestOfKey(statisticsKey, date)
+        );
+    }
+
+    public List<DatedStatistics> getByKeyAndDateBetween(String statisticsKey,
+                                                        LocalDate from,
+                                                        LocalDate to) {
+        return cacheResult(
+                datedStatisticsDao.getBetweenDate(statisticsKey, from, to)
         );
     }
 }

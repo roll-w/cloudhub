@@ -11,7 +11,7 @@ public interface StatisticsService {
     Map<String, Object> getStatistics(String statisticsKey);
 
     DatedData getStatistics(String statisticsKey,
-                         LocalDate date);
+                            LocalDate date);
 
     List<DatedData> getStatistics(String statisticsKey,
                                   LocalDate from, LocalDate to);

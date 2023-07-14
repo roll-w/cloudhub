@@ -52,14 +52,23 @@ public class DataPersistTask implements JobTask {
 
     private void tryPersist(
             StatisticsPersistable statisticsPersistable) {
-        String statisticsKey = statisticsPersistable.getStatisticsKey();
+        List<String> keys =
+                statisticsPersistable.getStatisticsKeys();
+        if (keys.isEmpty()) {
+            return;
+        }
+        keys.forEach(key -> persistOfKey(statisticsPersistable, key));
+    }
+
+    private void persistOfKey(StatisticsPersistable statisticsPersistable,
+                              String statisticsKey) {
         long version = statisticsPersistable.getStatisticsVersion();
         if (lastVersionByKey.getOrDefault(statisticsKey, -1L)
                 == version) {
             return;
         }
         Map<String, String> statisticsMap =
-                statisticsPersistable.getStatistics();
+                statisticsPersistable.getStatistics(statisticsKey);
         if (statisticsMap == null || statisticsMap.isEmpty()) {
             logger.debug("StatisticsPersistable {}(key={}) return empty statistics, rescan.",
                     statisticsPersistable.getClass().getName(), statisticsKey);

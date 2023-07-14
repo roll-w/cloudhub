@@ -2,6 +2,7 @@ package org.huel.cloudhub.client.disk.domain.statistics.service;
 
 import space.lingu.NonNull;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -9,11 +10,11 @@ import java.util.Map;
  */
 public interface StatisticsPersistable {
     @NonNull
-    String getStatisticsKey();
+    List<String> getStatisticsKeys();
 
     void rescanStatistics();
 
-    Map<String, String> getStatistics();
+    Map<String, String> getStatistics(String key);
 
     long getStatisticsVersion();
 }

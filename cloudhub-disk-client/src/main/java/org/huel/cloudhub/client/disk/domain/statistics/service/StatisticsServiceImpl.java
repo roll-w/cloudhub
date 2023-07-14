@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 /**
  * @author RollW
@@ -28,7 +29,7 @@ public class StatisticsServiceImpl implements StatisticsService {
 
     private StatisticJobTask findByStatisticsKey(String statisticsKey) {
         return statisticJobTasks.stream()
-                .filter(statisticJobTask -> statisticJobTask.getStatisticsKey().equals(statisticsKey))
+                .filter(statisticJobTask -> statisticJobTask.getStatisticsKeys().contains(statisticsKey))
                 .findFirst()
                 .orElseThrow(() ->
                         new IllegalArgumentException("No such statistics key: " + statisticsKey));
@@ -43,7 +44,7 @@ public class StatisticsServiceImpl implements StatisticsService {
         if (statistics == null) {
             return null;
         }
-        return statisticJobTask.getStatistics(statistics.getValue());
+        return statisticJobTask.getStatistics(statistics.getKey(), statistics.getValue());
     }
 
     @Override
@@ -55,16 +56,16 @@ public class StatisticsServiceImpl implements StatisticsService {
                 datedStatisticsRepository.getByKeyAndDate(statisticsKey, date);
         if (datedStatistics != null) {
             return new DatedData(
-                    statisticJobTask.getStatistics(datedStatistics.getValue()),
+                    statisticJobTask.getStatistics(statisticsKey, datedStatistics.getValue()),
                     datedStatistics.getDate()
             );
         }
         DatedStatistics latestDatedStatistics =
-                datedStatisticsRepository.getLatestOfKey(statisticsKey);
+                datedStatisticsRepository.getLatestOfKey(statisticsKey, date);
         if (latestDatedStatistics != null) {
             return new DatedData(
-                    statisticJobTask.getStatistics(latestDatedStatistics.getValue()),
-                    latestDatedStatistics.getDate()
+                    statisticJobTask.getStatistics(statisticsKey, latestDatedStatistics.getValue()),
+                    date
             );
         }
         return null;
@@ -74,6 +75,32 @@ public class StatisticsServiceImpl implements StatisticsService {
     public List<DatedData> getStatistics(String statisticsKey,
                                          LocalDate from,
                                          LocalDate to) {
-        return null;
+        List<DatedStatistics> datedStatisticsList =
+                datedStatisticsRepository.getByKeyAndDateBetween(statisticsKey, from, to);
+        if (!datedStatisticsList.isEmpty()) {
+            return datedStatisticsList.stream()
+                    .map(datedStatistics -> {
+                        StatisticJobTask statisticJobTask =
+                                findByStatisticsKey(statisticsKey);
+                        return new DatedData(
+                                statisticJobTask.getStatistics(statisticsKey, datedStatistics.getValue()),
+                                datedStatistics.getDate()
+                        );
+                    })
+                    .toList();
+        }
+        DatedStatistics latestDatedStatistics =
+                datedStatisticsRepository.getLatestOfKey(statisticsKey);
+
+        return Stream.of(latestDatedStatistics)
+                .map(datedStatistics -> {
+                    StatisticJobTask statisticJobTask =
+                            findByStatisticsKey(statisticsKey);
+                    return new DatedData(
+                            statisticJobTask.getStatistics(statisticsKey, datedStatistics.getValue()),
+                            datedStatistics.getDate()
+                    );
+                })
+                .toList();
     }
 }

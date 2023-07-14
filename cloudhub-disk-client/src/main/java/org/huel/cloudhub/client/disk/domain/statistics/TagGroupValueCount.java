@@ -10,5 +10,4 @@ public record TagGroupValueCount(
         String name,
         List<TagValueCount> counts
 )  {
-
 }
