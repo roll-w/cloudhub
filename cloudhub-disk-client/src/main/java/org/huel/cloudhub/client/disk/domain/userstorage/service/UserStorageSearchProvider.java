@@ -10,6 +10,7 @@ import org.huel.cloudhub.client.disk.domain.storagesearch.common.SearchCondition
 import org.huel.cloudhub.client.disk.domain.storagesearch.common.SearchExpressionException;
 import org.huel.cloudhub.client.disk.domain.tag.ContentTagProvider;
 import org.huel.cloudhub.client.disk.domain.tag.NameValue;
+import org.huel.cloudhub.client.disk.domain.tag.SimpleTaggedValue;
 import org.huel.cloudhub.client.disk.domain.tag.TaggedValue;
 import org.huel.cloudhub.client.disk.domain.tag.dto.ContentTagInfo;
 import org.huel.cloudhub.client.disk.domain.tag.dto.TagGroupInfo;
@@ -147,7 +148,7 @@ public class UserStorageSearchProvider implements StorageCategoryService,
                 contentTagProvider.getTagGroupInfosByNames(groupNames);
         List<ContentTagInfo> tagInfos =
                 contentTagProvider.getTagsByNames(tagNames);
-        return TaggedValue.pairWithTags(tagGroupInfos, tagInfos);
+        return SimpleTaggedValue.pairWithTags(tagGroupInfos, tagInfos);
     }
 
 

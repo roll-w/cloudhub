@@ -44,7 +44,7 @@ public class StorageMetadataRepository extends BaseRepository<StorageMetadata> {
         return cacheResult(storageMetadata);
     }
 
-    public List<StorageMetadata> getByTagValues(List<TaggedValue> taggedValues) {
+    public List<StorageMetadata> getByTagValues(List<? extends TaggedValue> taggedValues) {
         List<StorageMetadata> storageMetadata =
                 storageMetadataDao.getByTagValues(taggedValues);
         return cacheResult(storageMetadata);

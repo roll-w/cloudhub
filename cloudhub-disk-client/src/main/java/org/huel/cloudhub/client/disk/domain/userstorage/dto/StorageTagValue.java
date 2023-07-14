@@ -1,6 +1,7 @@
 package org.huel.cloudhub.client.disk.domain.userstorage.dto;
 
 import org.huel.cloudhub.client.disk.domain.tag.NameValue;
+import org.huel.cloudhub.client.disk.domain.tag.TaggedValue;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageMetadata;
 
 /**
@@ -12,8 +13,12 @@ public record StorageTagValue(
         long tagId,
         String name,
         String value
-) {
+) implements TaggedValue {
 
+    @Override
+    public long groupId() {
+        return tagGroupId;
+    }
     public static final long INVALID_ID = -1;
 
     public static StorageTagValue of(NameValue nameValue) {
@@ -47,4 +52,5 @@ public record StorageTagValue(
                 name, value
         );
     }
+
 }
