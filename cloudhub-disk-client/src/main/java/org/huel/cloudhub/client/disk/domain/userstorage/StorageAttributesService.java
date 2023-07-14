@@ -11,5 +11,5 @@ public interface StorageAttributesService {
     List<StorageTagValue> getStorageTags(
             StorageIdentity storageIdentity, StorageOwner storageOwner);
 
-
+    StorageTagValueIterator getStorageTagValueIterator();
 }

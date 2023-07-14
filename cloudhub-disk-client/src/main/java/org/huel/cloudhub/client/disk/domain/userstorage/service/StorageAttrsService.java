@@ -1,12 +1,14 @@
 package org.huel.cloudhub.client.disk.domain.userstorage.service;
 
 import org.huel.cloudhub.client.disk.domain.tag.ContentTagProvider;
+import org.huel.cloudhub.client.disk.domain.tag.SimpleTaggedValue;
 import org.huel.cloudhub.client.disk.domain.tag.TaggedValue;
 import org.huel.cloudhub.client.disk.domain.tag.dto.ContentTagInfo;
 import org.huel.cloudhub.client.disk.domain.tag.dto.TagGroupInfo;
 import org.huel.cloudhub.client.disk.domain.userstorage.*;
 import org.huel.cloudhub.client.disk.domain.userstorage.dto.StorageTagValue;
 import org.huel.cloudhub.client.disk.domain.userstorage.repository.StorageMetadataRepository;
+import org.huel.cloudhub.web.data.page.Offset;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -55,6 +57,11 @@ public class StorageAttrsService implements StorageAttributesService {
         return tagValues;
     }
 
+    @Override
+    public StorageTagValueIterator getStorageTagValueIterator() {
+        return new ValueIteratorImpl(storageMetadataRepository.count());
+    }
+
     private List<StorageTagValue> pairWithIdTagValues(List<TaggedValue> taggedValues,
                                                       List<StorageMetadata> metadatas) {
         List<StorageTagValue> tagValues = new ArrayList<>();
@@ -88,7 +95,7 @@ public class StorageAttrsService implements StorageAttributesService {
                 contentTagProvider.getTagGroupInfos(tagGroupIds);
         List<ContentTagInfo> tags =
                 contentTagProvider.getTags(tagIds);
-        return TaggedValue.pairWithTags(tagGroupInfos, tags);
+        return SimpleTaggedValue.pairWithTags(tagGroupInfos, tags);
     }
 
     private StorageTagValue getStorageTagValue(AttributedStorage storage) {
@@ -102,5 +109,51 @@ public class StorageAttrsService implements StorageAttributesService {
                 FILE_TYPE,
                 storage.getFileType().name()
         );
+    }
+
+    private class ValueIteratorImpl implements StorageTagValueIterator {
+        private final long size;
+        private Offset currentOffset = null;
+        private boolean loaded = false;
+
+        public ValueIteratorImpl(long size) {
+            this.size = size;
+        }
+
+        @Override
+        public boolean hasNext() {
+            if (size > 0 && currentOffset == null) {
+                this.currentOffset = new Offset(1000, 0);
+                return true;
+            }
+            if (!loaded) {
+                return true;
+            }
+
+            long curSize = currentOffset.offset()
+                    + currentOffset.limit();
+            return curSize < size;
+        }
+
+        private Offset nextOffset() {
+            return new Offset(currentOffset.limit(),
+                    currentOffset.offset() + currentOffset.limit());
+        }
+
+        @Override
+        public List<StorageTagValue> next() {
+            if (!hasNext()) {
+                return List.of();
+            }
+            loaded = true;
+            List<StorageMetadata> storageMetadata =
+                    storageMetadataRepository.get(currentOffset);
+            List<TaggedValue> taggedValues =
+                    getTagValues(storageMetadata);
+            List<StorageTagValue> tagValues =
+                    pairWithIdTagValues(taggedValues, storageMetadata);
+            currentOffset = nextOffset();
+            return tagValues;
+        }
     }
 }
