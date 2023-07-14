@@ -174,7 +174,7 @@ public class FileTagProcessServiceImpl implements
             TagGroupDto tagGroupDto = keywordProcessor.tagGroupDto();
             ContentTagInfo contentTagInfo =
                     tagGroupDto.findByName(rank.getGroup());
-            taggedValues.add(TaggedValue.of(
+            taggedValues.add(SimpleTaggedValue.of(
                     storageMetadata.getTagGroupId(),
                     storageMetadata.getTagId(),
                     tagGroupDto.name(),
@@ -221,7 +221,7 @@ public class FileTagProcessServiceImpl implements
                     .setDeleted(true)
                     .setUpdateTime(now)
                     .build();
-            TaggedValue taggedValue = TaggedValue.of(
+            TaggedValue taggedValue = SimpleTaggedValue.of(
                     updated.getTagGroupId(),
                     updated.getTagId(),
                     null, null
