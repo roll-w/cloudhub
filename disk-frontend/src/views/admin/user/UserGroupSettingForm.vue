@@ -2,6 +2,9 @@
 import {getCurrentInstance, ref} from "vue";
 import {useRouter} from "vue-router";
 import {useNotification, useMessage, useDialog} from "naive-ui";
+import {createConfig} from "@/request/axios_config";
+import api from "@/request/api";
+import {popUserErrorTemplate} from "@/views/util/error";
 
 const router = useRouter()
 const {proxy} = getCurrentInstance()
@@ -34,8 +37,11 @@ const props = defineProps({
         type: String,
         default: ''
     },
-
-    key: {
+    groupId: {
+        type: [String, Number],
+        required: true
+    },
+    settingKey: {
         type: String,
         required: true
     },
@@ -55,10 +61,29 @@ const unlimitedChecked = ref(props.value === '-1')
 
 const handleConfirm = () => {
     props.onClickConfirm()
+    form.value.validate().then(() => {
+        props.onBeforeAction()
+        requestSetSetting()
+    })
 }
 
 const handleCancel = () => {
     props.onClickCancel()
+}
+
+const requestSetSetting = () => {
+    const config = createConfig()
+    proxy.$axios.put(api.userGroupSetting(true, props.groupId), {
+        key: props.settingKey,
+        value: unlimitedChecked.value ? '-1' : formValue.value.value
+    }, config).then(() => {
+        message.success('设置成功')
+        props.onAfterAction()
+    }).catch((e) => {
+        props.onAfterAction()
+        popUserErrorTemplate(notification, e, "修改用户组设置失败",
+                "用户组请求错误")
+    })
 }
 
 </script>
@@ -90,12 +115,11 @@ const handleCancel = () => {
                 <n-button type="primary" @click="handleConfirm">
                     确认
                 </n-button>
-                <n-button secondary type="default" @click="handleCancel()">
+                <n-button secondary type="default" @click="handleCancel">
                     取消
                 </n-button>
             </n-button-group>
         </div>
-
     </div>
 </template>
 

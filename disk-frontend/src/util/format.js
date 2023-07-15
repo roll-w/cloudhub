@@ -21,6 +21,29 @@ export function formatTimestamp(timestamp, zero = '从未') {
     return Y + M + D + h + m + s
 }
 
+export const formatTimestampDash = (timestamp, zero = '从未') => {
+    if (timestamp === 0) {
+        return zero
+    }
+    let date = new Date(timestamp)
+    let Y = date.getFullYear() + '-'
+    let M = (date.getMonth() + 1 < 10
+        ? '0' + (date.getMonth() + 1)
+        : date.getMonth() + 1) + '-'
+    let D = (date.getDate() < 10
+        ? '0' + date.getDate()
+        : date.getDate()) + '-'
+    let h = date.getHours() + '-'
+    let mm = date.getMinutes() < 10
+        ? '0' + date.getMinutes()
+        : date.getMinutes()
+    let m = mm + '-'
+    let s = date.getSeconds() < 10
+        ? '0' + date.getSeconds()
+        : date.getSeconds()
+    return Y + M + D + h + m + s
+}
+
 const gb = 1024 * 1024 * 1024
 const mb = 1024 * 1024
 const kb = 1024

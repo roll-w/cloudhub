@@ -26,7 +26,7 @@
             重置用户密码
         </n-h2>
         <div>
-            <n-button secondary type="error">
+            <n-button secondary type="error" @click="showResetPasswordModal = true">
                 重置用户密码
             </n-button>
         </div>
@@ -49,6 +49,24 @@
             </n-form>
             <n-button secondary type="primary" @click="handleSaveConfirm">保存</n-button>
         </div>
+
+        <div>
+
+            <n-modal v-model:show="showResetPasswordModal"
+                     :show-icon="false"
+                     preset="dialog"
+                     title="重置密码"
+                     transform-origin="center">
+                <AdminUserResetPasswordForm
+                        :user-id="userId"
+                        :on-cancel="() => showResetPasswordModal = false"
+                        :on-after-action="() => showResetPasswordModal = false"
+
+                />
+            </n-modal>
+
+        </div>
+
     </div>
 </template>
 
@@ -65,6 +83,7 @@ import {popAdminErrorTemplate} from "@/views/util/error";
 import {formatTimestamp} from "@/util/format";
 import DisplayInput from "@/components/admin/DisplayInput.vue";
 import {useUserRulesOf} from "@/views/rules";
+import AdminUserResetPasswordForm from "@/views/admin/user/AdminUserResetPasswordForm.vue";
 
 const router = useRouter()
 const {proxy} = getCurrentInstance()
@@ -78,6 +97,8 @@ const formValues = ref({})
 
 const userId = router.currentRoute.value.params.userId
 const source = router.currentRoute.value.query.source
+
+const showResetPasswordModal = ref(false)
 
 const userInfoPairs = ref([])
 const userInfo = ref({})

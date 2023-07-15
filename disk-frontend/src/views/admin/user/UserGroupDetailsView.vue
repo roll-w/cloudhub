@@ -5,12 +5,13 @@ import {useNotification, useMessage, useDialog, NButton, NButtonGroup} from "nai
 import api from "@/request/api";
 import {createConfig} from "@/request/axios_config";
 import {popAdminErrorTemplate} from "@/views/util/error";
-import {adminUserGroupLists} from "@/router";
+import {adminUserDetails, adminUserGroupLists} from "@/router";
 import {adminMenuUser} from "@/views/menu";
 import AdminBreadcrumb from "@/components/admin/AdminBreadcrumb.vue";
 import {formatFileSize, formatTimestamp} from "@/util/format";
 import DisplayInput from "@/components/admin/DisplayInput.vue";
 import UserGroupSettingForm from "@/views/admin/user/UserGroupSettingForm.vue";
+import UserGroupMemberForm from "@/views/admin/user/UserGroupMemberForm.vue";
 
 const router = useRouter()
 const {proxy} = getCurrentInstance()
@@ -20,8 +21,12 @@ const dialog = useDialog()
 
 const userGroupId = router.currentRoute.value.params.id
 
-const editSetting = ref({})
+const editSetting = ref({
+    key: "",
+    value: ""
+})
 const showEditSettingModal = ref(false)
+const showAddUserModal = ref(false)
 
 const members = ref([])
 const userGroupInfo = ref({})
@@ -96,7 +101,11 @@ const back = () => {
 }
 
 const handleSettingEdit = (setting) => {
-    editSetting.value = setting
+    editSetting.value = {
+        key: setting.key,
+        name: setting.name,
+        value: setting.rawValue,
+    }
     showEditSettingModal.value = true
 }
 
@@ -134,7 +143,21 @@ const requestUserGroupMembers = () => {
             })
 }
 
+const handleViewUser = (member) => {
+    router.push({
+        name: adminUserDetails,
+        params: {
+            userId: member.userId
+        },
+        query: {
+            refer: 'groupdetails',
+            source: userGroupId
+        }
+    })
+}
+
 requestUserGroupInfo()
+requestUserGroupMembers()
 
 </script>
 
@@ -246,18 +269,22 @@ requestUserGroupInfo()
                             </thead>
                             <tbody>
                             <tr v-for="member in members" :key="member.id">
-                                <td>{{ member.id }}</td>
-                                <td>{{ member.username }}</td>
+                                <td>{{ member.userId }}</td>
+                                <td>{{ member.name }}</td>
                                 <td>
                                     <n-button-group>
-                                        <n-button secondary type="primary">查看</n-button>
+                                        <n-button secondary type="primary" @click="handleViewUser(member)">
+                                            查看
+                                        </n-button>
                                         <n-button secondary type="error">移除</n-button>
                                     </n-button-group>
                                 </td>
                             </tr>
                             <tr>
                                 <td class="text-center" colspan="3">
-                                    <n-button secondary type="primary">添加用户</n-button>
+                                    <n-button secondary type="primary" @click="showAddUserModal = true">
+                                        添加用户
+                                    </n-button>
                                 </td>
                             </tr>
                             </tbody>
@@ -274,11 +301,30 @@ requestUserGroupInfo()
                          title="修改用户组设置"
                          transform-origin="center">
                     <UserGroupSettingForm
-                            :key="editSetting.id"
+                            :group-id="userGroupId"
                             :name="editSetting.name"
-                            :value="editSetting.rawValue || '-1'"
+                            :on-after-action="() => {
+                                showEditSettingModal = false
+                                requestUserGroupInfo()
+                            }"
                             :on-click-cancel="() => showEditSettingModal = false"
-                            :on-after-action="() => showEditSettingModal = false"
+                            :setting-key="editSetting.key"
+                            :value="editSetting.value"
+                    />
+                </n-modal>
+                <n-modal v-model:show="showAddUserModal"
+                         :show-icon="false"
+                         closable
+                         preset="dialog"
+                         title="添加用户组成员"
+                         transform-origin="center">
+                    <UserGroupMemberForm
+                            :group-id="userGroupId"
+                            :on-after-action="() =>{
+                                showAddUserModal = false
+                                requestUserGroupMembers()
+                            }"
+                            :on-click-cancel="() => showAddUserModal = false"
                     />
                 </n-modal>
             </div>

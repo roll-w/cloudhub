@@ -1,3 +1,5 @@
+
+
 const viteBase = import.meta.env.VITE_BASE_URL;
 const httpPrefix = import.meta.env.VITE_HTTP_PREFIX;
 
@@ -68,7 +70,8 @@ export const favorites = (admin = false, id = null) =>
 export const userFavorites = (userId, admin = false, id = null) =>
     `${admin ? adminPrefix : prefix}/users/${userId}/favorites${id !== null ? `/${id}` : ''}`;
 
-export const userShares = shares(false)
+export const userShares = (userId) =>
+    `${prefix}/users/${userId}/shares`;
 export const restricts = (ownerType, ownerId) =>
     `${prefix}/${ownerType}/${ownerId}/statistics/restricts`;
 export const restrictByKey = (ownerType, ownerId, key) =>
@@ -113,9 +116,15 @@ export const userInfo = (userId, admin = false) =>
 
 export const currentUserPassword =
     `${prefix}/user/password`;
+export const userPassword = (userId) =>
+    `${adminPrefix}/users/${userId}/password`;
 
 export const userGroups = (admin = false, id = null) =>
     `${admin ? adminPrefix : prefix}/groups${id !== null ? `/${id}` : ''}`;
+export const userGroupSetting = (admin = false, id) =>
+    `${userGroups(admin)}/${id}/settings`;
+export const userGroupsMembers = (admin, userGroupId) =>
+    `${userGroups(admin)}/${userGroupId}/members`;
 
 export const ownerUserGroup = (id, type = 'user', admin = false) =>
     `${admin ? adminPrefix : prefix}/${type}/${id}/groups`;
@@ -125,7 +134,8 @@ export const getLoginLogs = `${adminPrefix}/users/login/logs`;
 export const getErrorLogs = `${adminPrefix}/system/errors`;
 
 export const jobs = `${adminPrefix}/jobs`;
-
+export const statistics = (key) =>
+    `${adminPrefix}/statistics/${key}`;
 export const serverStatus = `${adminPrefix}/server/cfs/status`;
 export const serverStatusSummary = `${adminPrefix}/server/status/summary`;
 export const cfsStatus = (serverId) =>

@@ -48,6 +48,7 @@ export const adminUserDetails = "admin-user-details"
 
 export const adminFileLists = "admin-file-lists"
 export const adminFolderLists = "admin-folder-lists"
+export const adminShareLists = "admin-share-lists"
 
 export const adminStorageDetails = "admin-storage-details"
 
@@ -325,7 +326,15 @@ const router = createRouter({
                         requireLogin: true
                     }
                 },
-
+                {
+                    path: '/admin/storages/shares',
+                    name: adminShareLists,
+                    component: () => import("@/views/admin/file/ShareListsView.vue"),
+                    meta: {
+                        title: "分享列表",
+                        requireLogin: true
+                    }
+                },
                 {
                     path: '/admin/storages/:ownerType/:ownerId/:type/:id',
                     name: adminStorageDetails,
