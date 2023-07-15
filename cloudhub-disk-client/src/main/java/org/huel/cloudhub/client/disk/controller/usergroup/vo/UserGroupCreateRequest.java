@@ -1,4 +1,4 @@
-package org.huel.cloudhub.client.disk.controller.usergroup;
+package org.huel.cloudhub.client.disk.controller.usergroup.vo;
 
 /**
  * @author RollW
