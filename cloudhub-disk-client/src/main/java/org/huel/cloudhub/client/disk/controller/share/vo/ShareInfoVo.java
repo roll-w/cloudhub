@@ -1,4 +1,4 @@
-package org.huel.cloudhub.client.disk.domain.share.vo;
+package org.huel.cloudhub.client.disk.controller.share.vo;
 
 import org.huel.cloudhub.client.disk.domain.share.dto.SharePasswordInfo;
 import org.huel.cloudhub.client.disk.domain.user.AttributedUser;
@@ -21,7 +21,20 @@ public record ShareInfoVo(
         long expireTime,
         long createTime
 ) {
-
+    public static ShareInfoVo from(SharePasswordInfo sharePasswordInfo) {
+        return new ShareInfoVo(
+                sharePasswordInfo.id(),
+                sharePasswordInfo.storageId(),
+                sharePasswordInfo.storageType(),
+                sharePasswordInfo.creatorId(),
+                null,
+                null,
+                sharePasswordInfo.shareCode(),
+                sharePasswordInfo.isPublic(),
+                sharePasswordInfo.expireTime(),
+                sharePasswordInfo.createTime()
+        );
+    }
 
     public static ShareInfoVo from(SharePasswordInfo sharePasswordInfo,
                                    AttributedUser attributedUser) {

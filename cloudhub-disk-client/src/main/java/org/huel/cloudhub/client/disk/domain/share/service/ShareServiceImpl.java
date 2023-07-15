@@ -183,6 +183,15 @@ public class ShareServiceImpl implements ShareService, ShareSearchService,
     }
 
     @Override
+    public List<SharePasswordInfo> findByUserId(long userId) {
+        List<UserShare> userShares =
+                userShareRepository.getByUserId(userId);
+        return userShares.stream()
+                .map(SharePasswordInfo::from)
+                .toList();
+    }
+
+    @Override
     public List<SharePasswordInfo> findByStorage(
             StorageIdentity storageIdentity) {
         // TODO: find by storage

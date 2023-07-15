@@ -1,9 +1,9 @@
-package org.huel.cloudhub.client.disk.domain.share.vo;
+package org.huel.cloudhub.client.disk.controller.share.vo;
 
 import org.huel.cloudhub.client.disk.domain.share.UserShare;
 import org.huel.cloudhub.client.disk.domain.share.dto.SharePasswordInfo;
 import org.huel.cloudhub.client.disk.domain.userstorage.AttributedStorage;
-import org.huel.cloudhub.client.disk.domain.userstorage.vo.StorageVo;
+import org.huel.cloudhub.client.disk.controller.storage.vo.StorageVo;
 
 /**
  * @author RollW

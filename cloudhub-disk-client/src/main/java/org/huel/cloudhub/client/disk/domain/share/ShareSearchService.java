@@ -18,6 +18,8 @@ public interface ShareSearchService {
     List<SharePasswordInfo> findByUserId(
             long userId, Pageable pageable);
 
+    List<SharePasswordInfo> findByUserId(long userId);
+
     List<SharePasswordInfo> findByStorage(
             StorageIdentity storageIdentity);
 
