@@ -1,4 +1,4 @@
-package org.huel.cloudhub.client.disk.controller.user;
+package org.huel.cloudhub.client.disk.controller.user.vo;
 
 /**
  * @param identity Identity, could be a username or email, etc.

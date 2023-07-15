@@ -1,4 +1,4 @@
-package org.huel.cloudhub.client.disk.controller.user;
+package org.huel.cloudhub.client.disk.controller.user.vo;
 
 import org.huel.cloudhub.client.disk.domain.user.Role;
 

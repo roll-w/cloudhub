@@ -3,6 +3,8 @@ package org.huel.cloudhub.client.disk.controller.user;
 import com.google.common.base.Strings;
 import org.huel.cloudhub.client.disk.common.ApiContextHolder;
 import org.huel.cloudhub.client.disk.common.ParamValidate;
+import org.huel.cloudhub.client.disk.controller.user.vo.UserLoginRequest;
+import org.huel.cloudhub.client.disk.controller.user.vo.UserRegisterRequest;
 import org.huel.cloudhub.client.disk.domain.authentication.token.AuthenticationTokenService;
 import org.huel.cloudhub.client.disk.domain.user.dto.UserInfoSignature;
 import org.huel.cloudhub.client.disk.domain.user.service.LoginRegisterService;

@@ -76,7 +76,7 @@ public class UserController {
 
     @PutMapping("/user/password")
     public HttpResponseEntity<Void> resetUserPassword(
-            PairParameterRequest<String, String> request
+            @RequestBody PairParameterRequest<String, String> request
     ) {
         UserIdentity userIdentity = ApiContextHolder.getContext().userInfo();
         UserOperator userOperator = systemResourceOperatorProvider
