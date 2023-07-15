@@ -13,9 +13,9 @@ import org.huel.cloudhub.client.disk.domain.share.common.UserShareErrorCode;
 import org.huel.cloudhub.client.disk.domain.share.common.UserShareException;
 import org.huel.cloudhub.client.disk.domain.share.dto.SharePasswordInfo;
 import org.huel.cloudhub.client.disk.domain.share.dto.ShareStructureInfo;
-import org.huel.cloudhub.client.disk.domain.share.vo.ShareInfoVo;
-import org.huel.cloudhub.client.disk.domain.share.vo.ShareStorageVo;
-import org.huel.cloudhub.client.disk.domain.share.vo.ShareStructureVo;
+import org.huel.cloudhub.client.disk.controller.share.vo.ShareInfoVo;
+import org.huel.cloudhub.client.disk.controller.share.vo.ShareStorageVo;
+import org.huel.cloudhub.client.disk.controller.share.vo.ShareStructureVo;
 import org.huel.cloudhub.client.disk.domain.user.AttributedUser;
 import org.huel.cloudhub.client.disk.domain.user.LegalUserType;
 import org.huel.cloudhub.client.disk.domain.user.UserIdentity;
@@ -93,11 +93,33 @@ public class ShareController {
         return HttpResponseEntity.success();
     }
 
-    @GetMapping("/{ownerType}/{ownerId}/disk/shares")
-    public HttpResponseEntity<List<SharePasswordInfo>> getOwnerShares(
-            @PathVariable("ownerId") Long ownerId,
-            @PathVariable("ownerType") String ownerTypeParam) {
-        return HttpResponseEntity.success();
+    @GetMapping("/users/{userId}/shares")
+    public HttpResponseEntity<List<ShareInfoVo>> getOwnerShares(
+            @PathVariable("userId") Long ownerId) {
+        UserIdentity userIdentity = ApiContextHolder.getContext().userInfo();
+        List<SharePasswordInfo> sharePasswordInfos =
+                shareSearchService.findByUserId(ownerId);
+        boolean onlyPublic = isOnlyPublic(userIdentity, ownerId);
+
+        return HttpResponseEntity.success(
+                sharePasswordInfos.stream()
+                        .filter(sharePasswordInfo ->
+                                !sharePasswordInfo.isExpired(System.currentTimeMillis()))
+                        .filter(sharePasswordInfo -> {
+                            if (onlyPublic) {
+                                return sharePasswordInfo.isPublic();
+                            }
+                            return true;
+                        })
+                        .map(ShareInfoVo::from).toList()
+        );
+    }
+
+    private boolean isOnlyPublic(UserIdentity userIdentity, Long id) {
+        if (userIdentity == null) {
+            return true;
+        }
+        return userIdentity.getUserId() == id;
     }
 
     @GetMapping("/user/shares")
@@ -158,6 +180,8 @@ public class ShareController {
             @PathVariable("storageType") String typeParam,
             @PathVariable("storageId") Long storageId,
             @PathVariable("shareId") Long shareId) {
+
+
         return HttpResponseEntity.success();
     }
 
