@@ -139,6 +139,11 @@ public class UserServiceImpl implements UserSignatureProvider,
 
     @Override
     public AttributedUser tryFindUser(@NonNull String username) {
+        if (username.isEmpty()) {
+            throw new UserException(UserErrorCode.ERROR_USER_NOT_EXIST,
+                    "Cannot find user by empty username.");
+        }
+
         char firstChar = username.charAt(0);
         if (Character.isDigit(firstChar)) {
             try {
