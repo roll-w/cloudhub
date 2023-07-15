@@ -84,7 +84,7 @@ const rowProps = (row, index) => {
 const requestPersonalShares = () => {
     const config = createConfig()
 
-    proxy.$axios.get(api.userShares, config).then(res => {
+    proxy.$axios.get(api.shares(false), config).then(res => {
         personalShares.value = res.data
         personalShares.value.forEach(item => {
             item.createTime = formatTimestamp(item.createTime)

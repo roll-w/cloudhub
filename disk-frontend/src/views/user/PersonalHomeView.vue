@@ -1,24 +1,38 @@
 <template>
     <div class="p-5">
-        <FileComponentsView
-                :disable-preview="false"
-                :files="personalFiles"
-                :on-folder-click="handleFolderClick">
-            <template #title>
-                个人文件列表
-            </template>
-            <template #folder>
-                <FolderBreadcrumbs :folder-info="folderInfo"
-                                   :on-folder-click="handleFolderClick">
-                    <template #root>
+        <div>
+            <n-tabs  label-size="large" animated type="line">
+                <n-tab-pane name="files" label="个人文件">
+                    <FileComponentsView
+                            :disable-preview="false"
+                            :files="personalFiles"
+                            :on-folder-click="handleFolderClick">
+                        <template #title>
+                            个人文件列表
+                        </template>
+                        <template #folder>
+                            <FolderBreadcrumbs :folder-info="folderInfo"
+                                               :on-folder-click="handleFolderClick">
+                                <template #root>
                             <span class="text-xl"
                                   @click="$router.push({name: userPersonalPage, params: {id: userId}})">
                                 个人文件
                             </span>
-                    </template>
-                </FolderBreadcrumbs>
-            </template>
-        </FileComponentsView>
+                                </template>
+                            </FolderBreadcrumbs>
+                        </template>
+                    </FileComponentsView>
+                </n-tab-pane>
+                <n-tab-pane name="share" label="分享" display-directive="show:lazy">
+                    <UserSharesView :user-id="userId" />
+                </n-tab-pane>
+                <n-tab-pane name="favorites" label="收藏夹" display-directive="show:lazy">
+                </n-tab-pane>
+            </n-tabs>
+
+        </div>
+
+
     </div>
 </template>
 <script setup>
@@ -31,6 +45,7 @@ import {popUserErrorTemplate} from "@/views/util/error";
 import FileComponentsView from "@/views/file/FileComponentsView.vue";
 import {userPersonalPage, userPersonalPageWithFolder} from "@/router";
 import FolderBreadcrumbs from "@/components/file/FolderBreadcrumbs.vue";
+import UserSharesView from "@/views/user/homeview/UserSharesView.vue";
 
 const router = useRouter()
 const {proxy} = getCurrentInstance()
