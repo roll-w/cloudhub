@@ -57,8 +57,16 @@ public interface DatedStatisticsDao extends AutoPrimaryBaseDao<DatedStatistics> 
     @Query("SELECT * FROM dated_statistics WHERE `key` = {statisticsKey} ORDER BY id DESC LIMIT 1")
     DatedStatistics getLatestOfKey(String statisticsKey);
 
+    @Query("SELECT * FROM dated_statistics WHERE `key` = {statisticsKey} AND `date` <= {date} ORDER BY id DESC LIMIT 1")
+    DatedStatistics getLatestOfKey(String statisticsKey, LocalDate date);
+
     @Query("SELECT * FROM dated_statistics WHERE `key` = {statisticsKey} AND `date` = {date}")
     DatedStatistics getByKeyAndDate(String statisticsKey,
                                     LocalDate date);
+
+    @Query("SELECT * FROM dated_statistics WHERE `key` = {statisticsKey} AND `date` >= {startDate} AND `date` <= {endDate}")
+    List<DatedStatistics> getBetweenDate(String statisticsKey,
+                                         LocalDate startDate,
+                                         LocalDate endDate);
 }
 

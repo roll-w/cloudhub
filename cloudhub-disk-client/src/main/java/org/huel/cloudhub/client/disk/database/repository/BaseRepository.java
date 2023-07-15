@@ -148,7 +148,7 @@ public abstract class BaseRepository<T extends DataItem> implements CountableDao
         if (cache == null) {
             return;
         }
-        if (t == null) {
+        if (t == null || t.getId() == null) {
             return;
         }
         cache.evict(t.getId());

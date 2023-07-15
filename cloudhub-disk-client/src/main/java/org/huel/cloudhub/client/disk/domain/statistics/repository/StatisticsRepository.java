@@ -64,7 +64,7 @@ public class StatisticsRepository extends BaseRepository<Statistics> {
     @Override
     protected void invalidateCache(Statistics statistics) {
         super.invalidateCache(statistics);
-        if (statistics == null) {
+        if (statistics == null || statistics.getKey() == null) {
             return;
         }
         cache.evict(statistics.getKey());

@@ -4,6 +4,7 @@ import org.huel.cloudhub.client.disk.domain.statistics.*;
 import org.huel.cloudhub.client.disk.domain.statistics.repository.DatedStatisticsRepository;
 import org.huel.cloudhub.client.disk.domain.statistics.repository.StatisticsRepository;
 import org.springframework.stereotype.Service;
+import space.lingu.NonNull;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -79,28 +80,26 @@ public class StatisticsServiceImpl implements StatisticsService {
                 datedStatisticsRepository.getByKeyAndDateBetween(statisticsKey, from, to);
         if (!datedStatisticsList.isEmpty()) {
             return datedStatisticsList.stream()
-                    .map(datedStatistics -> {
-                        StatisticJobTask statisticJobTask =
-                                findByStatisticsKey(statisticsKey);
-                        return new DatedData(
-                                statisticJobTask.getStatistics(statisticsKey, datedStatistics.getValue()),
-                                datedStatistics.getDate()
-                        );
-                    })
+                    .map(datedStatistics ->
+                            getDatedData(statisticsKey, datedStatistics))
                     .toList();
         }
         DatedStatistics latestDatedStatistics =
                 datedStatisticsRepository.getLatestOfKey(statisticsKey);
 
         return Stream.of(latestDatedStatistics)
-                .map(datedStatistics -> {
-                    StatisticJobTask statisticJobTask =
-                            findByStatisticsKey(statisticsKey);
-                    return new DatedData(
-                            statisticJobTask.getStatistics(statisticsKey, datedStatistics.getValue()),
-                            datedStatistics.getDate()
-                    );
-                })
+                .map(datedStatistics ->
+                        getDatedData(statisticsKey, datedStatistics))
                 .toList();
+    }
+
+    @NonNull
+    private DatedData getDatedData(String statisticsKey, DatedStatistics datedStatistics) {
+        StatisticJobTask statisticJobTask =
+                findByStatisticsKey(statisticsKey);
+        return new DatedData(
+                statisticJobTask.getStatistics(statisticsKey, datedStatistics.getValue()),
+                datedStatistics.getDate()
+        );
     }
 }
