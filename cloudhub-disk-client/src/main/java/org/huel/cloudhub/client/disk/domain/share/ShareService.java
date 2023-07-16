@@ -26,4 +26,7 @@ public interface ShareService {
     void cancelShare(long shareId);
 
 
+    boolean hasStorage(long shareId, StorageIdentity storageIdentity);
+
+
 }

@@ -125,7 +125,58 @@ public class ShareServiceImpl implements ShareService, ShareSearchService,
 
     @Override
     public void cancelShare(long shareId) {
-        // TODO: cancel share
+        UserShare share = userShareRepository.getById(shareId);
+        checkShareStatus(share);
+        UserShare updated = share.toBuilder()
+                .setUpdateTime(System.currentTimeMillis())
+                .setExpireTime(1)
+                .build();
+        userShareRepository.update(updated);
+        OperationContextHolder.getContext()
+                .addSystemResource(share)
+                .setChangedContent(share.getShareId());
+    }
+
+    @Override
+    public boolean hasStorage(long shareId,
+                              StorageIdentity storageIdentity) {
+        UserShare share = userShareRepository.getById(shareId);
+        checkShareStatus(share);
+        if (share.getStorageId() == storageIdentity.getStorageId() &&
+                share.getStorageType() == storageIdentity.getStorageType()) {
+            return true;
+        }
+
+        AttributedStorage storage =
+                userStorageSearchService.findStorage(storageIdentity);
+        if (share.getStorageType() == StorageType.FOLDER &&
+                storage.getParentId() == share.getStorageId()) {
+            return true;
+        }
+        if (storage.isDeleted()) {
+            throw new UserShareException(UserShareErrorCode.ERROR_STORAGE_NOT_FOUND);
+        }
+        if (storage.getParentId() == 0) {
+            return false;
+        }
+        FolderStructureInfo folderStructureInfo =
+                userStorageSearchService.findFolder(storage.getParentId());
+        List<FolderInfo> folderInfos = folderStructureInfo.getParents();
+        for (FolderInfo folderInfo : folderInfos) {
+            if (folderInfo.getStorageId() == storage.getParentId()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static void checkShareStatus(UserShare share) {
+        if (share == null) {
+            throw new UserShareException(UserShareErrorCode.ERROR_SHARE_NOT_FOUND);
+        }
+        if (share.getExpireTime() != 0 && share.getExpireTime() < System.currentTimeMillis()) {
+            throw new UserShareException(UserShareErrorCode.ERROR_SHARE_EXPIRED);
+        }
     }
 
     @NonNull
@@ -134,14 +185,17 @@ public class ShareServiceImpl implements ShareService, ShareSearchService,
                                              Operator operator, Action action) {
         UserShare userShare =
                 userShareRepository.getById(systemResource.getResourceId());
+        if (userShare == null) {
+            throw new UserShareException(UserShareErrorCode.ERROR_SHARE_NOT_FOUND);
+        }
         if (userShare.getUserId() == operator.getOperatorId()) {
             return new SimpleSystemAuthentication(userShare, operator, true);
         }
+        checkShareStatus(userShare);
         if (action.isRead()) {
             return new SimpleSystemAuthentication(userShare, operator, true);
         }
         return new SimpleSystemAuthentication(userShare, operator, false);
-
     }
 
     @Override
@@ -162,7 +216,6 @@ public class ShareServiceImpl implements ShareService, ShareSearchService,
     public SharePasswordInfo search(String shareCode) {
         UserShare userShare =
                 findShareByShareCode(shareCode);
-
         return SharePasswordInfo.from(userShare);
     }
 
@@ -240,7 +293,10 @@ public class ShareServiceImpl implements ShareService, ShareSearchService,
         List<FolderInfo> parents = folderStructureInfo.getParents();
 
         List<? extends AttributedStorage> storages =
-                userStorageSearchService.listFiles(parentId);
+                userStorageSearchService.listFiles(parentId)
+                        .stream()
+                        .filter(storage -> !storage.isDeleted())
+                        .toList();
 
         return ShareStructureInfo.of(
                 userShare,
@@ -266,6 +322,9 @@ public class ShareServiceImpl implements ShareService, ShareSearchService,
     private ShareStructureInfo getByParentIfRoot(UserShare userShare) {
         AttributedStorage storage = userStorageSearchService.findStorage(new SimpleStorageIdentity(
                 userShare.getStorageId(), userShare.getStorageType()));
+        if (storage.isDeleted()) {
+            throw new UserShareException(UserShareErrorCode.ERROR_STORAGE_NOT_FOUND);
+        }
         return ShareStructureInfo.of(
                 userShare,
                 List.of(),
