@@ -17,4 +17,6 @@ public interface FavoriteProvider {
     List<FavoriteItemInfo> getFavoriteItems(long favoriteGroupId);
 
     FavoriteGroupInfo getFavoriteGroup(long favoriteGroupId);
+
+    FavoriteItemInfo getFavoriteItem(long itemId);
 }

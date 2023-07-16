@@ -15,4 +15,6 @@ public interface FavoriteOperatorDelegate {
     long createFavoriteItem(FavoriteItem favoriteItem);
 
     FavoriteItem getFavoriteItemBy(long groupId, StorageIdentity storageIdentity);
+
+    FavoriteItem getFavoriteItem(long itemId);
 }

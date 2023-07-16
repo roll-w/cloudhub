@@ -34,6 +34,8 @@ public interface FavoriteOperator extends SystemResourceOperator, SystemResource
 
     FavoriteOperator removeFavorite(StorageIdentity storageIdentity);
 
+    FavoriteOperator removeFavorite(long itemId);
+
     FavoriteGroup getFavoriteGroup();
 
 

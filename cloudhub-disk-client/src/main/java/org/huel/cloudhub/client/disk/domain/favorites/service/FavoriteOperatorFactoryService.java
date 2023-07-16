@@ -47,7 +47,12 @@ public class FavoriteOperatorFactoryService implements
     @Override
     public FavoriteItem getFavoriteItemBy(long groupId,
                                           StorageIdentity storageIdentity) {
-        return null;
+        return favoriteItemRepository.getByGroupAndIdentity(groupId, storageIdentity);
+    }
+
+    @Override
+    public FavoriteItem getFavoriteItem(long itemId) {
+        return favoriteItemRepository.getById(itemId);
     }
 
     @Override

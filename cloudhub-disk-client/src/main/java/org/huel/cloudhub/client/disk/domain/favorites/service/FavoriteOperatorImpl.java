@@ -108,9 +108,23 @@ public class FavoriteOperatorImpl implements FavoriteOperator {
     @Override
     public FavoriteOperator removeFavorite(StorageIdentity storageIdentity) {
         checkDeleted();
-
         FavoriteItem favoriteItem =
                 delegate.getFavoriteItemBy(favoriteGroup.getId(), storageIdentity);
+        if (favoriteItem != null) {
+            delegate.updateFavoriteItem(favoriteItem.toBuilder()
+                    .setDeleted(true)
+                    .setUpdateTime(System.currentTimeMillis())
+                    .build()
+            );
+        }
+        return this;
+    }
+
+    @Override
+    public FavoriteOperator removeFavorite(long itemId) {
+        checkDeleted();
+
+        FavoriteItem favoriteItem = delegate.getFavoriteItem(itemId);
         if (favoriteItem != null) {
             delegate.updateFavoriteItem(favoriteItem.toBuilder()
                     .setDeleted(true)

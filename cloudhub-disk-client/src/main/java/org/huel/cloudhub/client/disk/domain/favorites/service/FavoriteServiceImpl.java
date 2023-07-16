@@ -85,6 +85,7 @@ public class FavoriteServiceImpl implements
         return FavoriteGroupInfo.of(favoriteGroup);
     }
 
+    @Override
     public FavoriteItemInfo getFavoriteItem(long itemId) {
         FavoriteItem favoriteItem = favoriteItemRepository.getById(itemId);
         if (favoriteItem == null) {

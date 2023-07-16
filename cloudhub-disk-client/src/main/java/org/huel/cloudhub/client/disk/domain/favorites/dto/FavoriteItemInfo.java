@@ -3,7 +3,9 @@ package org.huel.cloudhub.client.disk.domain.favorites.dto;
 import org.huel.cloudhub.client.disk.domain.favorites.FavoriteItem;
 import org.huel.cloudhub.client.disk.domain.systembased.SystemResource;
 import org.huel.cloudhub.client.disk.domain.systembased.SystemResourceKind;
+import org.huel.cloudhub.client.disk.domain.userstorage.StorageIdentity;
 import org.huel.cloudhub.client.disk.domain.userstorage.StorageType;
+import space.lingu.NonNull;
 
 /**
  * @author RollW
@@ -16,9 +18,19 @@ public record FavoriteItemInfo(
         StorageType storageType,
         long createTime,
         long updateTime,
-
         boolean deleted
-) implements SystemResource {
+) implements SystemResource, StorageIdentity {
+    @Override
+    public long getStorageId() {
+        return storageId;
+    }
+
+    @NonNull
+    @Override
+    public StorageType getStorageType() {
+        return storageType;
+    }
+
     @Override
     public long getResourceId() {
         return id;

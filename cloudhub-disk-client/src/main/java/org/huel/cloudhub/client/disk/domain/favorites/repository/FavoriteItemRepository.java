@@ -6,6 +6,7 @@ import org.huel.cloudhub.client.disk.database.repository.BaseRepository;
 import org.huel.cloudhub.client.disk.domain.favorites.FavoriteItem;
 import org.huel.cloudhub.client.disk.domain.systembased.ContextThreadAware;
 import org.huel.cloudhub.client.disk.domain.systembased.paged.PageableContext;
+import org.huel.cloudhub.client.disk.domain.userstorage.StorageIdentity;
 import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Repository;
 
@@ -33,5 +34,9 @@ public class FavoriteItemRepository extends BaseRepository<FavoriteItem> {
 
     public List<FavoriteItem> getByGroup(long groupId) {
         return cacheResult(favoriteItemDao.getByGroup(groupId));
+    }
+
+    public FavoriteItem getByGroupAndIdentity(long groupId, StorageIdentity storageIdentity) {
+        return cacheResult(favoriteItemDao.getByGroupAndIdentity(groupId, storageIdentity));
     }
 }
