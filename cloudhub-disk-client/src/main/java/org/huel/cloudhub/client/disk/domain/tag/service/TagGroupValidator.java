@@ -16,10 +16,10 @@ import space.lingu.NonNull;
  * @author RollW
  */
 @Component
-public class ContentTagValidator implements Validator {
+public class TagGroupValidator implements Validator {
     @Override
     public boolean supports(SystemResourceKind systemResourceKind) {
-        return systemResourceKind == SystemResourceKind.TAG;
+        return systemResourceKind == SystemResourceKind.TAG_GROUP;
     }
 
     @NonNull
