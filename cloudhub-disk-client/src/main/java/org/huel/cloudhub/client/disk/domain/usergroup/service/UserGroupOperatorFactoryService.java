@@ -69,16 +69,16 @@ public class UserGroupOperatorFactoryService
 
     @Override
     public UserGroupMember getUserGroupMember(StorageOwner storageOwner) {
-        return null;
+        return userGroupMemberRepository.getByUser(storageOwner);
     }
 
     @Override
     public Long createUserGroupMember(UserGroupMember userGroupMember) {
-        return null;
+        return userGroupMemberRepository.insert(userGroupMember);
     }
 
     @Override
     public void updateUserGroupMember(UserGroupMember userGroupMember) {
-
+        userGroupMemberRepository.update(userGroupMember);
     }
 }

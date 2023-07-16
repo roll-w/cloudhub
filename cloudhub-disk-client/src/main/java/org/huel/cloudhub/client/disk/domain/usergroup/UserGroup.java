@@ -114,7 +114,11 @@ public class UserGroup implements DataItem, SystemResource {
             this.id = usergroup.id;
             this.name = usergroup.name;
             this.description = usergroup.description;
-            this.settings = usergroup.settings;
+            if (usergroup.settings == null) {
+                this.settings = new HashMap<>();
+            } else {
+                this.settings = new HashMap<>(usergroup.settings);
+            }
             this.createTime = usergroup.createTime;
             this.updateTime = usergroup.updateTime;
             this.deleted = usergroup.deleted;
@@ -136,11 +140,20 @@ public class UserGroup implements DataItem, SystemResource {
         }
 
         public Builder setSettings(Map<String, String> settings) {
+            if (settings == null) {
+                this.settings = new HashMap<>();
+                return this;
+            }
+
             this.settings = settings;
             return this;
         }
 
         public Builder setSetting(String key, String value) {
+            if (this.settings == null) {
+                this.settings = new HashMap<>();
+            }
+
             this.settings.put(key, value);
             return this;
         }

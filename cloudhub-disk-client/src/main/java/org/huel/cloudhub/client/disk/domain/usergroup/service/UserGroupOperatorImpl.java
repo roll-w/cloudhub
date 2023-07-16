@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import space.lingu.NonNull;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -125,7 +126,7 @@ public class UserGroupOperatorImpl implements UserGroupOperator {
     public UserGroupOperator setSettings(Map<String, String> settings) {
         checkDeleted();
         if (settings == null || settings.isEmpty()) {
-            userGroupBuilder.setSettings(Map.of());
+            userGroupBuilder.setSettings(new HashMap<>());
             return updateInternal();
         }
         if (userGroup.getSettings().equals(settings)) {
@@ -229,7 +230,7 @@ public class UserGroupOperatorImpl implements UserGroupOperator {
     }
 
     private UserGroupOperator updateInternal() {
-        if (autoUpdate) {
+        if (!autoUpdate) {
             return this;
         }
         userGroup = userGroupBuilder
