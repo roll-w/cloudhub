@@ -17,8 +17,8 @@
                 </div>
             </n-card>
             <n-card closable>
-                <div class="text-4xl pb-5">
-                    <tree></tree>
+                <div class="text-4xl pb-5 w-full h-[70vh]">
+                    <TagsTreeChart />
                 </div>
             </n-card>
             <n-card closable>
@@ -36,8 +36,9 @@
 import Mix from "@/components/echarts/mix.vue";
 import RosePie from "@/components/echarts/RosePie.vue";
 import Bar from "@/components/echarts/Bar.vue";
-import Tree from "@/components/echarts/tree.vue";
+import Tree from "@/components/echarts/TagsTreeChart.vue";
 import PolarHistogram from "@/components/echarts/PolarHistogram.vue";
+import TagsTreeChart from "@/components/echarts/TagsTreeChart.vue";
 
 </script>
 
