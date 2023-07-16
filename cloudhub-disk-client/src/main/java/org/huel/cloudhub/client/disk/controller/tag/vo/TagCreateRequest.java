@@ -7,7 +7,7 @@ import java.util.List;
 /**
  * @author RollW
  */
-public record CreateTagRequest(
+public record TagCreateRequest(
         String name,
         String description,
         List<TagKeyword> keywords

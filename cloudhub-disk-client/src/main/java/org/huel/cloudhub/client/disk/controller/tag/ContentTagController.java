@@ -1,12 +1,14 @@
 package org.huel.cloudhub.client.disk.controller.tag;
 
 import org.huel.cloudhub.client.disk.controller.AdminApi;
-import org.huel.cloudhub.client.disk.controller.tag.vo.CreateTagGroupRequest;
-import org.huel.cloudhub.client.disk.controller.tag.vo.TagGroupVo;
+import org.huel.cloudhub.client.disk.controller.OneParameterRequest;
+import org.huel.cloudhub.client.disk.controller.tag.vo.*;
 import org.huel.cloudhub.client.disk.domain.operatelog.BuiltinOperationType;
 import org.huel.cloudhub.client.disk.domain.operatelog.context.BuiltinOperate;
-import org.huel.cloudhub.client.disk.domain.tag.ContentTag;
-import org.huel.cloudhub.client.disk.domain.tag.ContentTagService;
+import org.huel.cloudhub.client.disk.domain.systembased.SimpleSystemResource;
+import org.huel.cloudhub.client.disk.domain.systembased.SystemResourceKind;
+import org.huel.cloudhub.client.disk.domain.systembased.SystemResourceOperatorProvider;
+import org.huel.cloudhub.client.disk.domain.tag.*;
 import org.huel.cloudhub.client.disk.domain.tag.dto.ContentTagInfo;
 import org.huel.cloudhub.client.disk.domain.tag.dto.TagGroupDto;
 import org.huel.cloudhub.client.disk.system.pages.PageableInterceptor;
@@ -25,12 +27,17 @@ import java.util.List;
 @AdminApi
 public class ContentTagController {
     private final ContentTagService contentTagService;
+    private final ContentTagProvider contentTagProvider;
     private final PageableInterceptor pageableInterceptor;
+    private final SystemResourceOperatorProvider systemResourceOperatorProvider;
 
     public ContentTagController(ContentTagService contentTagService,
-                                PageableInterceptor pageableInterceptor) {
+                                ContentTagProvider contentTagProvider,
+                                PageableInterceptor pageableInterceptor, SystemResourceOperatorProvider systemResourceOperatorProvider) {
         this.contentTagService = contentTagService;
+        this.contentTagProvider = contentTagProvider;
         this.pageableInterceptor = pageableInterceptor;
+        this.systemResourceOperatorProvider = systemResourceOperatorProvider;
     }
 
     @GetMapping("/tags")
@@ -51,7 +58,7 @@ public class ContentTagController {
     public HttpResponseEntity<ContentTagInfo> getTag(
             @PathVariable("tagId") Long id) {
         return HttpResponseEntity.success(
-                contentTagService.getTagById(id)
+                contentTagProvider.getTagById(id)
         );
     }
 
@@ -77,14 +84,14 @@ public class ContentTagController {
             @PathVariable("groupId") Long groupId) {
 
         return HttpResponseEntity.success(
-                contentTagService.getTagGroupById(groupId)
+                contentTagProvider.getTagGroupById(groupId)
         );
     }
 
     @PostMapping("/tags/groups")
     @BuiltinOperate(BuiltinOperationType.CREATE_TAG_GROUP)
     public HttpResponseEntity<Void> createTagGroup(
-            @RequestBody CreateTagGroupRequest request) {
+            @RequestBody TagGroupCreateRequest request) {
         contentTagService.createContentTagGroup(
                 request.name(),
                 request.description(),
@@ -95,7 +102,73 @@ public class ContentTagController {
 
     @PutMapping("/tags/groups/{groupId}")
     @BuiltinOperate(BuiltinOperationType.UPDATE_TAG_GROUP)
-    public HttpResponseEntity<Void> updateTagGroup() {
+    public HttpResponseEntity<Void> updateTagGroup(
+            @PathVariable("groupId") Long groupId,
+            @RequestBody TagGroupUpdateRequest request) {
+        TagGroupOperator tagGroupOperator = systemResourceOperatorProvider.getSystemResourceOperator(
+                new SimpleSystemResource(
+                        groupId,
+                        SystemResourceKind.TAG_GROUP
+                ),
+                false
+        );
+        tagGroupOperator.disableAutoUpdate()
+                .rename(request.name())
+                .setDescription(request.description())
+                .update();
+        return HttpResponseEntity.success();
+    }
+
+    @PutMapping("/tags/groups/{groupId}/tags/{tagId}")
+    public HttpResponseEntity<Void> addTagToGroup(
+            @PathVariable("groupId") Long groupId,
+            @PathVariable("tagId") Long tagId) {
+        TagGroupOperator tagGroupOperator = systemResourceOperatorProvider.getSystemResourceOperator(
+                new SimpleSystemResource(
+                        groupId,
+                        SystemResourceKind.TAG_GROUP
+                ),
+                false
+        );
+        tagGroupOperator.disableAutoUpdate()
+                .addTag(tagId)
+                .update();
+        return HttpResponseEntity.success();
+    }
+
+    @PostMapping("/tags/groups/{groupId}/tags")
+    public HttpResponseEntity<Void> addTagToGroup(
+            @PathVariable("groupId") Long groupId,
+            @RequestBody OneParameterRequest<String> request) {
+        TagGroupOperator tagGroupOperator = systemResourceOperatorProvider.getSystemResourceOperator(
+                new SimpleSystemResource(
+                        groupId,
+                        SystemResourceKind.TAG_GROUP
+                ),
+                false
+        );
+        ContentTagInfo contentTagInfo =
+                contentTagProvider.getByName(request.value());
+        tagGroupOperator.disableAutoUpdate()
+                .addTag(contentTagInfo.id())
+                .update();
+        return HttpResponseEntity.success();
+    }
+
+    @DeleteMapping("/tags/groups/{groupId}/tags/{tagId}")
+    public HttpResponseEntity<Void> removeTagFromGroup(
+            @PathVariable("groupId") Long groupId,
+            @PathVariable("tagId") Long tagId) {
+        TagGroupOperator tagGroupOperator = systemResourceOperatorProvider.getSystemResourceOperator(
+                new SimpleSystemResource(
+                        groupId,
+                        SystemResourceKind.TAG_GROUP
+                ),
+                false
+        );
+        tagGroupOperator.disableAutoUpdate()
+                .removeTag(tagId)
+                .update();
         return HttpResponseEntity.success();
     }
 
@@ -113,5 +186,74 @@ public class ContentTagController {
     @GetMapping("/tags/groups/{groupId}/infile")
     public void exportTags(HttpServletResponse servletResponse) {
         // exports
+    }
+
+    @PostMapping("/tags")
+    @BuiltinOperate(BuiltinOperationType.CREATE_TAG)
+    public HttpResponseEntity<Void> createTag(
+            @RequestBody TagCreateRequest request) {
+        contentTagService.createContentTag(
+                request.name(),
+                request.description(),
+                request.keywords()
+        );
+        return HttpResponseEntity.success();
+    }
+
+    @PutMapping("/tags/{tagId}")
+    @BuiltinOperate(BuiltinOperationType.UPDATE_TAG)
+    public HttpResponseEntity<Void> updateTag(
+            @PathVariable("tagId") Long tagId,
+            @RequestBody TagUpdateRequest request) {
+        TagOperator tagOperator = systemResourceOperatorProvider.getSystemResourceOperator(
+                new SimpleSystemResource(tagId, SystemResourceKind.TAG),
+                false
+        );
+        tagOperator.disableAutoUpdate()
+                .rename(request.name())
+                .setDescription(request.description())
+                .update();
+        return HttpResponseEntity.success();
+    }
+
+    @PutMapping("/tags/{tagId}/keywords")
+    @BuiltinOperate(BuiltinOperationType.UPDATE_TAG)
+    public HttpResponseEntity<Void> setKeyword(
+            @PathVariable("tagId") Long tagId,
+            @RequestBody TagKeyword tagKeyword) {
+        TagOperator tagOperator = systemResourceOperatorProvider.getSystemResourceOperator(
+                new SimpleSystemResource(tagId, SystemResourceKind.TAG),
+                false
+        );
+        tagOperator.enableAutoUpdate()
+                .addKeyword(tagKeyword);
+        return HttpResponseEntity.success();
+    }
+
+    @DeleteMapping("/tags/{tagId}/keywords")
+    @BuiltinOperate(BuiltinOperationType.UPDATE_TAG)
+    public HttpResponseEntity<Void> deleteKeyword(
+            @PathVariable("tagId") Long tagId,
+            @RequestParam("name") String keywordName) {
+        TagOperator tagOperator = systemResourceOperatorProvider.getSystemResourceOperator(
+                new SimpleSystemResource(tagId, SystemResourceKind.TAG),
+                false
+        );
+        tagOperator.enableAutoUpdate()
+                .removeKeyword(TagKeyword.of(keywordName));
+        return HttpResponseEntity.success();
+    }
+
+    @DeleteMapping("/tags/{tagId}")
+    @BuiltinOperate(BuiltinOperationType.DELETE_TAG)
+    public HttpResponseEntity<Void> deleteTag(
+            @PathVariable("tagId") Long tagId) {
+        TagOperator tagOperator = systemResourceOperatorProvider.getSystemResourceOperator(
+                new SimpleSystemResource(tagId, SystemResourceKind.TAG),
+                false
+        );
+        tagOperator.enableAutoUpdate()
+                .delete();
+        return HttpResponseEntity.success();
     }
 }

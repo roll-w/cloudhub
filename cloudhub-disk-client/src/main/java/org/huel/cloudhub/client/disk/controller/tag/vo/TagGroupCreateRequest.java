@@ -5,7 +5,7 @@ import org.huel.cloudhub.client.disk.domain.tag.KeywordSearchScope;
 /**
  * @author RollW
  */
-public record CreateTagGroupRequest(
+public record TagGroupCreateRequest(
         Long parent,
         String name,
         String description,
