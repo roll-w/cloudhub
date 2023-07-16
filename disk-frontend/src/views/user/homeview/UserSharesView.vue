@@ -28,7 +28,7 @@ const data = ref([])
 const columns = [
     {
         title: "名称",
-        key: "storage.name"
+        key: "shareCode"
     },
     {
         title: "创建时间",
@@ -37,6 +37,13 @@ const columns = [
     {
         title: "到期时间",
         key: "expireTime",
+        render: (row) => {
+            if (row.expireTime === 1) {
+                return '已取消'
+            }
+
+            return row.expireTime ? formatTimestamp(row.expireTime) : '永久'
+        }
     },
 ]
 const currentShare = ref({})
@@ -57,7 +64,6 @@ const requestPersonalShares = () => {
         data.value = res.data
         data.value.forEach(item => {
             item.createTime = formatTimestamp(item.createTime)
-            item.expireTime = item.expireTime ? formatTimestamp(item.expireTime) : '永久'
         })
     }).catch(err => {
         popUserErrorTemplate(notification, err, '获取个人分享失败')
@@ -86,16 +92,10 @@ requestPersonalShares()
                 title="分享详情"
                 transform-origin="center">
             <div>
-                <div class="flex justify-center text-center py-5">
-                    <FileComponent
-                            :file="currentShare.storage"
-                            :show-option="false">
-                    </FileComponent>
-                </div>
                 <div>
                     <StorageShareConfirm
                             :share-info="currentShare"
-                            :show-cancel="true"/>
+                            :show-cancel="false"/>
                 </div>
             </div>
         </n-modal>
