@@ -45,18 +45,18 @@
                             取消上传
                         </template>
                     </n-tooltip>
-                    <n-tooltip trigger="hover">
-                        <template #trigger>
-                            <n-button circle secondary size="small">
-                                <n-icon>
-                                    <RefreshRound/>
-                                </n-icon>
-                            </n-button>
-                        </template>
-                        <template #default>
-                            继续上传
-                        </template>
-                    </n-tooltip>
+<!--                    <n-tooltip trigger="hover">-->
+<!--                        <template #trigger>-->
+<!--                            <n-button circle secondary size="small">-->
+<!--                                <n-icon>-->
+<!--                                    <RefreshRound/>-->
+<!--                                </n-icon>-->
+<!--                            </n-button>-->
+<!--                        </template>-->
+<!--                        <template #default>-->
+<!--                            继续上传-->
+<!--                        </template>-->
+<!--                    </n-tooltip>-->
                 </n-space>
             </div>
         </div>
@@ -124,6 +124,9 @@ props.file.onUploadCallback = (progress, status) => {
     uploaded.value = status === 'success'
     progressValue.value = getProgress()
     percentage.value = progress
+    if (status === 'error') {
+        percentage.value = 100
+    }
 }
 
 const handleCancel = () => {
