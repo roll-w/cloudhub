@@ -8,6 +8,7 @@
             <n-space size="large">
                 <n-button v-for="option in options"
                           :disabled="option.disabled"
+                          @click="handleOptionSelect(option.key)"
                           :theme-overrides="{
                               colorQuaternaryHover: 'rgba(172, 172, 172, 0.20)',
                               colorQuaternaryPressed: 'rgba(172, 172, 172, 0.20)',
@@ -57,5 +58,9 @@ const props = defineProps({
         }
     }
 })
+
+const handleOptionSelect = (key) => {
+    props.onOptionSelect(key)
+}
 
 </script>

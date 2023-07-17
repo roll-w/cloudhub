@@ -42,6 +42,8 @@
             <div v-else>
                 <slot name="empty"></slot>
             </div>
+            <div v-if="files.length" class="pb-32">
+            </div>
         </div>
         <n-dropdown
                 :on-clickoutside="onClickOutside"
@@ -62,8 +64,10 @@
                 placement="bottom-start"
                 trigger="manual"
                 @select="handleFileOptionSelect"/>
-        <Teleport to="body">
-            <FileViewToolbar :checked-list="getCheckedList()" :options="toolbarOptions"/>
+        <Teleport to="body" v-if="toolbarOptions.length">
+            <FileViewToolbar :checked-list="getCheckedList()"
+                             :on-option-select="handleToolbarSelect"
+                             :options="toolbarOptions"/>
         </Teleport>
 
         <n-modal v-model:show="showFilePreviewModal"
@@ -159,26 +163,17 @@ const props = defineProps({
         type: Boolean,
         default: true
     },
+    toolbarOptions: {
+        type: Array,
+        default: () => []
+    },
+    onToolbarSelect: {
+        type: Function,
+        default: (key) => {
+        }
+    }
 })
 
-
-const toolbarOptions = [
-    {
-        label: "刷新",
-        key: "refresh",
-        icon: () => h(RefreshRound),
-    },
-    {
-        label: "下载",
-        key: "download",
-        icon: () => h(RefreshRound),
-    },
-    {
-        label: "删除",
-        key: "delete",
-        icon: () => h(RefreshRound),
-    }
-]
 
 
 const xRef = ref(0)
@@ -207,7 +202,7 @@ const getCheckedList = () => {
     let checkedList = []
     for (let i = 0; i < checkedState.value.length; i++) {
         if (checkedState.value[i]) {
-            checkedList.push(i)
+            checkedList.push(props.files[i])
         }
     }
     return checkedList
@@ -230,6 +225,19 @@ const handleContextmenu = (e) => {
         return
     }
     showDropdown.value = true;
+}
+
+const handleToolbarSelect = (key) => {
+    if (!props.onToolbarSelect) {
+        return
+    }
+    const selected = getCheckedList()
+
+    const isCanceled = props.onToolbarSelect(key, selected)
+    if (isCanceled) {
+        checkedState.value = new Array(props.files.length)
+                .fill(false)
+    }
 }
 
 const handleClickMoreOptions = (e, target) => {
