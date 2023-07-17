@@ -2,10 +2,7 @@ package org.huel.cloudhub.client.disk.controller.favorite;
 
 import org.huel.cloudhub.client.disk.common.ApiContextHolder;
 import org.huel.cloudhub.client.disk.controller.Api;
-import org.huel.cloudhub.client.disk.domain.favorites.FavoriteGroup;
-import org.huel.cloudhub.client.disk.domain.favorites.FavoriteOperator;
-import org.huel.cloudhub.client.disk.domain.favorites.FavoriteProvider;
-import org.huel.cloudhub.client.disk.domain.favorites.FavoriteService;
+import org.huel.cloudhub.client.disk.domain.favorites.*;
 import org.huel.cloudhub.client.disk.domain.favorites.common.FavoriteErrorCode;
 import org.huel.cloudhub.client.disk.domain.favorites.common.FavoriteException;
 import org.huel.cloudhub.client.disk.domain.favorites.dto.FavoriteGroupInfo;
@@ -20,10 +17,7 @@ import org.huel.cloudhub.client.disk.domain.userstorage.StorageIdentity;
 import org.huel.cloudhub.client.disk.domain.userstorage.UserStorageSearchService;
 import org.huel.cloudhub.client.disk.domain.userstorage.dto.SimpleStorageIdentity;
 import org.huel.cloudhub.web.HttpResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -66,10 +60,32 @@ public class FavoriteController {
     public HttpResponseEntity<List<FavoriteGroupInfo>> getFavoriteGroupsOf(
             @PathVariable Long userId
     ) {
+        UserIdentity currentUserIdentity =
+                ApiContextHolder.getContext().userInfo();
+
         UserIdentity userIdentity = userProvider.findUser(userId);
         List<FavoriteGroupInfo> favoriteGroupInfos =
                 favoriteProvider.getFavoriteGroups(userIdentity);
-        return HttpResponseEntity.success(favoriteGroupInfos);
+        boolean onlyPublic = isOnlyPublic(currentUserIdentity, userIdentity);
+
+        return HttpResponseEntity.success(
+                favoriteGroupInfos.stream()
+                        .filter(favoriteGroupInfo -> {
+                            if (onlyPublic) {
+                                return favoriteGroupInfo.isPublic();
+                            }
+                            return true;
+                        })
+                        .toList()
+        );
+    }
+
+    private boolean isOnlyPublic(UserIdentity currentUserIdentity, UserIdentity userIdentity) {
+        if (currentUserIdentity == null) {
+            return true;
+        }
+
+        return currentUserIdentity.getOwnerId() != userIdentity.getOwnerId();
     }
 
     @GetMapping("/user/favorites/{groupId}/info")
@@ -117,7 +133,9 @@ public class FavoriteController {
         checkOwner(favoriteGroupInfo, userIdentity);
 
         List<FavoriteItemInfo> favoriteItemInfos =
-                favoriteProvider.getFavoriteItems(groupId);
+                favoriteProvider.getFavoriteItems(groupId).stream().filter(
+                        favoriteItemInfo -> !favoriteItemInfo.deleted()
+                ).toList();
 
         List<FavoriteItemVo> favoriteItemVos =
                 convertFavoriteItemInfos(favoriteItemInfos);
@@ -175,6 +193,26 @@ public class FavoriteController {
                 request.isPublic(),
                 userIdentity
         );
+        return HttpResponseEntity.success();
+    }
+
+    @DeleteMapping("/user/favorites/{groupId}/{itemId}")
+    public HttpResponseEntity<Void> deleteFavoriteItem(
+            @PathVariable("groupId") Long groupId,
+            @PathVariable("itemId") Long itemId) {
+        UserIdentity userIdentity = ApiContextHolder.getContext().userInfo();
+        FavoriteItemInfo favoriteItemInfo = favoriteProvider.getFavoriteItem(itemId);
+
+        FavoriteOperator favoriteOperator = systemResourceOperatorProvider
+                .getSystemResourceOperator(
+                        new SimpleSystemResource(
+                                groupId,
+                                SystemResourceKind.FAVORITE_GROUP
+                        ), true
+                );
+        checkOwner(favoriteOperator.getFavoriteGroup(), userIdentity);
+
+        favoriteOperator.removeFavorite(favoriteItemInfo.id());
         return HttpResponseEntity.success();
     }
 
