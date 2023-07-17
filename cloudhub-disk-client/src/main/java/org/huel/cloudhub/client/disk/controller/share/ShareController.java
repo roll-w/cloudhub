@@ -5,6 +5,8 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.huel.cloudhub.client.disk.common.ApiContextHolder;
 import org.huel.cloudhub.client.disk.common.ParamValidate;
 import org.huel.cloudhub.client.disk.controller.Api;
+import org.huel.cloudhub.client.disk.controller.ParameterHelper;
+import org.huel.cloudhub.client.disk.controller.storage.DownloadHelper;
 import org.huel.cloudhub.client.disk.domain.operatelog.BuiltinOperationType;
 import org.huel.cloudhub.client.disk.domain.operatelog.context.BuiltinOperate;
 import org.huel.cloudhub.client.disk.domain.share.ShareSearchService;
@@ -16,17 +18,23 @@ import org.huel.cloudhub.client.disk.domain.share.dto.ShareStructureInfo;
 import org.huel.cloudhub.client.disk.controller.share.vo.ShareInfoVo;
 import org.huel.cloudhub.client.disk.controller.share.vo.ShareStorageVo;
 import org.huel.cloudhub.client.disk.controller.share.vo.ShareStructureVo;
+import org.huel.cloudhub.client.disk.domain.storage.StorageService;
 import org.huel.cloudhub.client.disk.domain.user.AttributedUser;
 import org.huel.cloudhub.client.disk.domain.user.LegalUserType;
 import org.huel.cloudhub.client.disk.domain.user.UserIdentity;
 import org.huel.cloudhub.client.disk.domain.user.service.UserSearchService;
 import org.huel.cloudhub.client.disk.domain.userstorage.*;
+import org.huel.cloudhub.client.disk.domain.userstorage.dto.FileInfo;
 import org.huel.cloudhub.client.disk.domain.userstorage.dto.SimpleStorageIdentity;
 import org.huel.cloudhub.client.disk.domain.userstorage.dto.SimpleStorageOwner;
 import org.huel.cloudhub.web.HttpResponseEntity;
+import org.huel.cloudhub.web.UserErrorCode;
 import org.huel.cloudhub.web.data.page.Pageable;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -38,15 +46,18 @@ public class ShareController {
     private final ShareSearchService shareSearchService;
     private final UserStorageSearchService userStorageSearchService;
     private final UserSearchService userSearchService;
+    private final StorageService storageService;
 
     public ShareController(ShareService shareService,
                            ShareSearchService shareSearchService,
                            UserStorageSearchService userStorageSearchService,
-                           UserSearchService userSearchService) {
+                           UserSearchService userSearchService,
+                           StorageService storageService) {
         this.shareService = shareService;
         this.shareSearchService = shareSearchService;
         this.userStorageSearchService = userStorageSearchService;
         this.userSearchService = userSearchService;
+        this.storageService = storageService;
     }
 
     @BuiltinOperate(BuiltinOperationType.CREATE_STORAGE_SHARE)
@@ -172,28 +183,23 @@ public class ShareController {
         return HttpResponseEntity.success();
     }
 
-
-    @DeleteMapping("/{ownerType}/{ownerId}/disk/{storageType}/{storageId}/shares/{shareId}")
+    @DeleteMapping("/user/shares/{shareId}")
     public HttpResponseEntity<Void> cancelShare(
-            @PathVariable("ownerId") Long ownerId,
-            @PathVariable("ownerType") String ownerTypeParam,
-            @PathVariable("storageType") String typeParam,
-            @PathVariable("storageId") Long storageId,
             @PathVariable("shareId") Long shareId) {
-
-
+        shareService.cancelShare(shareId);
         return HttpResponseEntity.success();
     }
-
 
     @GetMapping("/shares/{shareToken}/metadata")
     public HttpResponseEntity<ShareInfoVo> getShareMetadataByLink(
             @PathVariable("shareToken") String shareToken) {
-        // basic info of share
         ParamValidate.notEmpty(shareToken, "shareToken");
 
         SharePasswordInfo sharePasswordInfo =
                 shareSearchService.search(shareToken);
+        if (sharePasswordInfo.expireTime() == 1) {
+            throw new UserShareException(UserShareErrorCode.ERROR_SHARE_CANCEL);
+        }
         if (sharePasswordInfo.isExpired(System.currentTimeMillis())) {
             throw new UserShareException(UserShareErrorCode.ERROR_SHARE_EXPIRED);
         }
@@ -210,9 +216,12 @@ public class ShareController {
             @PathVariable("shareToken") String shareToken,
             @RequestParam(value = "password", defaultValue = "") String password,
             @RequestParam(value = "parent", defaultValue = "0") Long parent) {
-
         ShareStructureInfo shareStructureInfo =
                 shareSearchService.findStructureByShareCode(shareToken, parent);
+        if (shareStructureInfo.expireTime() == 1) {
+            throw new UserShareException(UserShareErrorCode.ERROR_SHARE_CANCEL);
+        }
+
         if (shareStructureInfo.isExpired(System.currentTimeMillis())) {
             throw new UserShareException(UserShareErrorCode.ERROR_SHARE_EXPIRED);
         }
@@ -233,7 +242,47 @@ public class ShareController {
             @RequestParam(value = "password", defaultValue = "") String password,
             @PathVariable("storageId") Long storageId,
             @PathVariable("storageType") String storageType) {
+        UserIdentity userIdentity = ApiContextHolder.getContext().userInfo();
+        if (userIdentity == null) {
+            throw new UserShareException(UserErrorCode.ERROR_USER_NOT_LOGIN);
+        }
+
         return HttpResponseEntity.success();
+    }
+
+
+    @GetMapping("/shares/{shareToken}/save/{storageType}/{storageId}")
+    public void getShareStorage(
+            @PathVariable("shareToken") String shareToken,
+            @RequestParam(value = "password", defaultValue = "") String password,
+            @PathVariable("storageId") Long storageId,
+            @PathVariable("storageType") String storageType,
+            HttpServletRequest httpServletRequest,
+            HttpServletResponse httpServletResponse) throws IOException {
+        StorageIdentity storageIdentity =
+                ParameterHelper.buildStorageIdentity(storageId, storageType);
+        if (!storageIdentity.isFile()) {
+            throw new UserShareException(UserShareErrorCode.ERROR_STORAGE_NOT_FOUND);
+        }
+        SharePasswordInfo sharePasswordInfo =
+                shareSearchService.search(shareToken);
+        if (sharePasswordInfo.expireTime() == 1) {
+            throw new UserShareException(UserShareErrorCode.ERROR_SHARE_CANCEL);
+        }
+        if (sharePasswordInfo.isExpired(System.currentTimeMillis())) {
+            throw new UserShareException(UserShareErrorCode.ERROR_SHARE_EXPIRED);
+        }
+        if (!sharePasswordInfo.isPublic() &&
+                !password.equals(sharePasswordInfo.password())) {
+            throw new UserShareException(UserShareErrorCode.ERROR_PASSWORD);
+        }
+        if (!shareService.hasStorage(sharePasswordInfo.id(), storageIdentity)) {
+            throw new UserShareException(UserShareErrorCode.ERROR_STORAGE_NOT_FOUND);
+        }
+        FileInfo fileInfo = userStorageSearchService
+                .findFile(storageIdentity.getStorageId());
+        DownloadHelper.downloadFile(fileInfo, httpServletRequest,
+                httpServletResponse, storageService);
     }
 
 }
