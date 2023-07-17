@@ -25,14 +25,18 @@
                         </div>
                     </n-form-item>
                     <n-form-item label="标签组名称">
-                        <n-input v-model:value="tagGroup.name" placeholder="输入标签名称"
+                        <n-input v-model:value="formValue.name"
+                                 placeholder="输入标签名称"
                                  size="large"/>
                     </n-form-item>
                     <n-form-item label="标签组描述">
-                        <n-input v-model:value="tagGroup.description"
+                        <n-input v-model:value="formValue.description"
                                  placeholder="输入标签组描述"
                                  size="large"/>
                     </n-form-item>
+                    <DisplayInput v-model:value="formValue.keywordSearchScope"
+                                  :config="keywordScopeConfig"/>
+
                     <n-form-item label="标签组创建时间">
                         <div class="text-xl">
                             {{ formatTimestamp(tagGroup.createTime) }}
@@ -43,6 +47,16 @@
                             {{ formatTimestamp(tagGroup.updateTime) }}
                         </div>
                     </n-form-item>
+                    <div class="flex">
+                        <div class="flex-grow"></div>
+                        <div class="py-5">
+                            <n-button-group>
+                                <n-button type="primary" @click="handleSaveInfo">
+                                    保存
+                                </n-button>
+                            </n-button-group>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -132,7 +146,7 @@
                                     <n-button secondary type="primary" @click="toTagInfoPage(tag.id)">
                                         修改
                                     </n-button>
-                                    <n-button secondary type="error">
+                                    <n-button secondary type="error" @click="handleRemoveTag(tag)">
                                         移除
                                     </n-button>
                                 </n-button-group>
@@ -140,23 +154,31 @@
                         </tr>
                         <tr>
                             <td class="text-center" colspan="3">
-                                <n-button>添加标签</n-button>
+                                <n-button @click="handleAddTag">
+                                    添加标签
+                                </n-button>
                             </td>
                         </tr>
                         </tbody>
                     </n-table>
                 </div>
             </div>
-            <div class="flex">
-                <div class="flex-grow"></div>
-                <div class="py-5">
-                    <n-button-group>
-                        <n-button type="primary">保存</n-button>
-                    </n-button-group>
-                </div>
-            </div>
-        </div>
 
+        </div>
+        <n-modal v-model:show="showAddTagModal"
+                 :show-icon="false"
+                 closable
+                 preset="dialog"
+                 title="添加标签"
+                 transform-origin="center">
+            <TagGroupTagForm :group-id="tagGroupId"
+                             :on-after-action="() => {
+                                 showAddTagModal = false;
+                                 onRefresh()
+                             }"
+                             :on-click-cancel="() => showAddTagModal = false"
+            />
+        </n-modal>
         <n-modal :on-close="() => showUploadKeywordsModal = false"
                  :show="showUploadKeywordsModal"
                  :show-icon="false"
@@ -210,6 +232,8 @@ import {popAdminErrorTemplate} from "@/views/util/error";
 import {adminTagGroups, adminTagInfo, adminUserLists} from "@/router";
 import {adminMenuTag, adminMenuUser} from "@/views/menu";
 import AdminBreadcrumb from "@/components/admin/AdminBreadcrumb.vue";
+import DisplayInput from "@/components/admin/DisplayInput.vue";
+import TagGroupTagForm from "@/views/admin/tag/TagGroupTagForm.vue";
 
 const router = useRouter()
 const {proxy} = getCurrentInstance()
@@ -219,30 +243,34 @@ const dialog = useDialog()
 
 const tagGroupId = ref(router.currentRoute.value.params.id)
 const tagGroup = ref({})
+const formValue = ref({})
 
-const props = defineProps({
-    tagGroup: {
-        type: Object,
-        default: {}
-    },
-    onClose: {
-        type: Function,
-        default: () => {
+const showAddTagModal = ref()
+
+const keywordScopeConfig = {
+    key: "keywordSearchScope",
+    name: "关键词查找范围",
+    modify: true,
+    type: 'select',
+    placeholder: "请选择关键词查找范围",
+    options: [
+        {
+            label: "全部",
+            value: "ALL"
+        },
+        {
+            label: "名称",
+            value: "NAME"
+        },
+        {
+            label: "描述",
+            value: "DESCRIPTION"
         }
-    },
-    onRefresh: {
-        type: Function,
-        default: () => {
-        }
-    }
-})
+    ]
+}
 
 const showUploadKeywordsModal = ref(false)
 const keywordFiles = ref([])
-
-const onClose = () => {
-
-}
 
 const toTagInfoPage = (id) => {
     router.push({
@@ -262,6 +290,11 @@ const requestGroupInfo = () => {
     proxy.$axios.get(api.tagGroups(true, tagGroupId.value), config)
             .then(res => {
                 tagGroup.value = res.data
+                formValue.value = {
+                    name: tagGroup.value.name,
+                    description: tagGroup.value.description,
+                    keywordSearchScope: tagGroup.value.keywordSearchScope
+                }
             })
             .catch(err => {
                 popAdminErrorTemplate(notification, err, '获取标签组信息失败', '标签组请求错误')
@@ -278,6 +311,34 @@ const back = () => {
     })
 }
 
+const requestRemoveTag = (tag) => {
+    const config = createConfig()
+    proxy.$axios.delete(api.tagGroupsTags(tagGroup.value.id, tag.id), config)
+            .then(res => {
+                onRefresh()
+                message.success('移除标签成功')
+            })
+            .catch(err => {
+                popAdminErrorTemplate(notification, err, '移除标签失败', '标签组请求错误')
+            })
+}
+
+const handleRemoveTag = (tag) => {
+    dialog.error({
+        title: '移除标签',
+        content: `确定要移除 ${tag.name} 吗？`,
+        positiveText: '确定',
+        negativeText: '取消',
+        onPositiveClick: () => {
+            requestRemoveTag(tag)
+        }
+    })
+}
+
+const handleAddTag = () => {
+    showAddTagModal.value = true
+}
+
 const handleUploadKeywordsFile = () => {
     const config = createConfig()
     const formData = new FormData()
@@ -291,6 +352,23 @@ const handleUploadKeywordsFile = () => {
             })
             .catch(err => {
                 popAdminErrorTemplate(notification, err, '导入文件失败', '标签组请求错误')
+            })
+}
+
+const handleSaveInfo = () => {
+    const config = createConfig()
+    const data = {
+        name: formValue.value.name,
+        description: formValue.value.description,
+        keywordSearchScope: formValue.value.keywordSearchScope
+    }
+    proxy.$axios.put(api.tagGroups(true, tagGroupId.value), data, config)
+            .then(res => {
+                onRefresh()
+                message.success('修改标签组信息成功')
+            })
+            .catch(err => {
+                popAdminErrorTemplate(notification, err, '修改标签组信息失败', '标签组请求错误')
             })
 }
 

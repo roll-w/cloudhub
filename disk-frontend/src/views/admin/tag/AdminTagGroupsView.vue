@@ -15,8 +15,6 @@
                     </n-button>
                 </div>
             </div>
-
-
             <div>
                 <n-data-table :bordered="false"
                               :columns="columns"
@@ -43,7 +41,10 @@
                  title="创建标签组"
                  transform-origin="center">
             <TagGroupCreateForm
-                    :on-after-action="refresh"
+                    :on-after-action="() => {
+                        refresh()
+                        showCreateTagGroupModal = false
+                    }"
                     :on-click-cancel="() => showCreateTagGroupModal = false"
                     :on-click-confirm="() => showCreateTagGroupModal = false"
             />
@@ -131,13 +132,6 @@ const columns = [
                                 },
                                 () => '查看/编辑'
                         ),
-                        h(NButton,
-                                {
-                                    onClick: () => {
-                                    }
-                                },
-                                () => '删除'
-                        )
                     ]
             )
         }
