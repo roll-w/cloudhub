@@ -3,6 +3,16 @@
         <AdminBreadcrumb :location="adminTags"
                          :menu="adminMenuTag"/>
         <n-h1>标签管理</n-h1>
+        <div class="flex">
+            <n-h2>
+                标签列表
+            </n-h2>
+            <div class="flex flex-grow justify-end">
+                <n-button @click="showCreateTagModal = true">
+                    创建新标签
+                </n-button>
+            </div>
+        </div>
         <div>
             <n-data-table :bordered="false"
                           :columns="columns"
@@ -20,6 +30,21 @@
                 />
             </div>
         </div>
+        <n-modal v-model:show="showCreateTagModal"
+                 :show-icon="false"
+                 closable
+                 preset="dialog"
+                 title="创建标签"
+                 transform-origin="center">
+            <TagCreateForm
+                    :on-after-action="() => {
+                        refresh()
+                        showCreateTagModal = false
+                    }"
+                    :on-click-cancel="() => showCreateTagModal = false"
+                    :on-click-confirm="() => showCreateTagModal = false"
+            />
+        </n-modal>
     </div>
 </template>
 
@@ -35,6 +60,8 @@ import api from "@/request/api";
 import {popAdminErrorTemplate} from "@/views/util/error";
 import {adminTagInfo, adminTags} from "@/router";
 import {usePage} from "@/views/util/pages";
+import TagCreateForm from "@/components/admin/tags/TagCreateForm.vue";
+import TagGroupCreateForm from "@/components/admin/tags/TagGroupCreateForm.vue";
 
 const router = useRouter()
 const {proxy} = getCurrentInstance()
@@ -44,6 +71,8 @@ const dialog = useDialog()
 
 const tags = ref([])
 const page = usePage()
+
+const showCreateTagModal = ref(false)
 
 const columns = [
     {
@@ -93,12 +122,6 @@ const columns = [
                     }, {
                         default: () => "详情"
                     }),
-                    h(NButton, {
-                        onClick: () => {
-                        }
-                    }, {
-                        default: () => "删除"
-                    })
                 ]
             })
         }

@@ -39,7 +39,6 @@ const formRef = ref(null)
 const modalValue = ref({
     name: '',
     description: '',
-    keywordSearchScope: null
 })
 
 const formRules = {
@@ -48,28 +47,15 @@ const formRules = {
         {min: 1, max: 20, message: '长度在 1 到 20 个字符', trigger: 'blur'}
     ],
     description: [
-        // not required, but once input,
-        // its length should be greater than 1 and lesser than 50
         {min: 1, max: 50, message: '长度在 1 到 50 个字符', trigger: 'blur'}
 
     ],
-    keywordSearchScope: [
-        {required: true, message: '请选择关键词搜索范围', trigger: 'blur'},
-    ]
 }
-
-
-const options = [
-    {label: '全部', value: 'ALL'},
-    {label: '文件名', value: 'NAME'},
-    {label: '描述', value: 'DESCRIPTION'},
-    {label: '内容', value: 'CONTENT'},
-]
 
 const handleConfirm = () => {
     formRef.value.validate().then(() => {
         props.onClickConfirm()
-        requestCreateGroup()
+        requestCreateTag()
     })
 }
 
@@ -77,16 +63,16 @@ const handleCancel = () => {
     props.onClickCancel()
 }
 
-const requestCreateGroup = () => {
+const requestCreateTag = () => {
     const config = createConfig(true)
     props.onBeforeAction()
-    proxy.$axios.post(api.tagGroups(true), modalValue.value, config).then((response) => {
+    proxy.$axios.post(api.tags(null, true), modalValue.value, config).then((response) => {
         props.onAfterAction()
-        message.success('创建标签组成功')
+        message.success('创建标签成功')
     }).catch((error) => {
         props.onAfterAction()
         popAdminErrorTemplate(notification, error,
-                '创建标签组失败', '标签组请求失败')
+                '创建标签失败', '标签请求错误')
     })
 }
 
@@ -104,12 +90,6 @@ const requestCreateGroup = () => {
                 <n-input v-model:value="modalValue.description"
                          clearable
                          placeholder="请输入描述" type="text"/>
-            </n-form-item>
-            <n-form-item label="关键字搜索范围" path="keywordSearchScope">
-                <n-select v-model:value="modalValue.keywordSearchScope"
-                          :options="options"
-                          placeholder="请选择关键词搜索范围"
-                />
             </n-form-item>
             <n-button-group>
                 <n-button type="primary" @click="handleConfirm">
