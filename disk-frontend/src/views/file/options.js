@@ -36,13 +36,6 @@ const fileViewMenuOptions = [
             })
         },
     },
-    {
-        label: "排序",
-        key: "sort",
-        icon() {
-            return "S"
-        },
-    },
 ];
 
 const fileTypeViewMenuOptions = [

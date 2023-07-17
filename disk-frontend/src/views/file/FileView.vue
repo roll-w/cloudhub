@@ -15,7 +15,9 @@
                                                 :menu-options="menuOptions"
                                                 :on-file-option-select="handleFileOptionSelect"
                                                 :on-menu-select="handleMenuSelect"
-                                                :on-show-file-option="hackFileOptions">
+                                                :on-show-file-option="hackFileOptions"
+                                                :on-toolbar-select="handleToolbarSelect"
+                                                :toolbar-options="toolbarOptions">
                                 <template #folder>
                                     <div v-if="!nowOpenType" class="text-xl py-2">
                                         <FolderBreadcrumbs :folder-info="folderInfo"/>
@@ -220,6 +222,10 @@ import FileComponentsView from "@/views/file/FileComponentsView.vue";
 import StorageMoveForm from "@/components/file/forms/StorageMoveOrCopyForm.vue";
 import StorageMoveOrCopyForm from "@/components/file/forms/StorageMoveOrCopyForm.vue";
 import StorageFavoriteForm from "@/components/file/forms/StorageFavoriteForm.vue";
+import ArrowDownload16Filled from "@/components/icon/ArrowDownload16Filled.vue";
+import CloseRegualar from "@/components/icon/CloseRegualar.vue";
+import Delete24Regular from "@/components/icon/Delete24Regular.vue";
+import {handleStorageDownload} from "@/views/file/storage_actions";
 
 const {proxy} = getCurrentInstance()
 const notification = useNotification()
@@ -335,6 +341,89 @@ const fileOptions = [
     },
 ]
 
+const toolbarOptions = [
+    {
+        key: 'download',
+        label: '下载',
+        icon: () => h(ArrowDownload16Filled)
+    },
+    {
+        key: 'delete',
+        label: '删除',
+        icon: () => h(Delete24Regular)
+    },
+    {
+        key: 'cancel',
+        label: '取消多选',
+        icon: () => h(CloseRegualar)
+    }
+
+]
+
+const handleToolbarSelect = (key, selected) => {
+    switch (key) {
+        case 'download':
+            if (checkHasNotFile(selected)) {
+                message.error('只能下载文件')
+                return false
+            }
+            const urls = []
+            for (let i = 0; i < selected.length; i++) {
+                const file = selected[i]
+                handleFileDownload(file, (url) => {
+                    urls.push({
+                        url: url,
+                        name: file.name
+                    })
+                    if (urls.length !== selected.length) {
+                        return
+                    }
+                    urls.forEach(aUrl => {
+                        const xhr = new XMLHttpRequest();
+                        xhr.open('GET', aUrl.url, true);
+                        xhr.responseType = 'blob';
+                        xhr.onload = () => {
+                            const a = document.createElement('a');
+                            a.href = window.URL.createObjectURL(xhr.response);
+                            a.download = aUrl.name
+                            document.body.appendChild(a);
+                            a.click();
+                        };
+                        xhr.send();
+                    });
+                })
+            }
+            break
+        case 'delete':
+            dialog.error({
+                title: '删除文件',
+                content: '确定删除选中的文件吗？',
+                positiveText: '删除',
+                negativeText: '取消',
+                onPositiveClick: () => {
+                    for (let i = 0; i < selected.length; i++) {
+                        const file = selected[i]
+                        handleStorageDelete(file, i === selected.length - 1)
+                    }
+                }
+            })
+
+            break
+        case 'cancel':
+            break
+    }
+    return true
+}
+
+const checkHasNotFile = (files) => {
+    for (let i = 0; i < files.length; i++) {
+        if (files[i].storageType !== 'FILE') {
+            return true
+        }
+    }
+    return false
+}
+
 const hackFileOptions = (file) => {
     curTargetFile.value = file
 
@@ -400,29 +489,24 @@ const handleStorageClick = (e, target) => {
 
 const curTargetFile = ref({})
 
-const handleStorageDelete = (storage) => {
+const handleStorageDelete = (storage, isRefresh = true) => {
     const config = createConfig()
 
     proxy.$axios.delete(
             api.storage('user', userStore.user.id,
                     storage.storageType.toLowerCase(), storage.storageId), config).then(() => {
-        message.success('删除成功')
-        refresh()
+        if (isRefresh) {
+            refresh()
+            message.success('删除成功')
+        }
     }).catch((err) => {
         popUserErrorTemplate(notification, err, '删除文件失败')
     })
 }
 
-const handleFileDownload = (storage) => {
-    const config = createConfig()
-    proxy.$axios.post(
-            api.fileToken('user', userStore.user.id, storage.storageId), null, config).then((res) => {
-        const token = res.data
-        const url = api.quickfire(token)
-        window.open(url, '_self')
-    }).catch((err) => {
-        popUserErrorTemplate(notification, err, '下载文件失败')
-    })
+const handleFileDownload = (storage, callback = null) => {
+    handleStorageDownload(storage, 'user',
+            userStore.user.id, proxy.$axios,callback)
 }
 
 const handleFileOptionSelect = (key, options, target) => {
@@ -472,18 +556,18 @@ const handleFileOptionSelect = (key, options, target) => {
 
 const handleMenuSelect = (key) => {
     switch (key) {
-        case options.folder:
+        case 'folder':
             showCreateFolderModal.value = true
             break;
-        case options.upload:
+        case 'upload':
             showUploadFileModal.value = true
             break;
         case 'uploadFolder':
             break;
-        case options.refresh:
+        case 'refresh':
             refresh()
             break;
-        case options.sort:
+        case 'sort':
             break;
         default:
             break;
