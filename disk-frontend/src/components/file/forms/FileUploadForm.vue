@@ -15,8 +15,8 @@
                         :default-upload="false"
                         :directory="false"
                         :directory-dnd="false"
-                        :max="1"
-                        :multiple="false"
+                        :max="10"
+                        :multiple="true"
                         name="file">
                     <n-upload-dragger>
                         <n-text class="text-xl">
@@ -132,10 +132,15 @@ const source = ref(null)
 
 const uploadFile = () => {
     props.onBeforeAction()
-    const config = createConfig()
+    for (const file of formValue.value.file) {
+        handleUpload(file.file)
+    }
+    props.onAfterAction()
+}
 
+const handleUpload = (file) => {
+    const config = createConfig()
     const formData = new FormData()
-    const file = formValue.value.file[0].file
     if ((formValue.value.name || '').trim()) {
         formData.append('file', file, formValue.value.name.trim())
     } else {
@@ -166,9 +171,9 @@ const uploadFile = () => {
     config.headers['Content-Type'] = 'multipart/form-data'
     config.onUploadProgress = (progressEvent) => {
         let percentCompleted =
-            Math.round((progressEvent.loaded * 100) / progressEvent.total)
+                Math.round((progressEvent.loaded * 100) / progressEvent.total)
         if (percentCompleted > 70) {
-           percentCompleted = Math.max(70, Math.round(percentCompleted * 0.93))
+            percentCompleted = Math.max(70, Math.round(percentCompleted * 0.93))
         }
         uploadFile.progress = percentCompleted
         uploadFile.onUploadCallback(uploadFile.progress, uploadFile.status)
@@ -176,12 +181,11 @@ const uploadFile = () => {
     }
 
     proxy.$axios.post(
-        api.uploadFile(props.ownerType, props.ownerId, props.folderId), formData, config).then(res => {
+            api.uploadFile(props.ownerType, props.ownerId, props.folderId), formData, config).then(res => {
         uploadFile.status = 'success'
         uploadFile.progress = 100
         uploadFile.onUploadCallback(uploadFile.progress, uploadFile.status)
         fileStore.updateUpload(uploadFile)
-        props.onAfterAction()
     }).catch(err => {
         if (err.errorCode === 'CANCEL') {
             message.error('上传已取消')
@@ -195,8 +199,6 @@ const uploadFile = () => {
         fileStore.updateUpload(uploadFile)
         popUserErrorTemplate(notification, err, '上传失败', '上传请求错误')
     })
-
-
 }
 
 </script>
