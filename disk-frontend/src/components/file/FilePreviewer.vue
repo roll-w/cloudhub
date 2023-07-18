@@ -4,8 +4,7 @@
             <div class="frame">
                 <n-image
                         :img-props="{class: 'h-[70vh] m-auto w-auto'}"
-
-                        :src="url"
+                        :src="urlUsed"
                         :theme-overrides="themeOverrides"
                         class="h-[70vh] m-auto w-full" object-fit="contain"/>
             </div>
@@ -22,15 +21,15 @@
 
         </div>
         <div v-else-if="isPdf()">
-                <embed :src="url" type="application/pdf" class="h-[70vh] w[75vw] m-auto"
-                style="height: 75vh !important; width: 90vw !important;"/>
+            <embed :src="urlUsed" class="h-[70vh] w[75vw] m-auto" style="height: 75vh !important; width: 90vw !important;"
+                   type="application/pdf"/>
         </div>
         <div v-else-if="file.fileType === 'AUDIO'">
-            <audio :src="url" class="m-auto" controls/>
+            <audio :src="urlUsed" class="m-auto" controls/>
         </div>
         <div v-else-if="file.fileType === 'VIDEO'">
             <div class="frame rounded-md">
-                <video :src="url" class="frame" controls></video>
+                <video :src="urlUsed" class="frame" controls></video>
             </div>
 
         </div>
@@ -46,7 +45,7 @@
 <script setup>
 import api from "@/request/api";
 import {useUserStore} from "@/stores/user";
-import {getCurrentInstance, ref} from "vue";
+import {computed, getCurrentInstance, ref} from "vue";
 import {useThemeVars} from "naive-ui";
 
 const {proxy} = getCurrentInstance()
@@ -56,6 +55,10 @@ const props = defineProps({
         type: Object,
         required: true
     },
+    url: {
+        type: String,
+        required: false
+    }
 })
 
 const isPdf = () => {
@@ -64,13 +67,20 @@ const isPdf = () => {
 const userStore = useUserStore()
 
 const url = api.file(props.file.ownerType.toLowerCase(),
-        props.file.ownerId, props.file.storageId) +
-    "?token=" + userStore.getToken + (isPdf() ? "&disposition=inline" : "")
+                props.file.ownerId, props.file.storageId) +
+        "?token=" + userStore.getToken + (isPdf() ? "&disposition=inline" : "")
+
+const urlUsed = computed(() => {
+    if (props.url) {
+        return props.url
+    }
+    return url
+})
 
 const text = ref('')
 const requestText = async () => {
     if (props.file.fileType === 'TEXT') {
-        await proxy.$axios.get(url).then(res => {
+        await proxy.$axios.get(urlUsed).then(res => {
             text.value = res.data
         })
     }
