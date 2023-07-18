@@ -104,7 +104,7 @@ const requestCreateFavorite = () => {
         storageType: props.storageType,
     }
 
-    proxy.$axios.post(api.favorites(false, selectFavoriteGroup.value.id), data, config).then(resp => {
+    proxy.$axios.post(api.favorites(selectFavoriteGroup.value.id), data, config).then(resp => {
         message.success('收藏成功')
         props.onAfterAction()
     }).catch(error => {

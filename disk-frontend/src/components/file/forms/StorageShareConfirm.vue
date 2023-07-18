@@ -5,7 +5,13 @@
                 <div class="flex-grow-1 flex-fill text-xl font-bold">
                     分享链接
                 </div>
-                <div class="text-sm font-normal text-neutral-500 justify-self-end">有效期至 {{ shareInfo.expireTime }}</div>
+                <div v-if="shareInfo.expireTime === '1' || shareInfo.expireTime === 1"
+                     class="text-sm font-normal text-neutral-500 justify-self-end">
+                    已取消
+                </div>
+                <div v-else class="text-sm font-normal text-neutral-500 justify-self-end">
+                    有效期至 {{ formatTimestamp(shareInfo.expireTime, "永久有效") }}
+                </div>
             </div>
 
             <div>
@@ -23,7 +29,7 @@
             <n-button secondary type="primary" @click="handleCopy">
                 复制链接
             </n-button>
-            <n-button v-if="showCancel" tertiary type="default">
+            <n-button v-if="showCancel" tertiary type="default" @click="handleCancel">
                 取消分享
             </n-button>
         </div>
@@ -31,10 +37,20 @@
 </template>
 
 <script setup>
+import {getCurrentInstance} from "vue";
+import {useRouter} from "vue-router";
+import {useNotification, useMessage, useDialog} from "naive-ui";
+import {createConfig} from "@/request/axios_config";
+import api from "@/request/api";
+import {popUserErrorTemplate} from "@/views/util/error";
+import {formatTimestamp} from "../../../util/format";
 
-import {useMessage} from "naive-ui";
-
+const router = useRouter()
+const {proxy} = getCurrentInstance()
+const notification = useNotification()
 const message = useMessage()
+const dialog = useDialog()
+
 
 const props = defineProps({
     shareInfo: {
@@ -61,6 +77,28 @@ const handleCopy = () => {
             + "点击链接查看或保存文件").then(() => {
         message.success('复制成功')
     }, () => {
+    })
+}
+
+const handleCancel = () => {
+    dialog.error({
+        title: '取消分享',
+        content: '确定要取消分享吗？',
+        positiveText: '确定',
+        negativeText: '取消',
+        onPositiveClick: () => {
+            requestCancel()
+        }
+    })
+}
+
+const requestCancel = () => {
+    const config = createConfig()
+    proxy.$axios.delete(api.userShare(props.shareInfo.id), config).then(() => {
+        message.success('取消成功')
+    }).catch(error => {
+        popUserErrorTemplate(notification, error,
+                '取消分享失败', "分享请求错误")
     })
 }
 

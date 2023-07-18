@@ -69,6 +69,8 @@ export const shareSave = (shareToken, storageType, storageId) =>
 
 export const shares = (admin = false) =>
     `${admin ? adminPrefix : prefix}/user/shares`;
+export const adminShares = () =>
+    `${adminPrefix}/shares`;
 export const favorites = (id = null) =>
     `${prefix}/user/favorites${id !== null ? `/${id}` : ''}`;
 export const userFavorites = (userId, admin = false, id = null) =>
@@ -78,8 +80,8 @@ export const userFavoriteItem = (userId, groupId, itemId = null, admin = false )
 export const favoriteItem = (groupId, itemId = null) =>
     `${prefix}/user/favorites/${groupId}${itemId !== null ? `/${itemId}` : ''}`;
 
-export const userShares = (userId) =>
-    `${prefix}/users/${userId}/shares`;
+export const userShares = (userId, admin = false) =>
+    `${admin ? adminPrefix : prefix}/users/${userId}/shares`;
 export const restricts = (ownerType, ownerId) =>
     `${prefix}/${ownerType}/${ownerId}/statistics/restricts`;
 export const restrictByKey = (ownerType, ownerId, key) =>
@@ -93,6 +95,9 @@ export const getOperationLogsByResource = (resourceType, resourceId) =>
 
 export const getOperationLogsAdmin =
     `${adminPrefix}/operations/logs`;
+export const userOperationLogs = (userId) =>
+    `${adminPrefix}/users/${userId}/operations/logs`;
+
 export const tagGroups = (admin = false, id = null) =>
     `${admin ? adminPrefix : prefix}/tags/groups${id ? `/${id}` : ''}`;
 export const tagGroupsFile = (groupId, admin = false) =>
@@ -106,6 +111,8 @@ export const tagGroupsTags = (groupId, tagId = null) =>
 
 export const files = (admin = false) =>
     `${admin ? adminPrefix : prefix}/disk/files`;
+export const userFiles = (userId, admin = false) =>
+    `${admin ? adminPrefix : prefix}/users/${userId}/files`;
 export const folders = (admin = false) =>
     `${admin ? adminPrefix : prefix}/disk/folders`;
 export const storages = (admin = false) =>
@@ -134,8 +141,8 @@ export const userPassword = (userId) =>
 
 export const userGroups = (admin = false, id = null) =>
     `${admin ? adminPrefix : prefix}/groups${id !== null ? `/${id}` : ''}`;
-export const userGroupSetting = (admin = false, id) =>
-    `${userGroups(admin)}/${id}/settings`;
+export const userGroupSetting = (id) =>
+    `${userGroups(true)}/${id}/settings`;
 export const userGroupsMembers = (admin, userGroupId) =>
     `${userGroups(admin)}/${userGroupId}/members`;
 
@@ -143,7 +150,8 @@ export const ownerUserGroup = (id, type = 'user', admin = false) =>
     `${admin ? adminPrefix : prefix}/${type}/${id}/groups`;
 
 export const getUsers = `${adminPrefix}/users`;
-export const getLoginLogs = `${adminPrefix}/users/login/logs`;
+export const loginLogs = (id = null) =>
+    `${adminPrefix}/users/${id ? id + '/' : ''}login/logs`;
 export const getErrorLogs = `${adminPrefix}/system/errors`;
 
 export const jobs = `${adminPrefix}/jobs`;
