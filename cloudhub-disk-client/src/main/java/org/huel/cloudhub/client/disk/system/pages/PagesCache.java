@@ -12,9 +12,11 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.LongSupplier;
 
 /**
+ * @deprecated move to {@link org.huel.cloudhub.client.disk.domain.systembased.paged.PageableContext} API.
  * @author RollW
  */
 @Component
+@Deprecated(forRemoval = true)
 public class PagesCache {
     private static final Logger logger = LoggerFactory.getLogger(PagesCache.class);
 
@@ -61,11 +63,12 @@ public class PagesCache {
 
     private long tryGetCount(String key,
                              LongSupplier longProvider) {
+        long value = longProvider.getAsLong();
         AtomicLong atomicLong = cache.get(key, AtomicLong.class);
         if (atomicLong != null) {
+            atomicLong.set(value);
             return atomicLong.get();
         }
-        long value = longProvider.getAsLong();
         cache.put(key, new AtomicLong(value));
         return value;
     }
