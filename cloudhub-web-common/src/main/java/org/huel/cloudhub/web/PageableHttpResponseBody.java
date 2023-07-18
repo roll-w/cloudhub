@@ -9,7 +9,7 @@ import java.util.List;
  * @author RollW
  */
 @SuppressWarnings("unchecked")
-final class PageableHttpResponseBody<D> extends HttpResponseBody<List<D>> {
+public final class PageableHttpResponseBody<D> extends HttpResponseBody<List<D>> {
     private int page;
     private int size;
     private long total;
@@ -124,6 +124,16 @@ final class PageableHttpResponseBody<D> extends HttpResponseBody<List<D>> {
     }
 
     @Override
+    public <T> PageableHttpResponseBody<T> fork(Page<T> page) {
+        return new PageableHttpResponseBody<>(
+                errorCode, status, message,
+                tip,
+                page.getData(), page.getPage(),
+                page.getSize(), page.getTotal()
+        );
+    }
+
+    @Override
     public PageableHttpResponseBody<D> fork(String message, String tip) {
         return new PageableHttpResponseBody<>(
                 errorCode, status, message,
@@ -138,9 +148,9 @@ final class PageableHttpResponseBody<D> extends HttpResponseBody<List<D>> {
     public static <D> PageableHttpResponseBody<D> success(Page<D> page) {
         PageableHttpResponseBody<D> body = (PageableHttpResponseBody<D>)
                 transSuccess().fork()
-                .setPage(page.getPage())
-                .setSize(page.getSize())
-                .setTotal(page.getTotal());
+                        .setPage(page.getPage())
+                        .setSize(page.getSize())
+                        .setTotal(page.getTotal());
         body.setData(page.getData());
         return body;
     }

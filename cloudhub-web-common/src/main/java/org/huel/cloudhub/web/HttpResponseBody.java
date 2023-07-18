@@ -2,6 +2,8 @@ package org.huel.cloudhub.web;
 
 import org.huel.cloudhub.web.data.page.Page;
 
+import java.util.List;
+
 /**
  * @author RollW
  */
@@ -100,6 +102,11 @@ public sealed class HttpResponseBody<D> permits PageableHttpResponseBody {
         return new HttpResponseBody<>(errorCode, status, message, tip, data);
     }
 
+    public <T> HttpResponseBody<List<T>> fork(Page<T> page) {
+        return new PageableHttpResponseBody<>(
+                errorCode, status, message, tip, page);
+    }
+
     public HttpResponseBody<D> fork(String tip) {
         return new HttpResponseBody<>(errorCode, status, message, tip, data);
     }
@@ -118,6 +125,11 @@ public sealed class HttpResponseBody<D> permits PageableHttpResponseBody {
 
     public static <D> Builder<D> builder(D data) {
         return new Builder<D>().data(data);
+    }
+
+    public static <D> HttpResponseBody<List<D>> of(ErrorCode errorCode,
+                                                   Page<D> page) {
+        return PageableHttpResponseBody.of(errorCode, page);
     }
 
     public static class Builder<D> {
