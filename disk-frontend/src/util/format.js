@@ -94,10 +94,10 @@ export const formatDuration = (time, inUnit = UNIT_SECOND) => {
     if (hours > 0) {
         parts.push(`${hours} 小时`);
     }
-    if (minutes > 0) {
+    if (days < 1 && minutes > 0) {
         parts.push(`${minutes} 分`);
     }
-    if (time > 0) {
+    if (days < 1 && time > 0) {
         parts.push(`${time} 秒`);
     }
     if (parts.length === 0) {

@@ -32,6 +32,8 @@ export const driveTagPage = "drive-tag-page"
 
 export const userPersonalPage = "user-personal-page"
 export const userPersonalPageWithFolder = "user-personal-page-with-folder"
+export const userPersonalPageShares = "user-personal-page-shares"
+export const userPersonalPageFavorites = "user-personal-page-favorites"
 export const userSettingPage = "user-setting-page"
 export const userSearchPage = "user-search-page"
 export const userSharePage = "user-share-page"
@@ -44,6 +46,10 @@ export const adminIndex = "admin-index"
 export const adminUserLists = "admin-user-lists"
 export const adminUserGroupLists = "admin-user-group-lists"
 export const adminUserGroupDetails = "admin-user-group-details"
+export const adminUserFiles = "admin-user-files"
+export const adminUserLoginLogs = "admin-user-login-logs"
+export const adminUserShares = "admin-user-shares"
+export const adminUserOperationLogs = "admin-user-operation-logs"
 export const adminUserDetails = "admin-user-details"
 
 export const adminFileLists = "admin-file-lists"
@@ -256,8 +262,26 @@ const router = createRouter({
                     }
                 },
                 {
-                    path: '/user/:id/home/:folder',
+                    path: '/user/:id/home/files/:folder',
                     name: userPersonalPageWithFolder,
+                    component: () => import("@/views/user/PersonalHomeView.vue"),
+                    meta: {
+                        title: "个人主页",
+                        requireLogin: true
+                    }
+                },
+                {
+                    path: '/user/:id/home/shares',
+                    name: userPersonalPageShares,
+                    component: () => import("@/views/user/PersonalHomeView.vue"),
+                    meta: {
+                        title: "个人主页",
+                        requireLogin: true
+                    }
+                },
+                {
+                    path: '/user/:id/home/favorites',
+                    name: userPersonalPageFavorites,
                     component: () => import("@/views/user/PersonalHomeView.vue"),
                     meta: {
                         title: "个人主页",
@@ -287,6 +311,60 @@ const router = createRouter({
                     component: () => import("@/views/admin/user/UsersList.vue"),
                     meta: {
                         title: "用户列表",
+                        requireLogin: true
+                    }
+                },
+                {
+                    path: '/admin/users/login/logs',
+                    name: adminLoginLogs,
+                    component: () => import("@/views/admin/system/LoginLogs.vue"),
+                    meta: {
+                        title: "用户登录日志",
+                        requireLogin: true
+                    }
+                },
+                {
+                    path: '/admin/users/:userId',
+                    name: adminUserDetails,
+                    component: () => import("@/views/admin/user/AdminUserDetails.vue"),
+                    meta: {
+                        title: "用户信息",
+                        requireLogin: true
+                    }
+                },
+                {
+                    path: '/admin/users/:id/files',
+                    name: adminUserFiles,
+                    component: () => import("@/views/admin/user/resources/AdminUserFilesView.vue"),
+                    meta: {
+                        title: "用户文件列表",
+                        requireLogin: true
+                    }
+                },
+                {
+                    path: '/admin/users/:id/shares',
+                    name: adminUserShares,
+                    component: () => import("@/views/admin/user/resources/AdminUserSharesView.vue"),
+                    meta: {
+                        title: "用户分享列表",
+                        requireLogin: true
+                    }
+                },
+                {
+                    path: '/admin/users/:id/logins',
+                    name: adminUserLoginLogs,
+                    component: () => import("@/views/admin/user/resources/AdminUserLoginLogsView.vue"),
+                    meta: {
+                        title: "用户登录日志",
+                        requireLogin: true
+                    }
+                },
+                {
+                    path: '/admin/users/:id/operations',
+                    name: adminUserOperationLogs,
+                    component: () => import("@/views/admin/user/resources/AdminUserOperationLogsView.vue"),
+                    meta: {
+                        title: "用户操作日志",
                         requireLogin: true
                     }
                 },
@@ -398,24 +476,7 @@ const router = createRouter({
                         requireLogin: true
                     }
                 },
-                {
-                    path: '/admin/users/login/logs',
-                    name: adminLoginLogs,
-                    component: () => import("@/views/admin/system/LoginLogs.vue"),
-                    meta: {
-                        title: "用户登录日志",
-                        requireLogin: true
-                    }
-                },
-                {
-                    path: '/admin/users/:userId',
-                    name: adminUserDetails,
-                    component: () => import("@/views/admin/user/AdminUserDetails.vue"),
-                    meta: {
-                        title: "用户信息",
-                        requireLogin: true
-                    }
-                },
+
                 {
                     path: '/admin/system/operations',
                     name: adminOperationLogs,

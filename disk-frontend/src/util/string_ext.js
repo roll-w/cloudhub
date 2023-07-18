@@ -3,7 +3,7 @@ if (!String.prototype.format) {
         const args = arguments;
         return this.replace(/{(\d+)}/g, function (match, number) {
             return typeof args[number] != 'undefined'
-                ? args[number]
+                ? args[number] || ''
                 : match
                 ;
         });

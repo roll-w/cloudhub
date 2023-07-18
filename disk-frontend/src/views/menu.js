@@ -7,6 +7,7 @@ import {
     adminIndex,
     adminLoginLogs,
     adminOperationLogs,
+    adminShareLists,
     adminSystemJobs,
     adminSystemLogs,
     adminSystemMonitor,
@@ -22,7 +23,9 @@ import {
     driveFilePageTypeImage,
     driveFilePageTypeVideo,
     driveFileRecycleBinPage,
-    driveTagPage, userFavoritePage, userFavoritePageWithId,
+    driveTagPage,
+    userFavoritePage,
+    userFavoritePageWithId,
     userSharePage,
 } from "@/router";
 
@@ -119,10 +122,6 @@ const menuOptions = [
                         key: driveTagPage,
                         linked: true
                     },
-                    {
-                        name: "组织文件",
-                        key: "Organization",
-                    }
                 ]
             },
             {
@@ -196,7 +195,8 @@ const menuOptions = [
                     },
                     {
                         name: "分享管理",
-                        key: "file-management-share"
+                        key: adminShareLists,
+                        linked: true
                     },
                 ]
             },
