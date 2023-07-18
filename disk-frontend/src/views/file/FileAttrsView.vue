@@ -98,7 +98,16 @@
                                              :time="formatTimestamp(log.timestamp)"
                                              :title="log.name" :type="i === 0 ? 'success' : 'default'">
                                 <div>
-                                    <span class="text-amber-500">{{ log.username }}</span>
+                                    <router-link #="{ navigate, href }" :to="{
+                                        name: userPersonalPage,
+                                        params: {
+                                            id: log.operatorId
+                                        }
+                                    }" custom>
+                                        <n-a :href="href" class="text-amber-500" @click="navigate">
+                                            {{ log.username }}
+                                        </n-a>
+                                    </router-link>
                                     {{ log.description }}
                                 </div>
                             </n-timeline-item>
@@ -136,8 +145,8 @@
                                     <td>{{ version.username }}</td>
                                     <td>
                                         <n-button-group>
-                                            <n-button secondary type="primary">查看</n-button>
-                                            <n-button secondary type="default">回退</n-button>
+                                            <n-button secondary type="default" @click="handleRevertTo(version)">回退
+                                            </n-button>
                                             <n-button secondary type="error" @click="onDeleteVersion(version)">删除
                                             </n-button>
                                         </n-button-group>
@@ -159,8 +168,12 @@
                 title="重新标记属性"
                 transform-origin="center">
             <div>
-                <FileAttrsRelableForm
+                <FileAttrsRelabelForm
                         :attributes="fileAttrs"
+                        :on-after-action="() => {
+                            showFileRelabelAttrsModal = false;
+                            requestFileAttr();
+                        }"
                         :on-click-cancel="() => showFileRelabelAttrsModal = false"
                         :owner-id="fileInfo.ownerId"
                         :owner-type="fileInfo.ownerType"
@@ -175,7 +188,6 @@
 </template>
 
 <script setup>
-
 import {useRouter} from "vue-router";
 import {useDialog, useNotification} from "naive-ui";
 import {getCurrentInstance, ref} from "vue";
@@ -185,23 +197,30 @@ import {
     driveFilePageTypeAudio,
     driveFilePageTypeDocument,
     driveFilePageTypeImage,
-    driveFilePageTypeVideo, driveFileSearchPage
+    driveFilePageTypeVideo, driveFileSearchPage, userPersonalPage
 } from "@/router";
 import api from "@/request/api";
 import {createConfig} from "@/request/axios_config";
 import {popUserErrorTemplate} from "@/views/util/error";
 import {getFileType} from "@/views/names";
 import {formatFileSize, formatTimestamp} from "@/util/format";
-import FileAttrsRelableForm from "@/components/file/forms/FileAttrsRelableForm.vue";
+import FileAttrsRelabelForm from "@/components/file/forms/FileAttrsRelabelForm.vue";
 
+const message = useMessage()
 const router = useRouter();
+const {proxy} = getCurrentInstance()
+const notification = useNotification()
+const dialog = useDialog()
 
 const id = router.currentRoute.value.params.id;
 const storageType = router.currentRoute.value.params.type;
 const ownerType = router.currentRoute.value.params.ownerType;
 const ownerId = router.currentRoute.value.params.ownerId;
 
-const {proxy} = getCurrentInstance()
+const error = ref({
+    status: 0,
+    message: null
+})
 
 const showFileRelabelAttrsModal = ref(false)
 
@@ -210,14 +229,6 @@ const fileAttrs = ref([])
 const fileLogs = ref([])
 const fileVersionInfos = ref([])
 
-const error = ref({
-    status: 0,
-    message: null
-})
-
-const notification = useNotification()
-const dialog = useDialog()
-
 const onDeleteVersion = (versionInfo) => {
     dialog.error({
         title: '删除版本',
@@ -225,8 +236,43 @@ const onDeleteVersion = (versionInfo) => {
         positiveText: '删除',
         negativeText: '取消',
         onPositiveClick: () => {
+            requestDeleteVersion(versionInfo)
         }
     })
+}
+
+const handleRevertTo = (versionInfo) => {
+    dialog.error({
+        title: '回退版本',
+        content: '确定回退到版本 ' + versionInfo.version + ' 吗？',
+        positiveText: '回退',
+        negativeText: '取消',
+        onPositiveClick: () => {
+            requestRevertTo(versionInfo)
+        }
+    })
+}
+
+const requestRevertTo = (version) => {
+    const config = createConfig()
+    proxy.$axios.post(api.getStorageVersion(ownerType, ownerId,
+            storageType, id, version.version) + "/revert", {}, config).then((response) => {
+        message.success('回退成功')
+    }).catch((error) => {
+        popUserErrorTemplate(notification, error, '回退版本失败', '版本请求错误')
+    })
+}
+
+const requestDeleteVersion = (version) => {
+    const config = createConfig()
+    proxy.$axios.delete(api.getStorageVersion(ownerType, ownerId,
+            storageType, id, version.version), config).then((response) => {
+        message.success('删除成功')
+        requestFileVersion()
+    }).catch((error) => {
+        popUserErrorTemplate(notification, error, '删除版本失败', '版本请求错误')
+    })
+
 }
 
 const urlSource = (source) => {
@@ -359,7 +405,8 @@ const requestFileLogs = () => {
                 res.data.forEach(item => item.description =
                         item.description.format(
                                 tryTranslate(item.originContent),
-                                tryTranslate(item.changedContent)
+                                tryTranslate(item.changedContent) ||
+                                (item.name.indexOf('权限') >= 0 ? '修改用户权限' : '')
                         )
                 )
                 fileLogs.value = res.data

@@ -11,10 +11,10 @@
                     </n-alert>
                     <div class="pt-3">
                         <n-button-group>
-                            <n-button type="primary" @click="handleConfirm">
+                            <n-button type="primary" @click="handleAutoRelabel">
                                 确认
                             </n-button>
-                            <n-button secondary type="default" @click="handleCancel()">
+                            <n-button secondary type="default" @click="handleCancel">
                                 取消
                             </n-button>
                         </n-button-group>
@@ -26,22 +26,50 @@
                         更改文件标记
                     </div>
                     <n-alert type="info">
-                        若您输入的标记不存在，系统将会自动创建一个新的标记。
+                        请在下方输入框中输入新的标记值，点击提交修改后，系统将会根据您的输入进行重标记。
                     </n-alert>
-                    <n-table class="py-2" :bordered="false">
+                    <n-table :bordered="false" class="py-2">
                         <thead>
                         <tr>
                             <th>名称</th>
                             <th>值</th>
+                            <th>操作</th>
                         </tr>
                         </thead>
                         <tbody>
-                        <tr v-for="(tag, i) in attributes || []">
-                            <td>{{ tag.name }}</td>
+                        <tr v-for="(tag, i) in inputs || []" class="transition-all ease-in-out">
                             <td>
-                                <n-input v-model:value="inputs[i].value" :disabled="inputs[i].disable"/>
+                                <div v-if="tag.disable">
+                                    {{ tag.name }}
+                                </div>
+                                <n-input v-else v-model:value="inputs[i].name"/>
+                            </td>
+                            <td>
+                                <div v-if="tag.disable">
+                                    {{ tag.value }}
+                                </div>
+                                <n-input v-else v-model:value="inputs[i].value"/>
+                            </td>
+                            <td>
+                                <n-button-group>
+                                    <n-button :disabled="tag.disable" secondary
+                                              type="primary"
+                                              @click="handleRemoveTag(i)">
+                                        删除
+                                    </n-button>
+                                </n-button-group>
                             </td>
                         </tr>
+                        <tr>
+                            <td colspan="3">
+                                <div class="text-center">
+                                    <n-button secondary type="primary" @click="handleAddTag">
+                                        添加标记
+                                    </n-button>
+                                </div>
+                            </td>
+                        </tr>
+
                         </tbody>
                     </n-table>
                     <div class="pt-3">
@@ -49,7 +77,7 @@
                             <n-button type="primary" @click="handleConfirm">
                                 提交修改
                             </n-button>
-                            <n-button secondary type="default" @click="handleCancel()">
+                            <n-button secondary type="default" @click="handleCancel">
                                 取消
                             </n-button>
                         </n-button-group>
@@ -63,8 +91,18 @@
 </template>
 
 <script setup>
+import {ref, getCurrentInstance} from "vue";
+import {useRouter} from "vue-router";
+import {useNotification, useMessage, useDialog} from "naive-ui";
+import {createConfig} from "@/request/axios_config";
+import api from "@/request/api";
+import {popUserErrorTemplate} from "@/views/util/error";
 
-import {ref} from "vue";
+const router = useRouter()
+const {proxy} = getCurrentInstance()
+const notification = useNotification()
+const message = useMessage()
+const dialog = useDialog()
 
 const props = defineProps({
     storageId: {
@@ -124,6 +162,34 @@ const createInputs = () => {
 
 
 createInputs()
+
+const handleAddTag = () => {
+    inputs.value.push({
+        name: '',
+        value: '',
+        index: inputs.value.length,
+        disable: false
+    })
+}
+
+const handleRemoveTag = (index) => {
+    inputs.value.splice(index, 1)
+}
+
+const handleAutoRelabel = () => {
+    props.onClickConfirm()
+    props.onBeforeAction()
+    const config = createConfig()
+    proxy.$axios.post(api.storageTags(props.ownerType.toLowerCase(), props.ownerId,
+            props.storageType.toLowerCase(), props.storageId, false),
+            {}, config).then(res => {
+        message.success('已提交重标记请求')
+    }).catch(err => {
+        popUserErrorTemplate(notification, err, '提交重标记请求失败', "存储请求错误")
+    }).finally(() => {
+        props.onAfterAction()
+    })
+}
 
 const handleConfirm = () => {
     const data = {}
