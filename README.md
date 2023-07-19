@@ -9,8 +9,6 @@
 1. 运行`meta-server`；
 2. 运行`file-server`；
 
-**一定要保证`meta-server`最先运行**。
-
 ### 配置修改
 
 修改位于`resource/`文件夹下的`cloudhub.conf`文件中的配置。
@@ -107,23 +105,7 @@ CFS始终维持在软状态，即不同的文件服务器的副本同步存在�
 
 ## 性能测试
 
-简要介绍对此系统的本地读写性能测试。
-
-### 测试环境
-
-三台配置Java运行环境的Linux虚拟机，机器相关配置如下：
-
-- 系统: 均为Ubuntu系统下测试，版本号：20.04.5 LTS
-- 硬盘：挂载一块60G大小的SSD；
-- CPU：2核；
-- 内存：2GB；
-- 彼此间网络延迟：小于2ms。
-
-### 说明
-
-- 大文件：指文件大小大于1GB的文件；
-- 中等大小文件：文件大小大于64MB但小于1GB的文件。
-- 小文件：小于64MB的文件。
+对此系统的读写性能测试。
 
 完整测试结果位于`/tests` 目录下。
 
@@ -131,7 +113,7 @@ CFS始终维持在软状态，即不同的文件服务器的副本同步存在�
 
 ```text
 Cloudhub - A high available, scalable distributed file system.
-Copyright (C) 2022 HUEL Team.
+Copyright (C) 2022 Cloudhub.
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
