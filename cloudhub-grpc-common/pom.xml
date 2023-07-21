@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <artifactId>cloudhub-grpc-parent</artifactId>
-        <groupId>org.huel.cloudhub</groupId>
+        <groupId>tech.rollw.cloudhub</groupId>
         <version>0.1.3</version>
         <relativePath>../cloudhub-grpc-parent/pom.xml</relativePath>
     </parent>

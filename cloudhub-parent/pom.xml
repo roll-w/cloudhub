@@ -10,7 +10,7 @@
         <version>2.7.10</version>
         <relativePath/>
     </parent>
-    <groupId>org.huel.cloudhub</groupId>
+    <groupId>tech.rollw.cloudhub</groupId>
     <artifactId>cloudhub-parent</artifactId>
     <version>0.1.3</version>
     <packaging>pom</packaging>
@@ -21,9 +21,6 @@
         <module>../cloudhub-common</module>
         <module>../cloudhub-grpc-parent</module>
         <module>../cloudhub-client</module>
-        <module>../cloudhub-web-common</module>
-        <module>../cloudhub-disk-client</module>
-        <module>../cloudhub-service-config-loader</module>
     </modules>
 
     <properties>
@@ -102,51 +99,32 @@
             </dependency>
 
             <dependency>
-                <groupId>mysql</groupId>
-                <artifactId>mysql-connector-java</artifactId>
-                <scope>runtime</scope>
-                <version>${mysql.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.huel.cloudhub</groupId>
+                <groupId>tech.rollw.cloudhub</groupId>
                 <artifactId>cloudhub-common</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
             <dependency>
-                <groupId>org.huel.cloudhub</groupId>
-                <artifactId>cloudhub-web-common</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.huel.cloudhub</groupId>
+                <groupId>tech.rollw.cloudhub</groupId>
                 <artifactId>cloudhub-client</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
             <dependency>
-                <groupId>org.huel.cloudhub</groupId>
+                <groupId>tech.rollw.cloudhub</groupId>
                 <artifactId>cloudhub-grpc-common</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
             <dependency>
-                <groupId>org.huel.cloudhub</groupId>
+                <groupId>tech.rollw.cloudhub</groupId>
                 <artifactId>cloudhub-meta-rpc-api</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
             <dependency>
-                <groupId>org.huel.cloudhub</groupId>
+                <groupId>tech.rollw.cloudhub</groupId>
                 <artifactId>cloudhub-client-rpc-api</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.huel.cloudhub</groupId>
-                <artifactId>cloudhub-service-config-loader</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
