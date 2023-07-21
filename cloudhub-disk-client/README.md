@@ -1,3 +1,0 @@
-# disk-client
-
-**THIS IS NOT A PART OF THE _CLOUDHUB_ PROJECT.**
