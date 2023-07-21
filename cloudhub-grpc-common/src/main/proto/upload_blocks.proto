@@ -3,7 +3,7 @@ syntax = "proto3";
 import "server.proto";
 
 option java_multiple_files = true;
-option java_package = "org.huel.cloudhub.file.rpc.block";
+option java_package = "org.cloudhub.file.rpc.block";
 option java_outer_classname = "UploadBlocksProtos";
 
 message UploadBlockData {

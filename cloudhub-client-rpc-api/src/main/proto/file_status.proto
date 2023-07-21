@@ -3,7 +3,7 @@ syntax = "proto3";
 import "server.proto";
 
 option java_multiple_files = true;
-option java_package = "org.huel.cloudhub.client.rpc.file";
+option java_package = "org.cloudhub.client.rpc.file";
 option java_outer_classname = "FileStatusProtos";
 
 message FileStatusRequest {

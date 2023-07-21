@@ -1,7 +1,7 @@
 syntax = "proto3";
 
 option java_multiple_files = true;
-option java_package = "org.huel.cloudhub.client.rpc.file";
+option java_package = "org.cloudhub.client.rpc.file";
 option java_outer_classname = "FileUploadProtos";
 
 message ClientFileUploadData {

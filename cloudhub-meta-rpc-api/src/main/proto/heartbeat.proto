@@ -3,7 +3,7 @@ syntax = "proto3";
 import "status.proto";
 
 option java_multiple_files = true;
-option java_package = "org.huel.cloudhub.server.rpc.heartbeat";
+option java_package = "org.cloudhub.server.rpc.heartbeat";
 option java_outer_classname = "HeartbeatProtos";
 
 message BlockProperties {
@@ -20,11 +20,12 @@ message Heartbeat {
   string host = 1;
   int32 port = 2;
   string id = 3;
+  optional int64 timestamp = 4;
   // when receive a response contains period from meta server,
   // the server should declare the period it now has.
-  optional int32 period = 4;
-  SerializedServerStatusCode status_code = 5;
-  optional SerializedServerStatusReport status = 6;
+  optional int32 period = 5;
+  SerializedServerStatusCode status_code = 6;
+  optional SerializedServerStatusReport status = 7;
 }
 
 message HeartbeatResponse {
