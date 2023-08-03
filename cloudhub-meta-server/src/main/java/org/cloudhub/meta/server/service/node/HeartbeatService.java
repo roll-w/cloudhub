@@ -21,11 +21,11 @@ package org.cloudhub.meta.server.service.node;
 
 import io.grpc.stub.StreamObserver;
 import org.cloudhub.fs.status.StatusKeys;
-import org.cloudhub.server.rpc.heartbeat.Heartbeat;
-import org.cloudhub.server.rpc.heartbeat.HeartbeatResponse;
-import org.cloudhub.server.rpc.heartbeat.HeartbeatServiceGrpc;
-import org.cloudhub.server.rpc.status.SerializedDamagedContainerReport;
-import org.cloudhub.server.rpc.status.SerializedServerStatusReport;
+import org.cloudhub.file.rpc.heartbeat.Heartbeat;
+import org.cloudhub.file.rpc.heartbeat.HeartbeatResponse;
+import org.cloudhub.file.rpc.heartbeat.HeartbeatServiceGrpc;
+import org.cloudhub.file.rpc.status.SerializedDamagedContainerReport;
+import org.cloudhub.file.rpc.status.SerializedServerStatusReport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;

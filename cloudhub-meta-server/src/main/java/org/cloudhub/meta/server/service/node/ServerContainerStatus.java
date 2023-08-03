@@ -19,7 +19,7 @@
 
 package org.cloudhub.meta.server.service.node;
 
-import org.cloudhub.server.rpc.status.SerializedDamagedContainerReport;
+import org.cloudhub.file.rpc.status.SerializedDamagedContainerReport;
 
 import java.util.List;
 

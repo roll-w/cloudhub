@@ -19,8 +19,8 @@
 
 package org.cloudhub.meta.server.service.node;
 
-import org.cloudhub.server.rpc.heartbeat.Heartbeat;
-import org.cloudhub.server.rpc.status.SerializedServerStatusCode;
+import org.cloudhub.file.rpc.heartbeat.Heartbeat;
+import org.cloudhub.file.rpc.status.SerializedServerStatusCode;
 
 /**
  * @author RollW

@@ -20,7 +20,7 @@
 package org.cloudhub.file.server.service;
 
 import org.cloudhub.file.diagnosis.Diagnosable;
-import org.cloudhub.server.rpc.status.SerializedDamagedContainerReport;
+import org.cloudhub.file.rpc.status.SerializedDamagedContainerReport;
 
 /**
  * @author RollW

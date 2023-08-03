@@ -27,7 +27,7 @@ import org.cloudhub.file.server.service.SourceServerGetter;
 import org.cloudhub.file.server.service.ContainerDiagnosable;
 import org.cloudhub.file.server.service.Monitorable;
 import org.cloudhub.file.server.service.SourceServerGetter;
-import org.cloudhub.server.rpc.heartbeat.HeartbeatResponse;
+import org.cloudhub.file.rpc.heartbeat.HeartbeatResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;

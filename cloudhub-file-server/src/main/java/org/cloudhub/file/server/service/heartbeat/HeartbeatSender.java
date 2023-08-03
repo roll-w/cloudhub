@@ -27,12 +27,12 @@ import org.cloudhub.file.server.service.SourceServerGetter;
 import org.cloudhub.fs.status.StatusKeys;
 import org.cloudhub.server.DiskUsageInfo;
 import org.cloudhub.server.ServerHostInfo;
-import org.cloudhub.server.rpc.heartbeat.Heartbeat;
-import org.cloudhub.server.rpc.heartbeat.HeartbeatResponse;
-import org.cloudhub.server.rpc.heartbeat.HeartbeatServiceGrpc;
-import org.cloudhub.server.rpc.status.SerializedDamagedContainerReport;
-import org.cloudhub.server.rpc.status.SerializedServerStatusCode;
-import org.cloudhub.server.rpc.status.SerializedServerStatusReport;
+import org.cloudhub.file.rpc.heartbeat.Heartbeat;
+import org.cloudhub.file.rpc.heartbeat.HeartbeatResponse;
+import org.cloudhub.file.rpc.heartbeat.HeartbeatServiceGrpc;
+import org.cloudhub.file.rpc.status.SerializedDamagedContainerReport;
+import org.cloudhub.file.rpc.status.SerializedServerStatusCode;
+import org.cloudhub.file.rpc.status.SerializedServerStatusReport;
 
 import java.util.HashMap;
 import java.util.List;

@@ -19,7 +19,7 @@
 
 package org.cloudhub.file.fs.container.validate;
 
-import org.cloudhub.server.rpc.status.SerializedContainerStatusCode;
+import org.cloudhub.file.rpc.status.SerializedContainerStatusCode;
 
 /**
  * When a group index lost or unreadable, still try to find container and

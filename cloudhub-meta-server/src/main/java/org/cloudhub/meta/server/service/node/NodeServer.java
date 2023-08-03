@@ -20,7 +20,7 @@
 package org.cloudhub.meta.server.service.node;
 
 import org.cloudhub.meta.server.service.node.util.ConsistentHashServerMap;
-import org.cloudhub.server.rpc.heartbeat.Heartbeat;
+import org.cloudhub.file.rpc.heartbeat.Heartbeat;
 
 /**
  * Represents a server node.

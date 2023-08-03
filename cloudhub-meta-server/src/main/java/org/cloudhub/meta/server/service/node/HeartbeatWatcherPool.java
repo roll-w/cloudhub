@@ -20,7 +20,7 @@
 package org.cloudhub.meta.server.service.node;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.cloudhub.server.rpc.heartbeat.Heartbeat;
+import org.cloudhub.file.rpc.heartbeat.Heartbeat;
 
 import java.util.Collection;
 import java.util.HashSet;
