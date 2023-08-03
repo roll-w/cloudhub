@@ -1,7 +1,7 @@
 syntax = "proto3";
 
 option java_multiple_files = true;
-option java_package = "org.cloudhub.server.rpc.status";
+option java_package = "org.cloudhub.file.rpc.status";
 option java_outer_classname = "StatusProtos";
 
 enum SerializedServerStatusCode {

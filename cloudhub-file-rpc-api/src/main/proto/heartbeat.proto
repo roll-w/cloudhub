@@ -1,9 +1,9 @@
 syntax = "proto3";
 
-import "status.proto";
+import "file_status.proto";
 
 option java_multiple_files = true;
-option java_package = "org.cloudhub.server.rpc.heartbeat";
+option java_package = "org.cloudhub.file.rpc.heartbeat";
 option java_outer_classname = "HeartbeatProtos";
 
 message BlockProperties {
@@ -25,7 +25,7 @@ message Heartbeat {
   // the server should declare the period it now has.
   optional int32 period = 5;
   SerializedServerStatusCode status_code = 6;
-  optional SerializedServerStatusReport status = 7;
+  SerializedServerStatusReport status = 7;
 }
 
 message HeartbeatResponse {

@@ -137,7 +137,7 @@
 
             <dependency>
                 <groupId>tech.rollw.cloudhub</groupId>
-                <artifactId>cloudhub-meta-rpc-api</artifactId>
+                <artifactId>cloudhub-file-rpc-api</artifactId>
                 <version>${project.version}</version>
             </dependency>
 

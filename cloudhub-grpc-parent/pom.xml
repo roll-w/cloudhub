@@ -32,7 +32,7 @@
     <packaging>pom</packaging>
     <modules>
         <module>../cloudhub-grpc-common</module>
-        <module>../cloudhub-meta-rpc-api</module>
+        <module>../cloudhub-file-rpc-api</module>
         <module>../cloudhub-client-rpc-api</module>
     </modules>
 
@@ -69,33 +69,11 @@
             <scope>provided</scope>
         </dependency>
     </dependencies>
-
     <build>
-        <extensions>
-            <extension>
-                <groupId>kr.motd.maven</groupId>
-                <artifactId>os-maven-plugin</artifactId>
-                <version>1.6.2</version>
-            </extension>
-        </extensions>
         <plugins>
             <plugin>
                 <groupId>org.xolstice.maven.plugins</groupId>
                 <artifactId>protobuf-maven-plugin</artifactId>
-                <configuration>
-                    <useArgumentFile>true</useArgumentFile>
-                    <pluginId>grpc-java</pluginId>
-                    <protocArtifact>com.google.protobuf:protoc:3.21.7:exe:${os.detected.classifier}</protocArtifact>
-                    <pluginArtifact>io.grpc:protoc-gen-grpc-java:1.50.1:exe:${os.detected.classifier}</pluginArtifact>
-                </configuration>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>compile</goal>
-                            <goal>compile-custom</goal>
-                        </goals>
-                    </execution>
-                </executions>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
