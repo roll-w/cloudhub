@@ -17,44 +17,42 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package org.cloudhub.meta.server.service.synchro;
+package org.cloudhub.meta.util;
 
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author RollW
  */
-public class SynchroTimer {
+public class ScheduledCountdownTimer {
     private final long countDown;
     private final Runnable task;
-    private Timer timer;
 
-    public SynchroTimer(long countDown,
-                        Runnable task) {
-        this.countDown = countDown;
+    public ScheduledCountdownTimer(long countDownInMillis,
+                                   Runnable task) {
+        this.countDown = countDownInMillis;
         this.task = task;
-        resetTimer();
     }
 
     public void reset() {
-        resetTimer();
     }
 
     public void stop() {
-        timer.cancel();
     }
 
     public void start() {
-        timer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                task.run();
-            }
-        }, countDown);
+        SCHEDULED_POOL.schedule(
+                task,
+                countDown,
+                TimeUnit.MILLISECONDS
+        );
     }
 
-    private void resetTimer() {
-        timer = new Timer("SynchroTimer");
-    }
+    private static final ScheduledExecutorService SCHEDULED_POOL =
+            Executors.newScheduledThreadPool(
+                    Runtime.getRuntime().availableProcessors() * 2
+            );
+
 }

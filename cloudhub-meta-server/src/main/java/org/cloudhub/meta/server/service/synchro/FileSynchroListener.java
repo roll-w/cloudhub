@@ -28,6 +28,7 @@ import org.cloudhub.meta.server.service.node.NodeAllocator;
 import org.cloudhub.meta.server.service.node.FileNodeServer;
 import org.cloudhub.meta.server.service.node.ServerChecker;
 import org.cloudhub.meta.server.service.node.ServerEventRegistry;
+import org.cloudhub.meta.util.ScheduledCountdownTimer;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -65,24 +66,22 @@ public class FileSynchroListener implements ServerEventRegistry.ServerEventCallb
     }
 
     @Override
-    public void removeActiveServer(NodeServer nodeServer) {
-        SynchroTimer timer = synchroTimerMap.get(nodeServer);
     public void removeActiveServer(FileNodeServer nodeServer) {
+        ScheduledCountdownTimer timer = synchroTimerMap.get(nodeServer);
         if (timer != null) {
             timer.stop();
             timer.reset();
         }
         if (timer == null) {
-            timer = new SynchroTimer(1000 * 60 * 5, new SynchroTask(nodeServer));
+            timer = new ScheduledCountdownTimer(1000 * 60 * 5, new SynchroTask(nodeServer));
             synchroTimerMap.put(nodeServer, timer);
         }
         timer.start();
     }
 
     @Override
-    public void addActiveServer(NodeServer nodeServer) {
-        SynchroTimer timer = synchroTimerMap.get(nodeServer);
     public void addActiveServer(FileNodeServer nodeServer) {
+        ScheduledCountdownTimer timer = synchroTimerMap.get(nodeServer);
         if (timer == null) {
             return;
         }
