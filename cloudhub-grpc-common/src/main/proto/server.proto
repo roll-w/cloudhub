@@ -12,8 +12,8 @@ message SerializedFileServer {
 
 message SerializedCpuUsageInfo {
   int32 cpu_cores = 1;
-  double sysUsed = 2;
-  double userUsed = 3;
+  double sys_used = 2;
+  double user_used = 3;
   double wait = 4;
   double free = 5;
 }
@@ -44,16 +44,16 @@ message SerializedNetworkUsageInfo {
 }
 
 message SerializedRuntimeEnvironment {
-  string hostName = 1;
-  string hostAddress = 2;
-  string runUser = 3;
-  string userHome = 4;
-  string workDir = 5;
-  string javaVersion = 6;
-  string javaHome = 7;
-  string osName = 8;
-  string osVersion = 9;
-  string osArch = 10;
+  string host_name = 1;
+  string host_address = 2;
+  string run_user = 3;
+  string user_home = 4;
+  string work_dir = 5;
+  string java_version = 6;
+  string java_home = 7;
+  string os_name = 8;
+  string os_version = 9;
+  string os_arch = 10;
 }
 
 message SerializedServerStatus {

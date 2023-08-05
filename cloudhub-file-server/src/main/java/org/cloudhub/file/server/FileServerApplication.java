@@ -61,7 +61,6 @@ public class FileServerApplication {
 
         Map<String, Object> overrideProperties = new HashMap<>();
 
-        overrideProperties.put("logging.level.org.huel.cloudhub", logLevel);
         overrideProperties.put("logging.level.org.cloudhub", logLevel);
 
         logToFile(args, overrideProperties, loader);

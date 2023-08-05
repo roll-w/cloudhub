@@ -53,7 +53,6 @@ public class MetaServerApplication {
 
         Map<String, Object> overrideProperties = new HashMap<>();
 
-        overrideProperties.put("logging.level.org.huel.cloudhub", logLevel);
         overrideProperties.put("logging.level.org.cloudhub", logLevel);
 
         logToFile(args, overrideProperties, loader);
@@ -102,5 +101,4 @@ public class MetaServerApplication {
     public void stopServer() {
         server.shutdown();
     }
-
 }
