@@ -20,10 +20,8 @@
 package org.cloudhub.file.server.configuration;
 
 import org.cloudhub.file.server.service.SourceServerGetter;
-import org.cloudhub.file.server.service.id.ServerIdService;
-import org.cloudhub.file.server.service.SourceServerGetter;
-import org.cloudhub.file.server.service.id.ServerIdService;
 import org.cloudhub.rpc.GrpcProperties;
+import org.cloudhub.server.ServerIdentifiable;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -40,14 +38,14 @@ import java.util.Enumeration;
 public class ServerInfoConfiguration implements SourceServerGetter {
     private final ServerInfo serverInfo;
 
-
-
-    public ServerInfoConfiguration(ServerIdService serverIdService,
+    public ServerInfoConfiguration(ServerIdentifiable serverIdentifiable,
                                    GrpcProperties grpcProperties)
             throws UnknownHostException {
-        this.serverInfo = new ServerInfo(serverIdService.getServerId(),
+        this.serverInfo = new ServerInfo(
+                serverIdentifiable.getServerId(),
                 localhostInetAddress().getHostAddress(),
-                grpcProperties.getPort());
+                grpcProperties.getPort()
+        );
     }
 
     @Override
@@ -60,8 +58,8 @@ public class ServerInfoConfiguration implements SourceServerGetter {
         InetAddress candidateAddress = null;
         Enumeration<NetworkInterface> networkInterfaces = NetworkInterface.getNetworkInterfaces();
         while (networkInterfaces.hasMoreElements()) {
-            NetworkInterface iface = networkInterfaces.nextElement();
-            for (Enumeration<InetAddress> inetAddrs = iface.getInetAddresses(); inetAddrs.hasMoreElements(); ) {
+            NetworkInterface ni = networkInterfaces.nextElement();
+            for (Enumeration<InetAddress> inetAddrs = ni.getInetAddresses(); inetAddrs.hasMoreElements(); ) {
                 InetAddress inetAddr = inetAddrs.nextElement();
                 if (inetAddr.isLoopbackAddress()) {
                     continue;
