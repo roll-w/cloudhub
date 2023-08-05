@@ -17,16 +17,19 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package org.cloudhub.file.server.service.id;
+package org.cloudhub.meta.server.service.id;
 
 import com.google.common.io.Files;
 import org.cloudhub.file.CleanProperties;
-import org.cloudhub.file.fs.container.ContainerProperties;
+import org.cloudhub.meta.server.configuration.FileProperties;
 import org.cloudhub.server.ServerIdentifiable;
 import org.cloudhub.server.ServerInitializeException;
 import org.springframework.stereotype.Service;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.Reader;
+import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.util.Properties;
 import java.util.UUID;
@@ -35,30 +38,29 @@ import java.util.UUID;
  * @author RollW
  */
 @Service
-public class FileServerIdService implements ServerIdentifiable {
+public class MetaServerIdInitializer implements ServerIdentifiable {
+    public static final String FILE_NAME = "ID_VERSION";
+    private static final String COMMENT = "Cloudhub Meta Server ID, DO NOT MODIFY IT!";
+
+    private final FileProperties fileProperties;
+    private final Properties properties = new CleanProperties();
+
     private final UUID uuid;
     private final String uuidString;
 
-    private final ContainerProperties containerProperties;
-    private final Properties properties = new CleanProperties();
-
-    public static final String FILE_NAME = "ID_VERSION";
-
-    private static final String COMMENT = "Cloudhub File Server ID, DO NOT MODIFY IT!";
-
-    public FileServerIdService(ContainerProperties containerProperties)
+    public MetaServerIdInitializer(FileProperties fileProperties)
             throws IOException, ServerInitializeException {
-        this.containerProperties = containerProperties;
+        this.fileProperties = fileProperties;
         uuid = initialId();
         uuidString = uuid.toString();
     }
 
     private UUID initialId() throws IOException, ServerInitializeException {
-        File file = new File(containerProperties.getFilePath(), FILE_NAME);
+        File file = new File(fileProperties.getDataPath(), FILE_NAME);
         if (!file.exists()) {
             file.createNewFile();
             UUID uid = UUID.randomUUID();
-            properties.setProperty(FILE_ID_KEY, uid.toString());
+            properties.setProperty(META_ID_KEY, uid.toString());
             persistProperties();
             return uid;
         }
@@ -66,24 +68,16 @@ public class FileServerIdService implements ServerIdentifiable {
                 .openBufferedStream()) {
             properties.load(reader);
         }
-        if (properties.containsKey(META_ID_KEY)) {
+        if (properties.containsKey(FILE_ID_KEY)) {
             throw new ServerInitializeException(
-                    "meta-server id found in ID_VERSION, it is incompatible with the file-server," +
-                            " set another path for file server data. Path: " +
-                            containerProperties.getFilePath() + "/" + FILE_NAME + ", mid: " +
-                            properties.getProperty(META_ID_KEY)
+                    "file-server id found in ID_VERSION, it is incompatible with the meta-server," +
+                            " set another path for meta-server data. Path: " +
+                            fileProperties.getDataPath() + "/" + FILE_NAME + ", fid: " +
+                            properties.getProperty(FILE_ID_KEY)
             );
         }
-        String id = properties.getProperty(FILE_ID_KEY);
+        String id = properties.getProperty(META_ID_KEY);
         return UUID.fromString(id);
-    }
-
-    private void persistProperties() throws IOException {
-        File file = new File(containerProperties.getFilePath(), FILE_NAME);
-        try (Writer writer = Files.asCharSink(file, StandardCharsets.UTF_8)
-                .openBufferedStream()) {
-            properties.store(writer, COMMENT);
-        }
     }
 
     @Override
@@ -91,7 +85,15 @@ public class FileServerIdService implements ServerIdentifiable {
         return uuidString;
     }
 
-    public UUID getServerUuid() {
+    public UUID getUuid() {
         return uuid;
+    }
+
+    private void persistProperties() throws IOException {
+        File file = new File(fileProperties.getDataPath(), FILE_NAME);
+        try (Writer writer = Files.asCharSink(file, StandardCharsets.UTF_8)
+                .openBufferedStream()) {
+            properties.store(writer, COMMENT);
+        }
     }
 }
