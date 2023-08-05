@@ -25,7 +25,7 @@ import org.cloudhub.meta.server.data.database.repository.FileStorageLocationRepo
 import org.cloudhub.meta.server.data.entity.FileStorageLocation;
 import org.cloudhub.meta.server.service.node.HeartbeatService;
 import org.cloudhub.meta.server.service.node.NodeAllocator;
-import org.cloudhub.meta.server.service.node.NodeServer;
+import org.cloudhub.meta.server.service.node.FileNodeServer;
 import org.cloudhub.meta.server.service.node.ServerChecker;
 import org.cloudhub.meta.server.service.node.ServerEventRegistry;
 
@@ -47,7 +47,7 @@ public class FileSynchroListener implements ServerEventRegistry.ServerEventCallb
     private final NodeAllocator nodeAllocator;
     private final ServerChecker serverChecker;
 
-    private final Map<NodeServer, SynchroTimer>
+    private final Map<FileNodeServer, ScheduledCountdownTimer>
             synchroTimerMap = new ConcurrentHashMap<>();
 
     public FileSynchroListener(FileStorageLocationRepository fileRepository,
@@ -60,13 +60,14 @@ public class FileSynchroListener implements ServerEventRegistry.ServerEventCallb
     }
 
     @Override
-    public void registerServer(NodeServer server) {
+    public void registerServer(FileNodeServer server) {
         // do nothing.
     }
 
     @Override
     public void removeActiveServer(NodeServer nodeServer) {
         SynchroTimer timer = synchroTimerMap.get(nodeServer);
+    public void removeActiveServer(FileNodeServer nodeServer) {
         if (timer != null) {
             timer.stop();
             timer.reset();
@@ -81,6 +82,7 @@ public class FileSynchroListener implements ServerEventRegistry.ServerEventCallb
     @Override
     public void addActiveServer(NodeServer nodeServer) {
         SynchroTimer timer = synchroTimerMap.get(nodeServer);
+    public void addActiveServer(FileNodeServer nodeServer) {
         if (timer == null) {
             return;
         }
@@ -88,9 +90,9 @@ public class FileSynchroListener implements ServerEventRegistry.ServerEventCallb
     }
 
     private class SynchroTask implements Runnable {
-        private final NodeServer nodeServer;
+        private final FileNodeServer nodeServer;
 
-        private SynchroTask(NodeServer nodeServer) {
+        private SynchroTask(FileNodeServer nodeServer) {
             this.nodeServer = nodeServer;
         }
 
@@ -100,10 +102,10 @@ public class FileSynchroListener implements ServerEventRegistry.ServerEventCallb
             if (lostFileParts.isEmpty()) {
                 return;
             }
-            Multimap<NodeServer, FileParts> serverMap =
+            Multimap<FileNodeServer, FileParts> serverMap =
                     Multimaps.newSetMultimap(new ConcurrentHashMap<>(), ConcurrentHashMap::newKeySet);
             for (FileParts lostFilePart : lostFileParts) {
-                NodeServer server = nodeAllocator.allocateNode(lostFilePart.fileId());
+                FileNodeServer server = nodeAllocator.allocateNode(lostFilePart.fileId());
                 if (server == null) {
                     continue;
                 }
@@ -124,7 +126,7 @@ public class FileSynchroListener implements ServerEventRegistry.ServerEventCallb
                     fileRepository.getLocationsByServerId(nodeServer.getId());
             List<FileParts> fileParts = new ArrayList<>();
             for (FileStorageLocation location : locations) {
-                List<NodeServer> activeReplicas =
+                List<FileNodeServer> activeReplicas =
                         location.getServerList()
                                 .stream()
                                 .filter(serverChecker::isActive)
@@ -146,7 +148,7 @@ public class FileSynchroListener implements ServerEventRegistry.ServerEventCallb
     private record FileParts(
             String fileId,
             String source,
-            List<NodeServer> activeReplicas) {
+            List<FileNodeServer> activeReplicas) {
     }
 
 

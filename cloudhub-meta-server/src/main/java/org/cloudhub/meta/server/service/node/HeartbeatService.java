@@ -82,7 +82,7 @@ public class HeartbeatService extends HeartbeatServiceGrpc.HeartbeatServiceImplB
                             .setPeriod(heartbeatServerProperties.getStandardPeriod())
                             .build()
             );
-            NodeServer nodeServer = NodeServer.fromHeartbeat(request);
+            FileNodeServer nodeServer = FileNodeServer.fromHeartbeat(request);
             heartbeatWatcherPool.pushNodeServerWatcher(nodeServer);
 
             responseObserver.onCompleted();
@@ -147,7 +147,7 @@ public class HeartbeatService extends HeartbeatServiceGrpc.HeartbeatServiceImplB
         return heartbeatWatcherPool.activeWatchers();
     }
 
-    public Collection<NodeServer> activeServers() {
+    public Collection<FileNodeServer> activeServers() {
         return heartbeatWatcherPool.getActiveServers();
     }
 
@@ -156,7 +156,7 @@ public class HeartbeatService extends HeartbeatServiceGrpc.HeartbeatServiceImplB
     }
 
     @Override
-    public int getWeightOf(NodeServer nodeServer) {
+    public int getWeightOf(FileNodeServer nodeServer) {
         Integer weight = weightMap.get(nodeServer.getId());
         if (weight == null) {
             return 1;
@@ -190,7 +190,7 @@ public class HeartbeatService extends HeartbeatServiceGrpc.HeartbeatServiceImplB
 
     @Override
     public List<SerializedDamagedContainerReport> getDamagedContainerReports(
-            NodeServer nodeServer) {
+            FileNodeServer nodeServer) {
         return nodeDamagedContainerReports.get(nodeServer.getId());
     }
 
@@ -205,16 +205,16 @@ public class HeartbeatService extends HeartbeatServiceGrpc.HeartbeatServiceImplB
     }
 
     @Override
-    public void registerServer(NodeServer server) {
+    public void registerServer(FileNodeServer server) {
     }
 
     @Override
-    public void removeActiveServer(NodeServer nodeServer) {
+    public void removeActiveServer(FileNodeServer nodeServer) {
         nodeDamagedContainerReports.remove(nodeServer.getId());
         weightMap.put(nodeServer.getId(), 0);
     }
 
     @Override
-    public void addActiveServer(NodeServer nodeServer) {
+    public void addActiveServer(FileNodeServer nodeServer) {
     }
 }

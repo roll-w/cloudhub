@@ -70,6 +70,7 @@ public class FileUploadService {
 
     public FileUploadService(HeartbeatService heartbeatService,
                              FileProperties fileProperties,
+                             NodeChannelPool nodeChannelPool,
                              FileStorageLocationRepository storageLocationRepository,
                              MasterReplicaLocationRepository masterReplicaLocationRepository,
                              GrpcProperties grpcProperties) {
@@ -77,7 +78,7 @@ public class FileUploadService {
         this.fileProperties = fileProperties;
         this.storageLocationRepository = storageLocationRepository;
         this.masterReplicaLocationRepository = masterReplicaLocationRepository;
-        this.nodeChannelPool = new NodeChannelPool(grpcProperties);
+        this.nodeChannelPool = nodeChannelPool;
         this.grpcProperties = grpcProperties;
         this.serverChecker = heartbeatService.getServerChecker();
         this.blockUploadServiceStubPool = new GrpcServiceStubPool<>();
@@ -157,7 +158,7 @@ public class FileUploadService {
         logger.debug("Calc: length={};maxBlocksValue={};blockSizeInBytes={};maxUploadBlockCount={};requestCount={};validBytes={}",
                 length, maxBlocksValue, blockSizeInBytes, maxUploadBlockCount, requestCount, validBytes);
 
-        NodeServer master = nodeAllocator.allocateNode(hash);
+        FileNodeServer master = nodeAllocator.allocateNode(hash);
         BlockUploadServiceGrpc.BlockUploadServiceStub stub =
                 requiredBlockUploadServiceStub(master);
         if (stub == null) {
@@ -170,7 +171,7 @@ public class FileUploadService {
             return;
         }
 
-        List<SerializedFileServer> servers = allocateSerializedReplicaServers(hash, master.id());
+        List<SerializedFileServer> servers = allocateSerializedReplicaServers(hash, master.getId());
         UploadBlocksRequest firstRequest = buildFirstRequest(hash, "", validBytes,
                 length, requestCount,
                 servers);
@@ -183,23 +184,23 @@ public class FileUploadService {
         StreamObserver<UploadBlocksRequest> requestStreamObserver = stub.uploadBlocks(
                 responseStreamObserver);
         responseStreamObserver.setRequestStreamObserver(requestStreamObserver);
-        logger.debug("Start requesting for {}, server id={}......", hash, master.id());
+        logger.debug("Start requesting for {}, server id={}......", hash, master.getId());
         requestStreamObserver.onNext(firstRequest);
     }
 
-    private BlockUploadServiceGrpc.BlockUploadServiceStub requiredBlockUploadServiceStub(NodeServer nodeServer) {
+    private BlockUploadServiceGrpc.BlockUploadServiceStub requiredBlockUploadServiceStub(FileNodeServer nodeServer) {
         ManagedChannel channel = nodeChannelPool.getChannel(nodeServer);
         if (channel == null) {
             return null;
         }
 
         BlockUploadServiceGrpc.BlockUploadServiceStub stub =
-                blockUploadServiceStubPool.getStub(nodeServer.id());
+                blockUploadServiceStubPool.getStub(nodeServer.getId());
         if (stub != null) {
             return stub;
         }
         stub = BlockUploadServiceGrpc.newStub(channel);
-        blockUploadServiceStubPool.registerStub(nodeServer.id(), stub);
+        blockUploadServiceStubPool.registerStub(nodeServer.getId(), stub);
         return stub;
     }
 
@@ -270,7 +271,7 @@ public class FileUploadService {
     }
 
     private class UploadBlocksResponseStreamObserver implements StreamObserver<UploadBlocksResponse> {
-        private final NodeServer master;
+        private final FileNodeServer master;
         private final List<String> replicaIds;
         private final FileUploadStatusCallback callback;
         private final InputStream stream;
@@ -288,7 +289,7 @@ public class FileUploadService {
 
         UploadBlocksResponseStreamObserver(String fileId,
                                            InputStream stream,
-                                           NodeServer master,
+                                           FileNodeServer master,
                                            List<SerializedFileServer> replicas,
                                            FileUploadStatusCallback callback,
                                            int maxUploadBlockCount,
@@ -364,7 +365,7 @@ public class FileUploadService {
             }
 
             // success upload.
-            updatesFileObjectLocation(fileId, master.id(), replicaIds);
+            updatesFileObjectLocation(fileId, master.getId(), replicaIds);
             if (callback != null) {
                 callback.onNextStatus(FileObjectUploadStatus.SYNCING);
             }
@@ -407,7 +408,7 @@ public class FileUploadService {
 
     private List<SerializedFileServer> allocateSerializedReplicaServers(String hash, String masterId) {
         int replicas = calcReplicas();
-        List<NodeServer> replicaServers = allocatesReplicaServers(hash, replicas, masterId);
+        List<FileNodeServer> replicaServers = allocatesReplicaServers(hash, replicas, masterId);
         logger.debug("Allocate replicas = {}", replicaServers);
         if (replicaServers.isEmpty()) {
             return List.of();
@@ -451,27 +452,27 @@ public class FileUploadService {
     }
 
     // finds replica servers.
-    private List<NodeServer> allocatesReplicaServers(String hash, int replicas, String masterId) {
+    private List<FileNodeServer> allocatesReplicaServers(String hash, int replicas, String masterId) {
         if (replicas <= 0) {
             return List.of();
         }
         Set<String> ids = new HashSet<>();
         ids.add(masterId);
-        List<NodeServer> servers = new ArrayList<>();
+        List<FileNodeServer> servers = new ArrayList<>();
         int reps = replicas, retries = 0;
         for (int i = 0; i < reps; i++) {
-            NodeServer server =
+            FileNodeServer server =
                     nodeAllocator.allocateNode(hash + "-" + i);
             if (retries >= 20) {
                 // still cannot allocate given replicas count after 20 tries.
                 return servers;
             }
-            if (ids.contains(server.id())) {
+            if (ids.contains(server.getId())) {
                 reps++;
                 retries++;
                 continue;
             }
-            ids.add(server.id());
+            ids.add(server.getId());
             servers.add(server);
             if (servers.size() == replicas) {
                 break;

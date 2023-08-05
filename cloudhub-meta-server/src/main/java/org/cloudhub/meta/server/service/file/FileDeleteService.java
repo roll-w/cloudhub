@@ -70,10 +70,10 @@ public class FileDeleteService {
         List<SerializedFileServer> replicaServers = buildReplicaServers(replicas);
         if (!serverChecker.isActive(master)) {
             return;
-            // If master dead, we cannot to know how to delete it.
+            // If the master dead, we cannot to know how to delete it.
         }
         logger.debug("Master active, delete fileId={}", fileId);
-        NodeServer server = nodeAllocator.findNodeServer(master);
+        FileNodeServer server = nodeAllocator.findNodeServer(master);
         BlockDeleteServiceGrpc.BlockDeleteServiceStub stub =
                 requireStub(server);
         DeleteBlocksRequest request = DeleteBlocksRequest.newBuilder()
@@ -114,25 +114,25 @@ public class FileDeleteService {
 
 
     private List<SerializedFileServer> buildReplicaServers(String[] replicas) {
-        List<NodeServer> nodeServers = new ArrayList<>();
+        List<FileNodeServer> nodeServers = new ArrayList<>();
         for (String replica : replicas) {
             if (serverChecker.isActive(replica)) {
-                NodeServer server = nodeAllocator.findNodeServer(replica);
+                FileNodeServer server = nodeAllocator.findNodeServer(replica);
                 nodeServers.add(server);
             }
         }
         return RequestServer.toSerialized(nodeServers);
     }
 
-    private BlockDeleteServiceGrpc.BlockDeleteServiceStub requireStub(NodeServer server) {
+    private BlockDeleteServiceGrpc.BlockDeleteServiceStub requireStub(FileNodeServer server) {
         ManagedChannel channel = nodeChannelPool.getChannel(server);
         BlockDeleteServiceGrpc.BlockDeleteServiceStub stub =
-                blockDeleteServiceStubPool.getStub(server.id());
+                blockDeleteServiceStubPool.getStub(server.getId());
         if (stub != null) {
             return stub;
         }
         stub = BlockDeleteServiceGrpc.newStub(channel);
-        blockDeleteServiceStubPool.registerStub(server.id(), stub);
+        blockDeleteServiceStubPool.registerStub(server.getId(), stub);
         return stub;
     }
 

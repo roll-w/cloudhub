@@ -24,7 +24,7 @@ import org.cloudhub.meta.server.data.database.repository.FileStorageLocationRepo
 import org.cloudhub.meta.server.data.entity.FileStorageLocation;
 import org.cloudhub.meta.server.service.node.HeartbeatService;
 import org.cloudhub.meta.server.service.node.NodeAllocator;
-import org.cloudhub.meta.server.service.node.NodeServer;
+import org.cloudhub.meta.server.service.node.FileNodeServer;
 import org.cloudhub.meta.server.service.node.ServerChecker;
 import org.cloudhub.server.rpc.server.SerializedFileServer;
 import org.cloudhub.client.rpc.file.FileAllocateRequest;
@@ -32,13 +32,6 @@ import org.cloudhub.client.rpc.file.FileAllocateResponse;
 import org.cloudhub.client.rpc.file.FileStatusRequest;
 import org.cloudhub.client.rpc.file.FileStatusResponse;
 import org.cloudhub.client.rpc.file.FileStatusServiceGrpc;
-import org.cloudhub.meta.server.data.database.repository.FileStorageLocationRepository;
-import org.cloudhub.meta.server.data.entity.FileStorageLocation;
-import org.cloudhub.meta.server.service.node.HeartbeatService;
-import org.cloudhub.meta.server.service.node.NodeAllocator;
-import org.cloudhub.meta.server.service.node.NodeServer;
-import org.cloudhub.meta.server.service.node.ServerChecker;
-import org.cloudhub.server.rpc.server.SerializedFileServer;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -112,7 +105,7 @@ public class FileStatusService extends FileStatusServiceGrpc.FileStatusServiceIm
             if (!serverChecker.isActive(s)) {
                 continue;
             }
-            NodeServer server = nodeAllocator.findNodeServer(s);
+            FileNodeServer server = nodeAllocator.findNodeServer(s);
             if (server == null) {
                 continue;
             }

@@ -25,7 +25,6 @@ import org.cloudhub.file.rpc.block.*;
 import org.cloudhub.meta.server.data.database.repository.FileStorageLocationRepository;
 import org.cloudhub.meta.server.data.entity.FileStorageLocation;
 import org.cloudhub.meta.server.service.node.*;
-import org.cloudhub.rpc.GrpcProperties;
 import org.cloudhub.rpc.GrpcServiceStubPool;
 import org.cloudhub.rpc.StatusHelper;
 import org.cloudhub.rpc.StreamObserverWrapper;
@@ -55,11 +54,11 @@ public class FileDownloadService {
 
     public FileDownloadService(HeartbeatService heartbeatService,
                                FileStorageLocationRepository repository,
-                               GrpcProperties grpcProperties) {
+                               NodeChannelPool nodeChannelPool) {
         this.nodeAllocator = heartbeatService.getNodeAllocator();
         this.serverChecker = heartbeatService.getServerChecker();
         this.repository = repository;
-        this.nodeChannelPool = new NodeChannelPool(grpcProperties);
+        this.nodeChannelPool = nodeChannelPool;
         this.blockDownloadServiceStubPool = new GrpcServiceStubPool<>();
     }
 
@@ -104,15 +103,15 @@ public class FileDownloadService {
                 .build();
     }
 
-    private BlockDownloadServiceGrpc.BlockDownloadServiceStub requireStub(NodeServer server) {
+    private BlockDownloadServiceGrpc.BlockDownloadServiceStub requireStub(FileNodeServer server) {
         ManagedChannel channel = nodeChannelPool.getChannel(server);
         BlockDownloadServiceGrpc.BlockDownloadServiceStub stub =
-                blockDownloadServiceStubPool.getStub(server.id());
+                blockDownloadServiceStubPool.getStub(server.getId());
         if (stub != null) {
             return stub;
         }
         stub = BlockDownloadServiceGrpc.newStub(channel);
-        blockDownloadServiceStubPool.registerStub(server.id(), stub);
+        blockDownloadServiceStubPool.registerStub(server.getId(), stub);
         return stub;
     }
 
@@ -125,7 +124,7 @@ public class FileDownloadService {
             if (!serverChecker.isActive(id)) {
                 return;
             }
-            NodeServer server = nodeAllocator.findNodeServer(id);
+            FileNodeServer server = nodeAllocator.findNodeServer(id);
             if (server == null) {
                 return;
             }

@@ -27,7 +27,7 @@ import java.util.List;
  * @author RollW
  */
 public interface ContainerStatusProvider {
-    List<SerializedDamagedContainerReport> getDamagedContainerReports(NodeServer nodeServer);
+    List<SerializedDamagedContainerReport> getDamagedContainerReports(FileNodeServer nodeServer);
 
     List<ServerContainerStatus> getDamagedContainerReports();
 

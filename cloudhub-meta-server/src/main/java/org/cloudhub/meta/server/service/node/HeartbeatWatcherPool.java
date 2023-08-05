@@ -68,7 +68,7 @@ public final class HeartbeatWatcherPool implements ServerChecker, ServerEventReg
         callAddActiveServer(heartbeatWatcher.getNodeServer());
     }
 
-    public void pushNodeServerWatcher(NodeServer nodeServer) {
+    public void pushNodeServerWatcher(FileNodeServer nodeServer) {
 
         pushWatcher(
                 new HeartbeatWatcher(nodeServer, timeoutTime, System.currentTimeMillis())
@@ -97,14 +97,14 @@ public final class HeartbeatWatcherPool implements ServerChecker, ServerEventReg
     }
 
     @Override
-    public Collection<NodeServer> getActiveServers() {
+    public Collection<FileNodeServer> getActiveServers() {
         return activeWatchers().stream()
                 .map(HeartbeatWatcher::getNodeServer)
                 .toList();
     }
 
     @Override
-    public Collection<NodeServer> getDeadServers() {
+    public Collection<FileNodeServer> getDeadServers() {
         return deadWatchers().stream()
                 .map(HeartbeatWatcher::getNodeServer)
                 .toList();
@@ -116,11 +116,11 @@ public final class HeartbeatWatcherPool implements ServerChecker, ServerEventReg
     }
 
     @Override
-    public boolean isActive(@Nullable NodeServer nodeServer) {
+    public boolean isActive(@Nullable FileNodeServer nodeServer) {
         if (nodeServer == null) {
             return false;
         }
-        return isActive(nodeServer.id());
+        return isActive(nodeServer.getId());
     }
 
     @Override
@@ -159,6 +159,7 @@ public final class HeartbeatWatcherPool implements ServerChecker, ServerEventReg
         @Override
         public void run() {
             long time = System.currentTimeMillis();
+            // check received file-server pushed heartbeats.
             heartbeatWatchers.values().stream().parallel().forEach(heartbeatWatcher -> {
                 if (heartbeatWatcher.isTimeoutOrError(time)) {
                     setDeadWatcher(heartbeatWatcher);
@@ -204,17 +205,17 @@ public final class HeartbeatWatcherPool implements ServerChecker, ServerEventReg
     final ScheduledExecutorService service =
             Executors.newSingleThreadScheduledExecutor();
 
-    private void callAddActiveServer(NodeServer nodeServer) {
+    private void callAddActiveServer(FileNodeServer nodeServer) {
         serverEventCallbacks.forEach(callback ->
                 callback.addActiveServer(nodeServer));
     }
 
-    private void callRemoveActiveServer(NodeServer nodeServer) {
+    private void callRemoveActiveServer(FileNodeServer nodeServer) {
         serverEventCallbacks.forEach(callback ->
                 callback.removeActiveServer(nodeServer));
     }
 
-    private void callRegisterServer(NodeServer nodeServer) {
+    private void callRegisterServer(FileNodeServer nodeServer) {
         serverEventCallbacks.forEach(callback ->
                 callback.registerServer(nodeServer));
     }

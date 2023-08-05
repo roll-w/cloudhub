@@ -27,13 +27,13 @@ import java.util.Collection;
  * @author RollW
  */
 public interface ServerChecker {
-    Collection<NodeServer> getActiveServers();
+    Collection<FileNodeServer> getActiveServers();
 
-    Collection<NodeServer> getDeadServers();
+    Collection<FileNodeServer> getDeadServers();
 
     int getActiveServerCount();
 
-    boolean isActive(@Nullable NodeServer nodeServer);
+    boolean isActive(@Nullable FileNodeServer nodeServer);
 
     boolean isActive(@Nullable String serverId);
 }

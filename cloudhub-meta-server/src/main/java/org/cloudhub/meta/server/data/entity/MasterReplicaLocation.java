@@ -26,7 +26,7 @@ import space.lingu.light.PrimaryKey;
 /**
  * @author RollW
  */
-@DataTable(tableName = "master_replica_location_table")
+@DataTable(name = "master_replica_location_table")
 public class MasterReplicaLocation {
     @DataColumn(name = "container_id")
     @PrimaryKey

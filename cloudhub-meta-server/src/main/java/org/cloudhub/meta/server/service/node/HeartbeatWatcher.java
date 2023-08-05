@@ -26,13 +26,13 @@ import org.cloudhub.file.rpc.status.SerializedServerStatusCode;
  * @author RollW
  */
 public class HeartbeatWatcher {
-    private final NodeServer nodeServer;
+    private final FileNodeServer nodeServer;
     private final int timeoutTime;
     private volatile long lastHeartbeat;
     private volatile SerializedServerStatusCode statusCode;
     private static final int TIMEOUT_COMPENSATION = 1000;
 
-    public HeartbeatWatcher(NodeServer nodeServer, int timeoutTime, long initialTime) {
+    public HeartbeatWatcher(FileNodeServer nodeServer, int timeoutTime, long initialTime) {
         this.nodeServer = nodeServer;
         this.timeoutTime = timeoutTime;
         lastHeartbeat = initialTime;
@@ -59,10 +59,10 @@ public class HeartbeatWatcher {
     }
 
     public String getServerId() {
-        return nodeServer.id();
+        return nodeServer.getId();
     }
 
-    public NodeServer getNodeServer() {
+    public FileNodeServer getNodeServer() {
         return nodeServer;
     }
 

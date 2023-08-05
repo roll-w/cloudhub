@@ -20,20 +20,18 @@
 package org.cloudhub.meta.server.service.node;
 
 import io.grpc.ManagedChannel;
-import io.grpc.ManagedChannelBuilder;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.cloudhub.rpc.GrpcChannelPool;
 import org.cloudhub.rpc.GrpcChannelPool;
 import org.cloudhub.rpc.GrpcProperties;
 
 import java.util.concurrent.TimeUnit;
 
 /**
- * Manage gRPC channels through {@link NodeServer}.
+ * Manage gRPC channels through {@link FileNodeServer}.
  *
  * @author RollW
  */
-public class NodeChannelPool extends GrpcChannelPool<NodeServer>
+public class NodeChannelPool extends GrpcChannelPool<FileNodeServer>
         implements ServerEventRegistry.ServerEventCallback {
     private final GrpcProperties grpcProperties;
 
@@ -53,16 +51,16 @@ public class NodeChannelPool extends GrpcChannelPool<NodeServer>
     }
 
     @Override
-    public void registerServer(NodeServer server) {
+    public void registerServer(FileNodeServer server) {
     }
 
     @Override
-    public void removeActiveServer(NodeServer nodeServer) {
+    public void removeActiveServer(FileNodeServer nodeServer) {
         disconnect(nodeServer);
     }
 
     @Override
-    public void addActiveServer(NodeServer nodeServer) {
+    public void addActiveServer(FileNodeServer nodeServer) {
         establish(nodeServer);
     }
 }

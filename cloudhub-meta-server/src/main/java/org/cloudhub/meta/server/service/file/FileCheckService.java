@@ -19,9 +19,7 @@
 
 package org.cloudhub.meta.server.service.file;
 
-import org.cloudhub.meta.server.service.node.NodeServer;
-import org.cloudhub.meta.server.service.node.ServerEventRegistry;
-import org.cloudhub.meta.server.service.node.NodeServer;
+import org.cloudhub.meta.server.service.node.FileNodeServer;
 import org.cloudhub.meta.server.service.node.ServerEventRegistry;
 import org.springframework.stereotype.Service;
 
@@ -36,18 +34,18 @@ public class FileCheckService implements ServerEventRegistry.ServerEventCallback
     }
 
     @Override
-    public void registerServer(NodeServer server) {
+    public void registerServer(FileNodeServer server) {
 
     }
 
     @Override
-    public void removeActiveServer(NodeServer nodeServer) {
+    public void removeActiveServer(FileNodeServer nodeServer) {
         // TODO: 延迟十分钟查询副本，启动复制进程。若中途重新活动则取消任务
 
     }
 
     @Override
-    public void addActiveServer(NodeServer nodeServer) {
+    public void addActiveServer(FileNodeServer nodeServer) {
         // TODO: 延迟十分钟查找所有位置，将backup靠后的都尽可能的删除
     }
 }

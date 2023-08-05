@@ -20,10 +20,7 @@
 package org.cloudhub.meta.server.service.file;
 
 import org.cloudhub.meta.server.data.entity.FileStorageLocation;
-import org.cloudhub.meta.server.service.node.NodeServer;
-import org.cloudhub.server.rpc.server.SerializedFileServer;
-import org.cloudhub.meta.server.data.entity.FileStorageLocation;
-import org.cloudhub.meta.server.service.node.NodeServer;
+import org.cloudhub.meta.server.service.node.FileNodeServer;
 import org.cloudhub.server.rpc.server.SerializedFileServer;
 
 import java.util.ArrayList;
@@ -33,21 +30,21 @@ import java.util.List;
 /**
  * @author RollW
  */
-public record RequestServer(NodeServer server,
+public record RequestServer(FileNodeServer server,
                             FileStorageLocation.ServerType serverType) {
 
-    public static List<SerializedFileServer> toSerialized(Collection<NodeServer> nodeServers) {
+    public static List<SerializedFileServer> toSerialized(Collection<FileNodeServer> nodeServers) {
         List<SerializedFileServer> servers = new ArrayList<>();
         nodeServers.forEach(nodeServer ->
                 servers.add(toSerialized(nodeServer)));
         return servers;
     }
 
-    public static SerializedFileServer toSerialized(NodeServer nodeServer) {
+    public static SerializedFileServer toSerialized(FileNodeServer nodeServer) {
         return SerializedFileServer.newBuilder()
-                .setHost(nodeServer.host())
-                .setId(nodeServer.id())
-                .setPort(nodeServer.port())
+                .setHost(nodeServer.getHost())
+                .setId(nodeServer.getId())
+                .setPort(nodeServer.getPort())
                 .build();
     }
 }

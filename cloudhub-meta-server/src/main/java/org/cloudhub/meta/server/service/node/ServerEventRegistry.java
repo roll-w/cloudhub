@@ -26,10 +26,10 @@ public interface ServerEventRegistry {
     void registerCallback(ServerEventCallback serverEventCallback);
 
     interface ServerEventCallback {
-        void registerServer(NodeServer server);
+        void registerServer(FileNodeServer server);
 
-        void removeActiveServer(NodeServer nodeServer);
+        void removeActiveServer(FileNodeServer nodeServer);
 
-        void addActiveServer(NodeServer nodeServer);
+        void addActiveServer(FileNodeServer nodeServer);
     }
 }

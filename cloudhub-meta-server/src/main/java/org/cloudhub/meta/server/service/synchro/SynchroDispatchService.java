@@ -57,16 +57,16 @@ public class SynchroDispatchService {
     }
 
     // tell the server, needs synchro which part of the data
-    public void dispatchSynchro(NodeServer fileServer,
+    public void dispatchSynchro(FileNodeServer fileServer,
                                 Collection<String> fileParts,
-                                List<NodeServer> destServers) {
+                                List<FileNodeServer> destServers) {
         List<SerializedFileServer> serializedServers =
                 destServers.stream()
                         .map((server) ->
                                 SerializedFileServer.newBuilder()
                                         .setId(server.getId())
-                                        .setHost(server.host())
-                                        .setPort(server.port())
+                                        .setHost(server.getHost())
+                                        .setPort(server.getPort())
                                         .build())
                         .toList();
         // need reduces the fileParts, or let the file-server to do it
@@ -88,9 +88,9 @@ public class SynchroDispatchService {
         synchroServiceStub.sendSynchro(request, new SynchroResponseObserver(fileServer));
     }
 
-    private SynchroServiceGrpc.SynchroServiceStub getOrCreateStub(NodeServer server) {
+    private SynchroServiceGrpc.SynchroServiceStub getOrCreateStub(FileNodeServer server) {
         return synchroServiceStubPool.getStub(
-                server.id(),
+                server.getId(),
                 () -> SynchroServiceGrpc.newStub(nodeChannelPool.getChannel(server))
         );
     }
@@ -98,9 +98,9 @@ public class SynchroDispatchService {
     @SuppressWarnings("ClassCanBeRecord")
     private static class SynchroResponseObserver
             implements StreamObserver<SynchroResponse> {
-        private final NodeServer server;
+        private final FileNodeServer server;
 
-        public SynchroResponseObserver(NodeServer server) {
+        public SynchroResponseObserver(FileNodeServer server) {
             this.server = server;
         }
 

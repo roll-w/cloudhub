@@ -32,7 +32,7 @@ import java.util.function.BiConsumer;
 /**
  * @author RollW
  */
-@DataTable(tableName = "file_storage_location_table")
+@DataTable(name = "file_storage_location_table")
 public class FileStorageLocation {
     @DataColumn(name = "file_id")
     @PrimaryKey

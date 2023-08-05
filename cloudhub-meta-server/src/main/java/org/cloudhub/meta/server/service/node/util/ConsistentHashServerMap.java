@@ -177,7 +177,7 @@ public class ConsistentHashServerMap<S extends ConsistentHashServerMap.Server> {
         String getId();
     }
 
-    private record ServerWeight<S extends Server>(
+    public record ServerWeight<S extends Server>(
             S server,
             int weight) {
     }

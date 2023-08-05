@@ -21,11 +21,7 @@ package org.cloudhub.meta.server.command;
 
 import org.cloudhub.meta.server.service.node.HeartbeatService;
 import org.cloudhub.meta.server.service.node.HeartbeatWatcher;
-import org.cloudhub.meta.server.service.node.NodeServer;
-import org.cloudhub.meta.server.service.node.ServerContainerStatus;
-import org.cloudhub.meta.server.service.node.HeartbeatService;
-import org.cloudhub.meta.server.service.node.HeartbeatWatcher;
-import org.cloudhub.meta.server.service.node.NodeServer;
+import org.cloudhub.meta.server.service.node.FileNodeServer;
 import org.cloudhub.meta.server.service.node.ServerContainerStatus;
 import org.springframework.shell.standard.AbstractShellComponent;
 import org.springframework.shell.standard.ShellComponent;
@@ -70,7 +66,7 @@ public class NodeCommand extends AbstractShellComponent {
     }
 
     private void showActiveNodes() {
-        Collection<NodeServer> activeNodes = heartbeatService.activeServers();
+        Collection<FileNodeServer> activeNodes = heartbeatService.activeServers();
         getTerminal().writer().println("shows all active nodes: active nodes count = [%d]"
                 .formatted(activeNodes.size()));
         activeNodes
@@ -89,7 +85,7 @@ public class NodeCommand extends AbstractShellComponent {
     }
 
     private void testMapping(String key) {
-        NodeServer server = heartbeatService.getNodeAllocator().allocateNode(key);
+        FileNodeServer server = heartbeatService.getNodeAllocator().allocateNode(key);
         getTerminal().writer().printf("test mapping key %s.\nmapping to: %s\n", key,
                 server);
         getTerminal().writer().flush();
