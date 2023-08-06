@@ -22,6 +22,7 @@ package org.cloudhub.client;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.cloudhub.rpc.ChannelConfigure;
 import org.cloudhub.rpc.GrpcChannelPool;
 import org.cloudhub.rpc.GrpcProperties;
 import org.cloudhub.server.rpc.server.SerializedFileServer;

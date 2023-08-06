@@ -21,6 +21,7 @@ package org.cloudhub.client;
 
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
+import org.cloudhub.rpc.ChannelConfigure;
 import space.lingu.NonNull;
 
 import java.io.Closeable;
