@@ -19,6 +19,7 @@
 
 package org.cloudhub.meta.server.service.id;
 
+import com.google.common.base.Strings;
 import com.google.common.io.Files;
 import org.cloudhub.file.CleanProperties;
 import org.cloudhub.meta.server.configuration.FileProperties;
@@ -59,10 +60,7 @@ public class MetaServerIdInitializer implements ServerIdentifiable {
         File file = new File(fileProperties.getDataPath(), FILE_NAME);
         if (!file.exists()) {
             file.createNewFile();
-            UUID uid = UUID.randomUUID();
-            properties.setProperty(META_ID_KEY, uid.toString());
-            persistProperties();
-            return uid;
+            return generateIdAndPersist(file);
         }
         try (Reader reader = Files.asCharSource(file, StandardCharsets.UTF_8)
                 .openBufferedStream()) {
@@ -77,7 +75,31 @@ public class MetaServerIdInitializer implements ServerIdentifiable {
             );
         }
         String id = properties.getProperty(META_ID_KEY);
-        return UUID.fromString(id);
+        if (Strings.isNullOrEmpty(id)) {
+            return generateIdAndPersist(file);
+        }
+        try {
+            return UUID.fromString(id);
+        } catch (IllegalArgumentException e) {
+            throw new ServerInitializeException(
+                    "Invalid meta-server ID found in ID_VERSION, set another path for meta-server data, or delete the file. " +
+                            "Path: " + fileProperties.getDataPath() + "/" + FILE_NAME + ", id: " + id
+            );
+        }
+    }
+
+    private UUID generateIdAndPersist(File file) throws IOException {
+        if (properties.containsKey(META_ID_KEY)) {
+            throw new IllegalStateException("meta-server id already exists in ID_VERSION");
+        }
+
+        UUID uid = UUID.randomUUID();
+        properties.setProperty(META_ID_KEY, uid.toString());
+        try (Writer writer = Files.asCharSink(file, StandardCharsets.UTF_8)
+                .openBufferedStream()) {
+            properties.store(writer, COMMENT);
+        }
+        return uid;
     }
 
     @Override
@@ -87,13 +109,5 @@ public class MetaServerIdInitializer implements ServerIdentifiable {
 
     public UUID getUuid() {
         return uuid;
-    }
-
-    private void persistProperties() throws IOException {
-        File file = new File(fileProperties.getDataPath(), FILE_NAME);
-        try (Writer writer = Files.asCharSink(file, StandardCharsets.UTF_8)
-                .openBufferedStream()) {
-            properties.store(writer, COMMENT);
-        }
     }
 }

@@ -19,6 +19,7 @@
 
 package org.cloudhub.file.server.service.id;
 
+import com.google.common.base.Strings;
 import com.google.common.io.Files;
 import org.cloudhub.file.CleanProperties;
 import org.cloudhub.file.fs.container.ContainerProperties;
@@ -56,10 +57,7 @@ public class FileServerIdInitializer implements ServerIdentifiable {
         File file = new File(containerProperties.getFilePath(), FILE_NAME);
         if (!file.exists()) {
             file.createNewFile();
-            UUID uid = UUID.randomUUID();
-            properties.setProperty(FILE_ID_KEY, uid.toString());
-            persistProperties();
-            return uid;
+            return generateIdAndPersist(file);
         }
         try (Reader reader = Files.asCharSource(file, StandardCharsets.UTF_8)
                 .openBufferedStream()) {
@@ -74,15 +72,31 @@ public class FileServerIdInitializer implements ServerIdentifiable {
             );
         }
         String id = properties.getProperty(FILE_ID_KEY);
-        return UUID.fromString(id);
+        if (Strings.isNullOrEmpty(id)) {
+            return generateIdAndPersist(file);
+        }
+        try {
+            return UUID.fromString(id);
+        } catch (IllegalArgumentException e) {
+            throw new ServerInitializeException(
+                    "Invalid file-server ID found in ID_VERSION, set another path for file-server data, or delete the file. " +
+                            "Path: " + containerProperties.getFilePath() + "/" + FILE_NAME + ", id: " + id
+            );
+        }
     }
 
-    private void persistProperties() throws IOException {
-        File file = new File(containerProperties.getFilePath(), FILE_NAME);
+    private UUID generateIdAndPersist(File file) throws IOException {
+        if (properties.containsKey(META_ID_KEY)) {
+            throw new IllegalStateException("meta-server id already exists in ID_VERSION");
+        }
+
+        UUID uid = UUID.randomUUID();
+        properties.setProperty(META_ID_KEY, uid.toString());
         try (Writer writer = Files.asCharSink(file, StandardCharsets.UTF_8)
                 .openBufferedStream()) {
             properties.store(writer, COMMENT);
         }
+        return uid;
     }
 
     @Override
