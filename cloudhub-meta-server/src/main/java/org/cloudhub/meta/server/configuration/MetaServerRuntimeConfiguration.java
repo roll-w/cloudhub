@@ -20,15 +20,20 @@
 package org.cloudhub.meta.server.configuration;
 
 import org.cloudhub.meta.conf.MetaConfigLoader;
+import org.cloudhub.meta.server.service.heartbeat.MetaHeartbeatServerProperties;
 import org.cloudhub.meta.server.service.node.HeartbeatServerProperties;
 import org.cloudhub.meta.server.service.node.NodeChannelPool;
 import org.cloudhub.rpc.GrpcProperties;
+import org.cloudhub.rpc.TargetGrpcChannelPool;
+import org.cloudhub.server.ServerInitializeException;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 import space.lingu.light.DatasourceConfig;
 
 import java.io.File;
-import java.io.IOException;
+
+import static org.cloudhub.meta.server.MetaServerApplication.CONFIG_LOADER_KEY;
 
 /**
  * @author RollW
@@ -37,8 +42,13 @@ import java.io.IOException;
 public class MetaServerRuntimeConfiguration {
     private final MetaConfigLoader metaConfigLoader;
 
-    public MetaServerRuntimeConfiguration() throws IOException {
-        this.metaConfigLoader = MetaConfigLoader.tryOpenDefault();
+    public MetaServerRuntimeConfiguration(Environment environment) {
+        this.metaConfigLoader = environment.getProperty(
+                CONFIG_LOADER_KEY, MetaConfigLoader.class);
+        if (metaConfigLoader == null) {
+            throw new ServerInitializeException(
+                    "MetaConfigLoader is null, it should be set in the environment.");
+        }
     }
 
     @Bean
@@ -52,7 +62,8 @@ public class MetaServerRuntimeConfiguration {
     public GrpcProperties grpcProperties() {
         return new GrpcProperties(
                 metaConfigLoader.getRpcPort(),
-                metaConfigLoader.getRpcMaxInboundSize());
+                metaConfigLoader.getRpcMaxInboundSize()
+        );
     }
 
     @Bean
@@ -77,9 +88,14 @@ public class MetaServerRuntimeConfiguration {
                 null, null);
     }
 
+    @Bean
+    public NodeChannelPool nodeChannelPool(TargetGrpcChannelPool targetGrpcChannelPool) {
+        return new NodeChannelPool(targetGrpcChannelPool);
+    }
 
     @Bean
-    public NodeChannelPool nodeChannelPool(GrpcProperties grpcProperties) {
-        return new NodeChannelPool(grpcProperties);
+    public TargetGrpcChannelPool sharedTargetGrpcChannelPool(
+            GrpcProperties grpcProperties) {
+        return new TargetGrpcChannelPool(grpcProperties);
     }
 }

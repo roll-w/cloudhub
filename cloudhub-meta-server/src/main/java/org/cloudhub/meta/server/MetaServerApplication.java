@@ -21,6 +21,7 @@ package org.cloudhub.meta.server;
 
 import io.grpc.Server;
 import org.cloudhub.meta.conf.MetaConfigLoader;
+import org.cloudhub.server.ServerInitializeException;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -40,6 +41,14 @@ import java.util.Map;
 public class MetaServerApplication {
     private final Server server;
 
+    public static final String CONFIG_LOADER_KEY = "cloudhub.meta.config.loader";
+
+    static final String CONFIG_PATH = "--config";
+    static final String DAEMON = "--daemon";
+
+    static final String SHORTAGE_CONFIG_PATH = "-c";
+    static final String SHORTAGE_DAEMON = "-d";
+
     public MetaServerApplication(Server server) {
         this.server = server;
     }
@@ -48,12 +57,16 @@ public class MetaServerApplication {
         SpringApplication application =
                 new SpringApplication(MetaServerApplication.class);
 
-        MetaConfigLoader loader = MetaConfigLoader.tryOpenDefault();
+        String initConfigPath = getConfigPath(args);
+
+        MetaConfigLoader loader =
+                MetaConfigLoader.tryOpenDefault(initConfigPath);
         String logLevel = loader.getLogLevel();
 
         Map<String, Object> overrideProperties = new HashMap<>();
 
         overrideProperties.put("logging.level.org.cloudhub", logLevel);
+        overrideProperties.put(CONFIG_LOADER_KEY, loader);
 
         logToFile(args, overrideProperties, loader);
         application.setDefaultProperties(overrideProperties);
@@ -84,13 +97,30 @@ public class MetaServerApplication {
 
     private static boolean startAsDaemon(String[] args) {
         for (String arg : args) {
-            if (arg.equals("--daemon")) {
+            if (arg.equals(DAEMON) || arg.equals(SHORTAGE_DAEMON)) {
                 return true;
             }
         }
         return false;
     }
 
+    private static String getConfigPath(String[] args) {
+        for (int i = 0; i < args.length; i++) {
+            if (args[i].equals(CONFIG_PATH) || args[i].equals(SHORTAGE_CONFIG_PATH)) {
+                if (i + 1 >= args.length) {
+                    throw configPathNotSpecified(args[i]);
+                }
+                return args[i + 1];
+            }
+        }
+        return null;
+    }
+
+    private static ServerInitializeException configPathNotSpecified(String argName) {
+        return new ServerInitializeException("You are using " +
+                "config file path option: '" + argName +
+                "', but not specify the config file path.");
+    }
 
     @PostConstruct
     public void runServer() throws IOException {
