@@ -20,12 +20,22 @@
 package org.cloudhub.file.fs.meta;
 
 /**
+ * Cacheable metadata.
+ *
  * @author RollW
  */
 public interface MetadataCacheable<T> {
+    /**
+     * Get the key of the metadata stored in the cache.
+     *
+     * @return the key of the metadata stored in the cache
+     */
     String getKey();
 
+    /**
+     * Get the metadata stored in the cache.
+     *
+     * @return the metadata stored in the cache
+     */
     T getMeta();
-
-    Class<T> getCacheableClass();
 }

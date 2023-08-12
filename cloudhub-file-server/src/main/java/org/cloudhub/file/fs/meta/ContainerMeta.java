@@ -63,10 +63,5 @@ public interface ContainerMeta extends ContainerLocator, MetadataCacheable<Conta
         return this;
     }
 
-    @Override
-    default Class<ContainerMeta> getCacheableClass() {
-        return ContainerMeta.class;
-    }
-
     void writeTo(OutputStream outputStream) throws IOException;
 }
