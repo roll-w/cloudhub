@@ -1,119 +1,170 @@
 # Cloudhub
 
-可靠高可用的可伸缩分布式文件系统。
+A high available, scalable distributed file system.
 
-## 运行说明
+## Requirements
 
-运行步骤：
+- Java 17
 
-1. 运行`meta-server`；
-2. 运行`file-server`；
+You can clone this project and build it with Maven: `mvn clean package`.
 
-### 配置修改
+## Getting Started
 
-修改位于`resource/`文件夹下的`cloudhub.conf`文件中的配置。
+After you have built the project or already have packaged files, 
+you can run the `meta-server` and `file-server` with the following steps:
 
-> 打包后位于`conf/`文件夹下。
+1. First you should unpack the packaged file with like `tar -zxvf starter.tar.gz`;
+2. Start `meta-server` with `sbin/start-meta-server.sh`;
+3. Start `file-server` with `sbin/start-file-server.sh`. (No order required)
 
-### 部署说明
+> Note: Before you start servers, you should also modify the environment variables 
+> in the scripts if you haven't set the `JAVA_HOME` environment variable.
 
-打包后解压相应的`starter.tar.gz`压缩文件，运行位于`sbin`文件夹下的对应启动脚本，
-运行前注意修改配置以及脚本中的环境变量。
+You can run `sbin/start-meta-server.sh -h` or `sbin/start-file-server.sh -h`
+to get more information about the arguments.
 
-## 文档指引
+### Modify Configuration
 
-- [`file-server`工作流程说明](cloudhub-file-server/README.md)
-- [`meta-server`工作流程说明](cloudhub-meta-server/README.md)
+You can modify the configuration in `resource/cloudhub.conf` before you pack the project or
+start it locally for testing.
 
-## 文件系统架构设计
+After you have packed the project, you can modify the configuration in `conf/cloudhub.conf`.
 
-Cloudhub文件系统（Cloudhub File System, CFS）是支撑Cloudhub的核心部分，
-其被设计成一个仅限读及有限写操作的、可伸缩的分布式文件系统。
+> Note: For the configuration files loading order: 
+> 
+> Specified path by `--config` argument > `conf/cloudhub.conf` > 
+> `cloudhub.conf` file in current directory >
+> `resource/cloudhub.conf`.
 
-CFS以做到BASE为目标，牺牲一部分一致性以保证系统的高可用。
+## API Usage
 
-对上传后的文件的操作仅限于读和删除，因此对于静态且较长时期不变的数据保存具有优势。
+Run the `mvn clean install` command to install the project to your local Maven repository.
 
-### 服务器架构
+Then you can add the dependency to your project:
 
-CFS具有主从架构，完整的CFS部署中包含元数据服务器（`meta-server`）集群以及文件服务器集群（`file-server`）。
+```xml
+<dependencies>
+    <dependency>
+        <groupId>tech.rollw.cloudhub</groupId>
+        <artifactId>cloudhub-client</artifactId>
+        <version>0.1.3</version>
+    </dependency>
+</dependencies>
+```
 
-元数据服务器实现对文件服务器集群的管理、对副本的管理以及对请求的分配。
-允许设置备份元数据服务器，以实现一定的高可用。
+## Architecture
 
-文件服务器实现对文件的分块存储。
+Cloudhub File System (CFS) is designed as a scalable distributed file system
+with read-only and limited write operations.
 
-### 文件存储设计
+CFS aims to achieve BASE, sacrificing some consistency to ensure high availability of the system.
 
-在对文件的存储上，CFS采用键值对映射的方式。使得文件能够快速映射到特定文件服务器上。
+File operations after upload are limited to read and delete,
+so it has the advantage of storing static and long-term unchanged data.
 
-CFS是针对文件的存储，对于所有的文件都按原样存储，因此对文件的压缩过程需要在上传之前完成。
+### Server Architecture
 
-在对文件存储时，会被划分为大量的块，分块存储在不同的容器中。
-块是文件服务器之间交流、同步的基本单位。
+CFS is designed as a master-slave architecture. 
+A complete CFS deployment includes a metadata server (`meta-server`) cluster
+and a file server (`file-server`) cluster.
 
-容器被设计为了可以根据块数的不同，伸缩大小的数据结构（当前还未实现，但预留了相应接口）。
-每个容器会建立相应索引，通过索引能够快速寻址到文件所在位置。
+The metadata server implements the management of the file server cluster,
+the management of the replicas, and the allocation of requests.
+It is allowed to set up a backup metadata servers to achieve a certain degree of high availability.
 
-文件通过哈希值完成分布映射，能够较好的分散文件。通常不会出现文件聚集在同一热点区域的情况而导致性能降低。
+The file server implements the storage of files in blocks.
 
-### 数据结构
+### File Storage Architecture
 
-CFS在设计上支持存储较大文件。
+For file storage, CFS uses a key-value mapping method. 
+This makes it possible to quickly map files to specific file servers.
 
-通过将无数块（`block`）组织成容器（`container`），再组织成为容器组（`container group`），
-一个容器组可容纳大量文件。
+CFS is designed for file storage, and all files are stored as they are,
+so the compression process for files needs to be completed before uploading.
 
-对于超大文件的支持取决于当前服务器的磁盘大小，对超大文件的分块支持尚未完成。
+Files are divided into a large number of blocks when stored,
+and the blocks are stored in different containers.
+Blocks are the basic unit of communication and synchronization between file servers.
 
-### 通信
+Containers are designed as data structures that can scale in size according 
+to the number of blocks (currently not implemented, but the corresponding 
+interface is reserved).
+Each container will create a corresponding index, and the file location 
+can be quickly addressed through the index.
 
-所有的CFS通信都通过TCP/IP协议实现。具体而言，是通过RPC远程过程调用实现的。
+Files are distributed by hash values, which can disperse files well.
+Usually, there will be no performance degradation due to files gathering in
+the same hot spot area.
 
-### 可用性
+### Data Structure
 
-CFS的其中一个目标就是做到出现故障也能部分的使用服务，维持基本的数据存储获取功能。
+CFS is designed to support the storage of large files.
 
-在确认其中一个`file-server`发生故障（通常是数据损坏）时，
-`meta-server`会尝试调配其他副本的数据进行修复。
+By organizing countless `block`s into `container`s,
+and then organizing them into `container group`s,
+a `container group` can accommodate a large number of files.
 
-#### 心跳检测
+The support for large files depends on the disk size of the current server,
+and the support for larger files has not been completed.
 
-每个`file-server`周期性的向`meta-server`发送心跳信息。
-当经过一段时间接收不到来自该`file-server`的心跳时，视为服务器宕机并标记为dead，
-将不会再向它们发送或转发任何请求。`file-server`宕机可能导致某些文件副本数变少，
-因此`meta-server`需要确认哪些文件副本丢失，并在必要时启动同步过程。
 
-在`file-server`标记为dead后，启动同步过程的时间延迟较长（一般超过10分钟）。
-这是为防止因服务器状态波动或网络状态波动而导致的暂时性丢失，而引起大量的复制请求被发送，
-造成网络风暴。
+### Availability
 
-#### 数据完整性
+CFS is designed to achieve the goal of being able to use the service partially in 
+the event of a failure, and to maintain the basic data storage and retrieval functions.
 
-获取的数据在传输过程中损坏的可能性是极大的，例如磁盘故障、网络故障都有可能导致数据发生损坏。
+When it is confirmed that one of the `file-server`s has failed (usually data corruption),
+the `meta-server` will try to allocate the data of other replicas for repair.
 
-为了保证数据在获取时始终是完整的，在上传之后，`meta-server`始终会保存文件的哈希值用于校验。
+#### Heartbeat
 
-### 一致性
+Every `file-server` periodically sends heartbeat information to `meta-server`.
+When no heartbeat is received from the `file-server` for a period of time,
+it is considered that the server is down and marked as dead,
+and no requests will be sent or forwarded to them.
 
-CFS始终维持在软状态，即不同的文件服务器的副本同步存在数据延时。
+The `file-server` crash may cause the number of replicas of some files to decrease,
+so the `meta-server` needs to confirm which file replicas are lost and start 
+the synchronization process if necessary.
 
-这是由于CFS架构设计中，文件在系统中实际是只读的状态，且在同步副本时以容器为同步的基本单位。
+After the `file-server` is marked as dead, the time delay for starting the 
+synchronization process is long (usually more than 10 minutes).
+This is to prevent a large number of replication requests from being 
+sent due to temporary loss caused by server status fluctuations or network
+status fluctuations, causing a network storm.
 
-当容器同步之后，文件在此副本中可保持可用状态不变，无论之后的容器是否发生变化，
-因此无需时刻保持一致状态。
+#### Data Integrity
 
-## 性能测试
+Data corruption during transmission is highly possible, such as disk failure or network failure.
 
-对此系统的读写性能测试。
+To ensure that the data is always complete when it is obtained,
+the `meta-server` always saves the hash value of the file for verification after uploading.
 
-完整测试结果位于`/tests` 目录下。
+### Consistency
 
-## 开源许可
+CFS always maintains a soft state, there is a data delay in the 
+synchronization of replicas between different file servers.
+
+This is because in the CFS architecture design, the file is actually in a 
+read-only state in the system, and the container is the basic unit of 
+synchronization when synchronizing replicas.
+
+After the container is synchronized, the file can remain in the available 
+state in this replica, regardless of whether the container changes later,
+so there is no need to keep the consistent state at all times.
+
+## Contributing
+
+You can contribute to this project by submitting issues or pull requests.
+
+For major changes, please open an issue first to
+discuss what you would like to change.
+
+## License
 
 ```text
 Cloudhub - A high available, scalable distributed file system.
-Copyright (C) 2022 Cloudhub.
+Copyright (C) 2022 Cloudhub
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
