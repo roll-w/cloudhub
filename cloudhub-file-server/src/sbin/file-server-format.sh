@@ -39,7 +39,7 @@ prop(){
     grep "${1}" "$CONF_DIR"/cloudhub.conf | cut -d'=' -f2 | sed 's/\r//'
 }
 
-DATA_DIR=$(prop "cloudhub.file.store_dir")
+DATA_DIR=$(prop "cloudhub.file.store-dir")
 
 echo "Now clear data store directory: $DATA_DIR"
 
