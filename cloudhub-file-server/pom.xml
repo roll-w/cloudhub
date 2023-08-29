@@ -23,10 +23,10 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>cloudhub-parent</artifactId>
+        <artifactId>cloudhub-server</artifactId>
         <groupId>tech.rollw.cloudhub</groupId>
         <version>0.1.3</version>
-        <relativePath>../cloudhub-parent</relativePath>
+        <relativePath>../cloudhub-server</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -37,6 +37,7 @@
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -60,7 +61,7 @@
 
         <dependency>
             <groupId>tech.rollw.cloudhub</groupId>
-            <artifactId>cloudhub-common</artifactId>
+            <artifactId>cloudhub-server-common</artifactId>
         </dependency>
 
         <dependency>
@@ -83,24 +84,23 @@
     <build>
         <plugins>
             <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-            </plugin>
-            <plugin>
                 <groupId>org.xolstice.maven.plugins</groupId>
                 <artifactId>protobuf-maven-plugin</artifactId>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-assembly-plugin</artifactId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <mainClass>org.cloudhub.file.server.FileServerApplication</mainClass>
+                        </manifest>
+                    </archive>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <source>17</source>
-                    <target>17</target>
-                </configuration>
+                <artifactId>maven-assembly-plugin</artifactId>
             </plugin>
         </plugins>
         <finalName>${project.artifactId}</finalName>

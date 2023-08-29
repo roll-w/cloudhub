@@ -26,6 +26,13 @@
     </formats>
     <fileSets>
         <fileSet>
+            <directory>${project.basedir}/../</directory>
+            <outputDirectory>/</outputDirectory>
+            <includes>
+                <include>LICENSE</include>
+            </includes>
+        </fileSet>
+        <fileSet>
             <directory>${project.basedir}/src/main/resources</directory>
             <outputDirectory>conf</outputDirectory>
             <includes>
@@ -73,6 +80,12 @@
         </file>
     </files>
     <dependencySets>
-
+        <dependencySet>
+            <outputDirectory>/lib</outputDirectory>
+            <unpack>false</unpack>
+            <excludes>
+                <exclude>${artifact}</exclude>
+            </excludes>
+        </dependencySet>
     </dependencySets>
 </assembly>
