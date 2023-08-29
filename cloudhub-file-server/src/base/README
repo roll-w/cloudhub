@@ -1,3 +1,10 @@
+Cloudhub File Server
+====================
+Cloudhub File Server is a part of Cloudhub project.
+
+https://github.com/Roll-W/cloudhub
+====================
+
 This package contains only files for file-server.
 
 Before the startup, configure environment variables (such as 'JAVA_HOME')
