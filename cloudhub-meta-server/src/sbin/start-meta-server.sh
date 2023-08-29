@@ -34,13 +34,13 @@ fi
 CLOUDHUB_META_HOME=$CURDIR/../
 
 if [ "$CLOUDHUB_META_HOME" = '' ]; then
-  echo "Not set CLOUDHUB_META_HOME variable in the env, program exit with code 2."
+  echo "Failed: Not set CLOUDHUB_META_HOME variable in the env, program exit with code 2."
   exit 2
 fi
 
 CONF_DIR=$CLOUDHUB_META_HOME/conf
 
-cd "$CLOUDHUB_META_HOME" || echo "Not found the path $CLOUDHUB_META_HOME, program exit with code 3." exit 3
+cd "$CLOUDHUB_META_HOME" || echo "Failed: Not found the path $CLOUDHUB_META_HOME, program exit with code 3." exit 3
 
 CONFIG_PARAM=''
 
@@ -68,7 +68,7 @@ for i in "$@"; do
     CONFIG_PARAM_INDEX=$((index+1))
     CONFIG_PARAM="${!CONFIG_PARAM_INDEX}"
     if [ "$CONFIG_PARAM" = "" ]; then
-      echo "The parameter '--config' must be followed by a configuration file path."
+      echo "Failed: The parameter '--config' must be followed by a configuration file path."
       exit 1
     fi
     ;;
@@ -80,7 +80,7 @@ for i in "$@"; do
     ;;
   *)
     if [ "$CONFIG_PARAM_INDEX" == -1 ] || [ "$index" != "$CONFIG_PARAM_INDEX" ]; then
-      echo "Unknown parameter: $i"
+      echo "Failed: Unknown parameter: $i"
       print_help
       exit 1
     fi
@@ -95,8 +95,6 @@ if [ "$HAS_HELP" = 1 ]; then
   exit 0
 fi
 
-echo "Configuration directory is in the $CONF_DIR. If you need changes settings, please follow direction to modify files in the folder."
-
 printf "Starting cloudhub-meta-server......\n"
 
 prop() {
@@ -105,17 +103,33 @@ prop() {
 
 LOG_DIR=$(prop "cloudhub.meta.log.path")
 
-if [ "$HAS_DAEMON" = 1 ]; then
+print_conf() {
   if [ "$HAS_CONFIG" = 1 ]; then
     echo "Starting cloudhub-meta-server with configuration file $CONFIG_PARAM"
+  else
+    echo "Configuration directory is in the $CONF_DIR. If you need changes settings, please follow direction to modify files in the folder."
+  fi
+}
+
+print_conf
+
+if [ "$HAS_DAEMON" = 1 ]; then
+  if [ "$HAS_CONFIG" = 1 ]; then
     nohup "$JAVA_HOME"/bin/java -jar bin/cloudhub-meta-server.jar --config "$CONFIG_PARAM" --daemon >/dev/null 2>&1 &
   else
     nohup "$JAVA_HOME"/bin/java -jar bin/cloudhub-meta-server.jar --daemon >/dev/null 2>&1 &
   fi
   echo "Starting cloudhub-meta-server......[OK]"
+  echo ""
   echo "Log file is in the $LOG_DIR, you can use the command 'tail -f $LOG_DIR/cloudhub-meta-server.out' to trace the log."
   exit 0
 fi
 
-exec "$JAVA_HOME"/bin/java -jar bin/cloudhub-meta-server.jar
+if [ "$HAS_CONFIG" = 1 ]; then
+  "$JAVA_HOME"/bin/java -jar bin/cloudhub-meta-server.jar --config "$CONFIG_PARAM"
+else
+  "$JAVA_HOME"/bin/java -jar bin/cloudhub-meta-server.jar
+fi
+
 echo "Starting cloudhub-meta-server......[OK]"
+echo ""
