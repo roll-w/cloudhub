@@ -19,6 +19,7 @@
 
 package org.cloudhub.meta.server.command;
 
+import org.cloudhub.server.command.CommandHelper;
 import org.jline.utils.AttributedString;
 import org.jline.utils.AttributedStyle;
 import org.springframework.shell.jline.PromptProvider;
@@ -31,7 +32,7 @@ import org.springframework.stereotype.Component;
 public class CommandPromptProvider implements PromptProvider {
     @Override
     public AttributedString getPrompt() {
-        return new AttributedString("cloudhub> ",
+        return new AttributedString(CommandHelper.COMMAND_PREFIX,
                 AttributedStyle.DEFAULT.foreground(AttributedStyle.BLUE));
     }
 }
