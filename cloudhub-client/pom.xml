@@ -39,6 +39,11 @@
 
     <dependencies>
         <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>tech.rollw.cloudhub</groupId>
             <artifactId>cloudhub-common</artifactId>
         </dependency>
