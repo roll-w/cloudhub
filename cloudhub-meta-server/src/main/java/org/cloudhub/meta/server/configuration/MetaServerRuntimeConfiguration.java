@@ -33,8 +33,6 @@ import space.lingu.light.DatasourceConfig;
 
 import java.io.File;
 
-import static org.cloudhub.meta.server.MetaServerApplication.CONFIG_LOADER_KEY;
-
 /**
  * @author RollW
  */
@@ -44,7 +42,7 @@ public class MetaServerRuntimeConfiguration {
 
     public MetaServerRuntimeConfiguration(Environment environment) {
         this.metaConfigLoader = environment.getProperty(
-                CONFIG_LOADER_KEY, MetaConfigLoader.class);
+                ApplicationHelper.CONFIG_LOADER_KEY, MetaConfigLoader.class);
         if (metaConfigLoader == null) {
             throw new ServerInitializeException(
                     "MetaConfigLoader is null, it should be set in the environment.");

@@ -19,8 +19,7 @@
 
 package org.cloudhub.meta.conf;
 
-import org.cloudhub.meta.server.MetaServerApplication;
-import org.cloudhub.conf.AbstractConfigLoader;
+import org.cloudhub.server.conf.AbstractConfigLoader;
 import org.cloudhub.meta.server.MetaServerApplication;
 
 import java.io.IOException;
@@ -39,13 +38,9 @@ public class MetaConfigLoader extends AbstractConfigLoader {
     public static final String HEARTBEAT_STANDARD_PERIOD_DEFAULT = "500";
     public static final String HEARTBEAT_TIMEOUT_CYCLE_DEFAULT = "3";
 
-    public static final String LOG_LEVEL_DEFAULT = "info";
-    public static final String LOG_PATH_DEFAULT = "console";
-
     public MetaConfigLoader(InputStream inputStream) throws IOException {
         super(inputStream);
     }
-
 
     public int getRpcPort() {
         return getInt(MetaConfigKeys.RPC_PORT, RPC_PORT_DEFAULT);
@@ -76,16 +71,23 @@ public class MetaConfigLoader extends AbstractConfigLoader {
         return getInt(MetaConfigKeys.FILE_UPLOAD_BLOCK_SIZE, FILE_UPLOAD_BLOCK_SIZE_DEFAULT);
     }
 
+    @Override
     public String getLogLevel() {
         return get(MetaConfigKeys.LOG_LEVEL, LOG_LEVEL_DEFAULT);
     }
 
+    @Override
     public String getLogPath() {
         return get(MetaConfigKeys.LOG_PATH, LOG_PATH_DEFAULT);
     }
 
     public static MetaConfigLoader tryOpenDefault() throws IOException {
         return new MetaConfigLoader(
-                openConfigInput(MetaServerApplication.class));
+                openConfigInput(MetaServerApplication.class, null));
+    }
+
+    public static MetaConfigLoader tryOpenDefault(String path) throws IOException {
+        return new MetaConfigLoader(
+                openConfigInput(MetaServerApplication.class, path));
     }
 }

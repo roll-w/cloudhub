@@ -20,8 +20,7 @@
 package org.cloudhub.file.conf;
 
 import org.cloudhub.file.server.FileServerApplication;
-import org.cloudhub.conf.AbstractConfigLoader;
-import org.cloudhub.file.server.FileServerApplication;
+import org.cloudhub.server.conf.AbstractConfigLoader;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -38,9 +37,6 @@ public class FileConfigLoader extends AbstractConfigLoader {
 
     public static final String FILE_STAGING_PATH_DEFAULT = "tmp/staging";
     public static final String FILE_STORE_PATH_DEFAULT = "dfs";
-
-    public static final String LOG_LEVEL_DEFAULT = "info";
-    public static final String LOG_PATH_DEFAULT = "console";
 
     public FileConfigLoader(InputStream inputStream) throws IOException {
         super(inputStream);
@@ -77,16 +73,23 @@ public class FileConfigLoader extends AbstractConfigLoader {
         return get(FileConfigKeys.META_ADDRESS, null);
     }
 
+    @Override
     public String getLogLevel() {
         return get(FileConfigKeys.LOG_LEVEL, LOG_LEVEL_DEFAULT);
     }
 
+    @Override
     public String getLogPath() {
         return get(FileConfigKeys.LOG_PATH, LOG_PATH_DEFAULT);
     }
 
     public static FileConfigLoader tryOpenDefault() throws IOException {
         return new FileConfigLoader(
-                openConfigInput(FileServerApplication.class));
+                openConfigInput(FileServerApplication.class, null));
+    }
+
+    public static FileConfigLoader tryOpenDefault(String configPath) throws IOException {
+        return new FileConfigLoader(
+                openConfigInput(FileServerApplication.class, configPath));
     }
 }

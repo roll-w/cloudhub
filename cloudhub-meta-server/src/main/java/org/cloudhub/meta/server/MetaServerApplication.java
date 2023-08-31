@@ -21,17 +21,18 @@ package org.cloudhub.meta.server;
 
 import io.grpc.Server;
 import org.cloudhub.meta.conf.MetaConfigLoader;
+import org.cloudhub.server.ApplicationHelper;
 import org.cloudhub.server.ServerInitializeException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
+import org.springframework.context.ConfigurableApplicationContext;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * @author RollW
@@ -39,87 +40,33 @@ import java.util.Map;
 @SpringBootApplication
 @ConfigurationPropertiesScan
 public class MetaServerApplication {
+    private static final Logger logger = LoggerFactory.getLogger(MetaServerApplication.class);
+
     private final Server server;
 
-    public static final String CONFIG_LOADER_KEY = "cloudhub.meta.config.loader";
+    private static ConfigurableApplicationContext sContext;
 
-    static final String CONFIG_PATH = "--config";
-    static final String DAEMON = "--daemon";
-
-    static final String SHORTAGE_CONFIG_PATH = "-c";
-    static final String SHORTAGE_DAEMON = "-d";
-
-    public MetaServerApplication(Server server) {
+    public MetaServerApplication(Server server, ConfigurableApplicationContext context) {
         this.server = server;
+        MetaServerApplication.sContext = context;
     }
 
     public static void main(String[] args) throws Exception {
-        SpringApplication application =
-                new SpringApplication(MetaServerApplication.class);
-
-        String initConfigPath = getConfigPath(args);
-
-        MetaConfigLoader loader =
-                MetaConfigLoader.tryOpenDefault(initConfigPath);
-        String logLevel = loader.getLogLevel();
-
-        Map<String, Object> overrideProperties = new HashMap<>();
-
-        overrideProperties.put("logging.level.org.cloudhub", logLevel);
-        overrideProperties.put(CONFIG_LOADER_KEY, loader);
-
-        logToFile(args, overrideProperties, loader);
-        application.setDefaultProperties(overrideProperties);
-        application.setWebApplicationType(WebApplicationType.NONE);
-
-        application.run();
+        try {
+            sContext = ApplicationHelper.startApplication(
+                    MetaServerApplication.class,
+                    "meta-server",
+                    MetaConfigLoader::tryOpenDefault, args
+            );
+        } catch (ServerInitializeException e) {
+            logger.error("Start meta-server failed.", e);
+            throw e;
+        }
     }
 
-    private static final String LOG_FILE = "cloudhub-meta-server.out";
-    private static final String ARCHIVE_LOG_FILE = "cloudhub-meta-server-log.%d{yyyy-MM-dd}.%i.log";
-
-    private static void logToFile(String[] args,
-                                  Map<String, Object> overrideProperties,
-                                  MetaConfigLoader configLoader) {
-        if (!startAsDaemon(args)) {
-            System.out.println("Not start as daemon, log to console.");
-            return;
-        }
-        String logPath = configLoader.getLogPath();
-        if (MetaConfigLoader.LOG_PATH_DEFAULT.equals(logPath)) {
-            return;
-        }
-
-        overrideProperties.put("logging.file.name", logPath + "/" + LOG_FILE);
-        overrideProperties.put("logging.logback.rollingpolicy.file-name-pattern",
-                logPath + "/" + ARCHIVE_LOG_FILE);
-    }
-
-    private static boolean startAsDaemon(String[] args) {
-        for (String arg : args) {
-            if (arg.equals(DAEMON) || arg.equals(SHORTAGE_DAEMON)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private static String getConfigPath(String[] args) {
-        for (int i = 0; i < args.length; i++) {
-            if (args[i].equals(CONFIG_PATH) || args[i].equals(SHORTAGE_CONFIG_PATH)) {
-                if (i + 1 >= args.length) {
-                    throw configPathNotSpecified(args[i]);
-                }
-                return args[i + 1];
-            }
-        }
-        return null;
-    }
-
-    private static ServerInitializeException configPathNotSpecified(String argName) {
-        return new ServerInitializeException("You are using " +
-                "config file path option: '" + argName +
-                "', but not specify the config file path.");
+    public static void exit(int exitCode) {
+        int finalCode = SpringApplication.exit(sContext, () -> exitCode);
+        System.exit(finalCode);
     }
 
     @PostConstruct

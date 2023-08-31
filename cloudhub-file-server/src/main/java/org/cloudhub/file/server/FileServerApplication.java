@@ -22,8 +22,11 @@ package org.cloudhub.file.server;
 import io.grpc.Server;
 import org.cloudhub.file.conf.FileConfigLoader;
 import org.cloudhub.file.server.service.heartbeat.HeartbeatTask;
+import org.cloudhub.server.ApplicationHelper;
+import org.cloudhub.server.ServerInitializeException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -31,8 +34,8 @@ import org.springframework.context.ConfigurableApplicationContext;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 /**
  * File server start class.
@@ -42,10 +45,14 @@ import java.util.Map;
 @SpringBootApplication
 @ConfigurationPropertiesScan
 public class FileServerApplication {
+    private static final Logger logger = LoggerFactory.getLogger(FileServerApplication.class);
+
     private final Server server;
 
-    public FileServerApplication(Server server,
+    public FileServerApplication(ConfigurableApplicationContext context,
+                                 Server server,
                                  HeartbeatTask heartbeatTask) {
+        FileServerApplication.sContext = context;
         this.server = server;
         this.heartbeatTask = heartbeatTask;
     }
@@ -53,56 +60,28 @@ public class FileServerApplication {
     private static ConfigurableApplicationContext sContext;
 
     public static void main(String[] args) throws Exception {
-        SpringApplication application =
-                new SpringApplication(FileServerApplication.class);
-
-        FileConfigLoader loader = FileConfigLoader.tryOpenDefault();
-        String logLevel = loader.getLogLevel();
-
-        Map<String, Object> overrideProperties = new HashMap<>();
-
-        overrideProperties.put("logging.level.org.cloudhub", logLevel);
-
-        logToFile(args, overrideProperties, loader);
-        application.setDefaultProperties(overrideProperties);
-        application.setWebApplicationType(WebApplicationType.NONE);
-
-        sContext = application.run();
-    }
-
-    private static final String LOG_FILE = "cloudhub-file-server.out";
-    private static final String ARCHIVE_LOG_FILE = "cloudhub-file-server-log.%d{yyyy-MM-dd}.%i.log";
-
-    private static void logToFile(String[] args,
-                                  Map<String, Object> overrideProperties,
-                                  FileConfigLoader configLoader) {
-        if (!startAsDaemon(args)) {
-            System.out.println("Not start as daemon, log to console.");
-            return;
+        try {
+            sContext = ApplicationHelper.startApplication(
+                    FileServerApplication.class,
+                    "file-server",
+                    FileConfigLoader::tryOpenDefault, args
+            );
+        } catch (ServerInitializeException e) {
+            logger.error("Start file-server failed.", e);
+            throw e;
         }
-        String logPath = configLoader.getLogPath();
-        if (FileConfigLoader.LOG_PATH_DEFAULT.equals(logPath)) {
-            return;
-        }
-
-        overrideProperties.put("logging.file.name", logPath + "/" + LOG_FILE);
-        overrideProperties.put("logging.logback.rollingpolicy.file-name-pattern",
-                logPath + "/" + ARCHIVE_LOG_FILE);
-    }
-
-    private static boolean startAsDaemon(String[] args) {
-        for (String arg : args) {
-            if (arg.equals("--daemon")) {
-                return true;
-            }
-        }
-        return false;
+        logger.info("Cloudhub file-server exit at {}.",
+                LocalDateTime.now().format(
+                        DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+                )
+        );
     }
 
     private final HeartbeatTask heartbeatTask;
 
     public static void exit(int exitCode) {
-        SpringApplication.exit(sContext, () -> exitCode);
+        int finalCode = SpringApplication.exit(sContext, () -> exitCode);
+        System.exit(finalCode);
     }
 
     @PostConstruct

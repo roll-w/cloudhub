@@ -23,17 +23,14 @@ import org.cloudhub.file.conf.FileConfigKeys;
 import org.cloudhub.file.conf.FileConfigLoader;
 import org.cloudhub.file.fs.container.ContainerProperties;
 import org.cloudhub.file.server.service.ClientFileServerChannelPool;
-import org.cloudhub.conf.ConfigurationException;
-import org.cloudhub.file.conf.FileConfigKeys;
-import org.cloudhub.file.conf.FileConfigLoader;
-import org.cloudhub.file.fs.container.ContainerProperties;
-import org.cloudhub.file.server.service.ClientFileServerChannelPool;
 import org.cloudhub.file.server.service.heartbeat.HeartbeatHostProperties;
 import org.cloudhub.rpc.GrpcProperties;
+import org.cloudhub.server.ApplicationHelper;
+import org.cloudhub.server.ServerInitializeException;
+import org.cloudhub.server.conf.ConfigurationException;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import java.io.IOException;
+import org.springframework.core.env.Environment;
 
 /**
  * @author RollW
@@ -42,8 +39,13 @@ import java.io.IOException;
 public class FileServerRuntimeConfiguration {
     private final FileConfigLoader fileConfigLoader;
 
-    public FileServerRuntimeConfiguration() throws IOException {
-        this.fileConfigLoader = FileConfigLoader.tryOpenDefault();
+    public FileServerRuntimeConfiguration(Environment environment) {
+        this.fileConfigLoader = environment.getProperty(
+                ApplicationHelper.CONFIG_LOADER_KEY, FileConfigLoader.class);
+        if (fileConfigLoader == null) {
+            throw new ServerInitializeException(
+                    "FileConfigLoader is null, it should be set in the environment.");
+        }
     }
 
     @Bean
