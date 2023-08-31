@@ -28,7 +28,8 @@ import org.cloudhub.file.fs.container.*;
 import org.cloudhub.file.fs.meta.SerializedContainerBlockMeta;
 import org.cloudhub.file.rpc.replica.*;
 import org.cloudhub.file.server.service.ClientFileServerChannelPool;
-import org.cloudhub.file.server.service.SourceServerGetter;
+import org.cloudhub.server.ServerInfo;
+import org.cloudhub.server.SourceServerGetter;
 import org.cloudhub.rpc.GrpcProperties;
 import org.cloudhub.rpc.GrpcServiceStubPool;
 import org.cloudhub.rpc.StreamObserverWrapper;
@@ -70,7 +71,7 @@ public class ReplicaService {
         this.containerReadOpener = containerReadOpener;
     }
 
-    private SerializedFileServer toSerializedServer(SourceServerGetter.ServerInfo serverInfo) {
+    private SerializedFileServer toSerializedServer(ServerInfo serverInfo) {
         return SerializedFileServer.newBuilder()
                 .setPort(serverInfo.port())
                 .setId(serverInfo.id())

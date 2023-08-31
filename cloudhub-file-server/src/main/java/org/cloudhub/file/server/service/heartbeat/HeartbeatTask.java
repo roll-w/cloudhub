@@ -23,10 +23,7 @@ import io.grpc.ManagedChannel;
 import io.grpc.Status;
 import org.cloudhub.file.server.service.ContainerDiagnosable;
 import org.cloudhub.file.server.service.Monitorable;
-import org.cloudhub.file.server.service.SourceServerGetter;
-import org.cloudhub.file.server.service.ContainerDiagnosable;
-import org.cloudhub.file.server.service.Monitorable;
-import org.cloudhub.file.server.service.SourceServerGetter;
+import org.cloudhub.server.SourceServerGetter;
 import org.cloudhub.file.rpc.heartbeat.HeartbeatResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -151,8 +148,7 @@ public class HeartbeatTask {
         if (errorCount.get() == 0) {
             return;
         }
-        logger.debug("Send heartbeat success after {} times.", errorCount.get());
-        errorCount.set(0);
+        logger.debug("Send heartbeat success after {} times.", errorCount.getAndSet(0));
     }
 
     private void recordStatus(Status status) {

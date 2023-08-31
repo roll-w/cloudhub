@@ -18,6 +18,7 @@
  */
 
 package org.cloudhub.conf;
+package org.cloudhub.server.conf;
 
 import java.io.File;
 import java.io.FileInputStream;

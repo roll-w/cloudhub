@@ -21,7 +21,7 @@ package org.cloudhub.meta.server.service.id;
 
 import com.google.common.base.Strings;
 import com.google.common.io.Files;
-import org.cloudhub.file.CleanProperties;
+import org.cloudhub.util.CleanProperties;
 import org.cloudhub.meta.server.configuration.FileProperties;
 import org.cloudhub.server.ServerIdentifiable;
 import org.cloudhub.server.ServerInitializeException;

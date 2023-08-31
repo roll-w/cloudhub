@@ -19,10 +19,10 @@
 
 package org.cloudhub.file.server.configuration;
 
-import org.cloudhub.file.server.service.SourceServerGetter;
 import org.cloudhub.rpc.GrpcProperties;
 import org.cloudhub.server.ServerIdentifiable;
-import org.springframework.context.annotation.Bean;
+import org.cloudhub.server.ServerInfo;
+import org.cloudhub.server.SourceServerGetter;
 import org.springframework.context.annotation.Configuration;
 
 import java.net.InetAddress;
@@ -49,7 +49,6 @@ public class ServerInfoConfiguration implements SourceServerGetter {
     }
 
     @Override
-    @Bean
     public ServerInfo getLocalServer() {
         return serverInfo;
     }

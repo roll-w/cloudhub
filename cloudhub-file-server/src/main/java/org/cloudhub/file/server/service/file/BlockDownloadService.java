@@ -31,7 +31,8 @@ import org.cloudhub.file.fs.container.ContainerProperties;
 import org.cloudhub.file.fs.container.ContainerReadOpener;
 import org.cloudhub.file.fs.container.file.ContainerFileReader;
 import org.cloudhub.file.rpc.block.*;
-import org.cloudhub.file.server.service.SourceServerGetter;
+import org.cloudhub.server.ServerInfo;
+import org.cloudhub.server.SourceServerGetter;
 import org.cloudhub.rpc.GrpcProperties;
 import org.cloudhub.rpc.StatusHelper;
 import org.cloudhub.rpc.StreamObserverWrapper;
@@ -55,7 +56,7 @@ public class BlockDownloadService extends BlockDownloadServiceGrpc.BlockDownload
     private final ContainerFinder containerFinder;
     private final ContainerProperties containerProperties;
     private final GrpcProperties grpcProperties;
-    private final SourceServerGetter.ServerInfo serverInfo;
+    private final ServerInfo serverInfo;
 
     public BlockDownloadService(ContainerReadOpener containerReadOpener,
                                 ContainerFinder containerFinder,
@@ -89,7 +90,7 @@ public class BlockDownloadService extends BlockDownloadServiceGrpc.BlockDownload
         private final ContainerFinder containerFinder;
         private final ContainerProperties containerProperties;
         private final GrpcProperties grpcProperties;
-        private final SourceServerGetter.ServerInfo serverInfo;
+        private final ServerInfo serverInfo;
 
         private DownloadBlocksStreamObserver(
                 StreamObserver<DownloadBlockResponse> observer,
@@ -97,7 +98,7 @@ public class BlockDownloadService extends BlockDownloadServiceGrpc.BlockDownload
                 ContainerFinder containerFinder,
                 ContainerProperties containerProperties,
                 GrpcProperties grpcProperties,
-                SourceServerGetter.ServerInfo serverInfo) {
+                ServerInfo serverInfo) {
             this.observer = new StreamObserverWrapper<>(observer);
             this.containerReadOpener = containerReadOpener;
             this.containerFinder = containerFinder;

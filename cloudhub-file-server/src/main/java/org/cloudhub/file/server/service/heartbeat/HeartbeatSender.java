@@ -23,7 +23,8 @@ import io.grpc.ManagedChannel;
 import org.cloudhub.file.diagnosis.Diagnosable;
 import org.cloudhub.file.diagnosis.DiagnosisReportSegment;
 import org.cloudhub.file.server.service.Monitorable;
-import org.cloudhub.file.server.service.SourceServerGetter;
+import org.cloudhub.server.ServerInfo;
+import org.cloudhub.server.SourceServerGetter;
 import org.cloudhub.fs.status.StatusKeys;
 import org.cloudhub.server.DiskUsageInfo;
 import org.cloudhub.server.ServerHostInfo;
@@ -44,7 +45,7 @@ import java.util.Map;
 public class HeartbeatSender {
     private final HeartbeatServiceGrpc.HeartbeatServiceBlockingStub serviceStub;
     private final Diagnosable<SerializedDamagedContainerReport> damagedContainerDiagnosis;
-    private final SourceServerGetter.ServerInfo serverInfo;
+    private final ServerInfo serverInfo;
     private final Monitorable monitorable;
 
     public HeartbeatSender(ManagedChannel channel,

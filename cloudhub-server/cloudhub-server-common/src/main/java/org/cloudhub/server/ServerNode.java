@@ -17,14 +17,18 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package org.cloudhub.file.server.service;
+package org.cloudhub.server;
 
 /**
  * @author RollW
  */
-public interface SourceServerGetter {
-    ServerInfo getLocalServer();
+public interface ServerNode extends ServerIdentifiable {
+    @Override
+    String getServerId();
 
-    record ServerInfo(String id, String host, int port) {
-    }
+    String getHost();
+
+    int getPort();
+
+    String getAddress();
 }

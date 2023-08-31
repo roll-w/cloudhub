@@ -32,7 +32,8 @@ import org.cloudhub.file.fs.meta.MetadataException;
 import org.cloudhub.file.rpc.block.BlockDeleteServiceGrpc;
 import org.cloudhub.file.rpc.block.DeleteBlocksRequest;
 import org.cloudhub.file.rpc.block.DeleteBlocksResponse;
-import org.cloudhub.file.server.service.SourceServerGetter;
+import org.cloudhub.server.ServerInfo;
+import org.cloudhub.server.SourceServerGetter;
 import org.cloudhub.file.server.service.replica.ReplicaService;
 import org.cloudhub.file.server.service.replica.ReplicaSynchroPart;
 import org.cloudhub.server.rpc.server.SerializedFileServer;
@@ -54,7 +55,7 @@ public class BlockDeleteService extends BlockDeleteServiceGrpc.BlockDeleteServic
     private final ContainerDeleter containerDeleter;
     private final ReplicaService replicaService;
     private final Logger logger = LoggerFactory.getLogger(BlockDeleteService.class);
-    private final SourceServerGetter.ServerInfo serverInfo;
+    private final ServerInfo serverInfo;
 
     public BlockDeleteService(ContainerAllocator containerAllocator,
                               ContainerFinder containerFinder,

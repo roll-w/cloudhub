@@ -22,28 +22,20 @@ package org.cloudhub.file.server.service.replica;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 import org.cloudhub.file.fs.LockException;
-import org.cloudhub.file.fs.block.Block;
-import org.cloudhub.file.fs.container.replica.ReplicaContainerCreator;
-import org.cloudhub.file.fs.container.replica.ReplicaContainerDeleter;
-import org.cloudhub.file.fs.container.replica.ReplicaContainerNameMeta;
-import org.cloudhub.file.io.IoUtils;
-import org.cloudhub.file.server.service.SourceServerGetter;
-import org.cloudhub.rpc.StreamObserverWrapper;
-import org.cloudhub.server.rpc.server.SerializedFileServer;
-import org.cloudhub.file.fs.LockException;
-import org.cloudhub.file.fs.block.Block;
 import org.cloudhub.file.fs.container.Container;
 import org.cloudhub.file.fs.container.ContainerChecker;
 import org.cloudhub.file.fs.container.ContainerWriter;
 import org.cloudhub.file.fs.container.ContainerWriterOpener;
+import org.cloudhub.file.fs.block.Block;
 import org.cloudhub.file.fs.container.replica.ReplicaContainerCreator;
 import org.cloudhub.file.fs.container.replica.ReplicaContainerDeleter;
 import org.cloudhub.file.fs.container.replica.ReplicaContainerNameMeta;
 import org.cloudhub.file.io.IoUtils;
 import org.cloudhub.file.rpc.replica.*;
-import org.cloudhub.file.server.service.SourceServerGetter;
-import org.cloudhub.rpc.StreamObserverWrapper;
+import org.cloudhub.server.ServerInfo;
+import org.cloudhub.server.SourceServerGetter;
 import org.cloudhub.server.rpc.server.SerializedFileServer;
+import org.cloudhub.rpc.StreamObserverWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -63,7 +55,7 @@ public class ReplicaReceiveService extends ReplicaServiceGrpc.ReplicaServiceImpl
     private final ReplicaContainerDeleter replicaContainerDeleter;
     private final ContainerWriterOpener containerWriterOpener;
     private final ContainerChecker containerChecker;
-    private final SourceServerGetter.ServerInfo serverInfo;
+    private final ServerInfo serverInfo;
 
     public ReplicaReceiveService(ReplicaContainerCreator replicaContainerCreator,
                                  ReplicaContainerDeleter replicaContainerDeleter,
