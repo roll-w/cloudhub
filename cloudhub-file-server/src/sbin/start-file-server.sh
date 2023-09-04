@@ -125,11 +125,11 @@ if [ "$HAS_DAEMON" = 1 ]; then
   exit 0
 fi
 
+echo "Starting cloudhub-file-server......[OK]"
+echo ""
+
 if [ "$HAS_CONFIG" = 1 ]; then
   "$JAVA_HOME"/bin/java -jar bin/cloudhub-file-server.jar --config "$CONFIG_PARAM"
 else
   "$JAVA_HOME"/bin/java -jar bin/cloudhub-file-server.jar
 fi
-
-echo "Starting cloudhub-file-server......[OK]"
-echo ""
