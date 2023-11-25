@@ -91,7 +91,7 @@ public class FileServerIdInitializer implements ServerIdentifiable {
         }
 
         UUID uid = UUID.randomUUID();
-        properties.setProperty(META_ID_KEY, uid.toString());
+        properties.setProperty(FILE_ID_KEY, uid.toString());
         try (Writer writer = Files.asCharSink(file, StandardCharsets.UTF_8)
                 .openBufferedStream()) {
             properties.store(writer, COMMENT);
