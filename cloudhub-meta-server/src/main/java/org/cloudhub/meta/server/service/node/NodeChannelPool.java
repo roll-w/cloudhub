@@ -23,8 +23,7 @@ import io.grpc.ManagedChannel;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudhub.rpc.GrpcChannelPool;
 import org.cloudhub.rpc.GrpcProperties;
-
-import java.util.concurrent.TimeUnit;
+import org.cloudhub.rpc.TargetGrpcChannelPool;
 
 /**
  * Manage gRPC channels through {@link FileNodeServer}.
@@ -33,21 +32,21 @@ import java.util.concurrent.TimeUnit;
  */
 public class NodeChannelPool extends GrpcChannelPool<FileNodeServer>
         implements ServerEventRegistry.ServerEventCallback {
-    private final GrpcProperties grpcProperties;
+    private final TargetGrpcChannelPool delegate;
 
     public NodeChannelPool(GrpcProperties grpcProperties) {
-        this.grpcProperties = grpcProperties;
+        this.delegate = new TargetGrpcChannelPool(grpcProperties, (builder -> {
+        }));
+    }
+
+    public NodeChannelPool(TargetGrpcChannelPool delegate) {
+        this.delegate = delegate;
     }
 
     @Override
     @NonNull
-    protected ManagedChannel buildChannel(NodeServer server) {
-        return ManagedChannelBuilder.forAddress(server.host(), server.port())
-                .usePlaintext()
-                .keepAliveTime(300, TimeUnit.DAYS)
-                .keepAliveTimeout(30, TimeUnit.MINUTES)
-                .maxInboundMessageSize((int) grpcProperties.getMaxRequestSizeBytes() * 2)
-                .build();
+    protected ManagedChannel buildChannel(FileNodeServer server) {
+        return delegate.forTarget(server.getAddress());
     }
 
     @Override
