@@ -20,6 +20,7 @@
 package org.cloudhub.meta.server.service.node.util;
 
 import com.google.common.hash.Hashing;
+import org.cloudhub.server.ServerIdentifiable;
 import org.cloudhub.util.math.Maths;
 
 import java.nio.charset.StandardCharsets;
@@ -173,8 +174,13 @@ public class ConsistentHashServerMap<S extends ConsistentHashServerMap.Server> {
         return Maths.ceilDivide(WEIGHT_VIRTUAL_NODES * len * weight, totalWeight);
     }
 
-    public interface Server {
+    public interface Server extends ServerIdentifiable {
         String getId();
+
+        @Override
+        default String getServerId() {
+            return getId();
+        }
     }
 
     public record ServerWeight<S extends Server>(
