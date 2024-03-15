@@ -1,3 +1,3 @@
-# Cloudhub Java API
+# Cloudhub Client
 
-此模块提供了CFS的Java API，可以用于在Java程序中访问CFS。
+This module provides the Java API of CFS, which can be used to access CFS in Java programs.
